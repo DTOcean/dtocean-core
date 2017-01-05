@@ -1,0 +1,1256 @@
+# -*- coding: utf-8 -*-
+
+#    Copyright (C) 2016 'Mathew Topper, Vincenzo Nava, David Bould, Rui Duarte,
+#                       'Francesco Ferri, Adam Collin'
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+"""
+This module contains the package interface to the dtocean mooring and
+foundations module.
+
+Note:
+  The function decorators (such as '@classmethod', etc) must not be removed.
+
+.. module:: moorings
+   :platform: Windows
+   :synopsis: Aneris interface for dtocean_core package
+   
+.. moduleauthor:: Mathew Topper <mathew.topper@tecnalia.com>
+                  Vincenzo Nava <vincenzo.nava@tecnalia.com>
+"""
+
+# Built in modules
+import pickle
+
+# External 3rd party libraries
+import numpy as np
+import pandas as pd
+
+# External DTOcean libraries
+from aneris.boundary.interface import MaskVariable
+from dtocean_moorings.main import Variables, Main
+
+# DTOcean Core modules
+from . import ModuleInterface
+from ..tools.moorings import get_component_dict
+
+class MooringsInterface(ModuleInterface):
+    
+    '''Interface to the moorings and foundations module.
+
+    '''
+        
+    @classmethod         
+    def get_name(cls):
+        
+        '''A class method for the common name of the interface.
+        
+        Returns:
+          str: A unique string
+        '''
+        
+        return 'Mooring and Foundations'
+        
+    @classmethod         
+    def declare_weight(cls):
+        
+        return 3
+
+    @classmethod         
+    def declare_inputs(cls):
+        
+        '''A class method to declare all the variables required as inputs by
+        this interface. 
+        
+        Returns:
+          list: List of inputs identifiers
+        
+        Example:
+          The returned value can be None or a list of identifier strings which 
+          appear in the data descriptions. For example::
+          
+              inputs = ['My:first:variable',
+                        'My:second:variable',
+                       ]
+        '''
+
+        input_list  =  [ 
+                 'bathymetry.line_bearing_capacity_factor',
+                 'bathymetry.pile_Am_moment_coefficient',
+                 'bathymetry.pile_Bm_moment_coefficient',
+                 'bathymetry.pile_deflection_coefficients',
+                 'bathymetry.pile_skin_friction_end_bearing_capacity',
+                 'bathymetry.soil_cohesionless_reaction_coefficient',
+                 'bathymetry.soil_cohesive_reaction_coefficient',
+                 'bathymetry.soil_drained_holding_capacity_factor',
+                 'constants.gravity',
+                 'constants.sea_water_density',
+                 'constants.air_density',
+                 'constants.steel_density',
+                 'constants.concrete_density',
+                 'constants.grout_density',
+                 'constants.grout_compressive_strength',
+                 'bathymetry.soil_sensitivity',
+                 'bathymetry.layers',
+                 'device.coordinate_system',
+                 'constants.cylinder_drag',
+                 'constants.cylinder_wake_amplificiation',
+                 MaskVariable('device.depth_variation_permitted',
+                              'device.system_type',
+                              ['Tidal Floating', 'Wave Floating']),
+                 'device.dry_beam_area',
+                 'device.dry_frontal_area',
+                 MaskVariable('device.fairlead_location',
+                              'device.system_type',
+                              ['Tidal Floating', 'Wave Floating']),
+                 'device.foundation_location',
+                 'device.foundation_safety_factor',
+                 'device.foundation_type',
+                 MaskVariable('device.maximum_displacement',
+                              'device.system_type',
+                              ['Tidal Floating', 'Wave Floating']),
+                 MaskVariable('device.mooring_system_type',
+                              'device.system_type',
+                              ['Tidal Floating', 'Wave Floating']),
+                 'farm.main_direction',
+                 'device.prescribed_footprint_radius',
+                 'constants.rectangular_current_drag',
+                 'constants.rectangular_drift',
+                 'constants.rectangular_wind_drag',
+                 'device.system_centre_of_gravity',
+                 'device.system_displaced_volume',
+                 MaskVariable('device.system_draft',
+                              'device.system_type',
+                              ['Tidal Floating', 'Wave Floating']),
+                 'device.system_height',
+                 'device.system_length',
+                 'device.system_mass',
+                 'device.system_profile',
+                 'device.system_roughness',
+                 'device.system_type',
+                 'device.system_width',
+                 MaskVariable('device.turbine_performance',
+                              'device.system_type',
+                              ['Tidal Fixed', 'Tidal Floating']),
+                 MaskVariable('device.turbine_diameter',
+                              'device.system_type',
+                              ['Tidal Fixed', 'Tidal Floating']),
+                 MaskVariable('device.turbine_interdistance',
+                              'device.system_type',
+                              ['Tidal Fixed', 'Tidal Floating']),
+                 MaskVariable('device.umbilical_type',
+                              'device.system_type',
+                              ['Tidal Floating', 'Wave Floating']),
+                 MaskVariable('device.umbilical_safety_factor',
+                              'device.system_type',
+                              ['Tidal Floating', 'Wave Floating']),
+                 MaskVariable("device.umbilical_connection_point",
+                              'device.system_type',
+                              ['Tidal Floating', 'Wave Floating']),
+                 'device.wet_beam_area',
+                 'device.wet_frontal_area',
+                 'farm.current_profile',
+                 'farm.direction_of_max_surface_current',
+                 'farm.grout_strength_safety_factor',
+                 'farm.layout',
+                 'farm.max_gust_wind_direction_100_year',
+                 'farm.max_gust_wind_speed_100_year',
+                 'farm.max_surface_current_10_year',
+                 'farm.max_water_level_50_year',
+                 'farm.max_hs_100_year',
+                 'farm.max_tp_100_year',
+                 'farm.mean_wind_direction_100_year',
+                 'farm.mean_wind_speed_100_year',
+                 'farm.min_water_level_50_year',
+                 MaskVariable('farm.mooring_ALS_safety_factor',
+                              'device.system_type',
+                              ['Tidal Floating', 'Wave Floating']),
+                 MaskVariable('farm.mooring_ULS_safety_factor',
+                              'device.system_type',
+                              ['Tidal Floating', 'Wave Floating']),
+                 'farm.wave_direction_100_year',
+                 'farm.spec_gamma',
+                 'project.cost_of_concrete',
+                 'project.cost_of_grout',
+                 'project.cost_of_steel',
+                 'constants.rectangular_wave_inertia',
+                 'component.predefined_mooring_list',
+                 'component.fabrication_cost',
+                 'bathymetry.soilprops',
+                 'device.external_forces',
+                 "farm.substation_props",
+                 'farm.substation_layout',
+                 'farm.substation_cog',
+                 'farm.substation_foundation_location',
+                 "component.foundations_anchor",
+                 'component.foundations_anchor_sand',
+                 'component.foundations_anchor_soft',
+                 "component.foundations_pile",
+                 MaskVariable("component.moorings_chain",
+                              'device.system_type',
+                              ['Tidal Floating', 'Wave Floating']), 
+                 MaskVariable("component.moorings_forerunner",
+                              'device.system_type',
+                              ['Tidal Floating', 'Wave Floating']), 
+                 MaskVariable("component.moorings_rope",
+                              'device.system_type',
+                              ['Tidal Floating', 'Wave Floating']),                  
+                 MaskVariable("component.moorings_shackle",
+                              'device.system_type',
+                              ['Tidal Floating', 'Wave Floating']),                    
+                 MaskVariable("component.moorings_swivel",
+                              'device.system_type',
+                              ['Tidal Floating', 'Wave Floating']),                  
+                 MaskVariable("component.moorings_rope_stiffness",
+                              'device.system_type',
+                              ['Tidal Floating', 'Wave Floating']),                  
+                 MaskVariable("component.moorings_umbilical",
+                              'device.system_type',
+                              ['Tidal Floating', 'Wave Floating']),
+                 MaskVariable("farm.umbilical_seabed_connection",
+                              'device.system_type',
+                              ['Tidal Floating', 'Wave Floating'])
+                 ]
+                                                
+        return input_list
+
+    @classmethod        
+    def declare_outputs(cls):
+        
+        '''A class method to declare all the output variables provided by
+        this interface.
+        
+        Returns:
+          list: List of output identifiers
+        
+        Example:
+          The returned value can be None or a list of identifier strings which 
+          appear in the data descriptions. For example::
+          
+              outputs = ['My:first:variable',
+                         'My:third:variable',
+                        ]
+        '''
+        
+        output_list = ["farm.moorings_foundations_network",
+                       "farm.moorings_foundations_economics_data",
+                       "farm.foundations_component_data",
+                       "farm.foundations_soil_data",
+                       "farm.moorings_component_data",
+                       "farm.line_data",
+                       "farm.umbilical_cable_data",
+                       "farm.moorings_dimensions"]
+        
+        return output_list
+        
+    @classmethod        
+    def declare_optional(cls):
+        
+        '''A class method to declare all the variables which should be flagged
+        as optional.
+        
+        Returns:
+          list: List of optional variable identifiers
+        
+        Note:
+          Currently only inputs marked as optional have any logical effect.
+          However, this may change in future releases hence the general
+          approach.
+        
+        Example:
+          The returned value can be None or a list of identifier strings which 
+          appear in the declare_inputs output. For example::
+          
+              optional = ['My:first:variable',
+                         ]
+        '''
+        
+        option_list = ["component.fabrication_cost",
+                       "component.predefined_mooring_list",
+                       'device.foundation_type',
+                       'device.mooring_system_type',
+                       'device.prescribed_footprint_radius',
+                       "device.turbine_interdistance",
+                       "device.external_forces",
+                       'device.umbilical_type',
+                       "farm.substation_props",
+                       'farm.substation_layout',
+                       'farm.substation_cog',
+                       'farm.substation_foundation_location'
+                       ]
+                
+        return option_list
+        
+    @classmethod 
+    def declare_id_map(self):
+        
+        '''Declare the mapping for variable identifiers in the data description
+        to local names for use in the interface. This helps isolate changes in
+        the data description or interface from effecting the other.
+        
+        Returns:
+          dict: Mapping of local to data description variable identifiers 
+        
+        Example:
+          The returned value must be a dictionary containing all the inputs and
+          outputs from the data description and a local alias string. For
+          example::
+          
+              id_map = {'var1': 'My:first:variable',
+                        'var2': 'My:second:variable',
+                        'var3': 'My:third:variable'
+                       }
+        
+        '''
+                  
+        id_map = {  
+                    "bathymetry": "bathymetry.layers",
+                    'airden': 'constants.air_density',
+                    'conden': 'constants.concrete_density',
+                    'costcon': 'project.cost_of_concrete',
+                    'costgrout': 'project.cost_of_grout',
+                    'coststeel': 'project.cost_of_steel',
+                    'currentdir': 'farm.direction_of_max_surface_current',
+                    'currentdragcoefrect':
+                        'constants.rectangular_current_drag',
+                    'currentprof': 'farm.current_profile',
+                    'currentvel': 'farm.max_surface_current_10_year',
+                    'depvar': 'device.depth_variation_permitted',
+                    'dragcoefcyl': 'constants.cylinder_drag',
+                    'driftcoeffloatrect': 'constants.rectangular_drift',
+                    'fairloc': 'device.fairlead_location',
+                    'foundloc': 'device.foundation_location',
+                    'foundsf': 'device.foundation_safety_factor',
+                    'gamma': 'farm.spec_gamma',
+                    'gravity': 'constants.gravity',
+                    'groutden': 'constants.grout_density',
+                    'groutsf': 'farm.grout_strength_safety_factor',
+                    'groutstr': 'constants.grout_compressive_strength',
+                    'hcfdrsoil':
+                        'bathymetry.soil_drained_holding_capacity_factor',
+                    'hs': 'farm.max_hs_100_year',
+                    'k1coef': 'bathymetry.soil_cohesive_reaction_coefficient',
+                    'LCS': 'device.coordinate_system',
+                    'linebcf': 'bathymetry.line_bearing_capacity_factor',
+                    'maxdisp': 'device.maximum_displacement',
+                    'moorsfals': 'farm.mooring_ALS_safety_factor',
+                    'moorsfuls': 'farm.mooring_ULS_safety_factor',
+                    'piledefcoef': 'bathymetry.pile_deflection_coefficients',
+                    'pilefricresnoncal':
+                        'bathymetry.pile_skin_friction_end_bearing_capacity',
+                    'pilemomcoefam': 'bathymetry.pile_Am_moment_coefficient',
+                    'pilemomcoefbm': 'bathymetry.pile_Bm_moment_coefficient',
+                    'prefootrad': 'device.prescribed_footprint_radius',
+                    'prefound': 'device.foundation_type',
+                    'premoor': 'device.mooring_system_type',
+                    'preumb': 'device.umbilical_type',
+                    'rotor_diam': 'device.turbine_diameter',
+                    'seaden': 'constants.sea_water_density',
+                    'soilsen': 'bathymetry.soil_sensitivity',
+                    'steelden': 'constants.steel_density',
+                    'subgradereaccoef':
+                        'bathymetry.soil_cohesionless_reaction_coefficient',
+                    'syscog': 'device.system_centre_of_gravity',
+                    'sysdraft': 'device.system_draft',
+                    'sysdryba': 'device.dry_beam_area',
+                    'sysdryfa': 'device.dry_frontal_area',
+                    'sysheight': 'device.system_height',
+                    'syslength': 'device.system_length',
+                    'sysmass': 'device.system_mass',
+                    'sysorienang': 'farm.main_direction',
+                    'sysprof': 'device.system_profile',
+                    'sysrough': 'device.system_roughness',
+                    'sysvol': 'device.system_displaced_volume',
+                    'syswetba': 'device.wet_beam_area',
+                    'syswetfa': 'device.wet_frontal_area',
+                    'syswidth': 'device.system_width',
+                    'system_position': 'farm.layout',
+                    'system_type': 'device.system_type',
+                    'turbine_performance': 'device.turbine_performance',
+                    'tp': 'farm.max_tp_100_year',
+                    'turbine_interdist': 'device.turbine_interdistance',
+                    'umbsf': 'device.umbilical_safety_factor',
+                    'wakeampfactorcyl':
+                        'constants.cylinder_wake_amplificiation',
+                    'wavedir': 'farm.wave_direction_100_year',
+                    'winddir': 'farm.mean_wind_direction_100_year',
+                    'winddragcoefrect': 'constants.rectangular_wind_drag',
+                    'windgustdir': 'farm.max_gust_wind_direction_100_year',
+                    'windgustvel': 'farm.max_gust_wind_speed_100_year',
+                    'windvel': 'farm.mean_wind_speed_100_year',
+                    'wlevmax': 'farm.max_water_level_50_year',
+                    'wlevmin': 'farm.min_water_level_50_year',
+                    'waveinertiacoefrect':
+                        'constants.rectangular_wave_inertia',
+                    'preline': 'component.predefined_mooring_list',
+                    'fabcost': 'component.fabrication_cost',
+                    'soilprops': 'bathymetry.soilprops',
+                    'fex': 'device.external_forces',
+                    "substparams" : "farm.substation_props",
+                    "umbilical_data" : "farm.umbilical_cable_data",
+                    "dev_umbilical_point": "device.umbilical_connection_point",
+                    "foundations_anchor": "component.foundations_anchor",
+                    'foundations_anchor_sand':
+                        'component.foundations_anchor_sand',
+                    'foundations_anchor_soft':
+                        'component.foundations_anchor_soft',
+                    "foundations_pile": "component.foundations_pile",
+                    "moorings_chain": "component.moorings_chain",
+                    "moorings_forerunner": "component.moorings_forerunner",
+                    "moorings_rope": "component.moorings_rope",
+                    "moorings_shackle": "component.moorings_shackle",
+                    "moorings_swivel": "component.moorings_swivel",
+                    "moorings_umbilical": "component.moorings_umbilical",
+                    "rope_stiffness": "component.moorings_rope_stiffness",
+                    'substation_layout': 'farm.substation_layout',
+                    'substation_cog': 'farm.substation_cog',
+                    'substation_foundations':
+                      'farm.substation_foundation_location',
+                    'network': "farm.moorings_foundations_network",
+                    "economics_data":
+                        "farm.moorings_foundations_economics_data",
+                    "foundations_data": "farm.foundations_component_data",
+                    "foundations_soil_data": "farm.foundations_soil_data",
+                    "seabed_connection": "farm.umbilical_seabed_connection",
+                    "moorings_data": "farm.moorings_component_data",
+                    "line_data": "farm.line_data",
+                    "dimensions_data": "farm.moorings_dimensions"
+                    }
+                  
+        return id_map
+                 
+    def connect(self, debug_entry=False,
+                      export_data=True):
+        
+        '''The connect method is used to execute the external program and 
+        populate the interface data store with values.
+        
+        Note:
+          Collecting data from the interface for use in the external program
+          can be accessed using self.data.my_input_variable. To put new values
+          into the interface once the program has run we set
+          self.data.my_output_variable = value
+        
+        '''
+        
+        ## ENVIRONMENT
+        
+        # Bathymetry (**assume layer 1 in uppermost**)
+        zv = self.data.bathymetry["depth"].sel(layer="layer 1").values
+        xv, yv = np.meshgrid(self.data.bathymetry["x"].values,
+                             self.data.bathymetry["y"].values)
+        bathy_table = np.dstack([xv.flatten(), yv.flatten(), zv.flatten()])[0]
+        safe_bathy = bathy_table[~np.isnan(bathy_table).any(axis=1)]
+        
+        # Sediments
+        sv = self.data.bathymetry["sediment"].sel(layer="layer 1").values
+        
+        # Convert to short codes
+        sv[sv == 'loose sand'] = 'ls'
+        sv[sv == 'medium sand'] = 'ms'
+        sv[sv == 'dense sand'] = 'ds'
+        sv[sv == 'very soft clay'] = 'vsc'
+        sv[sv == 'soft clay'] = 'sc'
+        sv[sv == 'firm clay'] = 'fc'
+        sv[sv == 'stiff clay'] = 'stc'
+        sv[sv == 'hard glacial till'] = 'hgt'
+        sv[sv == 'cemented'] = 'cm'
+        sv[sv == 'soft rock coral'] = 'src'
+        sv[sv == 'hard rock'] = 'hr'
+        sv[sv == 'gravel cobble'] = 'gc'
+        
+        infv = np.ones(sv.shape) * np.inf
+        
+        soil_table = np.dstack([xv.flatten(),
+                                yv.flatten(),
+                                sv.flatten(),
+                                infv.flatten()])[0]
+        safe_soil = soil_table[(soil_table != np.array(None)).any(axis=1)]
+                                        
+        # Distances
+        a = self.data.bathymetry["x"].values[:-1]
+        b = self.data.bathymetry["x"].values[1:]
+        bathy_deltax = (b - a).mean()    
+
+        a = self.data.bathymetry["y"].values[:-1]
+        b = self.data.bathymetry["y"].values[1:]
+        bathy_deltay = (b - a).mean() 
+
+        # Soil properties
+        name_map = {"Drained Soil Friction Angle": "dsfang",
+                    "Relative Soil Density": "relsoilden",
+                    "Buoyant Unit Weight of Soil": "soilweight",
+                    "Undrained Soil / Rock Shear Strength 1": "unshstr0",
+                    "Undrained Soil / Rock Shear Strength 2": "unshstr1",
+                    "Effective Drained Cohesion": "draincoh",
+                    "Seafloor Friction Coefficient": "seaflrfriccoef",
+                    "Soil Sensitivity": "soilsen",
+                    "Rock Compressive Strength": "rockcompstr"
+                     }
+                     
+        # Convert soil types to short codes
+        soil_map = {'loose sand': 'ls',
+                    'medium sand': 'ms',
+                    'dense sand': 'ds',
+                    'very soft clay': 'vsc',
+                    'soft clay': 'sc',
+                    'firm clay': 'fc',
+                    'stiff clay': 'stc',
+                    'hard glacial till': 'hgt',
+                    'cemented': 'cm',
+                    'soft rock coral': 'src',
+                    'hard rock': 'hr',
+                    'gravel cobble': 'gc'}
+                             
+        soilprops_df = self.data.soilprops
+                    
+        soilprops_df["Soil Type"] = soilprops_df["Soil Type"].map(soil_map)
+        soilprops_df = soilprops_df.set_index("Soil Type")
+        soilprops_df = soilprops_df.rename(columns=name_map)
+                
+        ## STRUCTURES
+                   
+        # Translate device type
+        dev_translate = {'Tidal Fixed': 'tidefixed',
+                         'Tidal Floating': 'tidefloat',
+                         'Wave Fixed': 'wavefixed',
+                         'Wave Floating': 'wavefloat'}
+        systype = dev_translate[self.data.system_type]
+        
+        # Build tidal device characteristics              
+        if 'Tidal' in self.data.system_type:
+            
+            Clen = (self.data.rotor_diam, self.data.turbine_interdist)
+            hubheight = self.data.LCS[2]
+            thrustcurv = self.data.turbine_performance[
+                            'Coefficient of Thrust'].reset_index().values
+            
+        else:        
+            
+            Clen = None
+            hubheight = None
+            thrustcurv = None
+            
+        # Predefined foundation option
+        translate = {'Shallow': 'shallowfoundation',
+                     'Gravity': 'gravity',
+                     'Pile': 'pile',
+                     'Suction Caisson': 'suctioncaisson',
+                     'Direct Embedment': 'directembedment',
+                     'Drag': 'drag'}
+
+        if self.data.prefound is None:
+            prefound_low = None
+        else:
+            prefound_low = translate[self.data.prefound]
+        
+        # Floating Device characteristics
+        if "floating" in self.data.system_type.lower():
+            
+            # Fairleads
+            fair_loc_list = self.data.fairloc
+            
+            # Predefined mooring types (optional)
+            if self.data.premoor is not None:
+                premoor_low = self.data.premoor.lower()
+            else:
+                premoor_low = None
+                
+            # Umbilical data
+            umbilical_connection = self.data.dev_umbilical_point
+            seabed_connection = self.data.seabed_connection
+                                          
+            seabed_connection_dict = {}
+            
+            for dev, point in seabed_connection.iteritems():
+                seabed_connection_dict[dev.lower()] = list(point.coords[0])
+            
+        else:
+            
+            fair_loc_list = None
+            premoor_low = None
+            umbilical_connection = None
+            seabed_connection_dict = None
+            
+        # External forces
+        fex = self.data.fex
+        
+        if fex is None:
+            fex_list = None
+        else:
+            fex_list = [fex["Te"].values, 
+                        fex["Dir"].values,
+                        fex["Modes"].values,
+                        np.swapaxes(fex.values, 1, 2)]
+            
+        # Device layout
+        sysorig = {key.lower(): np.append(position, 0.).tolist()
+                        for key, position in self.data.system_position.items()}
+                            
+        devices = sysorig.keys()
+ 
+        # Substations
+        if self.data.substparams is None:
+            
+            substation_props = None
+            
+        else:
+            
+            name_map = { "Substation Identifier" : "substid",
+                    	   "Type" : "presubstfound",
+                         "Mass" : "submass",
+                         "Volume" : "subvol",
+                         "Length" : "sublength",
+                         "Width" : 	"subwidth",
+                         "Height" : "subheight",
+                         "Profile" : "subprof",
+                         "Wet Frontal Area" : "subwetfa",	
+                         "Wet Beam Area" : "subwetba",
+                         "Dry Frontal Area" : "subdryfa",
+                         "Dry Beam Area" : "subdryba",
+                         "Surface Roughness" : "subrough",
+                         "Orientation Angle" : "suborienang",
+                         }
+                         
+            substation_props = self.data.substparams.rename(columns=name_map)
+            substation_props = substation_props.set_index("substid")
+            substation_props = substation_props.drop(["Marker"], axis=1)
+            
+            suborig = pd.Series(name='suborig')
+            subcog = pd.Series(name='subcog')
+            substloc = pd.Series(name='substloc')
+            
+            # Build in positional data for substations
+            for sub_id in substation_props.index:
+                local_orig = list(
+                                self.data.substation_layout[sub_id].coords[0])
+                if len(local_orig) == 2: local_orig.append(0.)
+                
+                suborig[sub_id] = str(local_orig)
+                subcog[sub_id] = str(self.data.substation_cog[sub_id].tolist())
+                                   
+                substloc[sub_id] = str(self.data.substation_foundations[
+                                                            sub_id].tolist())                         
+                
+            substation_props = pd.concat([substation_props,
+                                          suborig,
+                                          subcog,
+                                          substloc],
+                                          axis=1)
+                
+
+        ## COMPONENTS
+        compdict = {}
+        
+        # Foundations
+        anchor_dict = get_component_dict(
+                                "drag anchor",
+                                self.data.foundations_anchor,
+                                sand_data=self.data.foundations_anchor_sand,
+                                soft_data=self.data.foundations_anchor_soft)
+        compdict.update(anchor_dict)
+            
+        pile_dict = get_component_dict("pile",
+                                       self.data.foundations_pile,
+                                       check_keys=compdict.keys())
+        compdict.update(pile_dict)
+        
+        # No umbilical unlesss floating
+        preumb = None
+            
+        # Moorings
+        if "floating" in self.data.system_type.lower():
+            
+            chain_dict = get_component_dict("chain",
+                                            self.data.moorings_chain,
+                                            check_keys=compdict.keys())
+            compdict.update(chain_dict)
+                
+            forerunner_dict = get_component_dict("forerunner assembly",
+                                                 self.data.moorings_forerunner,
+                                                 check_keys=compdict.keys())
+            compdict.update(forerunner_dict)
+                
+            rope_dict = get_component_dict("rope",
+                                           self.data.moorings_rope,
+                                           rope_data=self.data.rope_stiffness,
+                                           check_keys=compdict.keys())
+            compdict.update(rope_dict)
+                
+            shackle_dict = get_component_dict("shackle",
+                                              self.data.moorings_shackle,
+                                              check_keys=compdict.keys())
+            compdict.update(shackle_dict)
+                
+            swivel_dict = get_component_dict("swivel",
+                                             self.data.moorings_swivel,
+                                             check_keys=compdict.keys())
+            compdict.update(swivel_dict)
+            
+            umbilical_dict = get_component_dict("cable",
+                                                self.data.moorings_umbilical,
+                                                check_keys=compdict.keys())
+            compdict.update(umbilical_dict)
+            
+            # Check umbilical definition
+            if self.data.preumb in compdict:
+                preumb = self.data.preumb
+            elif int(self.data.preumb) in compdict:
+                preumb = int(self.data.preumb)
+            elif long(self._variables.preumb) in compdict:
+                preumb = long(self.data.preumb) 
+            else:
+                errStr = ("Selected umbilical component '{}' not found in "
+                          "component dictionary").format(self._variables.preumb)
+                raise KeyError(errStr)
+                
+#    #-------------------------------------------------------------------------- 
+#    #--------------------------------------------------------------------------
+#    #------------------ WP4 Variables class
+#    #--------------------------------------------------------------------------
+#    #-------------------------------------------------------------------------- 
+#    Input of variables into this class 
+#
+#    Functions:        
+#
+#    Args:        
+#        devices (list) [-]: list of device identification numbers
+#        gravity (float) [m/s2]: acceleration due to gravity
+#        seaden (float) [kg/m3]: sea water density
+#        airden (float) [kg/m3]: air density
+#        steelden (float) [kg/m3]: steel density
+#        conden (float) [kg/m3]: concrete density
+#        groutden (float) [kg/m3]: grout density
+#        compdict (dict) [various]: component dictionary
+#        soiltypgrid (numpy.ndarray): soil type grid: X coordinate (float) [m], 
+#                                    Y coordinate (float) [m], 
+#                                    soil type options (str) [-]: 'ls': loose sand,
+#                                                            'ms': medium sand,
+#                                                            'ds': dense sand,
+#                                                            'vsc': very soft clay,
+#                                                            'sc': soft clay,
+#                                                            'fc': firm clay,
+#                                                            'stc': stiff clay,
+#                                                            'hgt': hard glacial till,
+#                                                            'cm': cemented,
+#                                                            'src': soft rock coral,
+#                                                            'hr': hard rock,
+#                                                            'gc': gravel cobble,
+#                                    depth (float) [m]    
+#        seaflrfriccoef (float) [-]: optional soil friction coefficient
+#        bathygrid (numpy.ndarray): bathymetry grid: X coordinate (float) [m], 
+#                                                    Y coordinate (float) [m], 
+#                                                    Z coordinate (float) [m]
+#        bathygriddeltax (float) [m]: bathymetry grid X axis grid spacing
+#        bathygriddeltay (float) [m]: bathymetry grid Y axis grid spacing
+#        wlevmax (float) [m]: maximum water level above mean sea level
+#                             (50 year return period)
+#        wlevmin (float) [m]: minimum water level below mean sea level
+#                             (50 year return period)
+#        currentvel (float) [m/s]: maximum current velocity magnitude
+#                                  (10 year return period)
+#        currentdir (float) [deg]: current direction at maximum velocity 
+#        currentprof (str) [-]: current profile options: 'uniform', 
+#                                                        '1/7 power law'
+#        wavedir (float) [deg]: predominant wave direction(s)
+#        hs (list) [m]: maximum significant wave height (100 year return period)
+#        tp (list) [s]: maximum peak period (100 year return period)
+#        gamma (float) [-]: jonswap shape parameter(s)
+#        windvel (float) [m/s]: mean wind velocity magnitude
+#                               (100 year return period)
+#        winddir (float) [deg]: predominant wind direction 
+#        windgustvel (float) [m/s]: wind gust velocity magnitude
+#                                   (100 year return period)
+#        windgustdir (float) [deg]: wind gust direction
+#        soilprops (pandas) [-]: default soil properties table:  drained soil friction angle [deg],
+#                                                                relative soil density [%],
+#                                                                buoyant unit weight of soil [N/m^3],
+#                                                                undrained soil shear strengths [N/m^2, N/m^2] or rock shear strengths [N/m^2],
+#                                                                effective drained cohesion [N/m^2],
+#                                                                Seafloor friction coefficient [-],
+#                                                                Soil sensitivity [-],
+#                                                                rock compressive strength [N/m^2]        
+#        linebcf (numpy.ndarray): buried mooring line bearing capacity factor:   soil friction angle [deg],
+#                                                                                bearing capacity factor[-]
+#        k1coef (numpy.ndarray): coefficient of subgrade reaction (cohesive soils):  allowable deflection/diameter[-],
+#                                                                                    soft clay coefficient [-],
+#                                                                                    stiff clay coefficient [-]
+#        soilsen (float) [-]: soil sensitivity
+#        subgradereaccoef (numpy.ndarray): coefficient of subgrade reaction (cohesionless soils): allowable deflection/diameter[-],
+#                                                                                                35% relative density coefficient [-],
+#                                                                                                50% relative density coefficient [-],
+#                                                                                                65% relative density coefficient [-],
+#                                                                                                85% relative density coefficient [-]
+#                                           Note that the first row of the array contains the percentiles themselves using 0.0 as the
+#                                           value for the first column
+#        piledefcoef (numpy.ndarray): pile deflection coefficients:  depth coefficient[-],
+#                                                                    coefficient ay [-],
+#                                                                    coefficient by [-]
+#                                                                    
+#        pilemomcoefam (numpy.ndarray): pile moment coefficient am:  depth coefficient[-],
+#                                                                    pile length/relative soil-pile stiffness = 10 [-],
+#                                                                    pile length/relative soil-pile stiffness = 5 [-],	
+#                                                                    pile length/relative soil-pile stiffness = 4 [-],	
+#                                                                    pile length/relative soil-pile stiffness = 3 [-],	
+#                                                                    pile length/relative soil-pile stiffness = 2 [-]
+#                                       Note that the first row of the array contains the stiffnesses themselves using 
+#                                       0.0 as the value for the first column
+#        pilemomcoefbm (numpy.ndarray): pile moment coefficient bm:  depth coefficient[-],
+#                                                                    pile length/relative soil-pile stiffness = 10 [-],
+#                                                                    pile length/relative soil-pile stiffness = 5 [-],	
+#                                                                    pile length/relative soil-pile stiffness = 4 [-],	
+#                                                                    pile length/relative soil-pile stiffness = 3 [-],	
+#                                                                    pile length/relative soil-pile stiffness = 2 [-]
+#                                       Note that the first row of the array contains the stiffnesses themselves using 
+#                                       0.0 as the value for the first column
+#        pilefricresnoncal (numpy.ndarray): pile skin friction and end bearing capacity: soil friction angle [deg],
+#                                                                                        friction angle sand-pile [deg],	
+#                                                                                        max bearing capacity factor [-],
+#                                                                                        max unit skin friction [N/m2],
+#                                                                                        max end bearing capacity [N/m2]
+#        hcfdrsoil (numpy.ndarray): holding capacity factor for drained soil condition: relative embedment depth [-],
+#                                                                                        drained friction angle = 20deg [-],
+#                                                                                        drained friction angle = 25deg [-],	
+#                                                                                        drained friction angle = 30deg [-],	
+#                                                                                        drained friction angle = 35deg [-],	
+#                                                                                        drained friction angle = 40deg [-]
+#                                   Note that the first row of the array contains the drained friction angle using 
+#                                   0.0 as the value for the first column        
+#        systype (str) [-]: system type: options:    'tidefloat', 
+#                                                    'tidefixed', 
+#                                                    'wavefloat', 
+#                                                    'wavefixed'                            
+#        depvar (bool) [-]: depth variation permitted: options:   True,
+#                                                                False                                                            
+#        sysprof (str) [-]: system profile: options:    'cylindrical', 
+#                                                        'rectangular'
+#        sysmass (float) [kg]: system mass
+#        syscog (numpy.ndarray): system centre of gravity in local coordinates:  X coordinate (float) [m], 
+#                                                                                Y coordinate (float) [m], 
+#                                                                                Z coordinate (float) [m]
+#        sysvol (float) [m3]: system submerged volume
+#        sysheight (float) [m]: system height
+#        syswidth (float) [m]: system width
+#        syslength (float) [m]: system length        
+#        sysrough (float) [m]: system roughness
+#        sysorig (dict): system origin (UTM):   {deviceid: (X coordinate (float) [m], 
+#                                                           Y coordinate (float) [m], 
+#                                                           Z coordinate (float) [m])}
+#        fairloc (numpy.ndarray): fairlead locations in local coordinates for N lines:   X coordinate (float) [m], 
+#                                                                                        Y coordinate (float) [m], 
+#                                                                                        Z coordinate (float) [m]
+#        foundloc (numpy.ndarray): foundation locations in local coordinates for N foundations:      X coordinate (float) [m], 
+#                                                                                                    Y coordinate (float) [m], 
+#                                                                                                    Z coordinate (float) [m]
+#        umbconpt (numpy.ndarray): umbilical connection point:   X coordinate (float) [m], 
+#                                                                Y coordinate (float) [m], 
+#                                                                Z coordinate (float) [m] 
+#        sysdryfa (float) [m2]: system dry frontal area
+#        sysdryba (float) [m2]: system dry beam area
+#        dragcoefcyl (numpy.ndarray): cylinder drag coefficients:    reynolds number [-],
+#                                                                    smooth coefficient [-],	
+#                                                                    roughness = 1e-5	coefficient [-],
+#                                                                    roughness = 1e-2 coefficient [-]
+#        wakeampfactorcyl (numpy.ndarray): cylinder wake amplificiation factors: kc/steady drag coefficient [-],
+#                                                                                smooth cylinder amplification factor [-],
+#                                                                                rough cylinder amplification factor [-]
+#        winddragcoefrect (numpy.ndarray): rectangular wind drag coefficients:   width/length [-],
+#                                                                                0<height/breadth<1 [-],
+#                                                                                height/breadth = 1 [-],
+#                                                                                height/breadth = 2 [-],
+#                                                                                height/breadth = 4	 [-],
+#                                                                                height/breadth = 6	 [-],
+#                                                                                height/breadth = 10 [-],
+#                                                                                height/breadth = 20 [-]
+#        currentdragcoefrect (numpy.ndarray): rectangular current drag coefficients: width/length [-],
+#                                                                                    thickness/width = 0 [-]
+#        driftcoeffloatrect (numpy.ndarray): rectangular drift coefficients: wavenumber*draft [m],
+#                                                                            reflection coefficient [-]        
+#        Clen (tuple): rotor parameters: rotor diameter [m],
+#                                        distance from centreline [m]
+#        thrustcurv (numpy.ndarray): thrust curve:   inflow velocity magnitude [m/s],
+#                                                    thrust coefficient [-]
+#        hubheight (float) [m]: rotor hub height 
+#        sysorienang (float) [deg]: system orientation angle
+#        fex (numpy.ndarray): first-order wave excitation forces: analysed frequencies (list) [Hz],
+#                                                                 complex force amplitudes (nxm list) for n directions and m degrees of freedom                                                                 
+#        premoor (str) [-]: predefined mooring system type: options:     'catenary', 
+#                                                                        'taut' 
+#        maxdisp (numpy.ndarray): optional maximum device displacements:  surge (float) [m], 
+#                                                                         sway (float) [m], 
+#                                                                         heave (float) [m]
+#        prefound (str) [-]: predefined foundation type: options:    'shallowfoundation', 
+#                                                                    'gravity',
+#                                                                    'pile',
+#                                                                    'suctioncaisson',
+#                                                                    'directembedment',
+#                                                                    'drag'                                                                    
+#        coststeel (float) [euros/kg]: cost of steel
+#        costgrout (float) [euros/kg]: cost of grout
+#        costcon (float) [euros/kg]: cost of concrete
+#        groutstr (float) [N/mm2]: grout compressive strength
+#        preumb (str) [-]: predefined umbilical type
+#        umbsf (float) [-]: umbilical safety factor
+#        foundsf (float) [-]: foundation safety factor
+#        prefootrad (float) [m]: predefined foundation radius
+#        subcabconpt (dict) [-]: subsea cable connection point for each device:     X coordinate (float) [m], 
+#                                                                                        Y coordinate (float) [m], 
+#                                                                                        Z coordinate (float) [m] 
+#        presubstfound (str) [-]: predefined foundation type: options:   'gravity',
+#                                                                        'pile'                                                                         
+#        suborig (numpy.ndarray): substation origin(s) (UTM): 'array'   X coordinate (float) [m], 
+#                                                                    Y coordinate (float) [m], 
+#                                                                    Z coordinate (float) [m]
+#                                                             'subhubXXX'   X coordinate (float) [m], 
+#                                                                           Y coordinate (float) [m], 
+#                                                                           Z coordinate (float) [m]
+#        submass (float) [kg]: substation mass
+#        subvol (float) [m3]: substation submerged volume
+#        subcog (numpy.ndarray): substation centre of gravity in local coordinates:  X coordinate (float) [m], 
+#                                                                                Y coordinate (float) [m], 
+#                                                                                Z coordinate (float) [m]
+#        subwetfa (float) [m]: substation wet frontal area
+#        subdryfa (float) [m]: substation dry frontal area
+#        subwetba (float) [m]: substation wet beam area
+#        subdryba (float) [m]: substation dry beam area
+#        substloc (numpy.ndarray): substation foundation locations in local coordinates for N foundations:   X coordinate (float) [m], 
+#                                                                                                            Y coordinate (float) [m], 
+#                                                                                                            Z coordinate (float) [m]    
+#        moorsfuls (float) [-]: mooring ultimate limit state safety factor
+#        moorsfals (float) [-]: mooring accident limit state safety factor
+#        groutsf (float) [-]: grout strength safety factor
+#        syswetfa (float) [m2]: system wet frontal area
+#        syswetba (float) [m2]: system wet beam area
+#        sysdraft (float) [m]: system draft
+#        sublength (float) [m]: substation length
+#        subwidth (float) [m]: substation width
+#        subheight (float) [m]: substation height
+#        subprof (str) [-]: substation profile: options:    'cylindrical', 
+#                                                            'rectangular'
+#        subrough (float) [m]: substation roughness
+#        suborienang (float) [deg]: substation orientation angle
+#        waveinertiacoefrect (numpy.ndarray): rectangular wave inertia coefficients: width/length [-],
+#                                                                                    inertia coefficients [-] 
+#        preline (list) [-]: predefined mooring component list
+#        fabcost (float) [-]: optional fabrication cost factor
+                
+        if self.data.hs == 0.0:
+            hs_max= []
+        else:
+            hs_max = [self.data.hs]
+            
+        if self.data.wavedir == 0.0:
+            wavedir_max = [0.]
+        else:
+            wavedir_max = [self.data.wavedir]
+            
+        if self.data.tp == 0.0:
+            tp_max= []
+        else:
+            tp_max = [self.data.tp]
+            
+        if self.data.gamma == 0.0:
+            gamma_max= []
+        else:
+            gamma_max = [self.data.gamma]
+
+        input_data = Variables(devices,
+                               self.data.gravity,
+                               self.data.seaden,
+                               self.data.airden,
+                               self.data.steelden,
+                               self.data.conden,
+                               self.data.groutden,
+                               compdict,
+                               safe_soil, 
+                               None,
+                               safe_bathy,
+                               bathy_deltax,
+                               bathy_deltay,
+                               self.data.wlevmax,
+                               self.data.wlevmin,
+                               self.data.currentvel,
+                               self.data.currentdir,
+                               self.data.currentprof.lower(),
+                               wavedir_max,
+                               hs_max,
+                               tp_max,
+                               gamma_max,
+                               self.data.windvel,
+                               self.data.winddir,
+                               self.data.windgustvel,
+                               self.data.windgustdir,
+                               soilprops_df,
+                               self.data.linebcf,
+                               self.data.k1coef.reset_index().values,
+                               self.data.soilsen,
+                               self.data.subgradereaccoef.reset_index().values,
+                               self.data.piledefcoef.reset_index().values,
+                               self.data.pilemomcoefam.reset_index().values,
+                               self.data.pilemomcoefbm.reset_index().values,
+                               self.data.pilefricresnoncal.reset_index().values,
+                               self.data.hcfdrsoil.reset_index().values,                               
+                               systype,
+                               self.data.depvar,
+                               self.data.sysprof.lower(),
+                               self.data.sysmass,
+                               self.data.syscog,
+                               self.data.sysvol,
+                               self.data.sysheight,
+                               self.data.syswidth,
+                               self.data.syslength,
+                               self.data.sysrough,
+                               sysorig,
+                               fair_loc_list,
+                               self.data.foundloc,
+                               umbilical_connection,
+                               self.data.sysdryfa,
+                               self.data.sysdryba,
+                               self.data.dragcoefcyl.values,
+                               self.data.wakeampfactorcyl.values,
+                               self.data.winddragcoefrect.values,
+                               self.data.currentdragcoefrect.values,
+                               self.data.driftcoeffloatrect.values,
+                               Clen,
+                               thrustcurv,
+                               hubheight,
+                               self.data.sysorienang,
+                               fex_list,
+                               premoor_low,
+                               self.data.maxdisp,
+                               prefound_low,
+                               self.data.coststeel,
+                               self.data.costgrout,
+                               self.data.costcon,
+                               self.data.groutstr,
+                               preumb,
+                               self.data.umbsf,
+                               self.data.foundsf,
+                               self.data.prefootrad,
+                               seabed_connection_dict,
+                               substation_props,
+                               self.data.moorsfuls,
+                               self.data.moorsfals,
+                               self.data.groutsf,
+                               self.data.syswetfa,
+                               self.data.syswetba,
+                               self.data.sysdraft,
+                               self.data.waveinertiacoefrect.values,
+                               self.data.preline,
+                               self.data.fabcost
+                               )
+        
+        if export_data:
+            pickle.dump(input_data, open("moorings_inputs.pkl", "wb" ))
+                               
+        main = Main(input_data)    
+        
+        if debug_entry: return;
+        
+        # Run the module
+        main()
+        
+        if export_data:
+            
+            result = {"economics": main.sysecobom,
+                      "bom": main.sysrambom,
+                      "hierarchy": main.syshier,
+                      "foundations": main.sysfoundinsttab,
+                      "environmental": main.sysenv}
+                      
+            if "floating" in self.data.system_type.lower():
+                
+                result["moorings"] = main.sysmoorinsttab
+                result["umbilical"] = main.sysumbinsttab
+            
+            pickle.dump(result, open("moorings_outputs.pkl", "wb" ))
+            
+        # Raise an error on foundation not found output
+        if main.sysfoundinsttab['type [-]'].isin(
+                            ["Foundation solution not found"]).any():
+            
+            errStr = "One or more foundations could not be designed"
+            raise RuntimeError(errStr)
+        
+        name_map = {"compid [-]" : "Key Identifier",
+                    "component cost [euros] [-]" : "Cost",
+                    "quantity [-]" : "Quantity",
+                    "project year" : "Year"
+                    }
+
+        economics_data = main.sysecobom.rename(columns=name_map)
+        
+        # Remove any rows with n/a in the quantity column.
+        economics_data["Quantity"] = \
+            economics_data["Quantity"].convert_objects(convert_numeric=True)
+        economics_data = economics_data.dropna()
+                    
+        self.data.economics_data = economics_data
+                        
+        # Build network dictionary
+        raw_network = {"topology": main.syshier,
+                       "nodes": main.sysrambom}
+                       
+        self.data.network = raw_network
+        
+        foundations_data = main.sysfoundinsttab
+
+        # Manipulate the table
+        foundations_data = foundations_data.drop('devices [-]', axis=1)
+        foundations_data = foundations_data.drop('foundations [-]', axis=1)
+        foundations_data = foundations_data[
+            ~ foundations_data["type [-]"].str.contains(
+                                                    "Foundation not required")]
+
+        foundations_data[['marker [-]']] = \
+                        foundations_data[['marker [-]']].apply(pd.to_numeric)
+        
+        foundations_layers = pd.DataFrame(foundations_data['marker [-]'])
+        layer_lists = foundations_data.pop(
+            'layer information (layer number, soil type, soil depth) [-,-,m]')
+        
+        name_map = {'type [-]': 'Type',
+                    'subtype [-]': 'Sub-Type',
+                    'x coord [m]': 'UTM X',
+                    'y coord [m]': 'UTM Y',
+                    'bathymetry at MSL [m]': 'Depth',
+                    'length [m]': 'Length',
+                    'width [m]': 'Width',
+                    'height [m]': 'Height',
+                    'installation depth [m]': 'Installation Depth',
+                    'dry mass [kg]': 'Dry Mass',
+                    'grout type [-]': 'Grout Type',
+                    'grout volume [m3]': 'Grout Volume',
+                    'marker [-]': 'Marker'}
+                    
+        self.data.foundations_data = \
+                        foundations_data.rename(columns=name_map)
+
+        # Break down the list of tuples              
+        layer_numbers = []
+        soil_types = []
+        soil_depths = []
+        
+        for layer_list in layer_lists:
+            
+            layer_tuple = layer_list[0]
+            
+            layer_numbers.append(layer_tuple[0])
+            soil_types.append(layer_tuple[1])
+            soil_depths.append(layer_tuple[2])
+            
+        layers_dict = {"Layer Number": layer_numbers,
+                       "Soil Type": soil_types,
+                       "Depth": soil_depths}
+                       
+        foundations_layers = pd.DataFrame(layers_dict)
+        foundations_layers["Marker"] = foundations_data['marker [-]']
+            
+        # Convert soil types to long codes
+        inv_soil_map = {'cm' : 'cemented',
+                        'ds' : 'dense sand',
+                        'fc' : 'firm clay',
+                        'gc' : 'gravel cobble',
+                        'hgt': 'hard glacial till',
+                        'hr' : 'hard rock',
+                        'ls' : 'loose sand',
+                        'ms' : 'medium sand',
+                        'sc' : 'soft clay',
+                        'src': 'soft rock coral',
+                        'stc': 'stiff clay',
+                        'vsc': 'very soft clay'}
+
+        foundations_layers["Soil Type"] = \
+                        foundations_layers["Soil Type"].map(inv_soil_map)
+                        
+        self.data.foundations_soil_data = foundations_layers
+
+        # Record the system dimensions
+        env_data = main.sysenv
+        
+        footprint_list = []
+        volume_list = []
+        dev_list = []
+        
+        for dev_id, env_dict in env_data.iteritems():
+            dev_list.append(dev_id)
+            footprint_list.append(env_dict[
+                                        'Configuration footprint area [m2]'])
+            volume_list.append(env_dict["Configuration volume [m3]"])
+            
+        raw_env = {"System Identifier": dev_list,
+                   "Footprint Area": footprint_list,
+                   "Volume": volume_list}
+        env_df = pd.DataFrame(raw_env)
+        
+        self.data.dimensions_data = env_df
+        
+        if "floating" in self.data.system_type.lower():
+            
+            # Record the lines and moorings components results
+            moorings_df = main.sysmoorinsttab
+            
+            marker_list = []
+            line_list = []
+            
+            # Unroll the component list in the line specifications
+            for _, line in moorings_df.iterrows():
+                
+                line_marker_strs = line["marker [-]"]
+                line_markers = [int(x) for x in line_marker_strs]
+                
+                line_id = line["lines [-]"]
+                line_ids = [line_id]*len(line_markers)
+                
+                marker_list.extend(line_markers)
+                line_list.extend(line_ids)
+                
+            moorings_raw = {"Line Identifier": line_list,
+                            "Marker": marker_list}
+            moorings_data = pd.DataFrame(moorings_raw)
+            
+            line_data = moorings_df.drop(["devices [-]", "marker [-]"],
+                                              axis=1)
+                                              
+            name_map = {'dry mass [kg]': 'Dry Mass',
+                        'length [m]': 'Length',
+                        'lines [-]': 'Line Identifier',
+                        'type [-]': 'Type'}
+                        
+            line_data = line_data.rename(columns=name_map)
+            
+            self.data.line_data = line_data
+            self.data.moorings_data = moorings_data
+            
+            # Set the umbilical data
+            umbilical_data = main.sysumbinsttab
+            
+            umbilical_data = umbilical_data.drop(
+                                            ["devices [-]",
+                                             "subsea connection x coord [m]",
+                                             "subsea connection y coord [m]",
+                                             "subsea connection z coord [m]"],
+                                            axis=1)
+                                            
+            name_map = {'component id [-]': 'Key Identifier',
+                        'dry mass [kg]': 'Dry Mass',
+                        'flotation length [m]': 'Floatation Length',
+                        'length [m]': 'Length',
+                        'required flotation [N/m]': 'Required Floatation',
+                        'marker [-]': 'Marker'}
+                        
+            self.data.umbilical_data = umbilical_data.rename(columns=name_map)
+
+        return

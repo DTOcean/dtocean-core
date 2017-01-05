@@ -1,0 +1,2 @@
+{'id1': {'item1': 'mooring system', 'item2': 'chain', 'item3': 'studlink chain', 'item4': 'grade 1', 'size': 32.0, 'weight': 23.9, 'mbl': 4.17E+05, 'cost': 37.50}, 
+'id2': {'item1': 'mooring system', 'item2': 'shackle', 'item3': 'safety bow shackle', 'item4': 'g-2140', 'size': 32.0, 'weight': 6.4, 'mbl': 8.83E+05, 'cost': 30.50}}

@@ -1,0 +1,19 @@
+---
+"postgis":
+  host: "localhost"
+  dbname: "test_postgis"
+  user: "postgres"
+  pwd: "postgres"
+"testing":
+  host: "143.239.215.81"
+  dbname: "dtocean_dev"
+  schema: "beta"
+  user: "dtocean_core"
+  pwd: "dtocean_core"
+"local":
+  dbname: dtocean_dev
+  schema: beta
+  host: localhost
+  pwd: postgres
+  user: postgres
+ 

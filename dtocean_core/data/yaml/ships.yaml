@@ -1,0 +1,6 @@
+---
+- identifier: "Site:Common:Ships"
+  title: Ship Data
+  structure: TableData
+
+

@@ -1,0 +1,161 @@
+# -*- coding: utf-8 -*-
+
+#    Copyright (C) 2016 'Mathew Topper, Vincenzo Nava, David Bould, Rui Duarte,
+#                       'Francesco Ferri, Adam Collin'
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+from aneris.boundary import DataDefinition
+from aneris.entity.data import MetaData
+
+class CoreMetaData(MetaData):
+
+    '''Concrete MetaData class for storing metadata for a variable in memory.
+
+    '''
+
+    def __init__(self, props_dict):
+
+        self._title = None
+        self._description = None
+        self._symbol = None
+        self._sample_value = None
+        self._maximum_value = None
+        self._minimum_value = None
+        self._default_value = None
+        self._input_widget = None
+        self._output_widget = None
+        self._auto_only = None
+        self._types = None
+        self._tables = None
+        self._units = None
+        self._labels = None
+        self._valid_values = None
+        
+        super(CoreMetaData, self).__init__(props_dict)
+
+        return
+
+    @classmethod
+    def get_base_properties(cls):
+        '''Properties that must be provided'''
+        base_props = super(CoreMetaData, cls).get_base_properties()
+        base_props.extend(["title"])
+        return base_props
+        
+    @property
+    def title(self):
+        '''A short name for the data'''
+        return self._title
+        
+    @property
+    def description(self):
+        '''A longer description of the data'''
+        return self._description
+        
+    @property
+    def symbol(self):
+        '''A Latex definition of the data’s symbol'''
+        return self._symbol
+        
+    @property
+    def sample_value(self):
+        '''A conceptual description of the data'''
+        return self._sample_value
+        
+    @property
+    def maximum_value(self):
+        '''Maximum value for continuous data'''
+        return self._maximum_value
+        
+    @property
+    def minimum_value(self):
+        '''Minimum value for continuous data'''
+        return self._minimum_value
+        
+    @property
+    def default_value(self):
+        '''A value to use if no data is entered through an interface'''
+        return self._default_value
+        
+    @property
+    def input_widget(self):
+        '''A nonstandard widget defined to input this data'''
+        return self._input_widget
+        
+    @property
+    def output_widget(self):
+        '''A nonstandard widget defined to show outputs of this data'''
+        return self._output_widget
+        
+    @property
+    def auto_only(self):
+        '''Call auto_db method only if this variable has a value'''
+        return self._auto_only
+        
+    @property
+    def types(self):
+        '''A list of data type can also be specified which may be used
+        within the data structure'''
+        return self._types
+
+    @property
+    def tables(self):
+        '''List of database tables used as an interface to the data.'''
+        return self._tables
+
+    @property
+    def units(self):
+        '''The SI units of the data'''
+        return self._units
+        
+    @property
+    def labels(self):
+        '''Short names for dimensions of data'''
+        return self._labels
+        
+    @property
+    def valid_values(self):
+        '''List of valid values for discrete data'''
+        return self._valid_values
+
+
+class CoreData(DataDefinition):
+
+    def __init__(self):
+
+        super(CoreData, self).__init__()
+
+        return
+
+    @property
+    def package_name(self):
+
+        return "dtocean-core"
+
+    @property
+    def company_name(self):
+
+        return "DTOcean"
+
+    @property
+    def local_yaml_dir(self):
+        '''The paths of the yaml definition files.'''
+        return "yaml"
+
+    @property
+    def  user_yaml_dir(self):
+        '''The paths of the yaml definition files.'''
+        return None
+
