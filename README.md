@@ -1,4 +1,4 @@
-# DTOcean Core Module (Version "release")
+# DTOcean Core Module (Version 1.0.0)
 
 ## Installation
 
@@ -49,11 +49,7 @@ Note, this is operation should only be done once.
 conda install attrdict basemap cma configobj descartes dtocean-demo-package geoalchemy2 h5py libpython=1.0 matplotlib netcdf4 networkx numpy=1.10.1 openpyxl pandas pil psycopg2-win-py27 pyproj pyopengl pypower pyqt=4.11.4 pywin32 pyyaml scikit-learn scipy setuptools shapely-win-py27 sqlalchemy xarray xlrd xlwt
 ```
 
-### Install "dev" Package Versions
-
-Three packages must be installed separately either from the "dev"
-branches of the Hg repositories found in https://bitbucket.org/team_dtocean.
-The required packages (and branches) are:
+The following packages can be downloaded from [SETIS](https://setis.ec.europa.eu/dt-ocean/).
 
 * polite
 * aneris
@@ -65,12 +61,8 @@ The required packages (and branches) are:
 * dtocean-economics
 * dtocean-environmental
 * dtocean-reliability
-* dtocean-core
 
-A good package for managing Hg repositories is [TortoiseHg](http://tortoisehg.bitbucket.org/).
-
-The packages below should be cloned and updating to their "dev"
-branch. Then, issue the following commands in a command window:
+Then, issue the following commands in a command window:
 
 ```
 cd path\to\polite
@@ -121,6 +113,8 @@ winmake.bat install
 cd path\to\dtocean-reliability
 winmake.bat install
 ```
+
+### Install the DTOcean Core
 
 ```
 cd path\to\dtocean-core
