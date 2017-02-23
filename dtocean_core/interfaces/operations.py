@@ -45,8 +45,8 @@ from dateutil.relativedelta import relativedelta
 
 # External DTOcean libraries
 from aneris.boundary.interface import MaskVariable
-from dtocean_operations.mainOptim import LCOE_Optimiser
-from dtocean_operations.inputOM import inputOM
+from dtocean_maintenance.mainOptim import LCOE_Optimiser
+from dtocean_maintenance.inputOM import inputOM
 
 # DTOcean Core modules
 from . import ModuleInterface
@@ -1262,8 +1262,8 @@ class OperationsInterface(ModuleInterface):
                          "checkNoSolutionWP6Files": True,
                          "readFailureRateFromRAM": True,
                          'dtocean_logistics_PRINT_FLAG': False,
-                         'dtocean_operations_PRINT_FLAG': False,
-                         'dtocean_operations_TEST_FLAG': False
+                         'dtocean_maintenance_PRINT_FLAG': False,
+                         'dtocean_maintenance_TEST_FLAG': False
                          }
                          
         inputOMPtr = inputOM(farm_OM,
