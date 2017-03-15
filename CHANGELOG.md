@@ -15,8 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Fix missing type declarations in DDS for installation module outputs
 
-## [1.0.0] - 2017-01-05
+## [1.0.0] - 2017-02-23
 
 ### Added
 
-- Initial import of dtocean-electrical from SETIS.
+- Initial import of dtocean-core from SETIS.
