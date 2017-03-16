@@ -14,12 +14,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 - Fix missing type declarations in DDS for installation module outputs
+- Fixed PointData incorrectly storing coordinates passed as lists.
 
 ## [1.0.1] - 2017-03-09
 
 ### Changed
 
-- Upgraded dtocean-electrical to version 1.0.1
+- Upgraded dtocean-core to version 1.0.1
 
 ## [1.0.0] - 2017-02-23
 
