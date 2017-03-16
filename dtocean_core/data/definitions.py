@@ -2444,10 +2444,6 @@ class PointData(Structure):
             
             point = raw
             
-        elif isinstance(raw, list):
-            
-            point = raw[0]
-            
         else:
             
             point = Point(*[float(x) for x in raw])
