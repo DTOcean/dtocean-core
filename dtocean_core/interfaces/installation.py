@@ -1567,6 +1567,16 @@ class InstallationInterface(ModuleInterface):
         cable_burial_df = data.cable_burial
         cable_burial_df = cable_burial_df.rename(columns=name_map)
         
+        # Map boolean columns to yes/no
+        yes_no_map = {True: "yes",
+                      False: "no"}
+        
+        cable_burial_df = cable_burial_df.replace(
+                                {"Jetting capability [yes/no]": yes_no_map,
+                                 "Ploughing capability [yes/no]": yes_no_map,
+                                 "Cutting capability [yes/no]": yes_no_map
+                                 })
+        
         # excavating
         name_map = {"Depth rating": "Depth rating [m]",
                     "Width": "Width [m]",
@@ -1768,6 +1778,9 @@ class InstallationInterface(ModuleInterface):
         port_location_df = pd.DataFrame(port_location_dict)
         
         ports_df = pd.merge(ports_df, port_location_df, on="Name [-]")
+        
+        ports_df = ports_df.replace(
+                                {"Jacking capability [yes/no]": yes_no_map})
 
         ### Vessels
         name_map = {"Vessel class": "Vessel class [-]",
@@ -1852,6 +1865,15 @@ class InstallationInterface(ModuleInterface):
 
         vessels_df = data.vessels
         vessels_df = vessels_df.rename(columns=name_map)
+        
+        # Map boolean columns to yes/no
+        cable_burial_df = cable_burial_df.replace(
+                            {"Cable splice [yes/no]": yes_no_map,
+                             "Ground out capabilities [yes/no]": yes_no_map,
+                             "Diving moonpool [yes/no]": yes_no_map,
+                             "ROV inspection [yes/no]": yes_no_map,
+                             "ROV workclass [yes/no]": yes_no_map
+                             })
 
         ### Site
         site_df_unsort = bathymetry.to_dataframe()
@@ -2487,10 +2509,10 @@ class InstallationInterface(ModuleInterface):
             collection_point_df = collection_point_df.rename(columns=name_map)
 
             static_cable_df = set_cables(elec_component_data_df,
-                                                elec_network_design,
-                                                elec_hierarchy,
-                                                elec_static_cables_df,
-                                                'static')
+                                         elec_network_design,
+                                         elec_hierarchy,
+                                         elec_static_cables_df,
+                                         'static')
 
             static_cable_df = set_cable_cp_references(static_cable_df,
                                                       collection_point_df)
