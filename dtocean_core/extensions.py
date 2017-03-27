@@ -30,44 +30,90 @@ import matplotlib.pyplot as plt
 
 from aneris.utilities.plugins import Plugin
 
-from . import strategies
+from . import strategies, tools
 from .menu import ModuleMenu
 
 
-class StrategyManager(Plugin):
+class ExtensionManager(Plugin):
+    
+    """Extension framework discovery"""
+    
+    def __init__(self, module, cls_name):
+        
+        super(ExtensionManager, self).__init__()
+        self._plugin_classes = None
+        self._plugin_names = None
+        
+        self._plugin_classes = self._discover_classes(module, cls_name)
+        self._plugin_names = self._discover_names()
+                
+        return
+        
+    def get_available(self):
+        
+        plugin_names = self._plugin_names.keys()
+        
+        return plugin_names
+        
+    def _get_plugin(self, plugin_name):
+        
+        if plugin_name not in self.get_available():
+            
+            errStr = ("Name {} is not a recognised "
+                      "plugin").format(plugin_name)
+            raise KeyError(errStr)
+        
+        cls_name = self._plugin_names[plugin_name]
+        ExtensionCls = self._plugin_classes[cls_name]
+        ext_obj = ExtensionCls()
+        
+        return ext_obj
+        
+    def _discover_classes(self, module, cls_name):
+
+        '''Retrieve all of the available plugin classes'''
+
+        log_msg = 'Searching for {} classes'.format(cls_name)
+        module_logger.debug(log_msg)
+
+        cls_map = self._discover_plugins(module, cls_name)
+        
+        return cls_map
+        
+    def _discover_names(self):
+        
+        plugin_names = {}
+
+        # Work through the interfaces
+        for cls_name, cls_attr in self._plugin_classes.iteritems():
+
+            name = cls_attr.get_name()
+            plugin_names[name] = cls_name
+
+        return plugin_names
+
+
+class StrategyManager(ExtensionManager):
     
     """Strategy discovery"""
     
     def __init__(self):
         
-        super(StrategyManager, self).__init__()
-        self._strategy_classes = None
-        self._strategy_names = None
-        
-        self._strategy_classes = self._discover_classes()
-        self._strategy_names = self._discover_names()
+        super(StrategyManager, self).__init__(strategies, "Strategy")
         
         self._module_menu = ModuleMenu()
         
         return
         
-    def get_available_strategies(self):
-        
-        strategy_names = self._strategy_names.keys()
-        
-        return strategy_names
-        
     def get_strategy(self, strategy_name):
         
-        if strategy_name not in self.get_available_strategies():
+        if strategy_name not in self.get_available():
             
             errStr = ("Name {} is not a recognised "
                       "strategy").format(strategy_name)
             raise KeyError(errStr)
         
-        cls_name = self._strategy_names[strategy_name]
-        StrategyCls = self._strategy_classes[cls_name]
-        strategy_obj = StrategyCls()
+        strategy_obj = self._get_plugin(strategy_name)
         
         return strategy_obj
         
@@ -477,29 +523,6 @@ class StrategyManager(Plugin):
         
         return new_strategy
         
-    def _discover_classes(self, module=strategies, cls_name="Strategy"):
-
-        '''Retrieve all of the available strategies'''
-
-        log_msg = 'Searching for {} classes'.format(cls_name)
-        module_logger.debug(log_msg)
-
-        cls_map = self._discover_plugins(module, cls_name)
-        
-        return cls_map
-        
-    def _discover_names(self):
-        
-        strategy_names = {}
-
-        # Work through the interfaces
-        for cls_name, cls_attr in self._strategy_classes.iteritems():
-
-            name = cls_attr.get_name()
-            strategy_names[name] = cls_name
-
-        return strategy_names
-        
     def _get_dump_dict(self, strategy):
         
         # Now store the strategy information
@@ -523,4 +546,39 @@ class StrategyManager(Plugin):
         new_strategy.sim_details = stg_dict["sim_details"]
 
         return new_strategy
+
+
+class ToolManager(ExtensionManager):
+    
+    """Tool discovery and execution"""
+    
+    def __init__(self):
         
+        super(ToolManager, self).__init__(tools, "Tool")
+                
+        return
+        
+    def get_tool(self, tool_name):
+        
+        if tool_name not in self.get_available():
+            
+            errStr = ("Name {} is not a recognised "
+                      "tool").format(tool_name)
+            raise KeyError(errStr)
+        
+        tool_obj = self._get_plugin(tool_name)
+        
+        return tool_obj
+    
+    def execute_tool(self, core, project, tool):
+        
+        if not core.can_load_interface(project, tool):
+            
+            errStr = ("The inputs to tool {} are not "
+                      "satisfied.").format(tool.get_name())
+            raise ValueError(errStr)
+        
+        interface = core.load_interface(project, tool)
+        core.connect_interface(project, interface)
+
+        return

@@ -388,375 +388,19 @@ class ElectricalInterface(ModuleInterface):
         
         '''
                                                
-        renaming_bathymetry = {"loose sand" : "ls",
-                               "medium sand" : "ms",
-                               "dense sand" : "ds",
-                               "very soft clay" : "vsc",
-                               "soft clay" : "sc",
-                               "firm clay" : "fc",
-                               "stiff clay" : "stc",
-                               "hard glacial till" : "hgt",
-                               "cemented" : "c",
-                               "soft rock coral" : "src",
-                               "hard rock" : "hr",
-                               "gravel cobble" : "gc"                            
-                               }
-
-        bathymetry_pd_unsort = self.data.bathymetry.to_dataframe()
-        bathymetry_pd = bathymetry_pd_unsort.unstack(level='layer')
-        bathymetry_pd = bathymetry_pd.swaplevel(1, 1, axis=1)
-        bathymetry_pd = bathymetry_pd.sortlevel(1, axis=1)
-
-        cartesian_product_index = bathymetry_pd.index.labels
-        
-        bathymetry = bathymetry_pd.reset_index()
-        bathymetry.insert(0,'i',cartesian_product_index[0].astype(np.int64))
-        bathymetry.insert(1,'j',cartesian_product_index[1].astype(np.int64))
-        bathymetry.insert(0,'id',bathymetry.index)
-        
-        bathymetry.columns = [' '.join(col).strip()
-                                        for col in bathymetry.columns.values]
-    
-        mapping = {"id":"id","i":"i","j":"j","x":"x","y":"y"}
-    
-        for i in range (5,(len(bathymetry.columns))):
-            split_name = bathymetry.columns.values[i].split()
-            if split_name[0] == "sediment":
-                mapping[bathymetry.columns.values[i]]= "layer {} type".format(
-                                                                split_name[2])  
-            elif split_name[0] == "depth":
-                mapping[bathymetry.columns.values[i]]= "layer {} start".format(
-                                                                split_name[2]) 
-        
-        bathymetry = bathymetry.rename(columns=mapping)
-        
-        bathymetry = bathymetry.replace(to_replace = renaming_bathymetry)
-
-        # Only use bin ends for shipping history
-        shipping_hist = []
-        full_bins = self.data.shipping_hist["bins"]
-        
-        for i, value in enumerate(self.data.shipping_hist["values"]):
-            bin_edge = [full_bins[i+1], value]
-            shipping_hist.append(bin_edge)
-            
-        site = ElectricalSiteData(bathymetry,
-                                  self.data.nogo_areas,
-                                  self.data.max_temp,
-                                  self.data.max_soil_res,
-                                  self.data.current_dir,
-                                  self.data.max_surf_current,
-                                  self.data.wave_dir,
-                                  shipping_hist)
-                                          
-        export_bathymetry_pd_unsort = self.data.export_strata.to_dataframe()
-        export_bathymetry_pd = export_bathymetry_pd_unsort.unstack(
-                                                                level='layer')
-        export_bathymetry_pd = export_bathymetry_pd.swaplevel(1, 1, axis=1)
-        export_bathymetry_pd = export_bathymetry_pd.sortlevel(1, axis=1)
-        
-        export_cartesian_product_index = export_bathymetry_pd.index.labels
-        
-        export_bathymetry=export_bathymetry_pd.reset_index()
-        export_bathymetry.insert(0,
-                                 'i',
-                                 export_cartesian_product_index[0].astype(
-                                                                    np.int64))
-        export_bathymetry.insert(1,
-                                 'j',
-                                 export_cartesian_product_index[1].astype(
-                                                                    np.int64))
-        export_bathymetry.insert(0,'id',export_bathymetry.index)
-        
-        export_bathymetry.columns = [' '.join(col).strip()
-                                for col in export_bathymetry.columns.values]
-    
-        export_mapping = {"id":"id","i":"i","j":"j","x":"x","y":"y"}
-    
-        for i in range (5,(len(export_bathymetry.columns))):
-            split_name = export_bathymetry.columns.values[i].split()
-            if split_name[0] == "sediment":
-                export_mapping[export_bathymetry.columns.values[i]] = \
-                                        "layer {} type".format(split_name[2])  
-            elif split_name[0] == "depth":
-                export_mapping[export_bathymetry.columns.values[i]] = \
-                                        "layer {} start".format(split_name[2]) 
-
-        export_bathymetry = export_bathymetry.rename(columns=export_mapping)
-        
-        export_bathymetry = export_bathymetry.replace(
-                                              to_replace=renaming_bathymetry)
-
-        export = ElectricalExportData(export_bathymetry,
-                                      self.data.corridor_nogo_areas,
-                                      self.data.corridor_max_temp,
-                                      self.data.corridor_max_soil_res,
-                                      self.data.corridor_current_dir,
-                                      self.data.corridor_max_surf_current,
-                                      self.data.corridor_wave_dir,
-                                      self.data.corridor_shipping_hist)
-                                      
-#    class ElectricalMachineData(object):
-#    
-#        '''Container class to carry the OEC device object.
-#    
-#        Args:
-#            technology (str) [-]: floating or fixed
-#            power (float) [W]: OEC rated power output
-#            voltage (float) [V]: OEC rated voltage at point of network connection
-#            connection (str) [-]: Type of connection, either 'wet-mate', 'dry-mate'
-#                or 'hard-wired'.
-#            variable_power_factor (list) [-]: List of tuples for OEC power factor;
-#                                     val1 = power in pu, val2 = pf.
-#            constant_power_factor (float) [-]: A power factor value to be applied
-#                at every point of analysis.
-#            footprint_radius (float) [m]: The device footprint defined by radius.
-#            footprint_coords (list) [m]: The device footprint by utm [x,y,z]
-#                coordinates.
-#            connection_point (tuple) [m]: Location of electrical connection, as
-#                (x, y, z) coordinates in local coordinate system.
-#            equilibrium_draft (float) [m]: Device equilibrium draft without mooring
-#                system.
-                                  
-        if "floating" in self.data.device_type.lower():
-            dev_type = "floating"
-            umbilical_connection = self.data.dev_umbilical_point
-        else: 
-            dev_type = "fixed"   
-            umbilical_connection = None
-
-        # Translate connector type
-#        translate_connector = {"Wet-Mate"  : 1,
-#                               "Dry-Mate"  : 2,
-#                               "Hard-Wired" : 3}
-#        device_connector_int = translate_connector[
-#                                            self.data.device_connector_type]
-                                            
-        power_rating_watts = self.data.power_rating * 1.e6
-        
-        if self.data.power_factor is not None:
-            variable_power_factor = self.data.power_factor.tolist()
-        else:
-            variable_power_factor = None
-                
-        machine = ElectricalMachineData(
-                                    dev_type,
-                                    power_rating_watts,
-                                    self.data.voltage,
-                                    self.data.device_connector_type.lower(),
-                                    variable_power_factor,
-                                    self.data.constant_power_factor,
-                                    self.data.footprint_radius,
-                                    self.data.footprint_coords, #implent either... or... 
-                                    umbilical_connection,
-                                    self.data.system_draft)
-
-#    class ElectricalArrayData(object):
-#                                        
-#        '''Container class to carry the array object. This inherets the machine.
-#    
-#        Args:
-#            ElectricalMachineData (class) [-]: class containing the machine
-#                                               specification
-#            landing_point (tuple) [m]: UTM coordinates of the landing areas;
-#                                       expressed as [x,y, id]
-#            layout (dict) [m]: OEC layout in dictionary from WP2;
-#                               key = device id,
-#                               value = UTM coordinates, as [x,y,z]
-#            n_devices (int) [-]: the number of OECs in the array.
-#            array_output (numpy.ndarray) [pc]: the total array power output in
-#                histogram form.
-#            control_signal_type (str) [-]: the type of control signal used in the
-#                                           array, accepts 'fibre optic'.
-#            control_signal_cable (bool) [-]: defines if the control signal is to 
-#                                             packaged in the power cable (True) or
-#                                             not (False)
-#            control_signal_channels (int) [-]: defines the number of control signal
-#                                               pairs per device
-#            voltage_limit_min (float) [pu]: the minimum voltage allowed in the
-#                                            offshore network
-#            voltage_limit_max (float) [pu]: the maximum voltage allowed in the
-#                                            offshore network
-#            offshore_reactive_limit (list) [-]: the target power factor at the
-#                                                offshore collection point. This is
-#                                                a list of pairs: val1 = power [pu],
-#                                                val2 = reactive power [pu]
-#            onshore_infrastructure_cost (float) [E]:C ost of the onshore
-#                infrastructure, for use in LCOE calculation.
-#            onshore_losses (float) [pc]: Electrical losses of the onshore
-#                infrastructure, entered as percentage of annual energy yield.
-#            orientation_angle (float) [degree]: Device orientation angle.
-                                    
-        occurrences = []
-        
-        mean_power_hist = self.data.mean_power_hist_per_device.values()
-        
-        for item in mean_power_hist:
-            
-            values = np.array(item["values"])
-            bins = np.array(item["bins"])
-            
-            occurrence = values * (bins[1:] - bins[:-1])
-            occurrences.append(occurrence)
-
-        array_output = np.array([sum(x) / len(occurrences)
-                                                for x in zip(*occurrences)])
-            
-        if not np.isclose(sum(array_output), 1):
-            
-            # Forcibly normalise the power outputs
-            given_occurance = sum(array_output)
-
-            logmsg = ("Sum of given power histogram is {}. Forcibly "
-                      "normalising to unity").format(given_occurance)
-            module_logger.warn(logmsg)
-            
-            array_output = array_output / given_occurance
-            
-        assert np.isclose(sum(array_output), 1)
-            
-        layout_dict = {key.capitalize() : list(item.coords)[0]
-                        for key, item in self.data.layout.items()}
-                            
-        corr_land_point = list(self.data.corridor_landing_point.coords)[0]
-
-        # Build optional arguments        
-        opt_args = {}
-        
-        if self.data.onshore_infrastructure_cost is not None:
-            opt_args["onshore_infrastructure_cost"] = \
-                                        self.data.onshore_infrastructure_cost
-                                        
-        if self.data.onshore_losses is not None:
-            opt_args["onshore_losses"] = self.data.onshore_losses
-            
-        if self.data.control_signal_type is not None:
-            opt_args["control_signal_type"] = self.data.control_signal_type
-            
-        if self.data.control_signal_cable is not None:
-            opt_args["control_signal_cable"] = self.data.control_signal_cable
-            
-        if self.data.control_signal_channels is not None:
-            opt_args["control_signal_channels"] = \
-                                        self.data.control_signal_channels
-                                        
-        if self.data.min_voltage is not None:
-            opt_args["voltage_limit_min"] = self.data.min_voltage
-            
-        if self.data.max_voltage is not None:
-            opt_args["voltage_limit_max"] = self.data.max_voltage
-            
-        if self.data.offshore_reactive_limit is not None:
-            opt_args["offshore_reactive_limit"] = \
-                                        self.data.offshore_reactive_limit
-                                        
-        if self.data.main_direction is not None:
-            opt_args["orientation_angle"] = self.data.main_direction
-        
-        array = ElectricalArrayData(machine,
-                                    corr_land_point,
-                                    layout_dict,
-                                    len(layout_dict),
-                                    array_output,
-                                    **opt_args)
-                                    
-#    class ConfigurationOptions(object):
-#    
-#        '''Container class for the configuration options defined in the core. These
-#        can be specificed by the user at GUI interface or by the core during the
-#        global optimisation process.
-#        
-#        Args:
-#            network_configuration (list, str) [-]: list of networks to evaluate:
-#                radial or star.
-#            export_voltage (float) [V]: export cable voltage.
-#            export_cables (int) [-]: number of export cables.
-#            ac_power_flow (Bool) [-]: run full ac power flow (True) or dc (False).
-#            target_burial_depth_array (float) [m]: array cable burial depth.
-#            target_burial_depth_export (float) [m]: export cable burial depth.
-#            connector_type (string) [-]: 'wet mate' or 'dry mate'. This will be
-#                applied to all connectors.
-#            collection_point_type (string) [-]: 'subsea' or 'surface'. This will be
-#                applied to all collection points.
-#            devices_per_string (int) [-]: number of devices per string.
-#            equipment_gradient_constraint (float) [deg]: the maximum seabed
-#                gradient considered by the cable routing analysis.
-#            equipment_soil_compatibility (pd.DataFrame) [m/s]: the equipment soil
-#                installation compatibility matrix.
-#            umbilical_safety_factor (float) [-]: Umbilical safety factor from
-#                DNV-RP-F401.
-#
-                                
-        if "floating" in self.data.device_type.lower():
-            safety_factor = self.data.umbilical_sf
-        else:
-            safety_factor = None
-            
-        # Make columns lower case on installation_soil_compatibility table
-        renaming_columns = {"loose sand" : "ls",
-                            "medium sand" : "ms",
-                            "dense sand" : "ds",
-                            "very soft clay" : "vsc",
-                            "soft clay" : "sc",
-                            "firm clay" : "fc",
-                            "stiff clay" : "stc",
-                            "hard glacial till" : "hgt",
-                            "cemented" : "c",
-                            "soft rock coral" : "src",
-                            "hard rock" : "hr",
-                            "gravel cobble" : "gc"                            
-                            }
-
-        up_cols = self.data.installation_soil_compatibility.columns
-        low_cols = [x.lower() for x in up_cols]
-        columns_renamed = [renaming_columns[x] for x in low_cols]
-        self.data.installation_soil_compatibility.columns = columns_renamed       
-
-        options = ConfigurationOptions(
-                                    [self.data.network_configuration],
-                                    self.data.corridor_voltage,
-                                    None,
-                                    self.data.ac_power_flow,
-                                    self.data.target_burial_depth,
-                                    self.data.corridor_target_burial_depth,
-                                    None,
-                                    None,
-                                    self.data.devices_per_string,
-                                    self.data.equipment_gradient_constraint,
-                                    self.data.installation_soil_compatibility,
-                                    self.data.users_tool,
-                                    safety_factor,
-                                    self.data.gravity,
-                                    self.data.umbilical_type,
-                                    )
-        
-        database = self.get_component_database(
-                                       self.data.static_cable,
-                                       self.data.dynamic_cable,
-                                       self.data.wet_mate_connectors,
-                                       self.data.dry_mate_connectors,
-                                       self.data.transformers,
-                                       self.data.collection_points,
-                                       self.data.collection_point_cog,
-                                       self.data.collection_point_foundations,
-                                       self.data.switchgear,
-                                       self.data.power_quality)
+        input_dict = self.get_input_dict(self.data)
                                        
         if debug_entry: return
 
         if export_data:
-            
-            arg_dict = {"site_data": site, 
-                        "array_data": array, 
-                        "export_data": export, 
-                        "options": options, 
-                        "database": database
-                        }
-                        
-            pickle.dump(arg_dict, open("electrical_inputs.pkl", "wb" ))
+            pickle.dump(input_dict, open("electrical_inputs.pkl", "wb" ))
         
-        elec = Electrical(site, array, export, options, database)
-        solution, installation_tool = elec.run_module(plot=False)
+        elec = Electrical(input_dict["site_data"],
+                          input_dict["array_data"],
+                          input_dict["export_data"],
+                          input_dict["options"],
+                          input_dict["database"])
+        solution, installation_tool = elec.run_module()
         
         if export_data:
             pickle.dump(solution, open("electrical_outputs.pkl", "wb" ))
@@ -943,6 +587,372 @@ class ElectricalInterface(ModuleInterface):
                 seabed_point_dict[dev_id.title()] = point
 
             self.data.seabed_connection = seabed_point_dict
+            
+    @classmethod    
+    def get_input_dict(cls, data):
+            
+        renaming_bathymetry = {"loose sand" : "ls",
+                               "medium sand" : "ms",
+                               "dense sand" : "ds",
+                               "very soft clay" : "vsc",
+                               "soft clay" : "sc",
+                               "firm clay" : "fc",
+                               "stiff clay" : "stc",
+                               "hard glacial till" : "hgt",
+                               "cemented" : "c",
+                               "soft rock coral" : "src",
+                               "hard rock" : "hr",
+                               "gravel cobble" : "gc"                            
+                               }
+
+        bathymetry_pd_unsort = data.bathymetry.to_dataframe()
+        bathymetry_pd = bathymetry_pd_unsort.unstack(level='layer')
+        bathymetry_pd = bathymetry_pd.swaplevel(1, 1, axis=1)
+        bathymetry_pd = bathymetry_pd.sortlevel(1, axis=1)
+
+        cartesian_product_index = bathymetry_pd.index.labels
+        
+        bathymetry = bathymetry_pd.reset_index()
+        bathymetry.insert(0,'i',cartesian_product_index[0].astype(np.int64))
+        bathymetry.insert(1,'j',cartesian_product_index[1].astype(np.int64))
+        bathymetry.insert(0,'id',bathymetry.index)
+        
+        bathymetry.columns = [' '.join(col).strip()
+                                        for col in bathymetry.columns.values]
+    
+        mapping = {"id":"id","i":"i","j":"j","x":"x","y":"y"}
+    
+        for i in range (5,(len(bathymetry.columns))):
+            split_name = bathymetry.columns.values[i].split()
+            if split_name[0] == "sediment":
+                mapping[bathymetry.columns.values[i]]= "layer {} type".format(
+                                                                split_name[2])  
+            elif split_name[0] == "depth":
+                mapping[bathymetry.columns.values[i]]= "layer {} start".format(
+                                                                split_name[2]) 
+        
+        bathymetry = bathymetry.rename(columns=mapping)
+        
+        bathymetry = bathymetry.replace(to_replace = renaming_bathymetry)
+
+        # Only use bin ends for shipping history
+        shipping_hist = []
+        full_bins = data.shipping_hist["bins"]
+        
+        for i, value in enumerate(data.shipping_hist["values"]):
+            bin_edge = [full_bins[i+1], value]
+            shipping_hist.append(bin_edge)
+            
+        site = ElectricalSiteData(bathymetry,
+                                  data.nogo_areas,
+                                  data.max_temp,
+                                  data.max_soil_res,
+                                  data.current_dir,
+                                  data.max_surf_current,
+                                  data.wave_dir,
+                                  shipping_hist)
+                                          
+        export_bathymetry_pd_unsort = data.export_strata.to_dataframe()
+        export_bathymetry_pd = export_bathymetry_pd_unsort.unstack(
+                                                                level='layer')
+        export_bathymetry_pd = export_bathymetry_pd.swaplevel(1, 1, axis=1)
+        export_bathymetry_pd = export_bathymetry_pd.sortlevel(1, axis=1)
+        
+        export_cartesian_product_index = export_bathymetry_pd.index.labels
+        
+        export_bathymetry=export_bathymetry_pd.reset_index()
+        export_bathymetry.insert(0,
+                                 'i',
+                                 export_cartesian_product_index[0].astype(
+                                                                    np.int64))
+        export_bathymetry.insert(1,
+                                 'j',
+                                 export_cartesian_product_index[1].astype(
+                                                                    np.int64))
+        export_bathymetry.insert(0,'id',export_bathymetry.index)
+        
+        export_bathymetry.columns = [' '.join(col).strip()
+                                for col in export_bathymetry.columns.values]
+    
+        export_mapping = {"id":"id","i":"i","j":"j","x":"x","y":"y"}
+    
+        for i in range (5,(len(export_bathymetry.columns))):
+            split_name = export_bathymetry.columns.values[i].split()
+            if split_name[0] == "sediment":
+                export_mapping[export_bathymetry.columns.values[i]] = \
+                                        "layer {} type".format(split_name[2])  
+            elif split_name[0] == "depth":
+                export_mapping[export_bathymetry.columns.values[i]] = \
+                                        "layer {} start".format(split_name[2]) 
+
+        export_bathymetry = export_bathymetry.rename(columns=export_mapping)
+        
+        export_bathymetry = export_bathymetry.replace(
+                                              to_replace=renaming_bathymetry)
+
+        export = ElectricalExportData(export_bathymetry,
+                                      data.corridor_nogo_areas,
+                                      data.corridor_max_temp,
+                                      data.corridor_max_soil_res,
+                                      data.corridor_current_dir,
+                                      data.corridor_max_surf_current,
+                                      data.corridor_wave_dir,
+                                      data.corridor_shipping_hist)
+                                      
+#    class ElectricalMachineData(object):
+#    
+#        '''Container class to carry the OEC device object.
+#    
+#        Args:
+#            technology (str) [-]: floating or fixed
+#            power (float) [W]: OEC rated power output
+#            voltage (float) [V]: OEC rated voltage at point of network connection
+#            connection (str) [-]: Type of connection, either 'wet-mate', 'dry-mate'
+#                or 'hard-wired'.
+#            variable_power_factor (list) [-]: List of tuples for OEC power factor;
+#                                     val1 = power in pu, val2 = pf.
+#            constant_power_factor (float) [-]: A power factor value to be applied
+#                at every point of analysis.
+#            footprint_radius (float) [m]: The device footprint defined by radius.
+#            footprint_coords (list) [m]: The device footprint by utm [x,y,z]
+#                coordinates.
+#            connection_point (tuple) [m]: Location of electrical connection, as
+#                (x, y, z) coordinates in local coordinate system.
+#            equilibrium_draft (float) [m]: Device equilibrium draft without mooring
+#                system.
+                                  
+        if "floating" in data.device_type.lower():
+            dev_type = "floating"
+            umbilical_connection = data.dev_umbilical_point
+        else: 
+            dev_type = "fixed"   
+            umbilical_connection = None
+
+        # Translate connector type
+#        translate_connector = {"Wet-Mate"  : 1,
+#                               "Dry-Mate"  : 2,
+#                               "Hard-Wired" : 3}
+#        device_connector_int = translate_connector[
+#                                            data.device_connector_type]
+                                            
+        power_rating_watts = data.power_rating * 1.e6
+        
+        if data.power_factor is not None:
+            variable_power_factor = data.power_factor.tolist()
+        else:
+            variable_power_factor = None
+                
+        machine = ElectricalMachineData(
+                                    dev_type,
+                                    power_rating_watts,
+                                    data.voltage,
+                                    data.device_connector_type.lower(),
+                                    variable_power_factor,
+                                    data.constant_power_factor,
+                                    data.footprint_radius,
+                                    data.footprint_coords, #implent either... or... 
+                                    umbilical_connection,
+                                    data.system_draft)
+
+#    class ElectricalArrayData(object):
+#                                        
+#        '''Container class to carry the array object. This inherets the machine.
+#    
+#        Args:
+#            ElectricalMachineData (class) [-]: class containing the machine
+#                                               specification
+#            landing_point (tuple) [m]: UTM coordinates of the landing areas;
+#                                       expressed as [x,y, id]
+#            layout (dict) [m]: OEC layout in dictionary from WP2;
+#                               key = device id,
+#                               value = UTM coordinates, as [x,y,z]
+#            n_devices (int) [-]: the number of OECs in the array.
+#            array_output (numpy.ndarray) [pc]: the total array power output in
+#                histogram form.
+#            control_signal_type (str) [-]: the type of control signal used in the
+#                                           array, accepts 'fibre optic'.
+#            control_signal_cable (bool) [-]: defines if the control signal is to 
+#                                             packaged in the power cable (True) or
+#                                             not (False)
+#            control_signal_channels (int) [-]: defines the number of control signal
+#                                               pairs per device
+#            voltage_limit_min (float) [pu]: the minimum voltage allowed in the
+#                                            offshore network
+#            voltage_limit_max (float) [pu]: the maximum voltage allowed in the
+#                                            offshore network
+#            offshore_reactive_limit (list) [-]: the target power factor at the
+#                                                offshore collection point. This is
+#                                                a list of pairs: val1 = power [pu],
+#                                                val2 = reactive power [pu]
+#            onshore_infrastructure_cost (float) [E]:C ost of the onshore
+#                infrastructure, for use in LCOE calculation.
+#            onshore_losses (float) [pc]: Electrical losses of the onshore
+#                infrastructure, entered as percentage of annual energy yield.
+#            orientation_angle (float) [degree]: Device orientation angle.
+                                    
+        occurrences = []
+        
+        mean_power_hist = data.mean_power_hist_per_device.values()
+        
+        for item in mean_power_hist:
+            
+            values = np.array(item["values"])
+            bins = np.array(item["bins"])
+            
+            occurrence = values * (bins[1:] - bins[:-1])
+            occurrences.append(occurrence)
+
+        array_output = np.array([sum(x) / len(occurrences)
+                                                for x in zip(*occurrences)])
+            
+        if not np.isclose(sum(array_output), 1):
+            
+            # Forcibly normalise the power outputs
+            given_occurance = sum(array_output)
+
+            logmsg = ("Sum of given power histogram is {}. Forcibly "
+                      "normalising to unity").format(given_occurance)
+            module_logger.warn(logmsg)
+            
+            array_output = array_output / given_occurance
+            
+        assert np.isclose(sum(array_output), 1)
+            
+        layout_dict = {key.capitalize() : list(item.coords)[0]
+                        for key, item in data.layout.items()}
+                            
+        corr_land_point = list(data.corridor_landing_point.coords)[0]
+
+        # Build optional arguments        
+        opt_args = {}
+        
+        if data.onshore_infrastructure_cost is not None:
+            opt_args["onshore_infrastructure_cost"] = \
+                                        data.onshore_infrastructure_cost
+                                        
+        if data.onshore_losses is not None:
+            opt_args["onshore_losses"] = data.onshore_losses
+            
+        if data.control_signal_type is not None:
+            opt_args["control_signal_type"] = data.control_signal_type
+            
+        if data.control_signal_cable is not None:
+            opt_args["control_signal_cable"] = data.control_signal_cable
+            
+        if data.control_signal_channels is not None:
+            opt_args["control_signal_channels"] = \
+                                        data.control_signal_channels
+                                        
+        if data.min_voltage is not None:
+            opt_args["voltage_limit_min"] = data.min_voltage
+            
+        if data.max_voltage is not None:
+            opt_args["voltage_limit_max"] = data.max_voltage
+            
+        if data.offshore_reactive_limit is not None:
+            opt_args["offshore_reactive_limit"] = \
+                                        data.offshore_reactive_limit
+                                        
+        if data.main_direction is not None:
+            opt_args["orientation_angle"] = data.main_direction
+        
+        array = ElectricalArrayData(machine,
+                                    corr_land_point,
+                                    layout_dict,
+                                    len(layout_dict),
+                                    array_output,
+                                    **opt_args)
+                                    
+#    class ConfigurationOptions(object):
+#    
+#        '''Container class for the configuration options defined in the core. These
+#        can be specificed by the user at GUI interface or by the core during the
+#        global optimisation process.
+#        
+#        Args:
+#            network_configuration (list, str) [-]: list of networks to evaluate:
+#                radial or star.
+#            export_voltage (float) [V]: export cable voltage.
+#            export_cables (int) [-]: number of export cables.
+#            ac_power_flow (Bool) [-]: run full ac power flow (True) or dc (False).
+#            target_burial_depth_array (float) [m]: array cable burial depth.
+#            target_burial_depth_export (float) [m]: export cable burial depth.
+#            connector_type (string) [-]: 'wet mate' or 'dry mate'. This will be
+#                applied to all connectors.
+#            collection_point_type (string) [-]: 'subsea' or 'surface'. This will be
+#                applied to all collection points.
+#            devices_per_string (int) [-]: number of devices per string.
+#            equipment_gradient_constraint (float) [deg]: the maximum seabed
+#                gradient considered by the cable routing analysis.
+#            equipment_soil_compatibility (pd.DataFrame) [m/s]: the equipment soil
+#                installation compatibility matrix.
+#            umbilical_safety_factor (float) [-]: Umbilical safety factor from
+#                DNV-RP-F401.
+#
+                                
+        if "floating" in data.device_type.lower():
+            safety_factor = data.umbilical_sf
+        else:
+            safety_factor = None
+            
+        # Make columns lower case on installation_soil_compatibility table
+        renaming_columns = {"loose sand" : "ls",
+                            "medium sand" : "ms",
+                            "dense sand" : "ds",
+                            "very soft clay" : "vsc",
+                            "soft clay" : "sc",
+                            "firm clay" : "fc",
+                            "stiff clay" : "stc",
+                            "hard glacial till" : "hgt",
+                            "cemented" : "c",
+                            "soft rock coral" : "src",
+                            "hard rock" : "hr",
+                            "gravel cobble" : "gc"                            
+                            }
+
+        up_cols = data.installation_soil_compatibility.columns
+        low_cols = [x.lower() for x in up_cols]
+        columns_renamed = [renaming_columns[x] for x in low_cols]
+        data.installation_soil_compatibility.columns = columns_renamed       
+
+        options = ConfigurationOptions(
+                                    [data.network_configuration],
+                                    data.corridor_voltage,
+                                    None,
+                                    data.ac_power_flow,
+                                    data.target_burial_depth,
+                                    data.corridor_target_burial_depth,
+                                    None,
+                                    None,
+                                    data.devices_per_string,
+                                    data.equipment_gradient_constraint,
+                                    data.installation_soil_compatibility,
+                                    data.users_tool,
+                                    safety_factor,
+                                    data.gravity,
+                                    data.umbilical_type,
+                                    )
+        
+        database = cls.get_component_database(
+                                       data.static_cable,
+                                       data.dynamic_cable,
+                                       data.wet_mate_connectors,
+                                       data.dry_mate_connectors,
+                                       data.transformers,
+                                       data.collection_points,
+                                       data.collection_point_cog,
+                                       data.collection_point_foundations,
+                                       data.switchgear,
+                                       data.power_quality)
+        
+        input_dict = {"site_data": site, 
+                      "array_data": array, 
+                      "export_data": export, 
+                      "options": options, 
+                      "database": database
+                      }
+        
+        return input_dict
     
     @classmethod
     def get_component_database(cls, static_cable,
