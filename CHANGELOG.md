@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Add change log.
 
+### Changed
+
+- Renamed tools submodule to utils.
+
 ### Fixed
 
 - Fix missing type declarations in DDS for installation module outputs.
