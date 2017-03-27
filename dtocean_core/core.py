@@ -52,7 +52,7 @@ from . import interfaces as core_interfaces
 from .interfaces import (FileInputInterface,
                          FileOutputInterface,
                          PlotInterface)
-from .tools.files import package_dir
+from .utils.files import package_dir
 
 
 class AutoRaw(AutoInterface, RawInterface):

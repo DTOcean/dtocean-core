@@ -41,7 +41,7 @@ import pickle
 from dtocean_reliability.main import Variables, Main
 
 from . import ThemeInterface
-from ..tools.reliability import get_component_dict
+from ..utils.reliability import get_component_dict
 
 mod_dir = os.path.dirname(__file__)
 

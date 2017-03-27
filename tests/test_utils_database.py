@@ -6,7 +6,7 @@ import os
 import pandas as pd
 from shapely.geometry import Point
 
-from dtocean_core.tools.database import bathy_records_to_strata
+from dtocean_core.utils.database import bathy_records_to_strata
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 data_dir = os.path.join(this_dir, "..", "test_data")

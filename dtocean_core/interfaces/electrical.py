@@ -53,8 +53,8 @@ from dtocean_electrical.inputs import (ElectricalComponentDatabase,
 from aneris.boundary.interface import MaskVariable
 
 from . import ModuleInterface
-from ..tools.electrical import sanitise_network
-from ..tools.network import find_marker_key
+from ..utils.electrical import sanitise_network
+from ..utils.network import find_marker_key
 
 
 class ElectricalInterface(ModuleInterface):

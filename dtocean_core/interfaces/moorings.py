@@ -44,7 +44,7 @@ from dtocean_moorings.main import Variables, Main
 
 # DTOcean Core modules
 from . import ModuleInterface
-from ..tools.moorings import get_component_dict
+from ..utils.moorings import get_component_dict
 
 class MooringsInterface(ModuleInterface):
     

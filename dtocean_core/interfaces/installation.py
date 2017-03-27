@@ -48,13 +48,13 @@ from dtocean_logistics.phases import EquipmentType
 from aneris.boundary.interface import MaskVariable
 
 from . import ModuleInterface
-from ..tools.installation import (installation_phase_cost_output,
+from ..utils.installation import (installation_phase_cost_output,
                                   installation_phase_time_result,
                                   find_marker_key_mf,
                                   installation_phase_date_result,
                                   installation_phase_date_result_timeseries)
 
-from ..tools.install_electrical import (set_collection_points,
+from ..utils.install_electrical import (set_collection_points,
                                         set_cables,
                                         set_connectors,
                                         get_umbilical_terminations,

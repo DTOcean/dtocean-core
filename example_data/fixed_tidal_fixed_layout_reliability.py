@@ -11,9 +11,9 @@ import pandas as pd
 
 from scipy.stats import multivariate_normal, norm
 
-from dtocean_core.tools.moorings import get_moorings_tables
+from dtocean_core.utils.moorings import get_moorings_tables
 
-from dtocean_core.tools.reliability import (get_reliability_tables,
+from dtocean_core.utils.reliability import (get_reliability_tables,
                                             compdict_from_mock)
                                             
 from collections import Counter
@@ -902,7 +902,7 @@ test_data = {
              
 if __name__ == "__main__":
     
-    from dtocean_core.tools.files import pickle_test_data
+    from dtocean_core.utils.files import pickle_test_data
 
     file_path = os.path.abspath(__file__)
     pkl_path = pickle_test_data(file_path, test_data)
