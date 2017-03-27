@@ -10,3 +10,9 @@ dist/
 
 # Bootstrapped files
 dtocean_core/data/yaml/*.yaml
+
+# Test data files
+*.pkl
+
+# Log files
+*.log
