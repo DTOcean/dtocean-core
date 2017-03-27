@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 import cPickle as pickle
 
-from dtocean_core.tools.moorings import get_moorings_tables
+from dtocean_core.utils.moorings import get_moorings_tables
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 data_dir = os.path.join(this_dir, "moorings")
@@ -500,7 +500,7 @@ test_data = {'bathymetry.line_bearing_capacity_factor': linebcf,
 
 if __name__ == "__main__":
     
-    from dtocean_core.tools.files import pickle_test_data
+    from dtocean_core.utils.files import pickle_test_data
 
     file_path = os.path.abspath(__file__)
     pkl_path = pickle_test_data(file_path, test_data)

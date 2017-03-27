@@ -6,7 +6,7 @@ from subprocess import call
 import numpy as np
 import pandas as pd
 
-from dtocean_core.tools.hydrodynamics import (make_wave_statistics,
+from dtocean_core.utils.hydrodynamics import (make_wave_statistics,
                                               make_tide_statistics)
                                         
 def test_make_wave_statistics_propability():

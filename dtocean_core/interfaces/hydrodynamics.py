@@ -39,7 +39,7 @@ from aneris.boundary.interface import MaskVariable
 from dtocean_hydro.input import WP2_SiteData, WP2_MachineData, WP2input
 from dtocean_hydro.main import WP2
 
-from ..tools.hydrodynamics import (make_wave_statistics,
+from ..utils.hydrodynamics import (make_wave_statistics,
                                    make_tide_statistics,
                                    check_bin_widths,
                                    make_power_histograms,

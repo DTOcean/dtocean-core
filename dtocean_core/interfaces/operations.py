@@ -53,7 +53,7 @@ from . import ModuleInterface
 from .electrical import ElectricalInterface
 from .installation import InstallationInterface
 from .reliability import ReliabilityInterface
-from ..tools.operations import (get_input_tables,
+from ..utils.operations import (get_input_tables,
                                 get_user_network,
                                 get_user_compdict,
                                 get_point_depth,

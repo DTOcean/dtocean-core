@@ -531,7 +531,7 @@ test_data = {"component.rov" : equipment_rov,
 
 if __name__ == "__main__":
 
-    from dtocean_core.tools.files import pickle_test_data
+    from dtocean_core.utils.files import pickle_test_data
 
     file_path = os.path.abspath(__file__)
     pkl_path = pickle_test_data(file_path, test_data)

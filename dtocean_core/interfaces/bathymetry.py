@@ -22,7 +22,7 @@ Created on Fri Jul 29 17:44:49 2016
 @author: 108630
 """
 
-from ..tools.database import (init_bathy_records,
+from ..utils.database import (init_bathy_records,
                               bathy_records_to_strata,
                               bathy_records_to_mannings,
                               tidal_series_records_to_xset)
