@@ -97,9 +97,9 @@ class StrategyManager(ExtensionManager):
     
     """Strategy discovery"""
     
-    def __init__(self):
+    def __init__(self, module=strategies, cls_name="Strategy"):
         
-        super(StrategyManager, self).__init__(strategies, "Strategy")
+        super(StrategyManager, self).__init__(module, cls_name)
         
         self._module_menu = ModuleMenu()
         
@@ -552,9 +552,9 @@ class ToolManager(ExtensionManager):
     
     """Tool discovery and execution"""
     
-    def __init__(self):
+    def __init__(self, module=tools, cls_name="Tool"):
         
-        super(ToolManager, self).__init__(tools, "Tool")
+        super(ToolManager, self).__init__(module, cls_name)
                 
         return
         
