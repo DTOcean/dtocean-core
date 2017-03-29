@@ -29,13 +29,8 @@ class CoreMetaData(MetaData):
 
         self._title = None
         self._description = None
-        self._symbol = None
-        self._sample_value = None
-        self._maximum_value = None
-        self._minimum_value = None
-        self._default_value = None
-        self._input_widget = None
-        self._output_widget = None
+        self._category = None
+        self._group = None
         self._auto_only = None
         self._types = None
         self._tables = None
@@ -63,42 +58,17 @@ class CoreMetaData(MetaData):
     def description(self):
         '''A longer description of the data'''
         return self._description
-        
+    
     @property
-    def symbol(self):
-        '''A Latex definition of the data’s symbol'''
-        return self._symbol
-        
+    def category(self):
+        '''Highest categorisation. Can be none if contained in variable id'''
+        return self._category
+    
     @property
-    def sample_value(self):
-        '''A conceptual description of the data'''
-        return self._sample_value
-        
-    @property
-    def maximum_value(self):
-        '''Maximum value for continuous data'''
-        return self._maximum_value
-        
-    @property
-    def minimum_value(self):
-        '''Minimum value for continuous data'''
-        return self._minimum_value
-        
-    @property
-    def default_value(self):
-        '''A value to use if no data is entered through an interface'''
-        return self._default_value
-        
-    @property
-    def input_widget(self):
-        '''A nonstandard widget defined to input this data'''
-        return self._input_widget
-        
-    @property
-    def output_widget(self):
-        '''A nonstandard widget defined to show outputs of this data'''
-        return self._output_widget
-        
+    def group(self):
+        '''Optional grouping of variables below category or subcategory'''
+        return self._group
+    
     @property
     def auto_only(self):
         '''Call auto_db method only if this variable has a value'''
