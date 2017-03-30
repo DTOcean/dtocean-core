@@ -298,20 +298,13 @@ def tidal_series_records_to_xset_old(tidal_records):
     Strata structure raw input"""
     
     tidal_table = pd.DataFrame.from_records(tidal_records, columns=[
-                                                    'fk_farm_array',
-                                                    'project_bathymetry_id',
-                                                    'fk_farm_id',
-                                                    'local_index',
-                                                    'fk_site_id',
                                                     'utm_point',
                                                     'measure_date',
                                                     'measure_time',
                                                     'u',
                                                     'v',
-                                                    'id',
                                                     'turbulence_intensity',
-                                                    'ssh',
-                                                    'fk_point_id'])
+                                                    'ssh'])
                                                     
     if tidal_table.empty:
         
@@ -401,20 +394,13 @@ def tidal_series_records_to_xset(tidal_records):
     module_logger.debug(msg)
     
     tidal_table = pd.DataFrame.from_records(tidal_records, columns=[
-                                                    'fk_farm_array',
-                                                    'project_bathymetry_id',
-                                                    'fk_farm_id',
-                                                    'local_index',
-                                                    'fk_site_id',
                                                     'utm_point',
                                                     'measure_date',
                                                     'measure_time',
                                                     'u',
                                                     'v',
-                                                    'id',
                                                     'turbulence_intensity',
-                                                    'ssh',
-                                                    'fk_point_id'])
+                                                    'ssh'])
                                                     
     if tidal_table.empty:
         
