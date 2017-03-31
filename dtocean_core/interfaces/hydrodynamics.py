@@ -459,8 +459,19 @@ class HydroInterface(ModuleInterface):
                             
             self.data.wave_occurrence = matrix_xgrid
             
+            # Translate spectrum type
+            spectrum_map = {"Regular": "Regular",
+                            "Pierson-Moskowitz": "Pierson_Moskowitz",
+                            "Jonswap": "Jonswap",
+                            "Bretschneider": "Bretschneider_Mitsuyasu",
+                            "Modified Bretschneider":
+                                "Modified_Bretschneider_Mitsuyasu"                          
+                            }
+            
+            spectrum_type = spectrum_map[self.data.spectrum_type_farm]
+            
             point_SSH = self.data.point_SSH
-            spectrum_list = (self.data.spectrum_type_farm,
+            spectrum_list = (spectrum_type,
                              self.data.spectrum_gamma_farm,
                              self.data.spectrum_dir_spreading_farm)
             
