@@ -570,6 +570,17 @@ class ToolManager(ExtensionManager):
         
         return tool_obj
     
+    def can_execute_tool(self, core, project, tool):
+        
+        if project is None: return False
+        
+        result = False
+        
+        if core.can_load_interface(project, tool):
+            result = True        
+        
+        return result
+    
     def execute_tool(self, core, project, tool):
         
         if not core.can_load_interface(project, tool):

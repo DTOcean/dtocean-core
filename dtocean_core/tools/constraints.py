@@ -203,12 +203,23 @@ class ConstraintsTool(Tool):
         
     def connect(self, **kwargs):
         
-        fig = plot_constraints(self.data)
+        elec, constrained_lines = get_constraints(self.data)
+
+        fig = plot_devices(elec.grid,
+                           constrained_lines,
+                           elec.array_data.layout,
+                           elec.array_data.landing_point,
+                           elec.array_data.device_footprint,
+                           [],
+                           [],
+                           [],
+                           []
+                           )
         plt.show()
             
         return
         
-def plot_constraints(data):
+def get_constraints(data):
     
     input_dict = ElectricalInterface.get_input_dict(data)
     
@@ -230,16 +241,5 @@ def plot_constraints(data):
             grid_processing(elec.site_data, elec.export_data, elec.options)
             
         elec._fix_features_to_grid()
-
-        fig = plot_devices(elec.grid,
-                           constrained_lines,
-                           elec.array_data.layout,
-                           elec.array_data.landing_point,
-                           elec.array_data.device_footprint,
-                           [],
-                           [],
-                           [],
-                           []
-                           )
         
-    return fig
+    return elec, constrained_lines
