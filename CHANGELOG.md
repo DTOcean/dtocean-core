@@ -9,11 +9,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- Added tools plugin framework to add generic data manipulation or external
+  tools.
 - Add change log.
 
 ### Changed
 
 - Renamed tools submodule to utils.
+- Changed database stored proceedure calls to match changes to database
+  structure.
 
 ### Fixed
 
