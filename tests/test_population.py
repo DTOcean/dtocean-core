@@ -14,7 +14,7 @@ def _is_port_open():
     
     data_menu = DataMenu()
     
-    return data_menu.check_database("testing")
+    return data_menu.check_database("local")
    
 port_open = _is_port_open()
 
@@ -68,7 +68,7 @@ def test_get_query_interface(core, project, tree):
         
     project = deepcopy(project)
     
-    data_menu.select_database(project, "testing")
+    data_menu.select_database(project, "local")
     project_menu.initiate_pipeline(core, project)
     
     options_branch = tree.get_branch(core, project, mod_name)
@@ -90,7 +90,7 @@ def test_filter_interface(core, project, tree):
     
     tree = Tree()
     
-    data_menu.select_database(project, "testing")
+    data_menu.select_database(project, "local")
     project_menu.initiate_pipeline(core, project)
     project_menu.initiate_options(core, project)
     
@@ -100,7 +100,7 @@ def test_filter_interface(core, project, tree):
     new_var = filter_branch.get_input_variable(core,
                                                project,
                                                "device.selected_name")
-    new_var.set_raw_interface(core, "Pelamis")
+    new_var.set_raw_interface(core, "ExampleWaveDevice")
     new_var.read(core, project)
         
     module_menu.activate(core, project, "Hydrodynamics")
@@ -120,7 +120,7 @@ def test_connect_TableDataColumn(core, project, tree):
     data_menu = DataMenu()
     project_menu = ProjectMenu()
 
-    data_menu.select_database(project, "testing")
+    data_menu.select_database(project, "local")
     project_menu.initiate_pipeline(core, project)
 
     proj_branch = tree.get_branch(core, project, "Site and System Options")
@@ -128,7 +128,7 @@ def test_connect_TableDataColumn(core, project, tree):
     inputs = proj_branch.get_input_status(core, project)
 
     assert inputs[var_id] == 'satisfied'
-    assert 'Shetland' in var.get_value(core, project)["site_name"].values
+    assert 'ExampleSite' in var.get_value(core, project)["site_name"].values
 
 def test_SimpleListColumn_available(core, project):
          
@@ -150,7 +150,7 @@ def test_SimpleListColumn_available(core, project):
 #    project_menu = ProjectMenu()
 #    
 #    tree = Tree()
-#    data_menu.select_database(project, "testing")
+#    data_menu.select_database(project, "local")
 #    
 #    project_menu.initiate_pipeline(core, project)
 #    project_menu.initiate_options(core, project)

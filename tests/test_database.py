@@ -60,7 +60,6 @@ def _is_port_open(dbname):
     
     return data_menu.check_database(dbname)
    
-remote_port_open = _is_port_open("testing")
 local_port_open = _is_port_open("local")
 
 # Using a py.test fixture to reduce boilerplate and test times.
@@ -122,11 +121,6 @@ def localhost(core, project):
     
     return database
 
-@pytest.mark.skipif(remote_port_open == False,
-                    reason="Can't connect to remote DB")
-def test_connect(database):
-    
-    assert isinstance(database._engine, Engine)
 
 @pytest.mark.skipif(local_port_open == False,
                     reason="Can't connect to local DB")
