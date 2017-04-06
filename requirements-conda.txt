@@ -1,0 +1,33 @@
+# REQUIREMENTS FOR CONDA INSTALLATION
+
+# INSTALLATION REQUIRED DEPENDENCIES
+aneris >=0.9
+basemap
+dtocean-hydrodynamics >=1.0
+dtocean-electrical >=1.0
+dtocean-moorings >=1.0
+dtocean-installation >=1.0
+dtocean-maintenance >=1.0
+dtocean-economics >=1.0
+dtocean-reliability >=1.0
+dtocean-environment >=1.0
+geoalchemy2
+matplotlib
+netcdf4
+numpy
+openpyxl
+pandas >=0.18
+pil
+polite >=0.9
+psycopg2
+pyproj
+pyqt 4.11.4
+python-dateutil
+pyyaml
+shapely
+xarray
+xlrd
+xlwt
+
+# TEST DEPENDENCIES
+pytest-cov
