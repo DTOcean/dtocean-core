@@ -1,4 +1,9 @@
-# DTOcean Core Module (Version 1.0.0)
+[![appveyor](https://ci.appveyor.com/api/projects/status/github/DTOcean/dtocean-core?branch=master&svg=true)](https://ci.appveyor.com/project/DTOcean/dtocean-core)
+[![codecov](https://codecov.io/gh/DTOcean/dtocean-core/branch/master/graph/badge.svg)](https://codecov.io/gh/DTOcean/dtocean-core)
+[**Lintly Score**](https://lintly.com/gh/DTOcean/dtocean-core/)
+[![release](https://img.shields.io/github/release/DTOcean/dtocean-core.svg)](https://github.com/DTOcean/dtocean-core/releases/latest)
+
+# DTOcean Core Module (Version 1.0)
 
 ## Installation
 
@@ -32,18 +37,27 @@ or
 C:\Anaconda\Scripts\activate.bat dtocean_integration
 ```
 
-### Add Public Anaconda Cloud channel
+### Add Public Anaconda Cloud channels
 
-To download the alpha version of the core the following channel must be
+To download the alpha version of the core the following channels must be
 added to Ananconda:
 
 ```
-conda config --add channels https://conda.anaconda.org/topper
+conda config --append channels conda-forge
+conda config --append channels dataonlygreater
 ```
 
 Note, this is operation should only be done once.
 
-### Install Package Dependencies
+### Install Anaconda package
+
+```
+conda install dtocean-core
+```
+
+### Manual Package Installation
+
+The following dependencies should be installed first:
 
 ```
 conda install attrdict basemap cma configobj descartes dtocean-demo-package geoalchemy2 h5py libpython=1.0 matplotlib netcdf4 networkx numpy=1.10.1 openpyxl pandas pil psycopg2-win-py27 pyproj pyopengl pypower pyqt=4.11.4 pywin32 pyyaml scikit-learn scipy setuptools shapely-win-py27 sqlalchemy xarray xlrd xlwt
@@ -114,7 +128,7 @@ cd path\to\dtocean-reliability
 winmake.bat install
 ```
 
-### Install the DTOcean Core
+Now install the DTOcean Core:
 
 ```
 cd path\to\dtocean-core
