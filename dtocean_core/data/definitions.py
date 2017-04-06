@@ -213,16 +213,14 @@ class TimeSeriesColumn(TimeSeries):
 
     @staticmethod
     def auto_db(self):
-
-        creds = self._db.get_credentials()
-
-        df = pd.read_sql_table(self.meta.result.tables[0],
-                               self._db._engine,
-                               schema=creds["schema"],
-                               columns=self.meta.result.tables[1:])
         
-        print df
-                               
+        schema, table = self.meta.result.tables[0].split(".")
+
+        df = pd.read_sql_table(table,
+                               self._db._engine,
+                               schema=schema,
+                               columns=self.meta.result.tables[1:])
+                                       
         if df.empty:
             
             result = None
@@ -395,12 +393,12 @@ class TableDataColumn(TableData):
 
     @staticmethod
     def auto_db(self):
+        
+        schema, table = self.meta.result.tables[0].split(".")
 
-        creds = self._db.get_credentials()
-
-        df = pd.read_sql_table(self.meta.result.tables[0],
+        df = pd.read_sql_table(table,
                                self._db._engine,
-                               schema=creds["schema"],
+                               schema=schema,
                                columns=self.meta.result.tables[1:])
                                
         if df.empty:
@@ -477,12 +475,12 @@ class IndexTableColumn(IndexTable):
 
     @staticmethod
     def auto_db(self):
+        
+        schema, table = self.meta.result.tables[0].split(".")
 
-        creds = self._db.get_credentials()
-
-        df = pd.read_sql_table(self.meta.result.tables[0],
+        df = pd.read_sql_table(table,
                                self._db._engine,
-                               schema=creds["schema"],
+                               schema=schema,
                                columns=self.meta.result.tables[1:])
                                
         if df.empty:
@@ -562,12 +560,12 @@ class LineTableColumn(LineTable):
 
     @staticmethod
     def auto_db(self):
+        
+        schema, table = self.meta.result.tables[0].split(".")
 
-        creds = self._db.get_credentials()
-
-        df = pd.read_sql_table(self.meta.result.tables[0],
+        df = pd.read_sql_table(table,
                                self._db._engine,
-                               schema=creds["schema"],
+                               schema=schema,
                                columns=self.meta.result.tables[1:])
                                
         if df.empty:
@@ -669,12 +667,12 @@ class TimeTableColumn(TimeTable):
 
     @staticmethod
     def auto_db(self):
+        
+        schema, table = self.meta.result.tables[0].split(".")
 
-        creds = self._db.get_credentials()
-
-        df = pd.read_sql_table(self.meta.result.tables[0],
+        df = pd.read_sql_table(table,
                                self._db._engine,
-                               schema=creds["schema"],
+                               schema=schema,
                                columns=self.meta.result.tables[1:])
                                
         if df.empty:
@@ -784,12 +782,12 @@ class Numpy2DColumn(Numpy2D):
 
     @staticmethod
     def auto_db(self):
+        
+        schema, table = self.meta.result.tables[0].split(".")
 
-        creds = self._db.get_credentials()
-
-        df = pd.read_sql_table(self.meta.result.tables[0],
+        df = pd.read_sql_table(table,
                                self._db._engine,
-                               schema=creds["schema"],
+                               schema=schema,
                                columns=self.meta.result.tables[1:4])
                                
         if df.empty:
@@ -842,12 +840,12 @@ class Numpy3DColumn(Numpy3D):
 
     @staticmethod
     def auto_db(self):
+        
+        schema, table = self.meta.result.tables[0].split(".")
 
-        creds = self._db.get_credentials()
-
-        df = pd.read_sql_table(self.meta.result.tables[0],
+        df = pd.read_sql_table(table,
                                self._db._engine,
-                               schema=creds["schema"],
+                               schema=schema,
                                columns=self.meta.result.tables[1:5])
                                
         if df.empty:
@@ -1007,8 +1005,10 @@ class NumpyLineArray(NumpyLine):
             errStr = ("Tables not defined for variable "
                       "'{}'.").format(self.meta.result.identifier)
             raise ValueError(errStr)
+            
+        schema, table = self.meta.result.tables[0].split(".")
 
-        Table = self._db.safe_reflect_table(self.meta.result.tables[0])
+        Table = self._db.safe_reflect_table(table, schema)
         result = self._db.session.query(
                      Table.columns[self.meta.result.tables[1]]).one()
 
@@ -1028,7 +1028,9 @@ class NumpyLineColumn(NumpyLine):
                       "'{}'.").format(self.meta.result.identifier)
             raise ValueError(errStr)
 
-        Table = self._db.safe_reflect_table(self.meta.result.tables[0])
+        schema, table = self.meta.result.tables[0].split(".")
+
+        Table = self._db.safe_reflect_table(table, schema)
         col0 = self._db.session.query(
                      Table.columns[self.meta.result.tables[1]]).all()
         col1 = self._db.session.query(
@@ -1102,7 +1104,9 @@ class NumpyLineDictArrayColumn(NumpyLineDict):
                       "'{}'.").format(self.meta.result.identifier)
             raise ValueError(errStr)
 
-        Table = self._db.safe_reflect_table(self.meta.result.tables[0])
+        schema, table = self.meta.result.tables[0].split(".")
+
+        Table = self._db.safe_reflect_table(table, schema)
         keys = self._db.session.query(
                      Table.columns[self.meta.result.tables[1]]).all()
         lines = self._db.session.query(
@@ -1261,7 +1265,9 @@ class HistogramColumn(Histogram):
                       "'{}'.").format(self.meta.result.identifier)
             raise ValueError(errStr)
 
-        Table = self._db.safe_reflect_table(self.meta.result.tables[0])
+        schema, table = self.meta.result.tables[0].split(".")
+
+        Table = self._db.safe_reflect_table(table, schema)
         bin_values = self._db.session.query(
                      Table.columns[self.meta.result.tables[1]]).all()
         bin_lowers = self._db.session.query(
@@ -1435,7 +1441,9 @@ class CartesianDataColumn(CartesianData):
                       "'{}'.").format(self.meta.result.identifier)
             raise ValueError(errStr)
 
-        Table = self._db.safe_reflect_table(self.meta.result.tables[0])
+        schema, table = self.meta.result.tables[0].split(".")
+
+        Table = self._db.safe_reflect_table(table, schema)
         result = self._db.session.query(
                      Table.columns[self.meta.result.tables[1]]).one()
 
@@ -1579,7 +1587,9 @@ class CartesianListColumn(CartesianList):
                       "'{}'.").format(self.meta.result.identifier)
             raise ValueError(errStr)
 
-        Table = self._db.safe_reflect_table(self.meta.result.tables[0])
+        schema, table = self.meta.result.tables[0].split(".")
+
+        Table = self._db.safe_reflect_table(table, schema)
         result = self._db.session.query(
                      Table.columns[self.meta.result.tables[1]]).one()
 
@@ -1740,7 +1750,9 @@ class CartesianDictColumn(CartesianDict):
                       "'{}'.").format(self.meta.result.identifier)
             raise ValueError(errStr)
 
-        Table = self._db.safe_reflect_table(self.meta.result.tables[0])
+        schema, table = self.meta.result.tables[0].split(".")
+
+        Table = self._db.safe_reflect_table(table, schema)
         keys = self._db.session.query(
                      Table.columns[self.meta.result.tables[1]]).all()
         values = self._db.session.query(
@@ -1918,7 +1930,9 @@ class CartesianListDictColumn(CartesianListDict):
                       "'{}'.").format(self.meta.result.identifier)
             raise ValueError(errStr)
 
-        Table = self._db.safe_reflect_table(self.meta.result.tables[0])
+        schema, table = self.meta.result.tables[0].split(".")
+
+        Table = self._db.safe_reflect_table(table, schema)
         keys = self._db.session.query(
                      Table.columns[self.meta.result.tables[1]]).all()
         values = self._db.session.query(
@@ -2287,7 +2301,9 @@ class SimpleDataColumn(SimpleData):
                       "'{}'.").format(self.meta.result.identifier)
             raise ValueError(errStr)
 
-        Table = self._db.safe_reflect_table(self.meta.result.tables[0])
+        schema, table = self.meta.result.tables[0].split(".")
+
+        Table = self._db.safe_reflect_table(table, schema)
         result = self._db.session.query(
                      Table.columns[self.meta.result.tables[1]]).one()
 
@@ -2316,12 +2332,16 @@ class SimpleDataForeignColumn(SimpleData):
             errStr = ("Tables not defined for variable "
                       "'{}'.").format(self.meta.result.identifier)
             raise ValueError(errStr)
+            
+        schema, table = self.meta.result.tables[0].split(".")
 
-        TableOne = self._db.safe_reflect_table(self.meta.result.tables[0])
+        TableOne = self._db.safe_reflect_table(table, schema)
         table_two_id = self._db.session.query(
                             TableOne.columns[self.meta.result.tables[2]]).one()
                                                  
-        TableTwo = self._db.safe_reflect_table(self.meta.result.tables[1])
+        schema, table = self.meta.result.tables[1].split(".")
+
+        TableTwo = self._db.safe_reflect_table(table, schema)
         query = self._db.session.query(
                                 TableTwo.columns[self.meta.result.tables[4]])
         result = query.filter(TableTwo.columns[
@@ -2353,7 +2373,9 @@ class SimpleListColumn(SimpleList):
                       "'{}'.").format(self.meta.result.identifier)
             raise ValueError(errStr)
 
-        Table = self._db.safe_reflect_table(self.meta.result.tables[0])
+        schema, table = self.meta.result.tables[0].split(".")
+
+        Table = self._db.safe_reflect_table(table, schema)
         result = self._db.session.query(
                      Table.columns[self.meta.result.tables[1]]).all()
                      
@@ -2387,7 +2409,9 @@ class SimpleDictColumn(SimpleDict):
                       "'{}'.").format(self.meta.result.identifier)
             raise ValueError(errStr)
 
-        Table = self._db.safe_reflect_table(self.meta.result.tables[0])
+        schema, table = self.meta.result.tables[0].split(".")
+
+        Table = self._db.safe_reflect_table(table, schema)
         keys = self._db.session.query(
                    Table.columns[self.meta.result.tables[1]]).all()
         values = self._db.session.query(
@@ -2755,7 +2779,9 @@ class PointDataColumn(PointData):
                       "'{}'.").format(self.meta.result.identifier)
             raise ValueError(errStr)
 
-        Table = self._db.safe_reflect_table(self.meta.result.tables[0])
+        schema, table = self.meta.result.tables[0].split(".")
+
+        Table = self._db.safe_reflect_table(table, schema)
         result = self._db.session.query(
                      Table.columns[self.meta.result.tables[1]]).one()
                      
@@ -2780,7 +2806,9 @@ class PointDictColumn(PointDict):
                       "'{}'.").format(self.meta.result.identifier)
             raise ValueError(errStr)
 
-        Table = self._db.safe_reflect_table(self.meta.result.tables[0])
+        schema, table = self.meta.result.tables[0].split(".")
+
+        Table = self._db.safe_reflect_table(table, schema)
         keys = self._db.session.query(
                      Table.columns[self.meta.result.tables[1]]).all()
         values = self._db.session.query(
@@ -2920,7 +2948,9 @@ class PolygonDataColumn(PolygonData):
                       "'{}'.").format(self.meta.result.identifier)
             raise ValueError(errStr)
 
-        Table = self._db.safe_reflect_table(self.meta.result.tables[0])
+        schema, table = self.meta.result.tables[0].split(".")
+
+        Table = self._db.safe_reflect_table(table, schema)
         result = self._db.session.query(
                      Table.columns[self.meta.result.tables[1]]).one()
 
@@ -3066,7 +3096,9 @@ class PolygonListColumn(PolygonList):
                       "'{}'.").format(self.meta.result.identifier)
             raise ValueError(errStr)
 
-        Table = self._db.safe_reflect_table(self.meta.result.tables[0])
+        schema, table = self.meta.result.tables[0].split(".")
+
+        Table = self._db.safe_reflect_table(table, schema)
         result = self._db.session.query(
                      Table.columns[self.meta.result.tables[1]]).all()
                      
@@ -3114,7 +3146,9 @@ class PolygonDictColumn(PolygonDict):
                       "'{}'.").format(self.meta.result.identifier)
             raise ValueError(errStr)
 
-        Table = self._db.safe_reflect_table(self.meta.result.tables[0])
+        schema, table = self.meta.result.tables[0].split(".")
+
+        Table = self._db.safe_reflect_table(table, schema)
         keys = self._db.session.query(
                      Table.columns[self.meta.result.tables[1]]).all()
         values = self._db.session.query(

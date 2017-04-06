@@ -682,7 +682,7 @@ class FilterInterface(ProjectInterface, QueryInterface):
                                                   self.data.selected_system)
                 raise ValueError(errStr)
                             
-            self._db.call_stored_proceedure("beta.sp_filter_device_data",
+            self._db.call_stored_proceedure("filter.sp_filter_device_data",
                                             [system_ids.values[0].item()]
                                             )
                                             
@@ -710,7 +710,7 @@ class FilterInterface(ProjectInterface, QueryInterface):
                           "is corrupt.").format(self.data.selected_site)
                 raise ValueError(errStr)
             
-            self._db.call_stored_proceedure("beta.sp_filter_site_data",
+            self._db.call_stored_proceedure("filter.sp_filter_site_data",
                                             [site_ids.values[0].item()]
                                             )
                                             
