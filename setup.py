@@ -27,6 +27,7 @@ class PyTest(TestCommand):
         #import here, cause outside the eggs aren't loaded
         import pytest
         import openpyxl
+		import shlex
         
         # Pickle data files and move to test directory
         data_dir = "test_data"
@@ -62,7 +63,7 @@ class PyTest(TestCommand):
             shutil.copyfile(test_def_path, dst_path)
         
         # Run the tests
-        errno = pytest.main(self.pytest_args)
+        errno = pytest.main(shlex.split(self.pytest_args))
         sys.exit(errno)
 
 

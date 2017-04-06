@@ -39,7 +39,7 @@ install:
 build: off
   
 test_script:
-  - py.test --cov=dtocean_core tests
+  - python setup.py test -a "--cov dtocean_core"
   
 after_test:
  - pip install codecov
