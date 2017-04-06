@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Added tools plugin framework to add generic data manipulation or external
   tools.
+- Increased the number of spectrum types available to the hydrodynamics wave
+  submodule.
 - Add change log.
 
 ### Changed
@@ -18,6 +20,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Renamed tools submodule to utils.
 - Changed database stored proceedure calls to match changes to database
   structure.
+- Added "category" and "group" fields to DDS and removed "symbol, sample_value,
+  maximum_value, minimum_value, default_value, input_widget, output_widget"
+  which were unused.
+- Changed database table definitions to explicitly require the schema to be
+  included, for instance project.farm rather than just farm.
+- Changed table definitions in DDS files and configuration to work with
+  new dtocean_examples database.
+  
+### Removed
+
+- Schema is no longer set in database configuration
 
 ### Fixed
 
