@@ -57,7 +57,7 @@ def project(core, tree):
     return new_project
     
 @pytest.mark.skipif(port_open == False,
-                    reason="can't connect to remote DB")
+                    reason="can't connect to DB")
 def test_get_query_interface(core, project, tree):
     
     mod_name = "Site and System Options"
@@ -79,7 +79,7 @@ def test_get_query_interface(core, project, tree):
     assert result is not None
     
 @pytest.mark.skipif(port_open == False,
-                    reason="can't connect to remote DB")
+                    reason="can't connect to DB")
 def test_filter_interface(core, project, tree):
     
     project = deepcopy(project) 
@@ -110,7 +110,7 @@ def test_filter_interface(core, project, tree):
     assert True
 
 @pytest.mark.skipif(port_open == False,
-                    reason="can't connect to remote DB")    
+                    reason="can't connect to DB")    
 def test_connect_TableDataColumn(core, project, tree):
 
     var_id = "hidden.available_sites"
@@ -138,7 +138,7 @@ def test_SimpleListColumn_available(core, project):
     assert 'AutoQuery' in result.get_name()
 
 #@pytest.mark.skipif(port_open == False,
-#                    reason="can't connect to remote DB")
+#                    reason="can't connect to DB")
 #def test_connect_SimpleColumn(core, project, tree):
 #    
 #    var_id = "device.power_rating"
@@ -187,7 +187,7 @@ def test_SimpleListColumn_available(core, project):
 #    assert 'AutoQuery' in result[0]
 
 #@pytest.mark.skipif(port_open == False,
-#                    reason="Can't connect to remote DB")
+#                    reason="Can't connect to DB")
 #def test_connect_SimpleDictColumns(core, project):
 #
 #    mod_name = "Project Data Interface"
@@ -204,7 +204,7 @@ def test_SimpleListColumn_available(core, project):
 #    assert 'Tide Turner TM' in var.get_value(core, project).values()
    
 #@pytest.mark.skipif(port_open == False,
-#                    reason="Can't connect to remote DB")
+#                    reason="Can't connect to DB")
 #def test_LeaseArea_available(core, project, module_menu):
 #    
 #    module_menu.activate(core, project, "Hydrodynamics")
@@ -215,7 +215,7 @@ def test_SimpleListColumn_available(core, project):
 #    assert 'AutoQuery' in result[0]
 
 #@pytest.mark.skipif(port_open == False,
-#                    reason="Can't connect to remote DB")
+#                    reason="Can't connect to DB")
 #def test_connect_LeaseArea(core, project, module_menu):
 #
 #    mod_name = "Hydrodynamics"

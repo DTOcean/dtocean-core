@@ -123,7 +123,7 @@ def localhost(core, project):
 
 
 @pytest.mark.skipif(local_port_open == False,
-                    reason="Can't connect to local DB")
+                    reason="Can't connect to DB")
 def test_connect_local(localhost):
     
     assert isinstance(localhost._engine, Engine)

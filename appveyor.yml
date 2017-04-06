@@ -33,6 +33,7 @@ install:
   - conda info --all
   - "conda create --quiet --name conda-env-%PYTHON_VERSION%-%ARCH% python=%PYTHON_VERSION% --file requirements-conda.txt"
   - activate conda-env-%PYTHON_VERSION%-%ARCH%
+  - python setup.py bootstrap
   - python setup.py develop
   
 build: off
