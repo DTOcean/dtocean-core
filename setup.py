@@ -26,8 +26,7 @@ class PyTest(TestCommand):
     
         #import here, cause outside the eggs aren't loaded
         import pytest
-        import openpyxl
-		import shlex
+        import shlex
         
         # Pickle data files and move to test directory
         data_dir = "test_data"
