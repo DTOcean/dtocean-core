@@ -164,7 +164,7 @@ class LeaseBathyInterface(QueryInterface):
         func_poly_str = poly_wkt.replace("POLYGON ((", "")[:-2]
         
         query_str = ("SELECT * FROM "
-                     "beta.sp_select_project_bathymetry_by_polygon"
+                     "filter.sp_select_bathymetry_by_polygon"
                      "('{}')").format(func_poly_str)
                                      
         result = self._db.server_execute_query(query_str)
@@ -312,7 +312,7 @@ class CorridorBathyInterface(QueryInterface):
         
         query_str = (
              "SELECT * FROM "
-             "beta.sp_select_project_cable_corridor_bathymetry_by_polygon"
+             "filter.sp_select_cable_corridor_bathymetry_by_polygon"
              "('{}')").format(func_poly_str)
                                      
         result = self._db.server_execute_query(query_str)
@@ -457,7 +457,7 @@ class TidalEnergyInterface(QueryInterface):
         
         query_str = (
                 "SELECT * FROM "
-                "beta.sp_select_project_tidal_energy_time_series_by_polygon"
+                "filter.sp_select_tidal_energy_time_series_by_polygon"
                 "('{}')").format(func_poly_str)
                                      
         result = self._db.server_execute_query(query_str)
