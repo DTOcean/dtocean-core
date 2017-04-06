@@ -21,7 +21,7 @@ pil
 polite >=0.9
 psycopg2
 pyproj
-pyqt 4.11.4
+pyqt =4.11.4
 python-dateutil
 pyyaml
 shapely
