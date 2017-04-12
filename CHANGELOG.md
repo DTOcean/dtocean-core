@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   tools.
 - Increased the number of spectrum types available to the hydrodynamics wave
   submodule.
+- Allowed filtering of the database when only sites or only devices are defined.
 - Add change log.
 
 ### Changed
@@ -27,10 +28,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   included, for instance project.farm rather than just farm.
 - Changed table definitions in DDS files and configuration to work with
   new dtocean_examples database.
+- Changed table references to filter.farm to filter.lease_area.
+- Changed location of cable landing points to project.site table.
   
 ### Removed
 
-- Schema is no longer set in database configuration
+- Schema is no longer set in database configuration.
 
 ### Fixed
 
