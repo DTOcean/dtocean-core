@@ -22,7 +22,7 @@ TBC
 
 import numpy as np
 
-from aneris.boundary.interface import QueryInterface
+from aneris.boundary.interface import QueryInterface, MaskVariable
 
 from . import ProjectInterface
 
@@ -247,8 +247,13 @@ class OptionsInterface(ProjectInterface, QueryInterface):
                          ]
         '''
         
-        option_list = None
-                        
+        option_list = ["hidden.available_sites",
+                       "hidden.available_systems",
+                       "hidden.corridor_boundaries",
+                       "hidden.lease_boundaries",
+                       "hidden.site_boundaries",
+                       "hidden.landing_points"]
+                                                
         return option_list
         
     @classmethod 
@@ -301,14 +306,19 @@ class OptionsInterface(ProjectInterface, QueryInterface):
         
         '''
         
-        systems_df = self.data.all_systems
-        systems_type_df = systems_df[
+        if self.data.all_systems is not None:
+            
+            systems_df = self.data.all_systems
+            systems_type_df = systems_df[
                     systems_df['device_type'].str.contains(self.data.sys_type)]
                  
-        self.data.system_names = systems_type_df["description"]
-        self.data.site_names = self.data.all_sites["site_name"]
-        self.data.corridor_selected = False
-        self.data.lease_selected = False
+            self.data.system_names = systems_type_df["description"]
+            
+        if self.data.all_sites is not None:
+            
+            self.data.site_names = self.data.all_sites["site_name"]
+            self.data.corridor_selected = False
+            self.data.lease_selected = False
         
         return
 
@@ -551,8 +561,12 @@ class FilterInterface(ProjectInterface, QueryInterface):
                         "hidden.available_systems",
                         "hidden.corridor_selected",
                         "hidden.lease_selected",
-                        "site.selected_name",
-                        "device.selected_name"]
+                        
+                        MaskVariable("site.selected_name",
+                                     "hidden.available_sites"),
+                        
+                        MaskVariable("device.selected_name",
+                                     "hidden.available_systems")]
                                                 
         return input_list
 
