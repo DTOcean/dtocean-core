@@ -486,13 +486,11 @@ class SiteBoundaryInterface(ProjectInterface, QueryInterface):
             errStr = ("More than one site with name '{}' found. Database "
                       "is corrupt.").format(self.data.selected_site)
             raise ValueError(errStr)
-            
-        site_ids = sites_df[site_matches]["id"]
-
+        
         site_corridor = self.data.corridor_boundaries[self.data.selected_site]
         site_lease = self.data.lease_boundaries[self.data.selected_site]
         site_boundary = self.data.site_boundaries[self.data.selected_site]
-        landing_point = self.data.landing_points[site_ids[0]]
+        landing_point = self.data.landing_points[self.data.selected_site]
         proj_strings = sites_df[site_matches]["lease_area_proj4_string"]
         
         self.data.corridor_poly = site_corridor
