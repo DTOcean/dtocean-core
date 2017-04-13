@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Increased the number of spectrum types available to the hydrodynamics wave
   submodule.
 - Allowed filtering of the database when only sites or only devices are defined.
+- Added tests for "System Type Selection" and "Site and System Options"
+  interfaces.
 - Add change log.
 
 ### Changed
