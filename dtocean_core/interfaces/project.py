@@ -312,7 +312,8 @@ class OptionsInterface(ProjectInterface, QueryInterface):
             systems_type_df = systems_df[
                     systems_df['device_type'].str.contains(self.data.sys_type)]
                  
-            self.data.system_names = systems_type_df["description"]
+            system_names = systems_type_df["description"]
+            self.data.system_names = system_names.reset_index(drop=True)
             
         if self.data.all_sites is not None:
             
