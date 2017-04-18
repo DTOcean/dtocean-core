@@ -457,7 +457,7 @@ class HydroInterface(ModuleInterface):
             # Translate spectrum type
             spectrum_map = {"Regular": "Regular",
                             "Pierson-Moskowitz": "Pierson_Moskowitz",
-                            "Jonswap": "Jonswap",
+                            "JONSWAP": "Jonswap",
                             "Bretschneider": "Bretschneider_Mitsuyasu",
                             "Modified Bretschneider":
                                 "Modified_Bretschneider_Mitsuyasu"                          
