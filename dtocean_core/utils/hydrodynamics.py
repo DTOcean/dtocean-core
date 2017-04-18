@@ -573,14 +573,21 @@ def sum_bins(bins, data):
         start = end
     
     return np.array(bin_sums)
-    
-def bearing_to_vector(bearing, distance=1.):
+
+def bearing_to_radians(bearing):
 
     #convert bearing to arithmetic angle in radians
     angle = 90. - bearing
     if angle < -180.: angle += 360.
     
     angle = math.radians(angle)
+    
+    return angle
+    
+def bearing_to_vector(bearing, distance=1.):
+
+    #convert bearing to arithmetic angle in radians
+    angle = bearing_to_radians(bearing)
     
     start = complex(0., 0.)
     movement = cmath.rect(distance, angle)

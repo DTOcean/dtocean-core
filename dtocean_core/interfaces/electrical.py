@@ -53,6 +53,7 @@ from dtocean_electrical.inputs import (ElectricalComponentDatabase,
 from aneris.boundary.interface import MaskVariable
 
 from . import ModuleInterface
+from ..utils.hydrodynamics import bearing_to_radians
 from ..utils.electrical import sanitise_network
 from ..utils.network import find_marker_key
 
@@ -590,6 +591,37 @@ class ElectricalInterface(ModuleInterface):
             
     @classmethod    
     def get_input_dict(cls, data):
+        
+#    class ElectricalSiteData(object):
+#    
+#        '''Define the electrical systems site data object. This includes all
+#        geotechnical and geophysical data.
+#        
+#        Args:
+#            bathymetry (pd.dataframe) [m]: the vertical profile of the sea bottom
+#                and geotechnical layers at each (given) UTM coordinate within the
+#                lease area; expressed as [id,i,j,x,y,layer1depth,layer1type,..,..,
+#                layerNdepth, layerNtype], where: i and j are local indices; x,y are
+#                grid coordinates and layerndepth, laterntype define the start depth
+#                and the type of layer n (from n=1:N).
+#            exclusion_zones (list) [-]: list containing the UTM coordinates of the
+#                                        exclusion zone polygons within the lease
+#                                        area.
+#            max_temp (float) [degrees C]: the maximum seabed temperature recorded in
+#                                          the lease area.
+#            max_soil_res (float) [K.m/W]: the maximum soil resistivity recorded in
+#                                          the lease area.
+#            tidal_current_direction (float) [rad]: the tidal stream current
+#                                                   prevalent direction in the lease
+#                                                   area.
+#            tidal_current_flow (float) [m/s]: maximum tidal stream current velocity
+#                                              in the lease area.
+#            wave_direction (float) [rad]: the prevalent wave direction in the lease
+#                                          area.
+#            shipping (numpy.ndarray) [-]: histogram of shipping activity in the
+#                                          lease area; expressed as [val1, val2]
+#                                          where: val1 is the bin edge of the vessel
+#                                          deadweight (T) val2 is the frequency (pc)
             
         renaming_bathymetry = {"loose sand" : "ls",
                                "medium sand" : "ms",
@@ -635,6 +667,10 @@ class ElectricalInterface(ModuleInterface):
         
         bathymetry = bathymetry.replace(to_replace = renaming_bathymetry)
 
+        # Convert the directions from bearings to radians
+        site_current_dir = bearing_to_radians(data.current_dir)
+        site_wave_dir = bearing_to_radians(data.wave_dir)
+
         # Only use bin ends for shipping history
         shipping_hist = []
         full_bins = data.shipping_hist["bins"]
@@ -642,15 +678,43 @@ class ElectricalInterface(ModuleInterface):
         for i, value in enumerate(data.shipping_hist["values"]):
             bin_edge = [full_bins[i+1], value]
             shipping_hist.append(bin_edge)
-            
+                        
         site = ElectricalSiteData(bathymetry,
                                   data.nogo_areas,
                                   data.max_temp,
                                   data.max_soil_res,
-                                  data.current_dir,
+                                  site_current_dir,
                                   data.max_surf_current,
-                                  data.wave_dir,
+                                  site_wave_dir,
                                   shipping_hist)
+        
+#    class ElectricalExportData(object):
+#        
+#        '''Define the electrical systems export data object. This includes all
+#        geotechnical and geophysical data.
+#    
+#        Args:
+#            bathymetry (pd.dataframe) [m]: the vertical profile of the sea bottom
+#                and geotechnical layers at each (given) UTM coordinate within the
+#                export area; expressed as [id,i,j,x,y,layer1depth,layer1type,..,..,
+#                layerNdepth, layerNtype], where: i and j are local indices; x,y are
+#                grid coordinates and layerndepth, laterntype define the start depth
+#                and the type of layer n (from n=1:N).
+#            exclusion_zones (list) [-]: list containing the UTM coordinates of the
+#                exclusion zone polygons within the export area.
+#            max_temp (float) [degrees C]: the maximum seabed temperature recorded 
+#                in the export area.
+#            max_soil_res (float) [K.m/W]: the maximum soil resistivity recorded in
+#                the export area.
+#            tidal_current_direction (float) [rad]: the tidal stream current
+#                prevalent direction in the export area.
+#            tidal_current_flow (float) [m/s]: maximum tidal stream current velocity
+#                in the export area.
+#            wave_direction (float) [rad]: the prevalent wave direction in the
+#                export area.
+#            shipping (numpy.ndarray) [-]: histogram of shipping activity in the
+#                export area; expressed as [val1, val2] where: val1 is the bin edge
+#                of the vessel deadweight (T) val2 is the frequency (pc).
                                           
         export_bathymetry_pd_unsort = data.export_strata.to_dataframe()
         export_bathymetry_pd = export_bathymetry_pd_unsort.unstack(
@@ -689,15 +753,27 @@ class ElectricalInterface(ModuleInterface):
         
         export_bathymetry = export_bathymetry.replace(
                                               to_replace=renaming_bathymetry)
+        
+        # Convert the directions from bearings to radians
+        export_current_dir = bearing_to_radians(data.corridor_current_dir)
+        export_wave_dir = bearing_to_radians(data.corridor_wave_dir)
+
+        # Only use bin ends for shipping history
+        export_shipping_hist = []
+        full_bins = data.corridor_shipping_hist["bins"]
+        
+        for i, value in enumerate(data.corridor_shipping_hist["values"]):
+            bin_edge = [full_bins[i+1], value]
+            export_shipping_hist.append(bin_edge)
 
         export = ElectricalExportData(export_bathymetry,
                                       data.corridor_nogo_areas,
                                       data.corridor_max_temp,
                                       data.corridor_max_soil_res,
-                                      data.corridor_current_dir,
+                                      export_current_dir,
                                       data.corridor_max_surf_current,
-                                      data.corridor_wave_dir,
-                                      data.corridor_shipping_hist)
+                                      export_wave_dir,
+                                      export_shipping_hist)
                                       
 #    class ElectricalMachineData(object):
 #    
