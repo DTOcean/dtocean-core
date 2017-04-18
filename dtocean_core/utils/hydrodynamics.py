@@ -578,7 +578,7 @@ def bearing_to_radians(bearing):
 
     #convert bearing to arithmetic angle in radians
     angle = 90. - bearing
-    if angle < -180.: angle += 360.
+    if angle <= -180.: angle += 360.
     
     angle = math.radians(angle)
     

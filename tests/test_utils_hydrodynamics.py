@@ -1,13 +1,16 @@
 
 import pytest
 
+import math
 from subprocess import call
 
 import numpy as np
 import pandas as pd
 
 from dtocean_core.utils.hydrodynamics import (make_wave_statistics,
-                                              make_tide_statistics)
+                                              make_tide_statistics,
+                                              bearing_to_radians,
+                                              bearing_to_vector)
                                         
 def test_make_wave_statistics_propability():
     
@@ -169,3 +172,24 @@ def test_make_tide_statistics_zero_V():
 #    assert wave_df["Te"].min() >= 0.
 #    assert wave_df["Te"].max() <= 16.
 
+@pytest.mark.parametrize("bearing, radians", 
+                         [(0.,   math.pi / 2.),
+                          (90.,  0.),
+                          (180., -math.pi / 2.),
+                          (270., math.pi)])
+def test_bearing_to_radians(bearing, radians):
+    
+    test_radians = bearing_to_radians(bearing)
+    
+    assert test_radians == radians
+    
+@pytest.mark.parametrize("bearing, vector", 
+                         [(0.,   [0.,  1.]),
+                          (90.,  [1.,  0.]),
+                          (180., [0., -1.]),
+                          (270., [-1., 0.])])
+def test_bearing_to_vector(bearing, vector):
+    
+    test_vector = bearing_to_vector(bearing)
+    
+    assert np.isclose(test_vector, vector).all()
