@@ -148,10 +148,6 @@ class HydroInterface(ModuleInterface):
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
 
-                        MaskVariable("farm.point_sea_surface_height",   
-                                     "device.system_type",
-                                     ["Wave Fixed", "Wave Floating"]),
-
                         MaskVariable('farm.power_law_exponent',
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
@@ -306,7 +302,6 @@ class HydroInterface(ModuleInterface):
                     "nogo_areas": "farm.nogo_areas",
                     "op_threshold": "options.optimisation_threshold",
                     "perf_curves": "device.turbine_performance",
-                    "point_SSH": "farm.point_sea_surface_height",
                     "pow_bins": "options.power_bin_width",
                     "pow_per_device": "farm.mean_power_per_device",
                     "pow_pmf_per_device": "farm.mean_power_pmf_per_device",
@@ -470,12 +465,11 @@ class HydroInterface(ModuleInterface):
             
             spectrum_type = spectrum_map[self.data.spectrum_type_farm]
             
-            point_SSH = self.data.point_SSH
             spectrum_list = (spectrum_type,
                              self.data.spectrum_gamma_farm,
                              self.data.spectrum_dir_spreading_farm)
             
-            occurrence_matrix["SSH"] = point_SSH
+            occurrence_matrix["SSH"] = 0. # Datum is mean sea level
             occurrence_matrix["specType"] = spectrum_list
         
         # Snap lease area to bathymetry
