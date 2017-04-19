@@ -397,18 +397,18 @@ fabcost = 1.0 #optional fabrication cost factor
 
 umbilical_connection = [0,0,-0.5]
 
-test_data = {'bathymetry.line_bearing_capacity_factor': linebcf,
-             'bathymetry.pile_Am_moment_coefficient': pilemomcoefam,
-             'bathymetry.pile_Bm_moment_coefficient': pilemomcoefbm,
-             'bathymetry.pile_deflection_coefficients': piledefcoef,
-             'bathymetry.pile_skin_friction_end_bearing_capacity':
+test_data = {'constants.line_bearing_capacity_factor': linebcf,
+             'constants.pile_Am_moment_coefficient': pilemomcoefam,
+             'constants.pile_Bm_moment_coefficient': pilemomcoefbm,
+             'constants.pile_deflection_coefficients': piledefcoef,
+             'constants.pile_skin_friction_end_bearing_capacity':
                                                          pilefricresnoncal,
-             "bathymetry.soilprops" : soilprops,
-             'bathymetry.soil_cohesive_reaction_coefficient': k1coef,
-             "bathymetry.soil_cohesionless_reaction_coefficient": 
+             "constants.soilprops" : soilprops,
+             'constants.soil_cohesive_reaction_coefficient': k1coef,
+             "constants.soil_cohesionless_reaction_coefficient": 
                                                          subgradereaccoef,
-             'bathymetry.soil_drained_holding_capacity_factor': hcfdrsoil,
-             'bathymetry.soil_sensitivity': soilsen,
+             'constants.soil_drained_holding_capacity_factor': hcfdrsoil,
+             'constants.soil_sensitivity': soilsen,
              'constants.air_density': airden,
              'constants.concrete_density': conden,
              'constants.gravity': gravity,
