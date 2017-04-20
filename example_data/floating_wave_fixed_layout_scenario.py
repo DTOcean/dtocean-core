@@ -231,7 +231,7 @@ max_100year_hs = 0.5
 max_100year_tp = 2.5
 max_100year_gamma = 3.3
 
-spectrum_type_farm = 'Jonswap'
+spectrum_type_farm = 'JONSWAP'
 spectrum_gamma_farm = 3.3
 spectrum_dir_spreading_farm = 30.
 
@@ -637,8 +637,8 @@ op_threshold = 0.
 
 test_data = {
         "bathymetry.layers": strata,
-        "bathymetry.max_soil_resistivity": max_soil_res,
-        "bathymetry.max_seabed_temp": max_temp,
+        "farm.max_soil_resistivity": max_soil_res,
+        "farm.max_seabed_temp": max_temp,
         "constants.line_bearing_capacity_factor": line_bcf,
         "constants.pile_Am_moment_coefficient": pilemomcoefam,
         "constants.pile_Bm_moment_coefficient": pilemomcoefbm,
@@ -647,7 +647,7 @@ test_data = {
         "constants.soil_cohesionless_reaction_coefficient": subgradereaccoef,
         "constants.soil_cohesive_reaction_coefficient": k1coeff,
         "constants.soil_drained_holding_capacity_factor": hcfdrsoil,
-        "constants.soil_sensitivity": soilsen,
+        "farm.soil_sensitivity": soilsen,
         "constants.soilprops": soilprops,
         "constants.gravity": gravity,
         "constants.sea_water_density": seaden,
@@ -727,7 +727,7 @@ test_data = {
         "farm.devices_per_string": devices_per_string,
         "farm.direction_of_max_surface_current":  max_10year_current_dir,
         "farm.main_direction": main_direction,
-        "farm.mannings": geo_raw,
+        "bathymetry.mannings": geo_raw,
         "farm.max_surface_current_10_year": max_10year_current,
         'farm.mooring_ALS_safety_factor': moorsfals,
         'farm.mooring_ULS_safety_factor': moorsfuls,
@@ -735,7 +735,7 @@ test_data = {
         "farm.nogo_areas": nogo_areas,
         "farm.offshore_reactive_limit": offshore_reactive_limit,
         "farm.onshore_infrastructure_cost": onshore_infrastructure_cost,
-        "farm.point_sea_surface_height": point_SSH,
+#        "farm.point_sea_surface_height": point_SSH,
         "farm.power_law_exponent": power_law_exponent,
         "farm.rated_power": rated_array_power,
         "farm.shipping_hist": shipping_hist,
