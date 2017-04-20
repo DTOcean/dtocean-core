@@ -87,7 +87,7 @@ class LeaseBathyInterface(QueryInterface):
         '''
         
         outputs = ["bathymetry.layers",
-                   "farm.mannings"]
+                   "bathymetry.mannings"]
                 
         return outputs
         
@@ -141,7 +141,7 @@ class LeaseBathyInterface(QueryInterface):
                   
         id_map = {"bathymetry": "bathymetry.layers",
                   "lease_poly": "site.lease_boundary",
-                  "mannings": "farm.mannings"
+                  "mannings": "bathymetry.mannings"
                   }
                   
         return id_map
@@ -168,7 +168,7 @@ class LeaseBathyInterface(QueryInterface):
                      "('{}')").format(func_poly_str)
                                      
         result = self._db.server_execute_query(query_str)
-        pre_bathy = init_bathy_records(result)
+        pre_bathy = init_bathy_records(result, True)
         
         raw_strata = bathy_records_to_strata(pre_bathy=pre_bathy)
         self.data.bathymetry = raw_strata

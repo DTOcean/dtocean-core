@@ -105,7 +105,6 @@ class HydroInterface(ModuleInterface):
                         'device.power_rating',
                         'device.system_type',
                         'device.yaw',
-                        'farm.mannings',
                         'site.lease_boundary',
                         'farm.main_direction',
                         'farm.nogo_areas',
@@ -143,6 +142,10 @@ class HydroInterface(ModuleInterface):
                         MaskVariable("device.wave_data_directory",   
                                      "device.system_type",
                                      ["Wave Fixed", "Wave Floating"]),
+                                     
+                        MaskVariable('bathymetry.mannings',
+                                     "device.system_type",
+                                     ["Tidal Fixed", "Tidal Floating"]),
 
                         MaskVariable("farm.blockage_ratio",
                                      "device.system_type",
@@ -290,7 +293,7 @@ class HydroInterface(ModuleInterface):
                     "cut_out": "device.cut_out_velocity",
                     "device_position": "farm.layout",
                     "ext_forces": "device.external_forces",
-                    "geophysics": "farm.mannings",
+                    "geophysics": "bathymetry.mannings",
                     "lCS": "device.coordinate_system",
                     "lease_area": "site.lease_boundary",
                     "main_direction": "farm.main_direction",
@@ -433,6 +436,14 @@ class HydroInterface(ModuleInterface):
                            "coords": occurrence_matrix_coords}
                            
             self.data.tidal_occurrence = matrix_xset
+            
+            # Flatten mannings number
+            xgrid, ygrid = np.meshgrid(self.data.geophysics.x.values,
+                                       self.data.geophysics.y.values)
+            geogrid = self.data.geophysics.values
+            geoflat = np.array(zip(xgrid.flatten(),
+                                   ygrid.flatten(),
+                                   geogrid.flatten()))
     
         else:
                         
@@ -471,6 +482,8 @@ class HydroInterface(ModuleInterface):
             
             occurrence_matrix["SSH"] = 0. # Datum is mean sea level
             occurrence_matrix["specType"] = spectrum_list
+                             
+            geoflat = None
         
         # Snap lease area to bathymetry
         bathy_x = self.data.bathymetry["x"]
@@ -491,14 +504,6 @@ class HydroInterface(ModuleInterface):
         else:
             numpy_nogo = [np.array(x.exterior.coords[:-1])
                                                 for x in self.data.nogo_areas]
-                                                    
-        # Flatten geometry
-        xgrid, ygrid = np.meshgrid(self.data.geophysics.x.values,
-                                   self.data.geophysics.y.values)
-        geogrid = self.data.geophysics.values
-        geoflat = np.array(zip(xgrid.flatten(),
-                               ygrid.flatten(),
-                               geogrid.flatten()))
                                
         numpy_landing = np.array(self.data.export_landing_point.coords[0])
         

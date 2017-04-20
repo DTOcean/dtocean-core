@@ -616,7 +616,11 @@ class FilterInterface(ProjectInterface, QueryInterface):
                          ]
         '''
         
-        option_list  =  ["site.selected_name",
+        option_list  =  ["hidden.available_sites",
+                         "hidden.available_systems",
+                         "hidden.corridor_selected",
+                         "hidden.lease_selected",
+                         "site.selected_name",
                          "device.selected_name"]
                         
         return option_list

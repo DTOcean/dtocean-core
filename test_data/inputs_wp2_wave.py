@@ -80,7 +80,7 @@ nogo_areas = [np.array([[0, 0],[.1, 0],[.1, .1],[0, .1]])]
 rated_array_power = 5
 main_direction = None
 blockage_ratio = 1.
-spectrum_type_farm = 'Jonswap'
+spectrum_type_farm = 'JONSWAP'
 spectrum_gamma_farm = 3.3
 spectrum_dir_spreading_farm = 0.
 point_SSH = 0.
@@ -113,11 +113,11 @@ test_data = {'bathymetry.layers': strata,
              'device.wave_data_directory': wave_data_directory,
              'device.yaw': yaw_angle,
              'farm.blockage_ratio': blockage_ratio,
-             'farm.mannings': geo_raw,
+             'bathymetry.mannings': geo_raw,
              'site.lease_boundary': lease_area,
              'farm.main_direction': main_direction,
              'farm.nogo_areas': nogo_areas,
-             'farm.point_sea_surface_height': point_SSH,
+#             'farm.point_sea_surface_height': point_SSH,
              'farm.power_law_exponent': power_law_exponent,
              'farm.rated_power': rated_array_power,
              'farm.spec_gamma': spectrum_gamma_farm,

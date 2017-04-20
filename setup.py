@@ -62,7 +62,12 @@ class PyTest(TestCommand):
             shutil.copyfile(test_def_path, dst_path)
         
         # Run the tests
-        errno = pytest.main(shlex.split(self.pytest_args))
+        if self.pytest_args:
+			opts = shlex.split(self.pytest_args)
+        else:
+		    opts = []
+		
+        errno = pytest.main(opts)
         sys.exit(errno)
 
 
