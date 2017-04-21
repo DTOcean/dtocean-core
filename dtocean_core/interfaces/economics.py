@@ -83,15 +83,15 @@ class EconomicInterface(ThemeInterface):
 
         input_list  =  ["project.discount_rate",
                         'project.lifetime',
-                        "farm.electrical_economics_data",
-                        "farm.moorings_foundations_economics_data",
-                        "farm.installation_economics_data",
-                        "farm.capex_oandm",
-                        "farm.opex_per_year",
-                        "farm.energy_per_year",
-                        'farm.electrical_network_efficiency',
-                        "farm.annual_energy",
-                        "farm.number_of_devices",
+                        "project.electrical_economics_data",
+                        "project.moorings_foundations_economics_data",
+                        "project.installation_economics_data",
+                        "project.capex_oandm",
+                        "project.opex_per_year",
+                        "project.energy_per_year",
+                        'project.electrical_network_efficiency',
+                        "project.annual_energy",
+                        "project.number_of_devices",
                         "device.system_cost",
                         "device.power_rating",
                         'project.electrical_cost_estimate',
@@ -100,7 +100,7 @@ class EconomicInterface(ThemeInterface):
                         'project.opex_estimate',
                         'project.annual_repair_cost_estimate',
                         'project.annual_array_mttf_estimate',
-                        'farm.electrical_network_efficiency'
+                        'project.electrical_network_efficiency'
                         ]
                                                 
         return input_list
@@ -161,15 +161,15 @@ class EconomicInterface(ThemeInterface):
         
         optional = ["device.power_rating",
                     "device.system_cost",
-                    "farm.number_of_devices",
-                    "farm.annual_energy",
-                    'farm.electrical_network_efficiency',
-                    "farm.electrical_economics_data",
-                    "farm.moorings_foundations_economics_data",
-                    "farm.installation_economics_data",
-                    "farm.opex_per_year",
-                    "farm.energy_per_year",
-                    "farm.capex_oandm",
+                    "project.number_of_devices",
+                    "project.annual_energy",
+                    'project.electrical_network_efficiency',
+                    "project.electrical_economics_data",
+                    "project.moorings_foundations_economics_data",
+                    "project.installation_economics_data",
+                    "project.opex_per_year",
+                    "project.energy_per_year",
+                    "project.capex_oandm",
                     "project.discount_rate",
                     'project.lifetime',
                     'project.electrical_cost_estimate',
@@ -207,8 +207,8 @@ class EconomicInterface(ThemeInterface):
         id_map = {
                   'device_cost': 'device.system_cost',
                   "power_rating": "device.power_rating",
-                  'year_energy': 'farm.annual_energy',
-                  'n_devices': 'farm.number_of_devices',
+                  'year_energy': 'project.annual_energy',
+                  'n_devices': 'project.number_of_devices',
                   "cost_breakdown": "project.cost_breakdown",
                   'capex_breakdown': 'project.capex_breakdown',
                   'LCOE_CAPEX': 'project.capex_lcoe',
@@ -216,9 +216,9 @@ class EconomicInterface(ThemeInterface):
                   'discount_rate': 'project.discount_rate',
                   'discounted_energy': 'project.discounted_energy',
                   'LCOE': 'project.lcoe',
-                  'electrical_costs': 'farm.electrical_economics_data',
-                  'moorings_costs': "farm.moorings_foundations_economics_data",
-                  "installation_costs": "farm.installation_economics_data",
+                  'electrical_costs': 'project.electrical_economics_data',
+                  'moorings_costs': "project.moorings_foundations_economics_data",
+                  "installation_costs": "project.installation_economics_data",
                   'discounted_capex': "project.discounted_capex",
                   'discounted_opex': "project.discounted_opex",
                   'LCOE_OPEX': "project.opex_lcoe",
@@ -232,10 +232,10 @@ class EconomicInterface(ThemeInterface):
                       'project.annual_repair_cost_estimate',
                   "annual_array_mttf_estimate":
                       'project.annual_array_mttf_estimate',
-                  'network_efficiency': 'farm.electrical_network_efficiency',
-                  "opex_per_year": "farm.opex_per_year",
-                  "energy_per_year": "farm.energy_per_year",
-                  "capex_oandm": "farm.capex_oandm"
+                  'network_efficiency': 'project.electrical_network_efficiency',
+                  "opex_per_year": "project.opex_per_year",
+                  "energy_per_year": "project.energy_per_year",
+                  "capex_oandm": "project.capex_oandm"
                   }
                   
         return id_map

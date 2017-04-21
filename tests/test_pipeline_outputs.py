@@ -69,13 +69,13 @@ def test_get_branch_output_status(core, project, module_menu, tree):
     hydro_branch = tree.get_branch(core, project, "Hydrodynamics")
     outputs = hydro_branch.get_output_status(core, project)
     
-    assert 'farm.annual_energy' in outputs.keys()
-    assert outputs['farm.annual_energy'] == 'unavailable'
+    assert 'project.annual_energy' in outputs.keys()
+    assert outputs['project.annual_energy'] == 'unavailable'
     
 def test_get_output_variable(core, project, module_menu, tree):
 
     mod_name = "Hydrodynamics"
-    var_id = "farm.annual_energy"
+    var_id = "project.annual_energy"
     
     project = deepcopy(project) 
     module_menu.activate(core, project, mod_name)
@@ -95,7 +95,7 @@ def test_module_overwritten_outputs(core, project, module_menu, tree):
     hydro_branch = tree.get_branch(core, project, "Hydrodynamics")
     outputs = hydro_branch.get_output_status(core, project)
     
-    assert outputs["farm.number_of_devices"] == 'unavailable'
+    assert outputs["project.number_of_devices"] == 'unavailable'
     
 def test_get_theme_outputs(core, project, theme_menu, tree):
 
@@ -113,7 +113,7 @@ def test_get_theme_outputs(core, project, theme_menu, tree):
 def test_get_metadata(core, project, module_menu, tree):
     
     mod_name = "Hydrodynamics"
-    var_id = "farm.number_of_devices"
+    var_id = "project.number_of_devices"
     
     project = deepcopy(project) 
     module_menu.activate(core, project, mod_name)

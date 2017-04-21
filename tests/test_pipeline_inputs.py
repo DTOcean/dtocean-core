@@ -153,12 +153,12 @@ def test_module_unavailable_inputs(core, project, module_menu, tree):
                                               project)
         
     assert inputs['device.power_rating'] == 'unavailable'
-    assert inputs['farm.layout'] == 'unavailable'
+    assert inputs['project.layout'] == 'unavailable'
     
 #    inputs = moorings_branch.get_input_status(core, 
 #                                              project)
 #    
-#    assert inputs['farm.layout'] == 'unavailable'
+#    assert inputs['project.layout'] == 'unavailable'
 
 def test_get_theme_inputs(core, project, theme_menu, tree):
 

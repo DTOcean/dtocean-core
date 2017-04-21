@@ -90,11 +90,11 @@ class ReliabilityInterface(ThemeInterface):
         '''
 
         input_list  =  ["device.system_type" ,
-                        "farm.network_configuration",
+                        "project.network_configuration",
                         "project.lifetime",
-                        "farm.mttfreq",
-                        "farm.moorings_foundations_network",
-                        "farm.electrical_network",
+                        "project.mttfreq",
+                        "project.moorings_foundations_network",
+                        "project.electrical_network",
                         "component.collection_points_NCFR",
                         "component.dry_mate_connectors_NCFR",
                         "component.dynamic_cable_NCFR",
@@ -147,21 +147,21 @@ class ReliabilityInterface(ThemeInterface):
                         ]
         '''
         
-        output_list = ["farm.mttf",
-                       "farm.rsystime",
-                       "farm.rarrayvalue2",
+        output_list = ["project.mttf",
+                       "project.rsystime",
+                       "project.rarrayvalue2",
 
-                       "farm.export_cable_reliability" ,
-                        "farm.export_cable_mttf" ,
+                       "project.export_cable_reliability" ,
+                        "project.export_cable_mttf" ,
                         
-                        "farm.substation_reliability" ,
-                        "farm.substation_mttf" ,
+                        "project.substation_reliability" ,
+                        "project.substation_mttf" ,
                         
-                        "farm.elec_subsystem_reliability" ,
-                        "farm.elec_subsystem_mttf" ,
+                        "project.elec_subsystem_reliability" ,
+                        "project.elec_subsystem_mttf" ,
                         
-                        "farm.moor_found_reliability" ,
-                        "farm.moor_found_mttf" ,
+                        "project.moor_found_reliability" ,
+                        "project.moor_found_mttf" ,
 
 
                       ]
@@ -191,10 +191,10 @@ class ReliabilityInterface(ThemeInterface):
                          ]
         '''
         optional = [
-                   "farm.network_configuration",                   
-                   "farm.mttfreq",
-                   "farm.moorings_foundations_network",
-                   "farm.electrical_network",
+                   "project.network_configuration",                   
+                   "project.mttfreq",
+                   "project.moorings_foundations_network",
+                   "project.electrical_network",
                    "component.collection_points_NCFR",
                    "component.dry_mate_connectors_NCFR",
                    "component.dynamic_cable_NCFR",
@@ -253,22 +253,22 @@ class ReliabilityInterface(ThemeInterface):
                   
         id_map = {
                     "device_type_user" : "device.system_type" ,
-                    "network_configuration_user" : "farm.network_configuration",
+                    "network_configuration_user" : "project.network_configuration",
                     "mission_time" : "project.lifetime",
-                    "expected_mttf_percent" : "farm.mttfreq",
-                    "moor_found_network" : "farm.moorings_foundations_network",
-                    "electrical_network" : "farm.electrical_network",
-                    "mttf" : "farm.mttf",
-                    "rsystime" : "farm.rsystime",
-                    "rarrayvalue2" : "farm.rarrayvalue2",
-                    "export_cable_reliability" : "farm.export_cable_reliability" ,
-                    "export_cable_mttf" : "farm.export_cable_mttf" ,
-                    "substation_reliability" : "farm.substation_reliability" ,
-                    "substation_mttf" : "farm.substation_mttf" ,
-                    "elec_subsystem_reliability" : "farm.elec_subsystem_reliability" ,
-                    "elec_subsystem_mttf" : "farm.elec_subsystem_mttf" ,
-                    "moor_found_reliability" : "farm.moor_found_reliability" ,
-                    "moor_found_mttf" : "farm.moor_found_mttf" ,
+                    "expected_mttf_percent" : "project.mttfreq",
+                    "moor_found_network" : "project.moorings_foundations_network",
+                    "electrical_network" : "project.electrical_network",
+                    "mttf" : "project.mttf",
+                    "rsystime" : "project.rsystime",
+                    "rarrayvalue2" : "project.rarrayvalue2",
+                    "export_cable_reliability" : "project.export_cable_reliability" ,
+                    "export_cable_mttf" : "project.export_cable_mttf" ,
+                    "substation_reliability" : "project.substation_reliability" ,
+                    "substation_mttf" : "project.substation_mttf" ,
+                    "elec_subsystem_reliability" : "project.elec_subsystem_reliability" ,
+                    "elec_subsystem_mttf" : "project.elec_subsystem_mttf" ,
+                    "moor_found_reliability" : "project.moor_found_reliability" ,
+                    "moor_found_mttf" : "project.moor_found_mttf" ,
                     "collection_points_NCFR" : "component.collection_points_NCFR",
                     "dry_mate_connectors_NCFR" : "component.dry_mate_connectors_NCFR",
                     "dynamic_cable_NCFR" : "component.dynamic_cable_NCFR",
