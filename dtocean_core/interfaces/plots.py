@@ -593,8 +593,8 @@ class EISPlot_hydro(PlotInterface):
                        ]
         '''
 
-        input_list  =  ["farm.hydro_eis",
-                        "farm.hydro_confidence"
+        input_list  =  ["project.hydro_eis",
+                        "project.hydro_confidence"
                         ]
                                                 
         return input_list
@@ -621,8 +621,8 @@ class EISPlot_hydro(PlotInterface):
         
         '''
                   
-        id_map = {"eis": "farm.hydro_eis",
-                  "confidence": "farm.hydro_confidence"
+        id_map = {"eis": "project.hydro_eis",
+                  "confidence": "project.hydro_confidence"
                   }
 
         return id_map
@@ -669,8 +669,8 @@ class EISPlot_elec(PlotInterface):
                        ]
         '''
 
-        input_list  =  ["farm.elec_eis",
-                        "farm.elec_confidence"
+        input_list  =  ["project.elec_eis",
+                        "project.elec_confidence"
                         ]
                                                 
         return input_list
@@ -698,8 +698,8 @@ class EISPlot_elec(PlotInterface):
         
         '''
                   
-        id_map = {"eis": "farm.elec_eis",
-                  "confidence": "farm.elec_confidence"
+        id_map = {"eis": "project.elec_eis",
+                  "confidence": "project.elec_confidence"
                   }
 
         return id_map
@@ -745,8 +745,8 @@ class EISPlot_moor(PlotInterface):
                        ]
         '''
 
-        input_list  =  ["farm.moor_eis",
-                        "farm.moor_confidence"
+        input_list  =  ["project.moor_eis",
+                        "project.moor_confidence"
                         ]
                                                 
         return input_list
@@ -773,8 +773,8 @@ class EISPlot_moor(PlotInterface):
         
         '''
                   
-        id_map = {"eis": "farm.moor_eis",
-                  "confidence": "farm.moor_confidence"
+        id_map = {"eis": "project.moor_eis",
+                  "confidence": "project.moor_confidence"
                   }
 
         return id_map
@@ -903,7 +903,7 @@ class GEISPlot_hydro(PlotInterface):
                        ]
         '''
 
-        input_list  =  ["farm.hydro_global_eis"
+        input_list  =  ["project.hydro_global_eis"
                         ]
                                                 
         return input_list
@@ -930,7 +930,7 @@ class GEISPlot_hydro(PlotInterface):
         
         '''
                   
-        id_map = {"geis": "farm.hydro_global_eis"
+        id_map = {"geis": "project.hydro_global_eis"
                   }
 
         return id_map
@@ -975,7 +975,7 @@ class GEISPlot_elec(PlotInterface):
                        ]
         '''
 
-        input_list  =  ["farm.elec_global_eis"
+        input_list  =  ["project.elec_global_eis"
                         ]
                                                 
         return input_list
@@ -1002,7 +1002,7 @@ class GEISPlot_elec(PlotInterface):
         
         '''
                   
-        id_map = {"geis": "farm.elec_global_eis"
+        id_map = {"geis": "project.elec_global_eis"
                   }
 
         return id_map
@@ -1047,7 +1047,7 @@ class GEISPlot_moor(PlotInterface):
                        ]
         '''
 
-        input_list  =  ["farm.moor_global_eis"
+        input_list  =  ["project.moor_global_eis"
                         ]
                                                 
         return input_list
@@ -1074,7 +1074,7 @@ class GEISPlot_moor(PlotInterface):
         
         '''
                   
-        id_map = {"geis": "farm.moor_global_eis"
+        id_map = {"geis": "project.moor_global_eis"
                   }
 
         return id_map

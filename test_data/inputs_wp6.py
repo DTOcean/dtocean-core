@@ -590,13 +590,13 @@ moorings_foundations_network = {
 
 #### POWER
 
-mean_power_per_device = {'device001': 1.2698047018309357, # 'farm.mean_power_per_device'
+mean_power_per_device = {'device001': 1.2698047018309357, # 'project.mean_power_per_device'
                          'device002': 1.2698047018309357,
                          'device003': 1.2698047029109705,
                          'device004': 1.2698047018309357,
                          'device005': 1.2698047018309357}
                          
-annual_energy_per_device = {'device001': 11123.489188038995, # 'farm.annual_energy_per_device'
+annual_energy_per_device = {'device001': 11123.489188038995, # 'project.annual_energy_per_device'
                             'device002': 11123.489188038995,
                             'device003': 11123.489197500101,
                             'device004': 11123.489188038995,
@@ -638,30 +638,30 @@ comp_tables_rel = get_reliability_tables(compdict)
 ### LOAD VARIABLES
 
 test_data = {
-             "farm.calendar_based_maintenance": calendar_based_maintenance,
-             "farm.condition_based_maintenance": condition_based_maintenance,
-             "farm.corrective_maintenance": corrective_maintenance,
-             "farm.duration_shift": duration_shift,
+             "project.calendar_based_maintenance": calendar_based_maintenance,
+             "project.condition_based_maintenance": condition_based_maintenance,
+             "project.corrective_maintenance": corrective_maintenance,
+             "project.duration_shift": duration_shift,
              "farm.helideck": helideck,
-             "farm.number_crews_available": number_crews_available,
-             "farm.number_crews_per_shift": number_crews_per_shift,
-             "farm.number_shifts_per_day": number_shifts_per_day,
-             "farm.wage_specialist_day": wage_specialist_day,
-             "farm.wage_specialist_night": wage_specialist_night,
-             "farm.wage_technician_day": wage_technician_day,
-             "farm.wage_technician_night": wage_technician_night,
-             "farm.workdays_summer": workdays_summer,
-             "farm.workdays_winter": workdays_winter,
+             "project.number_crews_available": number_crews_available,
+             "project.number_crews_per_shift": number_crews_per_shift,
+             "project.number_shifts_per_day": number_shifts_per_day,
+             "project.wage_specialist_day": wage_specialist_day,
+             "project.wage_specialist_night": wage_specialist_night,
+             "project.wage_technician_day": wage_technician_day,
+             "project.wage_technician_night": wage_technician_night,
+             "project.workdays_summer": workdays_summer,
+             "project.workdays_winter": workdays_winter,
              "project.energy_selling_price": 0.2,
                 
-             "farm.network_configuration": network_configuration,
-             "farm.layout": array_layout,
+             "project.network_configuration": network_configuration,
+             "project.layout": array_layout,
              "bathymetry.layers": strata,
              "project.commissioning_date": commissioning_date,
              'options.annual_maintenance_start': annual_maintenance_start,
              'options.annual_maintenance_end': annual_maintenance_end,
-             "farm.electrical_economics_data": elec_bom,
-             "farm.moorings_foundations_economics_data": moor_bom,
+             "project.electrical_economics_data": elec_bom,
+             "project.moorings_foundations_economics_data": moor_bom,
             
              "options.operations_onsite_maintenance":
                  operations_onsite_maintenance,
@@ -672,17 +672,17 @@ test_data = {
              'device.pto_operations_weighting': full_weightings,
              'device.control_operations_weighting': full_weightings,
              'device.support_operations_weighting': full_weightings,
-             'farm.umbilical_operations_weighting': full_weightings,
-             'farm.array_cables_operations_weighting': site_weightings,
-             'farm.substations_operations_weighting': site_weightings,
-             'farm.export_cable_operations_weighting': site_weightings,
-             'farm.foundations_operations_weighting': site_weightings,
-             'farm.moorings_operations_weighting': full_weightings,
+             'project.umbilical_operations_weighting': full_weightings,
+             'project.array_cables_operations_weighting': site_weightings,
+             'project.substations_operations_weighting': site_weightings,
+             'project.export_cable_operations_weighting': site_weightings,
+             'project.foundations_operations_weighting': site_weightings,
+             'project.moorings_operations_weighting': full_weightings,
              
              'device.subsystem_failure_rates': device_failure_rates,
-             'farm.electrical_subsystem_failure_rates':
+             'project.electrical_subsystem_failure_rates':
                  electrical_failure_rates,
-             'farm.moorings_subsystem_failure_rates': moorings_failure_rates,
+             'project.moorings_subsystem_failure_rates': moorings_failure_rates,
              
              'options.condition_maintenance_soh': condition_maintenance_soh,
              'options.calendar_maintenance_interval':
@@ -690,44 +690,44 @@ test_data = {
             
              'device.onsite_maintenance_requirements':
                  device_onsite_requirements,
-             'farm.electrical_onsite_maintenance_requirements':
+             'project.electrical_onsite_maintenance_requirements':
                  electrical_onsite_requirements,
-             'farm.moorings_onsite_maintenance_requirements':
+             'project.moorings_onsite_maintenance_requirements':
                  moorings_onsite_requirements,
             
              'device.replacement_requirements':
                  device_replacement_requirements,
-             'farm.electrical_replacement_requirements': None,
-             'farm.moorings_replacement_requirements': None,
+             'project.electrical_replacement_requirements': None,
+             'project.moorings_replacement_requirements': None,
              
              'device.inspections_requirements':
                  device_inspections_requirements,
-             'farm.electrical_inspections_requirements':
+             'project.electrical_inspections_requirements':
                  electrical_inspections_requirements,
-             'farm.moorings_inspections_requirements':
+             'project.moorings_inspections_requirements':
                  moorings_inspections_requirements,
             
              'device.onsite_maintenance_parts': device_onsite_parts,
-             'farm.electrical_onsite_maintenance_parts':
+             'project.electrical_onsite_maintenance_parts':
                  electrical_onsite_parts,
-             'farm.moorings_onsite_maintenance_parts': moorings_onsite_parts,
+             'project.moorings_onsite_maintenance_parts': moorings_onsite_parts,
 
              'device.replacement_parts': device_replacement_parts,
-             'farm.electrical_replacement_parts': None,
-             'farm.moorings_replacement_parts': None,
+             'project.electrical_replacement_parts': None,
+             'project.moorings_replacement_parts': None,
 
              'device.subsystem_lead_times': device_lead_times,
-             'farm.electrical_subsystem_lead_times': electrical_lead_times,
-             'farm.moorings_subsystem_lead_times': moorings_lead_times,
+             'project.electrical_subsystem_lead_times': electrical_lead_times,
+             'project.moorings_subsystem_lead_times': moorings_lead_times,
             
              'device.subsystem_costs': device_costs,
-             'farm.moorings_subsystem_costs': None,
+             'project.moorings_subsystem_costs': None,
              'options.subsystem_monitering_costs': condition_maintenance_cost,
              'options.transit_cost_multiplier': transit_cost_multiplier,
              'options.loading_cost_multiplier': loading_cost_multiplier,
              
-             "farm.electrical_network": electrical_network,
-             "farm.moorings_foundations_network": moorings_foundations_network,
+             "project.electrical_network": electrical_network,
+             "project.moorings_foundations_network": moorings_foundations_network,
              "component.moorings_chain_NCFR": comp_tables_rel["chain NCFR"],
              "component.moorings_chain_CFR": comp_tables_rel["chain CFR"],
              "component.moorings_forerunner_NCFR":
@@ -780,46 +780,46 @@ test_data = {
                  comp_tables_rel["power_quality CFR"],
 
             'component.cable_burial': equipment_cable_burial,
-            'component.cable_burial_safety_factors': cable_burial_sf,
+            'project.cable_burial_safety_factors': cable_burial_sf,
             'component.collection_points': collection_point,
             "component.collection_point_cog": collection_point_cog,
             "component.collection_point_foundations": collection_point_found,
             'component.divers': equipment_divers,
-            'component.divers_safety_factors': divers_sf,
+            'project.divers_safety_factors': divers_sf,
             'component.drilling_rigs': equipment_drilling_rigs,
             'component.dry_mate_connectors': dry_mate,
             'component.dynamic_cable': dynamic_cables,
             'component.equipment_penetration_rates':
                 equipment_penetration_rates,
             'component.excavating': equipment_excavating,
-            'component.fuel_cost_rate': fuel_cost_rate,
-            'component.grout_rate': grout_rate,
+            'project.fuel_cost_rate': fuel_cost_rate,
+            'project.grout_rate': grout_rate,
             'component.hammer': equipment_hammer,
-            'component.hammer_safety_factors': hammer_sf,
+            'project.hammer_safety_factors': hammer_sf,
             'component.installation_soil_compatibility':
                 installation_soil_compatibility,
-            'component.loading_rate': loading_rate,
+            'project.loading_rate': loading_rate,
             'component.mattress_installation': equipment_mattress,
             'component.port_locations': port_locations,
-            'component.port_safety_factors': port_sf,
+            'project.port_safety_factors': port_sf,
             'component.ports': ports,
             'component.power_quality': power_quality,
             'component.rock_bags_installation': equipment_rock_filter_bags,
             'component.rov': equipment_rov,
-            'component.rov_safety_factors': rov_sf,
-            'component.split_pipe_laying_rate': split_pipe_laying_rate,
-            'component.split_pipe_safety_factors': split_pipe_sf,
+            'project.rov_safety_factors': rov_sf,
+            'project.split_pipe_laying_rate': split_pipe_laying_rate,
+            'project.split_pipe_safety_factors': split_pipe_sf,
             'component.split_pipes_installation': equipment_split_pipe,
             'component.static_cable': static_cables,
-            'component.surface_laying_rate': surface_laying_rate,
+            'project.surface_laying_rate': surface_laying_rate,
             'component.switchgear': switchgear,
             'component.transformers': transformer,
-            'component.vessel_safety_factors': vessel_sf,
+            'project.vessel_safety_factors': vessel_sf,
             'component.vessels': vessels,
             'component.vibro_driver': equipment_vibro_driver,
-            'component.vibro_driver_safety_factors': vibro_driver_sf,
+            'project.vibro_driver_safety_factors': vibro_driver_sf,
             'component.wet_mate_connectors': wet_mate,
-            'corridor.landfall_contruction_technique': landfall,
+            'project.landfall_contruction_technique': landfall,
             'corridor.layers': export_strata,
             'device.assembly_duration': assembly_duration,
             'device.bollard_pull': bollard_pull,
@@ -836,30 +836,30 @@ test_data = {
             'device.system_mass': system_mass,
             'device.system_width': system_width,
             'device.transportation_method': transportation_method,
-            'farm.cable_routes': cable_routes,
-            'farm.electrical_component_data': electrical_components,
-            'farm.entry_point': entry_point_shapely,
-            'farm.foundations_component_data': foundations_data_df,
-            'farm.foundations_soil_data': foundations_layers_df,
-            'farm.line_data': line_data_df,
-            'farm.moorings_component_data': moorings_data_df,
-            'farm.selected_installation_tool': tool,
-            'farm.substation_props': substations,
+            'project.cable_routes': cable_routes,
+            'project.electrical_component_data': electrical_components,
+            'project.lease_area_entry_point': entry_point_shapely,
+            'project.foundations_component_data': foundations_data_df,
+            'project.foundations_soil_data': foundations_layers_df,
+            'project.moorings_line_data': line_data_df,
+            'project.moorings_component_data': moorings_data_df,
+            'project.selected_installation_tool': tool,
+            'project.substation_props': substations,
             'farm.tidal_series_installation': tidal_series,
-            'farm.umbilical_cable_data': umbilicals,
-            'farm.umbilical_seabed_connection': umbilical_terminations,
+            'project.umbilical_cable_data': umbilicals,
+            'project.umbilical_seabed_connection': umbilical_terminations,
             'farm.wave_series_installation': wave_series,
             'farm.wind_series_installation': wind_series,
-            'project.comissioning_time': comissioning_time,
+            'project.commissioning_time': comissioning_time,
             'project.cost_contingency': cost_contingency,
             'project.port_percentage_cost': port_percentage_cost,
             'project.start_date': project_start_date,
             'project.lifetime': lifetime,
             'site.projection': lease_utm_zone,
             
-            'farm.mean_power_per_device': mean_power_per_device,
-            'farm.annual_energy_per_device': annual_energy_per_device,
-            "farm.substation_layout": substation_layout,
+            'project.mean_power_per_device': mean_power_per_device,
+            'project.annual_energy_per_device': annual_energy_per_device,
+            "project.substation_layout": substation_layout,
             
             'options.optim_corrective': optim_corrective,
             'options.optim_condition': optim_condition,
