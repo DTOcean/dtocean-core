@@ -642,7 +642,7 @@ test_data = {
              "project.condition_based_maintenance": condition_based_maintenance,
              "project.corrective_maintenance": corrective_maintenance,
              "project.duration_shift": duration_shift,
-             "farm.helideck": helideck,
+             "site.helideck": helideck,
              "project.number_crews_available": number_crews_available,
              "project.number_crews_per_shift": number_crews_per_shift,
              "project.number_shifts_per_day": number_shifts_per_day,
