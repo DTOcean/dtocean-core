@@ -621,6 +621,7 @@ def test_operations_interface_entry(module_menu,
                                         
     assert True
 
+
 def test_environmental_inputs(theme_menu, core, tidal_project, var_tree):
         
     theme_name = "Environmental Impact Assessment"
@@ -634,13 +635,16 @@ def test_environmental_inputs(theme_menu, core, tidal_project, var_tree):
     
     environmental_branch = var_tree.get_branch(core, project, theme_name)
    
-    
     environmental_input_status = environmental_branch.get_input_status(core,
-                                                               project)
+                                                                       project)
                                                     
-    assert "farm.hydro_collision_risk_weight" in environmental_input_status
-    
-def test_get_environmental_interface(theme_menu, core, tidal_project, var_tree):
+    assert "project.hydro_collision_risk_weight" in environmental_input_status
+
+
+def test_get_environmental_interface(theme_menu,
+                                     core,
+                                     tidal_project,
+                                     var_tree):
     
     theme_name = "Environmental Impact Assessment"
 
@@ -671,8 +675,13 @@ def test_get_environmental_interface(theme_menu, core, tidal_project, var_tree):
                                         
 #    
     assert interface.data.layout is not None
-    
-def test_environmental_interface_entry(theme_menu, core, tidal_project, var_tree):
+
+
+def test_environmental_interface_entry(theme_menu,
+                                       core,
+                                       tidal_project,
+                                       var_tree):
+                                       
     
     theme_name = "Environmental Impact Assessment"
 #    project_menu = ProjectMenu()
@@ -705,7 +714,8 @@ def test_environmental_interface_entry(theme_menu, core, tidal_project, var_tree
     interface.connect(debug_entry=True)
                                         
     assert True
-    
+
+
 def test_reliability_inputs(theme_menu, core, tidal_project, var_tree):
         
     theme_name = "Reliability"

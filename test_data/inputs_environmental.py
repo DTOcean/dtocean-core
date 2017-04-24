@@ -19,8 +19,8 @@ import cPickle as pickle
 #
 #protected_table = pd.read_csv(table_path, index_col=None)
 #
-#name_map1 ={ "subclass or group" : "Subclass or Group",
-#                     "observed" : "Observed"}
+#name_map1 ={ "subclass or group": "Subclass or Group",
+#                     "observed": "Observed"}
 #                     
 #        
 #protected_table = protected_table.rename(columns=name_map1)
@@ -32,20 +32,20 @@ import cPickle as pickle
 #receptors_table = pd.read_csv(table_path, index_col=None)
 #
 #
-#name_map2 ={ "subclass or group" : "Subclass or Group",
-#                     "observed" : "Observed",
-#                     "observed january" : "Observed January",
-#                     "observed february" : "Observed February",
-#                     "observed march" : "Observed March",
-#                     "observed april" : "Observed April",
-#                     "observed may" : "Observed May",
-#                     "observed june" : "Observed June",
-#                     "observed july" : "Observed July",
-#                     "observed august" : "Observed August",
-#                     "observed september" : "Observed September",
-#                     "observed october" : "Observed October",
-#                     "observed november" : "Observed November",
-#                     "observed december" : "Observed December"                     
+#name_map2 ={ "subclass or group": "Subclass or Group",
+#                     "observed": "Observed",
+#                     "observed january": "Observed January",
+#                     "observed february": "Observed February",
+#                     "observed march": "Observed March",
+#                     "observed april": "Observed April",
+#                     "observed may": "Observed May",
+#                     "observed june": "Observed June",
+#                     "observed july": "Observed July",
+#                     "observed august": "Observed August",
+#                     "observed september": "Observed September",
+#                     "observed october": "Observed October",
+#                     "observed november": "Observed November",
+#                     "observed december": "Observed December"                     
 #                     }
 #                     
 #receptors_table = receptors_table.rename(columns=name_map2)
@@ -106,7 +106,10 @@ fishery_restricted_area = 1159.
 
 #fishery_restricted_area = None
 
-lease_boundary = lease_area = np.array([[50., 50.],[950., 50.],[950., 250.],[50., 250.]],dtype=float)
+lease_boundary = lease_area = np.array([[50., 50.],
+                                        [950., 50.],
+                                        [950., 250.],
+                                        [50., 250.]], dtype=float)
 
 ## Setup
 #x = np.linspace(0.,1000.,100)
@@ -123,9 +126,13 @@ lease_boundary = lease_area = np.array([[50., 50.],[950., 50.],[950., 250.],[50.
 this_dir = os.path.dirname(os.path.realpath(__file__))
 data_dir = os.path.join(this_dir, "moorings")
 
-bathy_table = pd.read_csv(os.path.join(data_dir, 'aegirbath2.txt'), delimiter="\t", header = None)
+bathy_table = pd.read_csv(os.path.join(data_dir, 'aegirbath2.txt'),
+                          delimiter="\t",
+                          header=None)
 
-soil_grid = pd.read_csv(os.path.join(data_dir, 'aegirsoil2.txt'), delimiter="\t", header = None)
+soil_grid = pd.read_csv(os.path.join(data_dir, 'aegirsoil2.txt'),
+                        delimiter="\t",
+                        header=None)
 
 Z1=bathy_table[2]
 dZ=soil_grid[3]
@@ -164,8 +171,8 @@ for z in layers:
         d = []
         s = []
         for x_count in x:
-            point_df = bathy_table[(bathy_table[0] == x_count) & (bathy_table[1] == y_count)].index[0]
-            
+            point_df = bathy_table[(bathy_table[0] == x_count) &
+                                        (bathy_table[1] == y_count)].index[0]
             
             d.append(Z[point_df,z])
             s.append(sediment[point_df,z])
@@ -182,60 +189,54 @@ sediment_array = np.swapaxes(np.array(sediment_layers), 0, 2)
 layer_names = ["layer {}".format(x_layers) for x_layers in layers]
 
 strata = strata={"values": {"depth": depth_array,
-                  'sediment': sediment_array},
-       "coords": [x, y, layer_names]}
+                            'sediment': sediment_array},
+                 "coords": [x, y, layer_names]}
 
 test_data = { 
-#              "farm.protected_table" : protected_table,
-#              "farm.receptors_table" : receptors_table,
-              "farm.hydro_energy_modif_weight" : hydro_energy_modif_weight,
-              "farm.hydro_collision_risk_weight" : hydro_collision_risk_weight,
-              "farm.hydro_turbidity_risk_weight" : hydro_turbidity_risk_weight,
-              "device.hydro_underwater_noise_risk_weight" : hydro_underwater_noise_risk_weight,
-              "farm.hydro_reserve_effect_weight" : hydro_reserve_effect_weight,
-              "device.hydro_reef_effect_weight" : hydro_reef_effect_weight,
-              "device.hydro_resting_place_weight" : hydro_resting_place_weight,
-#              "project.resource_reduction" : resource_reduction,
-              "project.layout" : layout,
-              "farm.initial_turbidity" : initial_turbidity,
-              "project.hydro_measured_turbidity" : measured_turbidity,
-              "farm.initial_noise" : initial_turbidity,
-              "project.hydro_measured_noise" : measured_noise,
-              "project.number_of_devices" : number_of_devices,
-#              "device.system_draft" : device_draft,
-#              "device.system_width" : device_width,
-#              "device.system_length" : device_length,
-#              "device.system_height" : device_height,
-#              "farm.direction_of_max_surface_current" : current_direction,
-#
-              "project.fishery_restricted_area" : fishery_restricted_area,
-              "site.lease_boundary" : lease_boundary,
-              "bathymetry.layers" : strata,
-              
-              
-              "farm.protected_species" : protected_species,
-              "farm.receptor_species" : receptor_species,
-#              "farm.receptors_soft_habitat" : receptors_soft_habitat,
-#              "farm.receptors_particular_habitat" : receptors_particular_habitat,
-#              "farm.receptors_shallow_diving_birds" : receptors_shallow_diving_birds,
-#              "farm.receptors_medium_diving_birds" : receptors_medium_diving_birds,
-#              "farm.receptors_deep_diving_birds" : receptors_deep_diving_birds,
-#              "farm.receptors_fishes" : receptors_fishes,
-#              "farm.receptors_elasmobranchs" : receptors_elasmobranchs,
-#              "farm.receptors_mysticete" : receptors_mysticete,
-#              "farm.receptors_odontocete" : receptors_odontocete,
-#              "farm.receptors_seals" : receptors_seals,
-#              "farm.receptors_magnetosensitive_species" : receptors_magnetosensitive_species,
-#              "farm.receptors_electrosensitive_species" : receptors_electrosensitive_species,
-
-
-#            'bathymetry.mooring_buried_line_bearing_capacity_factor': linebcf,
-             
+#             "farm.protected_table": protected_table,
+#             "farm.receptors_table": receptors_table,
+             "farm.hydro_energy_modif_weight": hydro_energy_modif_weight,
+             "project.hydro_collision_risk_weight":
+                hydro_collision_risk_weight,
+             "farm.hydro_turbidity_risk_weight": hydro_turbidity_risk_weight,
+             "device.hydro_underwater_noise_risk_weight":
+                hydro_underwater_noise_risk_weight,
+             "farm.hydro_reserve_effect_weight": hydro_reserve_effect_weight,
+             "device.hydro_reef_effect_weight": hydro_reef_effect_weight,
+             "device.hydro_resting_place_weight": hydro_resting_place_weight,
+#             "project.resource_reduction": resource_reduction,
+             "project.layout": layout,
+             "farm.initial_turbidity": initial_turbidity,
+             "project.hydro_measured_turbidity": measured_turbidity,
+             "farm.initial_noise": initial_turbidity,
+             "project.hydro_measured_noise": measured_noise,
+             "project.number_of_devices": number_of_devices,
+#             "device.system_draft": device_draft,
+#             "device.system_width": device_width,
+#             "device.system_length": device_length,
+#             "device.system_height": device_height,
+#             "farm.direction_of_max_surface_current": current_direction,
+#             "project.fishery_restricted_area": fishery_restricted_area,
+             "site.lease_boundary": lease_boundary,
+             "bathymetry.layers": strata,      
+             "farm.protected_species": protected_species,
+             "farm.receptor_species": receptor_species,
+#             "farm.receptors_soft_habitat": receptors_soft_habitat,
+#             "farm.receptors_particular_habitat": receptors_particular_habitat,
+#             "farm.receptors_shallow_diving_birds": receptors_shallow_diving_birds,
+#             "farm.receptors_medium_diving_birds": receptors_medium_diving_birds,
+#             "farm.receptors_deep_diving_birds": receptors_deep_diving_birds,
+#             "farm.receptors_fishes": receptors_fishes,
+#             "farm.receptors_elasmobranchs": receptors_elasmobranchs,
+#             "farm.receptors_mysticete": receptors_mysticete,
+#             "farm.receptors_odontocete": receptors_odontocete,
+#             "farm.receptors_seals": receptors_seals,
+#             "farm.receptors_magnetosensitive_species": receptors_magnetosensitive_species,
+#             "farm.receptors_electrosensitive_species": receptors_electrosensitive_species,
+#             'bathymetry.mooring_buried_line_bearing_capacity_factor': linebcf
              }
              
-             
-             
-             
+
 if __name__ == "__main__":
     
     from dtocean_core.utils.files import pickle_test_data
