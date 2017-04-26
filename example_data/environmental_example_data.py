@@ -749,9 +749,9 @@ test_data = {
         "device.wet_frontal_area": sys_wet_frontal,
         "project.ac_power_flow": ac_power_flow,
 
-        "project.control_signal_cable": control_signal_cable,
-        "project.control_signal_channels": control_signal_channels,
-        "project.control_signal_type": control_signal_type,
+        "device.control_signal_cable": control_signal_cable,
+        "device.control_signal_channels": control_signal_channels,
+        "device.control_signal_type": control_signal_type,
         "project.devices_per_string": devices_per_string,
         "farm.direction_of_max_surface_current":  max_10year_current_dir,
         "project.layout" : layout,

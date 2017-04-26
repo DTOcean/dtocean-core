@@ -2139,6 +2139,13 @@ class InstallationInterface(ModuleInterface):
         else:
 
             device_type = device_type +' WEC'
+            
+        # Check a bollard pull has been given when towed
+        if data.transportation_method == "Tow" and data.bollard_pull is None:
+            
+            errStr = ("If device is towed fo deployment, a bollard pull value "
+                      "must be given.")
+            raise ValueError(errStr)
 
         device_dict = {
             "Type": device_type,
