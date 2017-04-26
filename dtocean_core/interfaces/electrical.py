@@ -171,9 +171,9 @@ class ElectricalInterface(ModuleInterface):
                         'project.onshore_losses',
                         'project.offshore_reactive_limit',
                         'project.ac_power_flow',
-                        'project.control_signal_type',
-                        'project.control_signal_cable',
-                        'project.control_signal_channels',
+                        'device.control_signal_type',
+                        'device.control_signal_cable',
+                        'device.control_signal_channels',
                         'options.user_installation_tool',
                         'constants.gravity'
                         ]
@@ -250,9 +250,9 @@ class ElectricalInterface(ModuleInterface):
                      'device.prescribed_footprint_radius',
                      'device.umbilical_type',
                      'project.ac_power_flow',
-                     'project.control_signal_cable',
-                     'project.control_signal_channels',
-                     'project.control_signal_type',
+                     'device.control_signal_cable',
+                     'device.control_signal_channels',
+                     'device.control_signal_type',
                      'project.devices_per_string',
                      'project.main_direction',
                      'farm.nogo_areas',
@@ -334,9 +334,9 @@ class ElectricalInterface(ModuleInterface):
                       "project.equipment_gradient_constraint",
                   "installation_soil_compatibility" :
                       "component.installation_soil_compatibility",
-                  "control_signal_type": "project.control_signal_type",
-                  "control_signal_cable": "project.control_signal_cable",
-                  "control_signal_channels": "project.control_signal_channels",
+                  "control_signal_type": "device.control_signal_type",
+                  "control_signal_cable": "device.control_signal_cable",
+                  "control_signal_channels": "device.control_signal_channels",
                   "min_voltage": "project.voltage_limit_min",
                   "max_voltage": "project.voltage_limit_max",
                   "footprint_radius" : "device.prescribed_footprint_radius",
@@ -911,7 +911,9 @@ class ElectricalInterface(ModuleInterface):
             opt_args["onshore_losses"] = data.onshore_losses
             
         if data.control_signal_type is not None:
-            opt_args["control_signal_type"] = data.control_signal_type
+            name_map = {"Fibre Optic": "fibre optic"}
+            opt_args["control_signal_type"] = \
+                                            name_map[data.control_signal_type]
             
         if data.control_signal_cable is not None:
             opt_args["control_signal_cable"] = data.control_signal_cable
