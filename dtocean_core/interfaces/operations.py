@@ -140,6 +140,11 @@ class OperationsInterface(ModuleInterface):
                         'project.export_cable_operations_weighting',
                         'project.foundations_operations_weighting',
                         'project.moorings_operations_weighting',
+                        
+                        'device.subsystem_access',
+                        'device.subsystem_inspections',
+                        'device.subsystem_maintenance',
+                        'device.subsystem_replacement',
 
                         'device.subsystem_failure_rates',
                         'project.electrical_subsystem_failure_rates',
@@ -148,26 +153,21 @@ class OperationsInterface(ModuleInterface):
                         'options.condition_maintenance_soh',
                         'options.calendar_maintenance_interval',
                         
-                        'device.onsite_maintenance_requirements',
                         'project.electrical_onsite_maintenance_requirements',
                         'project.moorings_onsite_maintenance_requirements',
                         'device.replacement_requirements',
                         'project.electrical_replacement_requirements',
                         'project.moorings_replacement_requirements',
-                        'device.inspections_requirements',
+                        
                         'project.electrical_inspections_requirements',
                         'project.moorings_inspections_requirements',
                         
-                        'device.onsite_maintenance_parts',
+                        'device.subsystem_maintenance_parts',
                         'project.electrical_onsite_maintenance_parts',
                         'project.moorings_onsite_maintenance_parts',
-                        'device.replacement_parts',
+                        'device.sub_systems_installation',
                         'project.electrical_replacement_parts',
                         'project.moorings_replacement_parts',
-
-                        'device.subsystem_lead_times',
-                        'project.electrical_subsystem_lead_times',
-                        'project.moorings_subsystem_lead_times',
                         
                         'device.subsystem_costs',
                         'project.moorings_subsystem_costs',
@@ -478,7 +478,7 @@ class OperationsInterface(ModuleInterface):
             "subsystem_onsite_maintenance":
                 "options.operations_onsite_maintenance",
             "subsystem_onsite_replacements": "options.operations_replacements",
-            "subsystem_inspections": "options.operations_inspections",
+            "operations_inspections": "options.operations_inspections",
                 
             'prime_mover_operations_weighting':
                 'device.prime_mover_operations_weighting',
@@ -510,41 +510,36 @@ class OperationsInterface(ModuleInterface):
             'calendar_maintenance_interval':
                 'options.calendar_maintenance_interval',
                 
-            'device_onsite_requirements':
-                'device.onsite_maintenance_requirements',
+                
+            'subsystem_access': 'device.subsystem_access',
+            'subsystem_inspections': 'device.subsystem_inspections',
+            'subsystem_maintenance': 'device.subsystem_maintenance',
+            'subsystem_replacement': 'device.subsystem_replacement',
+                
             'electrical_onsite_requirements':
                 'project.electrical_onsite_maintenance_requirements',
             'moorings_onsite_requirements':
                 'project.moorings_onsite_maintenance_requirements',
-            'device_replacement_requirements':
-                'device.replacement_requirements',
             'electrical_replacement_requirements':
                 'project.electrical_replacement_requirements',
             'moorings_replacement_requirements':
                 'project.moorings_replacement_requirements',
-            'device_inspections_requirements':
-                'device.inspections_requirements',
             'electrical_inspections_requirements':
                 'project.electrical_inspections_requirements',
             'moorings_inspections_requirements':
                 'project.moorings_inspections_requirements',               
-                
-            'device_onsite_parts': 'device.onsite_maintenance_parts',
+            
+            'subsystem_maintenance_parts':
+                'device.subsystem_maintenance_parts',
             'electrical_onsite_parts':
                 'project.electrical_onsite_maintenance_parts',
             'moorings_onsite_parts':
                 'project.moorings_onsite_maintenance_parts',
-            'device_replacement_parts': 'device.replacement_parts',
+            'sub_systems_installation': 'device.sub_systems_installation',
             'electrical_replacement_parts':
                 'project.electrical_replacement_parts',
             'moorings_replacement_parts': 'project.moorings_replacement_parts',
-#            
-            'device_lead_times': 'device.subsystem_lead_times',
-            'electrical_subsystem_lead_times':
-                'project.electrical_subsystem_lead_times',
-            'moorings_subsystem_lead_times':
-                'project.moorings_subsystem_lead_times',
-                
+
             'device_subsystem_costs': 'device.subsystem_costs',
             'moorings_subsystem_costs': 'project.moorings_subsystem_costs',
             'subsystem_monitering_costs': 'options.subsystem_monitering_costs',
@@ -863,6 +858,16 @@ class OperationsInterface(ModuleInterface):
                                     self.data.elec_db_switchgear,
                                     self.data.elec_db_pq)
         
+        # Modify the installation parts table
+        parts_cols = ["Sub System", "Length", "Width", "Height", "Dry Mass"]
+        parts_map = {"Sub System": "Sub-System",
+                     "Length": "Spare Parts Max Length",
+                     "Width": "Spare Parts Max Width",
+                     "Height": "Spare Parts Max Height",
+                     "Dry Mass": "Spare Parts Mass"}
+        
+        replacement_parts = self.data.sub_systems_installation[parts_cols]
+        replacement_parts = replacement_parts.rename(columns=parts_map)
 
         (component_df,
          failure_mode_df,
@@ -882,7 +887,7 @@ class OperationsInterface(ModuleInterface):
                                 elec_database,
                                 self.data.subsystem_onsite_maintenance,
                                 self.data.subsystem_onsite_replacements,
-                                self.data.subsystem_inspections,
+                                self.data.operations_inspections,
                                 self.data.prime_mover_operations_weighting,
                                 self.data.pto_operations_weighting,
                                 self.data.control_operations_weighting,
@@ -898,24 +903,22 @@ class OperationsInterface(ModuleInterface):
                                 self.data.moorings_failure_rates,
                                 self.data.calendar_maintenance_interval,
                                 self.data.condition_maintenance_soh,
-                                self.data.device_onsite_requirements,
+                                self.data.subsystem_access,
+                                self.data.subsystem_maintenance,
                                 self.data.electrical_onsite_requirements,
                                 self.data.moorings_onsite_requirements,
-                                self.data.device_replacement_requirements,
+                                self.data.subsystem_replacement,
                                 self.data.electrical_replacement_requirements,
                                 self.data.moorings_replacement_requirements,
-                                self.data.device_inspections_requirements,
+                                self.data.subsystem_inspections,
                                 self.data.electrical_inspections_requirements,
                                 self.data.moorings_inspections_requirements,
-                                self.data.device_onsite_parts,
+                                self.data.subsystem_maintenance_parts,
                                 self.data.electrical_onsite_parts,
                                 self.data.moorings_onsite_parts,
-                                self.data.device_replacement_parts,
+                                replacement_parts,
                                 self.data.electrical_replacement_parts,
                                 self.data.moorings_replacement_parts,
-                                self.data.device_lead_times,
-                                self.data.electrical_subsystem_lead_times,
-                                self.data.moorings_subsystem_lead_times,
                                 self.data.device_subsystem_costs,
                                 self.data.moorings_subsystem_costs,
                                 self.data.subsystem_monitering_costs,
