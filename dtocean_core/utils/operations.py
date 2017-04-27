@@ -51,7 +51,7 @@ def get_input_tables(system_type,
                      elec_database,
                      subsystem_onsite_maintenance,
                      subsystem_onsite_replacements,
-                     subsystem_inspections,
+                     operations_inspections,
                      prime_mover_operations_weighting,
                      pto_operations_weighting,
                      control_operations_weighting,
@@ -67,24 +67,22 @@ def get_input_tables(system_type,
                      moorings_failure_rates,
                      calendar_maintenance_interval,
                      condition_maintenance_soh,
-                     device_onsite_requirements,
+                     subsystem_access,
+                     subsystem_maintenance,
                      electrical_onsite_requirements,
                      moorings_onsite_requirements,
-                     device_replacement_requirements,
+                     subsystem_replacement,
                      electrical_replacement_requirements,
                      moorings_replacement_requirements,
-                     device_inspections_requirements,
+                     subsystem_inspections,
                      electrical_inspections_requirements,
                      moorings_inspections_requirements,
-                     device_onsite_parts,
+                     subsystem_maintenance_parts,
                      electrical_onsite_parts,
                      moorings_onsite_parts,
                      device_replacement_parts,
                      electrical_replacement_parts,
                      moorings_replacement_parts,
-                     device_subsystem_lead_times,
-                     electrical_subsystem_lead_times,
-                     moorings_subsystem_lead_times,
                      device_subsystem_costs,
                      moorings_subsystem_costs,
                      subsystem_monitering_costs,
@@ -321,8 +319,8 @@ def get_input_tables(system_type,
             weighting = weightings_map[subsystem]["Replacement"]
             operations_weightings["replacement"] = weighting
 
-        if (subsystem_inspections is not None and
-            subsystem_inspections[subsystem]):
+        if (operations_inspections is not None and
+            operations_inspections[subsystem]):
             
             weighting = weightings_map[subsystem]["Inspections"]
             operations_weightings["inspections"] = weighting
@@ -378,40 +376,6 @@ def get_input_tables(system_type,
                                      all_comp,
                                      subhubs)
 
-        # Lead times
-        if subsystem in device_subsystems:
-            
-            temp_modes["lead_time_spare"] = \
-                                        device_subsystem_lead_times[subsystem]
-
-        elif subsystem in elec_subsystems:
-            
-            if electrical_subsystem_lead_times is None:
-                
-                errStr = shortErr.format("Electrical Sub-Systems",
-                                         "lead times",
-                                         subsystem)
-                raise RuntimeError(errStr)
-                    
-            else:
-                
-                temp_modes["lead_time_spare"] = \
-                                    electrical_subsystem_lead_times[subsystem]
-
-        elif subsystem in moor_subsystems:
-            
-            if moorings_subsystem_lead_times is None:
-                
-                errStr = shortErr.format("Moorings and Foundations",
-                                         "lead times",
-                                         subsystem)
-                raise RuntimeError(errStr)
-                
-            else:
-                
-                temp_modes["lead_time_spare"] = \
-                                    moorings_subsystem_lead_times[subsystem]
-
         # Base Costs
         if subsystem in device_subsystems:
             
@@ -461,9 +425,35 @@ def get_input_tables(system_type,
             # Build Repair Actions and Failure Mode series
             if subsystem in device_subsystems:
                 
-                temp_repair = device_onsite_requirements.loc[subsystem]
+                access_map = {
+                  'Operation Duration': 'duration_accessibility',
+                  'Max Hs': 'wave_height_max_acc',
+                  'Max Tp': 'wave_periode_max_acc',
+                  'Max Wind Velocity': 'wind_speed_max_acc',
+                  'Max Current Velocity': 'current_speed_max_acc'}
+                
+                device_repair_map = {
+                  'Operation Duration': 'duration_maintenance',
+                  'Interruptable': 'interruptable',
+                  'Crew Preparation Delay': 'delay_crew',
+                  'Other Delay': 'delay_organisation',
+                  'Spare Parts Preparation Delay': 'delay_spare',
+                  'Technicians Required': 'number_technicians',
+                  'Specialists Required': 'number_specialists',
+                  'Max Hs': 'wave_height_max_om',
+                  'Max Tp': 'wave_periode_max_om',
+                  'Max Wind Velocity': 'wind_speed_max_om',
+                  'Max Current Velocity': 'current_speed_max_om'}
+                
+                temp_access = subsystem_access.loc[subsystem]
+                temp_access = temp_access.rename(access_map)
+                                
                 onsite_modes = onsite_modes.append(
-                                           device_onsite_parts.loc[subsystem])
+                                    subsystem_maintenance_parts.loc[subsystem])
+                
+                temp_repair = subsystem_maintenance.loc[subsystem]
+                temp_repair = temp_repair.rename(device_repair_map)
+                temp_repair = temp_repair.append(temp_access)
 
             elif subsystem in elec_subsystems:
                 
@@ -486,6 +476,8 @@ def get_input_tables(system_type,
                 temp_repair = electrical_onsite_requirements.loc[subsystem]
                 onsite_modes = onsite_modes.append(
                                        electrical_onsite_parts.loc[subsystem])
+                
+                temp_repair = temp_repair.rename(repair_map)
 
             elif subsystem in moor_subsystems:
                 
@@ -508,8 +500,10 @@ def get_input_tables(system_type,
                 temp_repair = moorings_onsite_requirements.loc[subsystem]
                 onsite_modes = onsite_modes.append(
                                        moorings_onsite_parts.loc[subsystem])
+                
+                temp_repair = temp_repair.rename(repair_map)
 
-            temp_repair = temp_repair.rename(repair_map)
+
             onsite_modes = onsite_modes.rename(modes_map)
             
             # Costs
@@ -546,7 +540,33 @@ def get_input_tables(system_type,
             # Build Repair Actions and Failure Mode series
             if subsystem in device_subsystems:
                 
-                temp_repair = device_replacement_requirements.loc[subsystem]
+                access_map = {
+                  'Operation Duration': 'duration_accessibility',
+                  'Max Hs': 'wave_height_max_acc',
+                  'Max Tp': 'wave_periode_max_acc',
+                  'Max Wind Velocity': 'wind_speed_max_acc',
+                  'Max Current Velocity': 'current_speed_max_acc'}
+                
+                device_repair_map = {
+                  'Operation Duration': 'duration_maintenance',
+                  'Interruptable': 'interruptable',
+                  'Crew Preparation Delay': 'delay_crew',
+                  'Other Delay': 'delay_organisation',
+                  'Spare Parts Preparation Delay': 'delay_spare',
+                  'Technicians Required': 'number_technicians',
+                  'Specialists Required': 'number_specialists',
+                  'Max Hs': 'wave_height_max_om',
+                  'Max Tp': 'wave_periode_max_om',
+                  'Max Wind Velocity': 'wind_speed_max_om',
+                  'Max Current Velocity': 'current_speed_max_om'}
+                
+                temp_access = subsystem_access.loc[subsystem]
+                temp_access = temp_access.rename(access_map)
+                
+                temp_repair = subsystem_replacement.loc[subsystem]
+                temp_repair = temp_repair.rename(device_repair_map)
+                temp_repair = temp_repair.append(temp_access)
+                                
                 replacement_modes = replacement_modes.append(
                                        device_replacement_parts.loc[subsystem])
 
@@ -572,6 +592,8 @@ def get_input_tables(system_type,
                             electrical_replacement_requirements.loc[subsystem]
                 replacement_modes = replacement_modes.append(
                                    electrical_replacement_parts.loc[subsystem])
+                
+                temp_repair = temp_repair.rename(repair_map)
 
             elif subsystem in moor_subsystems:
                 
@@ -594,8 +616,9 @@ def get_input_tables(system_type,
                 temp_repair = moorings_replacement_requirements.loc[subsystem]
                 replacement_modes = replacement_modes.append(
                                    moorings_replacement_parts.loc[subsystem])
+                
+                temp_repair = temp_repair.rename(repair_map)
 
-            temp_repair = temp_repair.rename(repair_map)
             replacement_modes = replacement_modes.rename(modes_map)
             
             # Costs
@@ -605,7 +628,8 @@ def get_input_tables(system_type,
             replacement_modes["cost_spare_loading"] = \
                                         base_cost * loading_cost_multiplier
                                         
-            replacement_modes["CAPEX_condition_based_maintenance"] = monitering_cost
+            replacement_modes["CAPEX_condition_based_maintenance"] = \
+                                                             monitering_cost
                                         
             # Probability
             replacement_modes["mode_probability"] = \
@@ -635,8 +659,34 @@ def get_input_tables(system_type,
             
             if subsystem in device_subsystems:
                 
+                access_map = {
+                  'Operation Duration': 'duration_accessibility',
+                  'Max Hs': 'wave_height_max_acc',
+                  'Max Tp': 'wave_periode_max_acc',
+                  'Max Wind Velocity': 'wind_speed_max_acc',
+                  'Max Current Velocity': 'current_speed_max_acc'}
+                
+                temp_access = subsystem_access.loc[subsystem]
+                temp_access = temp_access.rename(access_map)
+
+                device_inspections_map = {
+                  'Operation Duration': 'duration_inspection',
+                  'Crew Preparation Delay': 'delay_crew',
+                  'Other Delay': 'delay_organisation',
+                  'Technicians Required': 'number_technicians',
+                  'Specialists Required': 'number_specialists',
+                  'Max Hs': 'wave_height_max_om',
+                  'Max Tp': 'wave_periode_max_om',
+                  'Max Wind Velocity': 'wind_speed_max_om',
+                  'Max Current Velocity': 'current_speed_max_om'}
+                
                 temp_inspection = \
-                            device_inspections_requirements.loc[subsystem]
+                            subsystem_inspections.loc[subsystem]
+                            
+                temp_inspection = temp_inspection.rename(
+                                                        device_inspections_map)
+                
+                temp_inspection = temp_inspection.append(temp_access)
 
             elif subsystem in elec_subsystems:
                 
@@ -650,6 +700,8 @@ def get_input_tables(system_type,
                 
                 temp_inspection = \
                             electrical_inspections_requirements.loc[subsystem]
+                            
+                temp_inspection = temp_inspection.rename(inspections_map)
 
             elif subsystem in moor_subsystems:
                 
@@ -663,9 +715,9 @@ def get_input_tables(system_type,
 
                 temp_inspection = \
                             moorings_inspections_requirements.loc[subsystem]
+                
+                temp_inspection = temp_inspection.rename(inspections_map)
 
-            temp_inspection = temp_inspection.rename(inspections_map)
-            
             # Costs
             inspections_modes["cost_spare"] = 0.
             inspections_modes["cost_spare_transit"] = 0.

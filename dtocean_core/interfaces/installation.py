@@ -176,10 +176,6 @@ class InstallationInterface(ModuleInterface):
                         "device.connect_duration",
                         "device.disconnect_duration",
                         "project.start_date",
-                        "device.installation_limit_Hs",
-                        "device.installation_limit_Tp",
-                        "device.installation_limit_Ws",
-                        "device.installation_limit_Cs",
                         "farm.wave_series_installation",
                         "farm.tidal_series_installation",
                         "farm.wind_series_installation",
@@ -424,10 +420,6 @@ class InstallationInterface(ModuleInterface):
                   "connect_duration": "device.connect_duration",
                   "disconnect_duration": "device.disconnect_duration",
                   "project_start_date": "project.start_date",
-                  "installation_limit_Hs": "device.installation_limit_Hs",
-                  "installation_limit_Tp": "device.installation_limit_Tp",
-                  "installation_limit_Ws": "device.installation_limit_Ws",
-                  "installation_limit_Cs": "device.installation_limit_Cs",
                   "wave_series": "farm.wave_series_installation",
                   "tidal_series": "farm.tidal_series_installation",
                   "wind_series": "farm.wind_series_installation",
@@ -2146,6 +2138,12 @@ class InstallationInterface(ModuleInterface):
             errStr = ("If device is towed fo deployment, a bollard pull value "
                       "must be given.")
             raise ValueError(errStr)
+            
+        # Get installation limits from subsystems
+        max_hs = sub_systems["Max Hs"].max()
+        max_tp = sub_systems["Max Tp"].max()
+        max_ws = sub_systems["Max Wind Velocity"].max()
+        max_cs = sub_systems["Max  Current Velocity"].max()
 
         device_dict = {
             "Type": device_type,
@@ -2161,10 +2159,10 @@ class InstallationInterface(ModuleInterface):
             "Bollard Pull": data.bollard_pull,
             "Connect Duration": data.connect_duration,
             "Disconnect Duration": data.disconnect_duration,
-            "Max Hs": data.installation_limit_Hs,
-            "Max Tp": data.installation_limit_Tp,
-            "Max Wind Speed": data.installation_limit_Ws,
-            "Max Current Speed": data.installation_limit_Cs,
+            "Max Hs": max_hs,
+            "Max Tp": max_tp,
+            "Max Wind Speed": max_ws,
+            "Max Current Speed": max_cs,
             "Project Start Date": data.project_start_date
             }
 
@@ -2198,11 +2196,9 @@ class InstallationInterface(ModuleInterface):
             "Length": "length [m]",
             "Width": "width [m]",
             "Height": "height [m]",
-            "Dry Mass": "dry mass [kg]",
-            "Assembly Strategy": "assembly strategy [-]",
-            "Assembly Duration": "assembly duration [h]"}
+            "Dry Mass": "dry mass [kg]"}
 
-        sub_device_df = sub_systems
+        sub_device_df = sub_systems[name_map.keys()]
         sub_device_df = sub_device_df.rename(columns=name_map)
 
         ### Rates
