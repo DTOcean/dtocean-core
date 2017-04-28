@@ -508,7 +508,7 @@ test_data = {"component.rov" : equipment_rov,
              "device.disconnect_duration" : disconnect_duration,
              "project.start_date" : project_start_date,
              
-             "device.sub_systems_installation" : sub_device,
+             "device.subsystem_installation" : sub_device,
 
              "device.installation_limit_Hs" : installation_limit_Hs,
              "device.installation_limit_Tp" : installation_limit_Tp,

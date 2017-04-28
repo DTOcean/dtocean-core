@@ -120,7 +120,7 @@ class InstallationInterface(ModuleInterface):
                         "component.port_locations",
                         "bathymetry.layers",
                         "corridor.layers",
-                        "device.sub_systems_installation",
+                        "device.subsystem_installation",
                         "project.electrical_network",
                         "project.electrical_component_data",
                         "project.cable_routes",
@@ -189,7 +189,7 @@ class InstallationInterface(ModuleInterface):
                         "component.power_quality",
                         "component.switchgear",
                         "component.transformers",
-                        "device.control_system_installation",
+                        "device.control_subsystem_installation",
                         "project.selected_installation_tool",
                         "options.skip_phase"
                         ]
@@ -324,7 +324,7 @@ class InstallationInterface(ModuleInterface):
                     "corridor.layers",
                     "project.landfall_contruction_technique",
                     "device.bollard_pull",
-                    "device.control_system_installation",
+                    "device.control_subsystem_installation",
                     "options.skip_phase"
                     ]
                     
@@ -367,8 +367,8 @@ class InstallationInterface(ModuleInterface):
                   "port_locations": "component.port_locations",
                   "site": "bathymetry.layers",
                   "export": "corridor.layers",
-                  "sub_device": "device.sub_systems_installation",
-                  "control_system": "device.control_system_installation",
+                  "sub_device": "device.subsystem_installation",
+                  "control_system": "device.control_subsystem_installation",
                   "electrical_network": "project.electrical_network" ,
                   "electrical_components": "project.electrical_component_data",
                   "cable_routes": "project.cable_routes",
@@ -2126,11 +2126,11 @@ class InstallationInterface(ModuleInterface):
 
         if 'tidal' in system_type.lower():
 
-            device_type = device_type +' TEC'
+            device_type = device_type + ' TEC'
 
         else:
 
-            device_type = device_type +' WEC'
+            device_type = device_type + ' WEC'
             
         # Check a bollard pull has been given when towed
         if data.transportation_method == "Tow" and data.bollard_pull is None:
@@ -2143,7 +2143,7 @@ class InstallationInterface(ModuleInterface):
         max_hs = sub_systems["Max Hs"].max()
         max_tp = sub_systems["Max Tp"].max()
         max_ws = sub_systems["Max Wind Velocity"].max()
-        max_cs = sub_systems["Max  Current Velocity"].max()
+        max_cs = sub_systems["Max Current Velocity"].max()
 
         device_dict = {
             "Type": device_type,

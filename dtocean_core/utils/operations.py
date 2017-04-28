@@ -49,41 +49,47 @@ def get_input_tables(system_type,
                      moor_bom,
                      electrical_components,
                      elec_database,
-                     subsystem_onsite_maintenance,
-                     subsystem_onsite_replacements,
+                     operations_onsite_maintenance,
+                     operations_replacements,
                      operations_inspections,
-                     prime_mover_operations_weighting,
-                     pto_operations_weighting,
-                     control_operations_weighting,
-                     support_operations_weighting,
+                     subsystem_access,
+                     subsystem_costs,
+                     subsystem_failure_rates,
+                     subsystem_inspections,
+                     subsystem_maintenance,
+                     subsystem_maintenance_parts,
+                     subsystem_operation_weightings,
+                     subsystem_replacement,
+                     subsystem_replacement_parts,
+                     control_subsystem_access,
+                     control_subsystem_costs,
+                     control_subsystem_failure_rates,
+                     control_subsystem_inspections,
+                     control_subsystem_maintenance,
+                     control_subsystem_maintenance_parts,
+                     control_subsystem_operation_weightings,
+                     control_subsystem_replacement,
+                     control_subsystem_replacement_parts,
                      umbilical_operations_weighting,
                      array_cables_operations_weighting,
                      substations_operations_weighting,
                      export_cable_operations_weighting,
                      foundations_operations_weighting,
                      moorings_operations_weighting,
-                     device_failure_rates,
                      electrical_failure_rates,
                      moorings_failure_rates,
                      calendar_maintenance_interval,
                      condition_maintenance_soh,
-                     subsystem_access,
-                     subsystem_maintenance,
                      electrical_onsite_requirements,
                      moorings_onsite_requirements,
-                     subsystem_replacement,
                      electrical_replacement_requirements,
                      moorings_replacement_requirements,
-                     subsystem_inspections,
                      electrical_inspections_requirements,
                      moorings_inspections_requirements,
-                     subsystem_maintenance_parts,
                      electrical_onsite_parts,
                      moorings_onsite_parts,
-                     device_replacement_parts,
                      electrical_replacement_parts,
                      moorings_replacement_parts,
-                     device_subsystem_costs,
                      moorings_subsystem_costs,
                      subsystem_monitering_costs,
                      transit_cost_multiplier=0.,
@@ -107,8 +113,10 @@ def get_input_tables(system_type,
     # Device
     device_subsystems = ['Prime Mover',
                          'PTO',
-                         'Control',
                          'Support Structure']
+    
+    if control_subsystem_replacement_parts is not None:
+        device_subsystems.append('Control')
                          
     all_subsystems = device_subsystems[:]
     
@@ -161,16 +169,20 @@ def get_input_tables(system_type,
                       'Foundations': 'Foundation',
                       'Mooring Lines': 'Mooring line'}
                       
-    weightings_map = {'Prime Mover': prime_mover_operations_weighting,
-                      'PTO': pto_operations_weighting,
-                      'Control': control_operations_weighting,
-                      'Support Structure': support_operations_weighting,
+    weightings_map = {'Prime Mover':
+                          subsystem_operation_weightings['Prime Mover'],
+                      'PTO': subsystem_operation_weightings['PTO'],
+                      'Support Structure':
+                          subsystem_operation_weightings['Support Structure'],
                       'Umbilical Cable': umbilical_operations_weighting,
                       'Inter-Array Cables': array_cables_operations_weighting,
                       'Substations': substations_operations_weighting,
                       'Export Cable': export_cable_operations_weighting,
                       'Foundations': foundations_operations_weighting,
                       'Mooring Lines': moorings_operations_weighting}
+        
+    if control_subsystem_replacement_parts is not None:
+        weightings_map['Control'] = subsystem_operation_weightings['Control']
                       
     repair_map = {
             'Maintenance Duration': 'duration_maintenance',
@@ -306,15 +318,15 @@ def get_input_tables(system_type,
                                  "replacement": None,
                                  "inspections": None}
         
-        if (subsystem_onsite_maintenance is not None and
-            subsystem_onsite_maintenance[subsystem]):
+        if (operations_onsite_maintenance is not None and
+            operations_onsite_maintenance[subsystem]):
             
             weighting = weightings_map[subsystem]["On-Site Maintenance"]
             operations_weightings["onsite"] = weighting
             
-        if (subsystem_onsite_replacements is not None and
-            subsystem in subsystem_onsite_replacements and
-            subsystem_onsite_replacements[subsystem]):
+        if (operations_replacements is not None and
+            subsystem in operations_replacements and
+            operations_replacements[subsystem]):
             
             weighting = weightings_map[subsystem]["Replacement"]
             operations_weightings["replacement"] = weighting
@@ -348,7 +360,7 @@ def get_input_tables(system_type,
         # Failure rates
         if subsystem in device_subsystems:
             
-            temp_comp["failure_rate"] = device_failure_rates[subsystem]
+            temp_comp["failure_rate"] = subsystem_failure_rates[subsystem]
 
         elif subsystem in elec_subsystems:
             
@@ -379,7 +391,7 @@ def get_input_tables(system_type,
         # Base Costs
         if subsystem in device_subsystems:
             
-            base_cost = device_subsystem_costs[subsystem]
+            base_cost = subsystem_costs[subsystem]
 
         elif subsystem in elec_subsystems:
             
@@ -503,7 +515,6 @@ def get_input_tables(system_type,
                 
                 temp_repair = temp_repair.rename(repair_map)
 
-
             onsite_modes = onsite_modes.rename(modes_map)
             
             # Costs
@@ -568,7 +579,7 @@ def get_input_tables(system_type,
                 temp_repair = temp_repair.append(temp_access)
                                 
                 replacement_modes = replacement_modes.append(
-                                       device_replacement_parts.loc[subsystem])
+                                subsystem_replacement_parts.loc[subsystem])
 
             elif subsystem in elec_subsystems:
                 
@@ -1107,8 +1118,10 @@ def get_user_network(subsytem_comps, array_layout):
     
     subsytem_names = ['Hydrodynamic',
                       'Pto',
-                      'Control',
                       'Support structure']
+    
+    if len(subsytem_comps) == 4:
+        subsytem_names.insert(2, 'Control')
     
     user_hierarchy = {'array': {}}
     user_bom = {}
@@ -1127,14 +1140,16 @@ def get_user_network(subsytem_comps, array_layout):
     return user_hierarchy, user_bom
     
 def get_user_compdict(subsytem_comps,
-                      device_failure_rates):
+                      subsystem_failure_rates):
     
-    subsystems = ['Prime Mover',
-                  'PTO',
-                  'Control',
-                  'Support Structure']
+    subsytem_names = ['Hydrodynamic',
+                      'Pto',
+                      'Support structure']
     
-    all_rates = [device_failure_rates[x] for x in subsystems]
+    if len(subsytem_comps) == 4:
+        subsytem_names.insert(2, 'Control')
+    
+    all_rates = [subsystem_failure_rates[x] for x in subsytem_names]
     rates_dict = {'Key Identifier': subsytem_comps,
                   "Lower Bound": all_rates,
                   "Mean": all_rates,

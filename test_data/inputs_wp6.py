@@ -830,7 +830,7 @@ test_data = {
             'device.installation_limit_Tp': installation_limit_Tp,
             'device.installation_limit_Ws': installation_limit_Ws,
             'device.load_out_method': load_out_method,
-            'device.sub_systems_installation': sub_device,
+            'device.subsystem_installation': sub_device,
             'device.system_height': system_height,
             'device.system_length': system_length,
             'device.system_mass': system_mass,
