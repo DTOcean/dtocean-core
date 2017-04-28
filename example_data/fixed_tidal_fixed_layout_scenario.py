@@ -1268,7 +1268,7 @@ test_data = {
         "device.load_out_method": load_out_method,
         "device.transportation_method": transportation_method,
         
-        "device.sub_systems_installation": sub_device,
+        "device.subsystem_installation": sub_device,
         
         "project.port_percentage_cost": port_percentage_cost,
         "project.commissioning_time": comissioning_time,
