@@ -454,7 +454,7 @@ rated_array_power = 5.
 
 # Farm
 ac_power_flow = "True"
-control_signal_type = "fibre optics"
+control_signal_type = "Fibre Optic"
 control_signal_cable = "True"
 control_signal_channels = 4.
 devices_per_string = 10

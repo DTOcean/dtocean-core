@@ -304,7 +304,7 @@ class EconomicInterface(ThemeInterface):
                         
             electrical_costs = electrical_costs.rename(columns=name_map)
             
-            cap_costs_breakdown["Electrical Sub Systems"] = (
+            cap_costs_breakdown["Electrical Sub-Systems"] = (
                                     electrical_costs['unitary_cost'] * 
                                         electrical_costs['quantity']).sum()
                                 
@@ -321,7 +321,7 @@ class EconomicInterface(ThemeInterface):
                          
             electrical_costs = pd.DataFrame(raw_costs)
             
-            cap_costs_breakdown["Electrical Sub Systems"] = cost
+            cap_costs_breakdown["Electrical Sub-Systems"] = cost
                                 
             capex_costs = pd.concat([capex_costs, electrical_costs])
             

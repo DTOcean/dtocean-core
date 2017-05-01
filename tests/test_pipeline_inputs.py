@@ -143,10 +143,10 @@ def test_module_unavailable_inputs(core, project, module_menu, tree):
     project = deepcopy(project) 
 
     module_menu.activate(core, project, "Hydrodynamics")
-    module_menu.activate(core, project, "Electrical Sub Systems")
+    module_menu.activate(core, project, "Electrical Sub-Systems")
     module_menu.activate(core, project, "Mooring and Foundations")
     
-    electric_branch = tree.get_branch(core, project, "Electrical Sub Systems") 
+    electric_branch = tree.get_branch(core, project, "Electrical Sub-Systems") 
     moorings_branch = tree.get_branch(core, project, "Mooring and Foundations") 
     
     inputs = electric_branch.get_input_status(core, 

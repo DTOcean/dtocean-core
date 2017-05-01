@@ -228,10 +228,6 @@ disconnect_duration = device['disconnect duration'].values.item()
 project_start_date = pd.to_datetime(device['Project start date'].values.item())
 project_start_date = project_start_date.to_datetime()
 #sub_systems = device['sub system list'].values.item()
-installation_limit_Hs = device['max Hs'].values.item()
-installation_limit_Tp = device['max Tp'].values.item()
-installation_limit_Ws = device['max wind speed'].values.item()
-installation_limit_Cs = device['max current speed'].values.item()
 
 ### Subdevice
 sub_device = xls_file.parse('sub_device')
@@ -1915,11 +1911,6 @@ test_data = {"component.rov" : equipment_rov,
              "project.start_date" : project_start_date,
              
              "device.subsystem_installation" : sub_device,
-
-             "device.installation_limit_Hs" : installation_limit_Hs,
-             "device.installation_limit_Tp" : installation_limit_Tp,
-             "device.installation_limit_Ws" : installation_limit_Ws,
-             "device.installation_limit_Cs" : installation_limit_Cs,
              
              "farm.wave_series_installation" : wave_series,
              "farm.tidal_series_installation" : tidal_series,
