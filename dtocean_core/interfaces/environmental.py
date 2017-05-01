@@ -31,23 +31,21 @@ Note:
                   Mathew Topper <mathew.topper@tecnalia.com>
 """
 
+import math
 import pickle
 
 import pandas as pd
 import numpy as np
-import math
-from dtocean_environment.impacts import *
 
+from aneris.boundary.interface import MaskVariable
 from dtocean_environment.main import (HydroStage,
-                                     ElectricalStage,
-                                     MooringStage,
-                                     InstallationStage,
-                                     OperationMaintenanceStage)
+                                      ElectricalStage,
+                                      MooringStage,
+                                      InstallationStage,
+                                      OperationMaintenanceStage)
                                      
-
 from . import ThemeInterface
 
-import pprint
 
 class EnvironmentalInterface(ThemeInterface):
     
@@ -98,7 +96,11 @@ class EnvironmentalInterface(ThemeInterface):
                         "project.fishery_restricted_area",
                         "bathymetry.layers",
                         "project.number_of_devices",
-                        "device.system_draft",
+                        
+                         MaskVariable('device.system_draft',
+                                      'device.system_type',
+                                      ['Tidal Floating', 'Wave Floating']),
+                        
                         "device.system_width",
                         "device.system_height",
                         "device.system_length",

@@ -872,7 +872,18 @@ class OperationsInterface(ModuleInterface):
                                     self.data.elec_db_switchgear,
                                     self.data.elec_db_pq)
         
-        # Modify the installation parts table
+        # Modify the replacement and replacement parts table
+        limits_cols = ['Max Hs',
+                       'Max Tp',
+                       'Max Wind Velocity',
+                       'Max Current Velocity']
+                
+        replacement_limits = self.data.sub_device[limits_cols]
+        
+        subsystem_replacement = pd.concat([self.data.subsystem_replacement, 
+                                           replacement_limits],
+                                          axis=1)
+        
         parts_cols = ["Length", "Width", "Height", "Dry Mass"]
         parts_map = {"Length": "Spare Parts Max Length",
                      "Width": "Spare Parts Max Width",
@@ -882,10 +893,18 @@ class OperationsInterface(ModuleInterface):
         replacement_parts = self.data.sub_device[parts_cols]
         replacement_parts = replacement_parts.rename(columns=parts_map)
         
+        control_replacement = None        
         control_replacement_parts = None
         
         if self.data.control_system is not None:
-        
+            
+            control_replacement_limits = self.data.control_system[limits_cols]
+            
+            control_replacement = pd.concat(
+                                    [self.data.control_subsystem_replacement, 
+                                     control_replacement_limits],
+                                    axis=1)
+    
             control_replacement_parts = self.data.control_system[parts_cols]
             control_replacement_parts = control_replacement_parts.rename(
                                                             columns=parts_map)
@@ -916,7 +935,7 @@ class OperationsInterface(ModuleInterface):
                             self.data.subsystem_maintenance,
                             self.data.subsystem_maintenance_parts,
                             self.data.subsystem_operation_weightings,
-                            self.data.subsystem_replacement,
+                            subsystem_replacement,
                             replacement_parts,
                             self.data.control_subsystem_access,
                             self.data.control_subsystem_costs,
@@ -925,7 +944,7 @@ class OperationsInterface(ModuleInterface):
                             self.data.control_subsystem_maintenance,
                             self.data.control_subsystem_maintenance_parts,
                             self.data.control_subsystem_operation_weightings,
-                            self.data.control_subsystem_replacement,
+                            control_replacement,
                             control_replacement_parts,
                             self.data.umbilical_operations_weighting,
                             self.data.array_cables_operations_weighting,
