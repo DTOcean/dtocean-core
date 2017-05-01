@@ -114,9 +114,25 @@ def get_input_tables(system_type,
     device_subsystems = ['Prime Mover',
                          'PTO',
                          'Support Structure']
-    
+        
     if control_subsystem_replacement_parts is not None:
         device_subsystems.append('Control')
+        subsystem_access = subsystem_access.append(control_subsystem_access)
+        subsystem_costs = subsystem_costs.append(control_subsystem_costs)
+        subsystem_failure_rates = subsystem_failure_rates.append(
+                                        control_subsystem_failure_rates)
+        subsystem_inspections = subsystem_inspections.apppend(
+                                        control_subsystem_inspections)
+        subsystem_maintenance = subsystem_maintenance.append(
+                                        control_subsystem_maintenance)
+        subsystem_maintenance_parts = subsystem_maintenance_parts.append(
+                                        control_subsystem_maintenance_parts)
+        subsystem_operation_weightings = subsystem_operation_weightings.append(
+                                        control_subsystem_operation_weightings)
+        subsystem_replacement = subsystem_replacement.append(
+                                        control_subsystem_replacement)
+        subsystem_replacement_parts = subsystem_replacement_parts.append(
+                                        control_subsystem_replacement_parts)
                          
     all_subsystems = device_subsystems[:]
     
@@ -169,20 +185,22 @@ def get_input_tables(system_type,
                       'Foundations': 'Foundation',
                       'Mooring Lines': 'Mooring line'}
                       
-    weightings_map = {'Prime Mover':
-                          subsystem_operation_weightings['Prime Mover'],
-                      'PTO': subsystem_operation_weightings['PTO'],
-                      'Support Structure':
-                          subsystem_operation_weightings['Support Structure'],
-                      'Umbilical Cable': umbilical_operations_weighting,
-                      'Inter-Array Cables': array_cables_operations_weighting,
-                      'Substations': substations_operations_weighting,
-                      'Export Cable': export_cable_operations_weighting,
-                      'Foundations': foundations_operations_weighting,
-                      'Mooring Lines': moorings_operations_weighting}
+    weightings_map = {
+                'Prime Mover': 
+                    subsystem_operation_weightings.loc['Prime Mover'],
+                'PTO': subsystem_operation_weightings.loc['PTO'],
+                'Support Structure':
+                    subsystem_operation_weightings.loc['Support Structure'],
+                'Umbilical Cable': umbilical_operations_weighting,
+                'Inter-Array Cables': array_cables_operations_weighting,
+                'Substations': substations_operations_weighting,
+                'Export Cable': export_cable_operations_weighting,
+                'Foundations': foundations_operations_weighting,
+                'Mooring Lines': moorings_operations_weighting}
         
     if control_subsystem_replacement_parts is not None:
-        weightings_map['Control'] = subsystem_operation_weightings['Control']
+        weightings_map['Control'] = \
+                      subsystem_operation_weightings.loc['Control']
                       
     repair_map = {
             'Maintenance Duration': 'duration_maintenance',
@@ -753,9 +771,9 @@ def get_input_tables(system_type,
                                                          all_modes,
                                                          all_inspection,
                                                          subhubs)
-                        
+            
     assert all_comp.shape[0] == 11
-    assert all_modes.shape[0] == 12
+    assert all_modes.shape[0] == 11
     assert all_repair.shape[0] == 18
     assert all_inspection.shape[0] == 16
 
@@ -1116,21 +1134,21 @@ def get_user_network(subsytem_comps, array_layout):
     
     """Manufacture the user network for the device subsytems"""
     
-    subsytem_names = ['Hydrodynamic',
-                      'Pto',
-                      'Support structure']
+    subsystem_names = ['Hydrodynamic',
+                       'Pto',
+                       'Support structure']
     
     if len(subsytem_comps) == 4:
-        subsytem_names.insert(2, 'Control')
+        subsystem_names.insert(2, 'Control')
     
     user_hierarchy = {'array': {}}
     user_bom = {}
 
-    device_subsytem_hierarchy = {k: [v] for k, v in zip(subsytem_names,
+    device_subsytem_hierarchy = {k: [v] for k, v in zip(subsystem_names,
                                                         subsytem_comps)}
                                  
     device_subsytem_bom = {k: {'quantity': Counter({v: 1})}
-                               for k, v in zip(subsytem_names, subsytem_comps)}
+                            for k, v in zip(subsystem_names, subsytem_comps)}
 
     for device_id in array_layout.keys():
         
@@ -1142,14 +1160,14 @@ def get_user_network(subsytem_comps, array_layout):
 def get_user_compdict(subsytem_comps,
                       subsystem_failure_rates):
     
-    subsytem_names = ['Hydrodynamic',
-                      'Pto',
-                      'Support structure']
+    subsystem_names = ['Prime Mover',
+                       'PTO',
+                       'Support Structure']
     
     if len(subsytem_comps) == 4:
-        subsytem_names.insert(2, 'Control')
+        subsystem_names.insert(2, 'Control')
     
-    all_rates = [subsystem_failure_rates[x] for x in subsytem_names]
+    all_rates = [subsystem_failure_rates[x] for x in subsystem_names]
     rates_dict = {'Key Identifier': subsytem_comps,
                   "Lower Bound": all_rates,
                   "Mean": all_rates,

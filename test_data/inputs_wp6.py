@@ -57,10 +57,6 @@ from inputs_wp5 import (equipment_cable_burial,
                         bollard_pull,
                         connect_duration,
                         disconnect_duration,
-                        installation_limit_Cs,
-                        installation_limit_Ws,
-                        installation_limit_Hs,
-                        installation_limit_Tp,
                         load_out_method,
                         sub_device,
                         system_height,
@@ -134,8 +130,12 @@ array_layout = {'device001': (101250., 6120500.),
 ### MACHINE
 device_failure_rates = {'Prime Mover': 0.5,
                         'PTO': 0.25,
-                        'Control': 0.1,
                         'Support Structure': 0.05}
+
+control_failure_rates = {'Control': 0.1}
+
+book_path = os.path.join(op_dir, "device_access.xlsx")
+device_access = pd.read_excel(book_path, sheetname="Access")
 
 book_path = os.path.join(op_dir, "device_requirements.xlsx")
 device_onsite_requirements = pd.read_excel(book_path, sheetname="On-Site")
@@ -146,7 +146,19 @@ device_inspections_requirements = pd.read_excel(book_path,
 
 book_path = os.path.join(op_dir, "device_parts.xlsx")
 device_onsite_parts = pd.read_excel(book_path, sheetname="On-Site")
-device_replacement_parts = pd.read_excel(book_path, sheetname="Replacement")
+
+book_path = os.path.join(op_dir, "control_access.xlsx")
+control_access = pd.read_excel(book_path, sheetname="Access")
+
+book_path = os.path.join(op_dir, "control_requirements.xlsx")
+control_onsite_requirements = pd.read_excel(book_path, sheetname="On-Site")
+control_replacement_requirements = pd.read_excel(book_path,
+                                                 sheetname="Replacement")
+control_inspections_requirements = pd.read_excel(book_path,
+                                                 sheetname="Inspections")
+
+book_path = os.path.join(op_dir, "control_parts.xlsx")
+control_onsite_parts = pd.read_excel(book_path, sheetname="On-Site")
 
 device_lead_times = {'Prime Mover': 120.,
                      'PTO': 96.,
@@ -155,10 +167,26 @@ device_lead_times = {'Prime Mover': 120.,
                      
 device_costs = {'Prime Mover': 200000.,
                 'PTO': 150000.,
-                'Control': 10000.,
                 'Support Structure': 30000.}
-                
 
+control_costs = {'Control': 10000.}
+
+device_weightings_dict = {'Sub-System': ['Prime Mover',
+                                         'PTO',
+                                         'Support Structure'],
+                          'On-Site Maintenance': [4, 4, 4],
+                          'Replacement': [4, 4, 4],
+                          'Inspections': [2, 2, 2]}
+                
+device_weightings = pd.DataFrame(device_weightings_dict)
+
+control_weightings_dict = {'Sub-System': ['Control'],
+                           'On-Site Maintenance': [4],
+                           'Replacement': [4],
+                           'Inspections': [2]}
+                
+control_weightings = pd.DataFrame(control_weightings_dict)
+                
 ### ELECTRICAL NETWORK
 
 network_configuration = "Radial"
@@ -668,10 +696,6 @@ test_data = {
              "options.operations_replacements": operations_replacements,
              "options.operations_inspections": operations_inspections,
             
-             'device.prime_mover_operations_weighting': full_weightings,
-             'device.pto_operations_weighting': full_weightings,
-             'device.control_operations_weighting': full_weightings,
-             'device.support_operations_weighting': full_weightings,
              'project.umbilical_operations_weighting': full_weightings,
              'project.array_cables_operations_weighting': site_weightings,
              'project.substations_operations_weighting': site_weightings,
@@ -679,7 +703,6 @@ test_data = {
              'project.foundations_operations_weighting': site_weightings,
              'project.moorings_operations_weighting': full_weightings,
              
-             'device.subsystem_failure_rates': device_failure_rates,
              'project.electrical_subsystem_failure_rates':
                  electrical_failure_rates,
              'project.moorings_subsystem_failure_rates': moorings_failure_rates,
@@ -687,40 +710,50 @@ test_data = {
              'options.condition_maintenance_soh': condition_maintenance_soh,
              'options.calendar_maintenance_interval':
                  calendar_maintenance_interval,
-            
-             'device.onsite_maintenance_requirements':
-                 device_onsite_requirements,
+                 
+             'device.subsystem_access': device_access,
+             'device.subsystem_costs': device_costs,
+             'device.subsystem_failure_rates': device_failure_rates,
+             'device.subsystem_inspections': device_inspections_requirements,
+             'device.subsystem_maintenance': device_onsite_requirements,
+             'device.subsystem_maintenance_parts': device_onsite_parts,
+             'device.subsystem_operation_weightings': device_weightings,
+             'device.subsystem_replacement': device_replacement_requirements,
+             
+             'device.control_subsystem_access': control_access,
+             'device.control_subsystem_costs': control_costs,
+             'device.control_subsystem_failure_rates': control_failure_rates,
+             'device.control_subsystem_inspections':
+                 control_inspections_requirements,
+             'device.control_subsystem_maintenance':
+                 control_onsite_requirements,
+             'device.control_subsystem_maintenance_parts':
+                 control_onsite_parts,
+             'device.control_subsystem_operation_weightings':
+                 control_weightings,
+             'device.control_subsystem_replacement':
+                 control_replacement_requirements,
+                 
              'project.electrical_onsite_maintenance_requirements':
                  electrical_onsite_requirements,
              'project.moorings_onsite_maintenance_requirements':
                  moorings_onsite_requirements,
             
-             'device.replacement_requirements':
-                 device_replacement_requirements,
              'project.electrical_replacement_requirements': None,
              'project.moorings_replacement_requirements': None,
              
-             'device.inspections_requirements':
-                 device_inspections_requirements,
              'project.electrical_inspections_requirements':
                  electrical_inspections_requirements,
              'project.moorings_inspections_requirements':
                  moorings_inspections_requirements,
             
-             'device.onsite_maintenance_parts': device_onsite_parts,
              'project.electrical_onsite_maintenance_parts':
                  electrical_onsite_parts,
              'project.moorings_onsite_maintenance_parts': moorings_onsite_parts,
 
-             'device.replacement_parts': device_replacement_parts,
              'project.electrical_replacement_parts': None,
              'project.moorings_replacement_parts': None,
-
-             'device.subsystem_lead_times': device_lead_times,
-             'project.electrical_subsystem_lead_times': electrical_lead_times,
-             'project.moorings_subsystem_lead_times': moorings_lead_times,
             
-             'device.subsystem_costs': device_costs,
              'project.moorings_subsystem_costs': None,
              'options.subsystem_monitering_costs': condition_maintenance_cost,
              'options.transit_cost_multiplier': transit_cost_multiplier,
@@ -825,10 +858,6 @@ test_data = {
             'device.bollard_pull': bollard_pull,
             'device.connect_duration': connect_duration,
             'device.disconnect_duration': disconnect_duration,
-            'device.installation_limit_Cs': installation_limit_Cs,
-            'device.installation_limit_Hs': installation_limit_Hs,
-            'device.installation_limit_Tp': installation_limit_Tp,
-            'device.installation_limit_Ws': installation_limit_Ws,
             'device.load_out_method': load_out_method,
             'device.subsystem_installation': sub_device,
             'device.system_height': system_height,

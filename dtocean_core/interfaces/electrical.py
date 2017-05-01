@@ -77,7 +77,7 @@ class ElectricalInterface(ModuleInterface):
           str: A unique string
         '''
         
-        return "Electrical Sub Systems"
+        return "Electrical Sub-Systems"
         
     @classmethod         
     def declare_weight(cls):

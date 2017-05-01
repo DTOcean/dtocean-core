@@ -163,7 +163,6 @@ class OperationsInterface(ModuleInterface):
                         
                         'project.electrical_onsite_maintenance_requirements',
                         'project.moorings_onsite_maintenance_requirements',
-                        'device.replacement_requirements',
                         'project.electrical_replacement_requirements',
                         'project.moorings_replacement_requirements',
                         
@@ -259,10 +258,6 @@ class OperationsInterface(ModuleInterface):
                         'device.connect_duration',
                         'device.control_subsystem_installation',
                         'device.disconnect_duration',
-                        'device.installation_limit_Cs',
-                        'device.installation_limit_Hs',
-                        'device.installation_limit_Tp',
-                        'device.installation_limit_Ws',
                         'device.load_out_method',
                         'device.subsystem_installation',
                         'device.system_height',
@@ -638,10 +633,6 @@ class OperationsInterface(ModuleInterface):
             'grout_rate': 'project.grout_rate',
             'hammer': 'component.hammer',
             'hammer_safety_factors': 'project.hammer_safety_factors',
-            'installation_limit_Cs': 'device.installation_limit_Cs',
-            'installation_limit_Hs': 'device.installation_limit_Hs',
-            'installation_limit_Tp': 'device.installation_limit_Tp',
-            'installation_limit_Ws': 'device.installation_limit_Ws',
             'installation_soil_compatibility':
                 'component.installation_soil_compatibility',
             'landfall': 'project.landfall_contruction_technique',
@@ -882,13 +873,12 @@ class OperationsInterface(ModuleInterface):
                                     self.data.elec_db_pq)
         
         # Modify the installation parts table
-        parts_cols = ["Sub System", "Length", "Width", "Height", "Dry Mass"]
-        parts_map = {"Sub System": "Sub-System",
-                     "Length": "Spare Parts Max Length",
+        parts_cols = ["Length", "Width", "Height", "Dry Mass"]
+        parts_map = {"Length": "Spare Parts Max Length",
                      "Width": "Spare Parts Max Width",
                      "Height": "Spare Parts Max Height",
                      "Dry Mass": "Spare Parts Mass"}
-        
+                
         replacement_parts = self.data.sub_device[parts_cols]
         replacement_parts = replacement_parts.rename(columns=parts_map)
         
@@ -1039,8 +1029,6 @@ class OperationsInterface(ModuleInterface):
         if self.data.control_system is not None:
             subsytem_comps.insert(2,'control001')
             
-        subsytem_comps.append()
-                          
         user_hierarchy, user_bom = get_user_network(subsytem_comps,
                                                     self.data.array_layout)
         

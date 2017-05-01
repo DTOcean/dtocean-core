@@ -279,7 +279,7 @@ def test_tidal_interface_entry(module_menu, core, tidal_project, var_tree):
     
 def test_electrical_inputs(module_menu, core, tidal_project, var_tree):
         
-    mod_name = "Electrical Sub Systems"
+    mod_name = "Electrical Sub-Systems"
 #    project_menu = ProjectMenu()
     data_menu = DataMenu()
     project_menu = ProjectMenu()
@@ -299,7 +299,7 @@ def test_electrical_inputs(module_menu, core, tidal_project, var_tree):
     
 def test_get_electrical_interface(module_menu, core, tidal_project, var_tree):
     
-    mod_name = "Electrical Sub Systems"
+    mod_name = "Electrical Sub-Systems"
 #    project_menu = ProjectMenu()
     
     project_menu = ProjectMenu()
@@ -331,7 +331,7 @@ def test_get_electrical_interface(module_menu, core, tidal_project, var_tree):
     
 def test_electrical_interface_entry(module_menu, core, tidal_project, var_tree):
     
-    mod_name = "Electrical Sub Systems"
+    mod_name = "Electrical Sub-Systems"
     #    project_menu = ProjectMenu()
 
     project_menu = ProjectMenu()

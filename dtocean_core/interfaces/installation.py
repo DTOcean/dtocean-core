@@ -1261,7 +1261,7 @@ class InstallationInterface(ModuleInterface):
                             sum(device_component_cost_breakdown.values())
             
         if electrical_component_cost_breakdown is not None:
-            phase_costs["Electrical Sub Systems"] = \
+            phase_costs["Electrical Sub-Systems"] = \
                             sum(electrical_component_cost_breakdown.values())
             
         if mooring_component_cost_breakdown is not None:
@@ -1364,7 +1364,7 @@ class InstallationInterface(ModuleInterface):
                             sum(device_component_time_breakdown.values())
             
         if electrical_component_time_breakdown is not None:
-            phase_times["Electrical Sub Systems"] = \
+            phase_times["Electrical Sub-Systems"] = \
                             sum(electrical_component_time_breakdown.values())
             
         if mooring_component_time_breakdown is not None:
@@ -2077,25 +2077,18 @@ class InstallationInterface(ModuleInterface):
                                                index={"Control System": "C"})
             
             sub_systems = pd.concat([sub_systems, control_system])
-            
+        
+        # All subsystems are assembled at port.
         for idx, system in sub_systems.iterrows():
-
-            if system['Assembly Location']: sub_system_list.append(idx)
-
-            if system['Assembly Location'] == 'Port':
-
-                port.append(str(idx))
-
-            else:
-
-                site.append(str(idx))
+            sub_system_list.append(idx)
+            port.append(str(idx))
 
         # place limitation - A, B, C must be assembled at Port.
         restricted_stages = ['A', 'B', 'C']
 
         if [i for i in site if i in restricted_stages]:
 
-            errStr = "Sub Systems A, B and C must be assembled at Port."
+            errStr = "Sub-Systems A, B and C must be assembled at Port."
 
             raise ValueError(errStr)
 
@@ -2151,7 +2144,7 @@ class InstallationInterface(ModuleInterface):
             "Width": data.system_width,
             "Height": data.system_height,
             "Dry Mass": data.system_mass,
-            "Sub System List": sub_system_list,
+            "Sub-System List": sub_system_list,
             "Assembly Strategy": sub_assembly_strategy,
             "Assembly Duration": data.assembly_duration,
             "Load Out": data.load_out_method.lower(),
@@ -2174,7 +2167,7 @@ class InstallationInterface(ModuleInterface):
             "Width": "width [m]",
             "Height": "height [m]",
             "Dry Mass": "dry mass [kg]",
-            "Sub System List": "sub system list [-]",
+            "Sub-System List": "sub system list [-]",
             "Assembly Strategy": "assembly strategy [-]",
             "Assembly Duration": "assembly duration [h]",
             "Load Out": "load out [-]",

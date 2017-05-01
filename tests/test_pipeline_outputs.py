@@ -90,7 +90,7 @@ def test_module_overwritten_outputs(core, project, module_menu, tree):
     project = deepcopy(project) 
 
     module_menu.activate(core, project, "Hydrodynamics")
-    module_menu.activate(core, project, "Electrical Sub Systems")
+    module_menu.activate(core, project, "Electrical Sub-Systems")
     
     hydro_branch = tree.get_branch(core, project, "Hydrodynamics")
     outputs = hydro_branch.get_output_status(core, project)
