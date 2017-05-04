@@ -102,8 +102,6 @@ wet_mate_connectors = xls_file.parse(sheet_names[2])
 dry_mate_connectors = xls_file.parse(sheet_names[3], parse_cols=21)
 transformers = xls_file.parse(sheet_names[4])
 collection_points = xls_file.parse(sheet_names[5])
-switchgear = xls_file.parse(sheet_names[6])
-power_quality = xls_file.parse(sheet_names[7])
 
 collection_point_cog = {11: [0,0,0],
                         12: [0,0,0],
@@ -270,8 +268,6 @@ test_data = { "bathymetry.layers" : strata,
               "component.collection_points" : collection_points,
               "component.collection_point_cog": collection_point_cog,
               "component.collection_point_foundations": collection_point_found,
-              "component.switchgear" : switchgear, 
-              "component.power_quality" : power_quality, 
               "farm.max_seabed_temp" : max_temp, 
               "farm.max_soil_resistivity" : max_soil_res, 
               "farm.shipping_hist" : shipping_hist, 

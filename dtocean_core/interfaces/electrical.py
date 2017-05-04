@@ -110,8 +110,6 @@ class ElectricalInterface(ModuleInterface):
                         'component.collection_points',
                         'component.collection_point_cog',
                         'component.collection_point_foundations',
-                        'component.switchgear',
-                        'component.power_quality',
                         'bathymetry.layers',
                         'farm.max_seabed_temp',
                         'farm.max_soil_resistivity',
@@ -289,7 +287,7 @@ class ElectricalInterface(ModuleInterface):
         
         '''
                   
-        id_map = {"bathymetry" : "bathymetry.layers", 
+        id_map = {"bathymetry": "bathymetry.layers", 
                   "nogo_areas": "farm.nogo_areas",
                   "current_dir": "farm.direction_of_max_surface_current",
                   "max_surf_current":  "farm.max_surface_current_10_year",
@@ -307,8 +305,6 @@ class ElectricalInterface(ModuleInterface):
                   "collection_point_cog": "component.collection_point_cog",
                   "collection_point_foundations": 
                                   "component.collection_point_foundations",
-                  "switchgear": "component.switchgear",
-                  "power_quality": "component.power_quality",
                   "max_temp": "farm.max_seabed_temp",
                   "max_soil_res": "farm.max_soil_resistivity",
                   "shipping_hist": "farm.shipping_hist",     
@@ -330,32 +326,32 @@ class ElectricalInterface(ModuleInterface):
                   "corridor_max_temp": "corridor.max_seabed_temp",
                   "corridor_max_soil_res": "corridor.max_soil_resistivity",     
                   "corridor_voltage": "project.export_voltage",
-                  "equipment_gradient_constraint" :
+                  "equipment_gradient_constraint":
                       "project.equipment_gradient_constraint",
-                  "installation_soil_compatibility" :
+                  "installation_soil_compatibility":
                       "component.installation_soil_compatibility",
                   "control_signal_type": "device.control_signal_type",
                   "control_signal_cable": "device.control_signal_cable",
                   "control_signal_channels": "device.control_signal_channels",
                   "min_voltage": "project.voltage_limit_min",
                   "max_voltage": "project.voltage_limit_max",
-                  "footprint_radius" : "device.prescribed_footprint_radius",
-                  "footprint_coords" : "device.footprint_coords",
-                  "onshore_infrastructure_cost" :
+                  "footprint_radius": "device.prescribed_footprint_radius",
+                  "footprint_coords": "device.footprint_coords",
+                  "onshore_infrastructure_cost":
                       "project.onshore_infrastructure_cost",
-                  "onshore_losses" : "project.onshore_losses",
-                  "mean_power_hist_per_device" :
+                  "onshore_losses": "project.onshore_losses",
+                  "mean_power_hist_per_device":
                       "project.mean_power_hist_per_device",
-                  "electrical_network" : "project.electrical_network",
-                  "electrical_component_data" :
+                  "electrical_network": "project.electrical_network",
+                  "electrical_component_data":
                       "project.electrical_component_data",
                   "electrical_economics_data":
                       "project.electrical_economics_data",
-                  "cables_routes" : "project.cable_routes",
-                  "substation_props" : "project.substation_props",
+                  "cables_routes": "project.cable_routes",
+                  "substation_props": "project.substation_props",
                   "power_factor": "device.power_factor",
-                  "constant_power_factor" : "device.constant_power_factor",
-                  "umbilical_cables" : "project.umbilical_cable_data",
+                  "constant_power_factor": "device.constant_power_factor",
+                  "umbilical_cables": "project.umbilical_cable_data",
                   "dev_umbilical_point": "device.umbilical_connection_point",
                   "system_draft": 'device.system_draft',
                   "umbilical_sf": "project.umbilical_safety_factor",
@@ -429,10 +425,10 @@ class ElectricalInterface(ModuleInterface):
         
         self.data.network_efficiency
         
-        name_map = {"db ref" : "Key Identifier",
-                    "cost" : "Cost",
-                    "quantity" : "Quantity",
-                    "year" : "Year"
+        name_map = {"db ref": "Key Identifier",
+                    "cost": "Cost",
+                    "quantity": "Quantity",
+                    "year": "Year"
                     }
 
         self.data.electrical_economics_data = \
@@ -453,25 +449,25 @@ class ElectricalInterface(ModuleInterface):
         self.data.electrical_network = raw_network
         
         # Build supplementary data
-        name_map = {"db ref" : "Key Identifier",
-                    "install_type" : "Installation Type",
-                    "quantity" : "Quantity",
-                    "utm_x" :  "UTM X",
-                    "utm_y" : "UTM Y",
-                    "marker" : "Marker"
+        name_map = {"db ref": "Key Identifier",
+                    "install_type": "Installation Type",
+                    "quantity": "Quantity",
+                    "utm_x":  "UTM X",
+                    "utm_y": "UTM Y",
+                    "marker": "Marker"
                     }
                      
         self.data.electrical_component_data = solution.b_o_m.rename(
                                                             columns=name_map) 
                                                             
-        name_map = {"db ref" : "Key Identifier",
-                    "burial_depth" : "Burial Depth",
-                    "split pipe" : "Split Pipe",
+        name_map = {"db ref": "Key Identifier",
+                    "burial_depth": "Burial Depth",
+                    "split pipe": "Split Pipe",
                     "x":  "UTM X",
                     "y": "UTM Y",
                     'layer 1 start': "Depth",
                     'layer 1 type': "Sediment",
-                    "marker" : "Marker"
+                    "marker": "Marker"
                     }
                      
         self.data.cables_routes = solution.cable_routes.rename(
@@ -624,18 +620,18 @@ class ElectricalInterface(ModuleInterface):
 #                                          where: val1 is the bin edge of the vessel
 #                                          deadweight (T) val2 is the frequency (pc)
             
-        renaming_bathymetry = {"loose sand" : "ls",
-                               "medium sand" : "ms",
-                               "dense sand" : "ds",
-                               "very soft clay" : "vsc",
-                               "soft clay" : "sc",
-                               "firm clay" : "fc",
-                               "stiff clay" : "stc",
-                               "hard glacial till" : "hgt",
-                               "cemented" : "c",
-                               "soft rock coral" : "src",
-                               "hard rock" : "hr",
-                               "gravel cobble" : "gc"                            
+        renaming_bathymetry = {"loose sand": "ls",
+                               "medium sand": "ms",
+                               "dense sand": "ds",
+                               "very soft clay": "vsc",
+                               "soft clay": "sc",
+                               "firm clay": "fc",
+                               "stiff clay": "stc",
+                               "hard glacial till": "hgt",
+                               "cemented": "c",
+                               "soft rock coral": "src",
+                               "hard rock": "hr",
+                               "gravel cobble": "gc"                            
                                }
 
         bathymetry_pd_unsort = data.bathymetry.to_dataframe()
@@ -806,9 +802,9 @@ class ElectricalInterface(ModuleInterface):
             umbilical_connection = None
 
         # Translate connector type
-#        translate_connector = {"Wet-Mate"  : 1,
-#                               "Dry-Mate"  : 2,
-#                               "Hard-Wired" : 3}
+#        translate_connector = {"Wet-Mate": 1,
+#                               "Dry-Mate": 2,
+#                               "Hard-Wired": 3}
 #        device_connector_int = translate_connector[
 #                                            data.device_connector_type]
                                             
@@ -895,7 +891,7 @@ class ElectricalInterface(ModuleInterface):
             
         assert np.isclose(sum(array_output), 1)
             
-        layout_dict = {key.capitalize() : list(item.coords)[0]
+        layout_dict = {key.capitalize(): list(item.coords)[0]
                         for key, item in data.layout.items()}
                             
         corr_land_point = list(data.corridor_landing_point.coords)[0]
@@ -975,18 +971,18 @@ class ElectricalInterface(ModuleInterface):
             safety_factor = None
             
         # Make columns lower case on installation_soil_compatibility table
-        renaming_columns = {"loose sand" : "ls",
-                            "medium sand" : "ms",
-                            "dense sand" : "ds",
-                            "very soft clay" : "vsc",
-                            "soft clay" : "sc",
-                            "firm clay" : "fc",
-                            "stiff clay" : "stc",
-                            "hard glacial till" : "hgt",
-                            "cemented" : "c",
-                            "soft rock coral" : "src",
-                            "hard rock" : "hr",
-                            "gravel cobble" : "gc"                            
+        renaming_columns = {"loose sand": "ls",
+                            "medium sand": "ms",
+                            "dense sand": "ds",
+                            "very soft clay": "vsc",
+                            "soft clay": "sc",
+                            "firm clay": "fc",
+                            "stiff clay": "stc",
+                            "hard glacial till": "hgt",
+                            "cemented": "c",
+                            "soft rock coral": "src",
+                            "hard rock": "hr",
+                            "gravel cobble": "gc"                            
                             }
 
         up_cols = data.installation_soil_compatibility.columns
@@ -1020,9 +1016,7 @@ class ElectricalInterface(ModuleInterface):
                                        data.transformers,
                                        data.collection_points,
                                        data.collection_point_cog,
-                                       data.collection_point_foundations,
-                                       data.switchgear,
-                                       data.power_quality)
+                                       data.collection_point_foundations)
         
         input_dict = {"site_data": site, 
                       "array_data": array, 
@@ -1041,9 +1035,7 @@ class ElectricalInterface(ModuleInterface):
                                     transformers,
                                     collection_points,
                                     collection_point_cog,
-                                    collection_point_foundations,
-                                    switchgear,
-                                    power_quality):
+                                    collection_point_foundations):
         
         name_map = {"Key Identifier": "id",
                     "Number of Conductors": "n",
@@ -1055,121 +1047,122 @@ class ElectricalInterface(ModuleInterface):
                     "AC Resistance": "r_ac",
                     "Inductive Reactance": "xl",
                     "Capacitance": "c",
-                    "Colour": "colour",
-                    "Dry Mass": "dry_mass",
-                    "Wet Mass": "wet_mass",
+                    "Dry Mass per Unit Length": "dry_mass",
+                    "Wet Mass per Unit Length": "wet_mass",
                     "Diameter": "diameter",
                     "Minimum Bend Radius": "mbr",
                     "Minimum Break Load": "mbl",
-                    "Fibre": "fibre",
-                    "Cost": "cost",
+                    "Number of Fibre Optic Channels": "fibre",
+                    "Cost per Unit Length": "cost",
                     "Max Temperature": "max_operating_temp",
                     "Environmental Impact": "environmental_impact"}
         
         static_cable_df = static_cable
         static_cable_df = static_cable_df.rename(columns=name_map)
+        static_cable_df["colour"] = None
+                       
+        # Units to kg/km
+        static_cable_df["dry_mass"] = static_cable_df["dry_mass"] * 1000.
+        static_cable_df["wet_mass"] = static_cable_df["wet_mass"] * 1000.
         
         dynamic_cable_df = dynamic_cable
         dynamic_cable_df.drop(["Environmental Impact"],
                               1)
         dynamic_cable_df = dynamic_cable_df.rename(columns=name_map)
+        dynamic_cable_df["colour"] = None
+
+        # Units to kg/km
+        dynamic_cable_df["dry_mass"] = dynamic_cable_df["dry_mass"] * 1000.
+        dynamic_cable_df["wet_mass"] = dynamic_cable_df["wet_mass"] * 1000.
         
-        name_map = { "Key Identifier" : "id",
-                     "Number Of Contacts" : "n",
-                     "Rated Voltage" : "v_rate",
-                     "Rated Current" : "a_rate",
-                     "Dry Mass" : "dry_mass",
-                     "Height" : "height",
-                     "Width" : "width",
-                     "Depth" : "depth",
-                     "Mating" : "mating",
-                     "Demating" : "demating",
-                     "Colour" : "colour",
-                     "Outer Coating" : "outer_coating",
-                     "Fibre" : "fibre",
-                     "Cost" : "cost",
-                     "Max Water Depth" : "max_water_depth",
-                     "Min Temperature" : "min_temperature",
-                     "Max Temperature" : "max_temperature"}
+        name_map = { "Key Identifier": "id",
+                     "Number Of Contacts": "n",
+                     "Rated Voltage": "v_rate",
+                     "Rated Current": "a_rate",
+                     "Dry Mass": "dry_mass",
+                     "Height": "height",
+                     "Width": "width",
+                     "Depth": "depth",
+                     "Mating": "mating",
+                     "Demating": "demating",
+                     "Number of Fibre Optic Channels": "fibre",
+                     "Cost": "cost",
+                     "Max Water Depth": "max_water_depth",
+                     "Min Cable Area": "min_cable_csa",
+                     "Max Cable Area": "max_cable_csa",
+                     "Min Temperature": "min_temperature",
+                     "Max Temperature": "max_temperature"}
                      
         wet_mate_connectors_df = wet_mate_connectors
-        
-        # Calculate mean of CSA values
-        wet_mate_connectors_df["cable_csa"] = \
-                wet_mate_connectors_df[["Min Cable CSA",
-                                        "Max Cable CSA" ]].mean(axis=1)
     
         wet_mate_connectors_df.drop([
-                            "Min Cable CSA",
-                            "Max Cable CSA",
+                            "Name",
+                            "Wet Mass",
                             "Environmental Impact"],
                             1)
         wet_mate_connectors_df = wet_mate_connectors_df.rename(
                                                             columns=name_map)
+        wet_mate_connectors_df["colour"] = None
+        wet_mate_connectors_df["outer_coating"] = None
         
         dry_mate_connectors_df = dry_mate_connectors
-        
-        # Calculate mean of CSA values
-        dry_mate_connectors_df["cable_csa"] = \
-                wet_mate_connectors_df[["Min Cable CSA",
-                                        "Max Cable CSA" ]].mean(axis=1)
     
         dry_mate_connectors_df.drop([
-                            "Min Cable CSA",
-                            "Max Cable CSA",
+                            "Name",
+                            "Wet Mass",
                             "Environmental Impact"],
                             1)
         dry_mate_connectors_df = dry_mate_connectors_df.rename(
                                                             columns=name_map)
+        dry_mate_connectors_df["colour"] = None
+        dry_mate_connectors_df["outer_coating"] = None
         
-        name_map = { "Key Identifier" : "id",
-                     "Windings" : "windings",
-                     "Rating" : "rating",
-                     "V1" : "v1",
-                     "V2" : "v2",
-                     "V3" : "v3",
-                     "Dry Mass" : "dry_mass",
-                     "Height" : "height",
-                     "Width" : "width",
-                     "Depth" : "depth",
-                     "Colour" : "colour",
-                     "Outer Coating" : "outer_coating",
-                     "Cost" : "cost",
-                     "Cooling" : "cooling",
-                     "Max Water Depth" : "max_water_depth",
-                     "Min Temperature" : "min_temperature",
-                     "Max Temperature" : "max_temperature",
-                     "Impedance" : "impedance"}
+        name_map = { "Key Identifier": "id",
+                     "Number of Windings": "windings",
+                     "Power Rating": "rating",
+                     "Primary Winding Voltage": "v1",
+                     "Secondary Winding Voltage": "v2",
+                     "Tertiary Winding Voltage": "v3",
+                     "Dry Mass": "dry_mass",
+                     "Height": "height",
+                     "Width": "width",
+                     "Depth": "depth",
+                     "Cost": "cost",
+                     "Max Water Depth": "max_water_depth",
+                     "Min Temperature": "min_temperature",
+                     "Max Temperature": "max_temperature",
+                     "Impedance": "impedance" }
                      
         transformers_df = transformers
-        transformers_df.drop(["Environmental Impact"],
+        transformers_df.drop(["Name",
+                              "Wet Mass",
+                              "Environmental Impact"],
                              1)
-        transformers_df = transformers_df.rename(columns=name_map)
         
-        name_map = { "Key Identifier" : "id",
-                     "Input" : "input",
-                     "Output" : "output",
-                     "Input Connector" : "input_connector",
-                     "Output Connector" : "output_connector",
-                     "V1" : "v1",
-                     "V2" : "v2",
-                     "Rated Current" : "a_rate",
-                     "Dry Mass" : "dry_mass",
-                     "Wet Mass" : "wet_mass",
-                     "Height" : "height",
-                     "Width" : "width",
-                     "Depth" : "depth",
-                     "Colour" : "colour",
-                     "Outer Coating" : "outer_coating",
-                     "Foundation" : "foundation",
-                     "Busbar" : "busbar",
-                     "Cost" : "cost",
-                     "Cooling" : "cooling",
-                     "Max Water Depth" : "max_water_depth",
-                     "Fibre" : "fibre",
-                     "Operating Environment" : "operating_environment",
-                     "Min Temperature" : "min_temperature",
-                     "Max Temperature" : "max_temperature",
+        transformers_df = transformers_df.rename(columns=name_map)
+        transformers_df["colour"] = None
+        transformers_df["outer_coating"] = None
+        transformers_df["cooling"] = None
+        
+        name_map = { "Key Identifier": "id",
+                     "Input Lines": "input",
+                     "Output Lines": "output",
+                     "Input Connector Type": "input_connector",
+                     "Output Connector Type": "output_connector",
+                     "Primary Winding Voltage": "v1",
+                     "Secondary Winding Voltage": "v2",
+                     "Rated Current": "a_rate",
+                     "Dry Mass": "dry_mass",
+                     "Wet Mass": "wet_mass",
+                     "Height": "height",
+                     "Width": "width",
+                     "Depth": "depth",
+                     "Foundation Type": "foundation",
+                     "Cost": "cost",
+                     "Max Water Depth": "max_water_depth",
+                     "Number of Fibre Optic Channels": "fibre",
+                     "Min Temperature": "min_temperature",
+                     "Max Temperature": "max_temperature",
                      "Wet Frontal Area": "wet_frontal_area",
                      "Dry Frontal Area": "dry_frontal_area",
                      "Wet Beam Area": "wet_beam_area",
@@ -1178,10 +1171,16 @@ class ElectricalInterface(ModuleInterface):
                      }
                      
         collection_points_df = collection_points
-        collection_points_df.drop(["Environmental Impact"],
-                                  1)
+        collection_points_df.drop(["Name", "Environmental Impact"], 1)
+        
         collection_points_df = collection_points_df.rename(columns=name_map)
         collection_points_df = collection_points_df.set_index("id")
+        
+        collection_points_df["colour"] = None
+        collection_points_df["outer_coating"] = None
+        collection_points_df["busbar"] = None
+        collection_points_df["cooling"] = None
+        collection_points_df["operating_environment"] = None
 
         # Build in centre of gravity
         cog_dict = collection_point_cog
@@ -1202,48 +1201,8 @@ class ElectricalInterface(ModuleInterface):
                                          
         collection_points_df = collection_points_df.reset_index()
         
-        name_map = { "Key Identifier"  : "id",
-                     "Rated Voltage"  : "v_rate",
-                     "Rated Current"  : "a_rate",
-                     "Dry Mass"  : "dry_mass",
-                     "Height"  : "height",
-                     "Width"  : "width",
-                     "Depth"  : "depth",
-                     "Max Water Depth"  : "max_water_depth",
-                     "Operating Environment"  : "operating_environment",
-                     "Outer Coating"  : "outer_coating",
-                     "Colour"  : "colour",
-                     "Min Temperature"  : "min_temperature",
-                     "Max Temperature"  : "max_temperature",
-                     "Cost"  : "cost"}
-        
-        switchgear_df = switchgear
-        switchgear_df.drop(["Environmental Impact"],
-                           1)
-        switchgear_df = switchgear_df.rename(columns=name_map)
-        
-        name_map = { "Key Identifier"  :  "id",
-                     "Rated Voltage"  :  "v_rate",
-                     "Reactive Power"  :  "reactive_power",
-                     "N Control"  :  "n_control",
-                     "Var Per Step"  : "var_per_step",
-                     "Dry Mass"  :  "dry_mass",
-                     "Operating Environment"  :  "operating_environment",
-                     "Height"  :  "height",
-                     "Width"  :  "width",
-                     "Depth"  :  "depth",
-                     "Cooling"  :  "cooling",
-                     "Outer Coating"  :  "outer_coating",
-                     "Colour"  :  "colour",
-                     "Min Temperature"  :  "min_temperature",
-                     "Max Temperature"  :  "max_temperature",
-                     "Max Water Depth"  :  "max_water_depth",
-                     "Cost"  :  "cost"}
-                     
-        power_quality_df = power_quality
-        power_quality_df.drop(["Environmental Impact"],
-                              1)
-        power_quality_df = power_quality_df.rename(columns=name_map)      
+        switchgear_df = None
+        power_quality_df = None
 
         database = ElectricalComponentDatabase(static_cable_df,
                                                dynamic_cable_df,

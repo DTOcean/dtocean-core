@@ -767,8 +767,6 @@ wet_mate_connectors = xls_file.parse(sheet_names[2])
 dry_mate_connectors = xls_file.parse(sheet_names[3])
 transformers = xls_file.parse(sheet_names[4])
 collection_points = xls_file.parse(sheet_names[5])
-switchgear = xls_file.parse(sheet_names[6])
-power_quality = xls_file.parse(sheet_names[7])
 
 collection_point_cog = {11: [0,0,0],
                         12: [0,0,0],
@@ -1126,9 +1124,7 @@ test_data = {
         "component.dynamic_cable": dynamic_cable,
         "project.equipment_gradient_constraint": equipment_gradient_constraint,
         "component.installation_soil_compatibility": installation_soil_compatibility,
-        "component.power_quality": power_quality,
         "component.static_cable": static_cable,
-        "component.switchgear": switchgear,
         "component.transformers": transformers,
         "component.wet_mate_connectors": wet_mate_connectors,
         "project.fabrication_cost": fab_cost,
@@ -1409,13 +1405,6 @@ test_data = {
             comp_tables_rel["collection_point NCFR"],
         "component.collection_points_CFR": 
             comp_tables_rel["collection_point CFR"],
-        "component.switchgear_NCFR":
-            comp_tables_rel["switchgear NCFR"],
-        "component.switchgear_CFR": comp_tables_rel["switchgear CFR"],
-        "component.power_quality_NCFR":
-            comp_tables_rel["power_quality NCFR"],
-        "component.power_quality_CFR": 
-            comp_tables_rel["power_quality CFR"],
         
         'options.optim_corrective': optim_corrective,
         'options.optim_condition': optim_condition,
