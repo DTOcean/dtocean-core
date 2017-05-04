@@ -186,10 +186,9 @@ class InstallationInterface(ModuleInterface):
                         "component.static_cable",
                         "component.wet_mate_connectors",
                         "component.collection_points",
-                        "component.power_quality",
-                        "component.switchgear",
                         "component.transformers",
                         "device.control_subsystem_installation",
+                        "device.two_stage_assembly",
                         "project.selected_installation_tool",
                         "options.skip_phase"
                         ]
@@ -318,13 +317,12 @@ class InstallationInterface(ModuleInterface):
                     "component.static_cable",
                     "component.wet_mate_connectors",
                     "component.collection_points",
-                    "component.power_quality",
-                    "component.switchgear",
                     "component.transformers",
                     "corridor.layers",
                     "project.landfall_contruction_technique",
                     "device.bollard_pull",
                     "device.control_subsystem_installation",
+                    "device.two_stage_assembly",
                     "options.skip_phase"
                     ]
                     
@@ -435,8 +433,6 @@ class InstallationInterface(ModuleInterface):
                   "elec_db_dynamic_cable": "component.dynamic_cable",
                   "elec_db_static_cable": "component.static_cable",
                   "elec_db_wet_mate": "component.wet_mate_connectors",
-                  "elec_db_cp": "component.collection_points",
-                  "elec_db_pq": "component.power_quality",
                   "elec_db_switchgear": "component.switchgear",
                   "elec_db_transformers": "component.transformers",
                   "device_component_costs":
@@ -545,7 +541,7 @@ class InstallationInterface(ModuleInterface):
                       "project.install_drag_embedment_prep_time",
                   "install_suction_embedment_prep_time":
                       "project.install_suction_embedment_prep_time",
-                      
+                  "two_stage_assembly": "device.two_stage_assembly",
                   "plan": "project.installation_plan"
                   } 
 
@@ -2060,8 +2056,6 @@ class InstallationInterface(ModuleInterface):
         ### Device
         # get sub system list from sub systems var
         sub_system_list = []
-        port = []
-        site = []
 
         name_map = {"Prime Mover": "A",
                     "PTO": "B",
@@ -2078,35 +2072,15 @@ class InstallationInterface(ModuleInterface):
             
             sub_systems = pd.concat([sub_systems, control_system])
         
-        # All subsystems are assembled at port.
-        for idx, system in sub_systems.iterrows():
-            sub_system_list.append(idx)
-            port.append(str(idx))
-
         # place limitation - A, B, C must be assembled at Port.
-        restricted_stages = ['A', 'B', 'C']
+        restricted_stages = "[A,B,C"
 
-        if [i for i in site if i in restricted_stages]:
-
-            errStr = "Sub-Systems A, B and C must be assembled at Port."
-
-            raise ValueError(errStr)
-
-        port.sort()
-
-        # C may not be declared; if not add after B
-        if 'C' not in port: port.insert(port.index('B') + 1, 'C')
-
-        if 'D' in port:
-
-            sub_assembly_strategy = '(' + str(port) + ')'
-
+        if data.two_stage_assembly:
+            sub_assembly_strategy = restricted_stages + "],D"
         else:
+            sub_assembly_strategy = restricted_stages + ",D]"
 
-            sub_assembly_strategy = str(tuple([port] + ['D']))
-
-        sub_assembly_strategy = sub_assembly_strategy.replace(" ", "")
-        sub_assembly_strategy = sub_assembly_strategy.replace("'", "")
+        sub_assembly_strategy = "({})".format(sub_assembly_strategy)
 
         # map device type to required strings        
         if 'floating' in system_type.lower():

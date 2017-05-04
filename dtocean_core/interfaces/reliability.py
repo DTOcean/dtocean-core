@@ -98,17 +98,13 @@ class ReliabilityInterface(ThemeInterface):
                         "component.collection_points_NCFR",
                         "component.dry_mate_connectors_NCFR",
                         "component.dynamic_cable_NCFR",
-                        "component.power_quality_NCFR",
                         "component.static_cable_NCFR",
-                        "component.switchgear_NCFR",
                         "component.transformers_NCFR",
                         "component.wet_mate_connectors_NCFR",
                         "component.collection_points_CFR",
                         "component.dry_mate_connectors_CFR",
                         "component.dynamic_cable_CFR",
-                        "component.power_quality_CFR",
                         "component.static_cable_CFR",
-                        "component.switchgear_CFR",
                         "component.transformers_CFR",
                         "component.wet_mate_connectors_CFR",
                         "component.moorings_chain_NCFR",
@@ -198,17 +194,13 @@ class ReliabilityInterface(ThemeInterface):
                    "component.collection_points_NCFR",
                    "component.dry_mate_connectors_NCFR",
                    "component.dynamic_cable_NCFR",
-                   "component.power_quality_NCFR",
                    "component.static_cable_NCFR",
-                   "component.switchgear_NCFR",
                    "component.transformers_NCFR",
                    "component.wet_mate_connectors_NCFR",
                    "component.collection_points_CFR",
                    "component.dry_mate_connectors_CFR",
                    "component.dynamic_cable_CFR",
-                   "component.power_quality_CFR",
                    "component.static_cable_CFR",
-                   "component.switchgear_CFR",
                    "component.transformers_CFR",
                    "component.wet_mate_connectors_CFR",
                    "component.moorings_chain_NCFR",
@@ -272,17 +264,13 @@ class ReliabilityInterface(ThemeInterface):
                     "collection_points_NCFR" : "component.collection_points_NCFR",
                     "dry_mate_connectors_NCFR" : "component.dry_mate_connectors_NCFR",
                     "dynamic_cable_NCFR" : "component.dynamic_cable_NCFR",
-                    "power_quality_NCFR" : "component.power_quality_NCFR",
                     "static_cable_NCFR" : "component.static_cable_NCFR",
-                    "switchgear_NCFR" : "component.switchgear_NCFR",
                     "transformers_NCFR" : "component.transformers_NCFR",
                     "wet_mate_connectors_NCFR" : "component.wet_mate_connectors_NCFR",
                     "collection_points_CFR" : "component.collection_points_CFR",
                     "dry_mate_connectors_CFR" : "component.dry_mate_connectors_CFR",
                     "dynamic_cable_CFR" : "component.dynamic_cable_CFR",
-                    "power_quality_CFR" : "component.power_quality_CFR",
                     "static_cable_CFR" : "component.static_cable_CFR",
-                    "switchgear_CFR" : "component.switchgear_CFR",
                     "transformers_CFR" : "component.transformers_CFR",
                     "wet_mate_connectors_CFR" : "component.wet_mate_connectors_CFR",
                     "moorings_chain_NCFR" : "component.moorings_chain_NCFR",
@@ -479,12 +467,8 @@ class ReliabilityInterface(ThemeInterface):
                 data.dry_mate_connectors_CFR is None or
                 data.dynamic_cable_NCFR is None or 
                 data.dynamic_cable_CFR is None or
-                data.power_quality_NCFR is None or
-                data.power_quality_CFR is None or
                 data.static_cable_NCFR is None or
                 data.static_cable_CFR is None or
-                data.switchgear_NCFR is None or 
-                data.switchgear_CFR is  None or
                 data.transformers_NCFR is None or
                 data.transformers_CFR is None or
                 data.wet_mate_connectors_NCFR is None or 
@@ -564,20 +548,6 @@ class ReliabilityInterface(ThemeInterface):
                                             data.dynamic_cable_NCFR,
                                             check_keys=compdict.keys())
             compdict.update(dynamic_cable_dict)
-
-        if (data.power_quality_NCFR is None or
-            data.power_quality_CFR is None):
-                
-            pass
-        
-        else:
-            
-            power_quality_dict = get_component_dict(
-                                            "power quality",
-                                            data.power_quality_CFR,
-                                            data.power_quality_NCFR,
-                                            check_keys=compdict.keys())
-            compdict.update(power_quality_dict)
         
         if (data.static_cable_NCFR is None or
             data.static_cable_CFR is None):
@@ -592,20 +562,6 @@ class ReliabilityInterface(ThemeInterface):
                                             data.static_cable_NCFR,
                                             check_keys=compdict.keys())
             compdict.update(static_cable_dict)
-    
-        if (data.switchgear_NCFR is None or 
-            data.switchgear_CFR is  None):
-            
-            pass
-        
-        else:
-            
-            switchgear_dict = get_component_dict(
-                                            "switchgear",
-                                            data.switchgear_CFR,
-                                            data.switchgear_NCFR,
-                                            check_keys=compdict.keys())
-            compdict.update(switchgear_dict)  
 
         if (data.transformers_NCFR is None or
             data.transformers_CFR is None):

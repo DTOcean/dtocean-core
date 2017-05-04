@@ -36,8 +36,6 @@ def get_component_dict(component_type,
                         "dry mate",
                         "transformer",
                         "collection point",
-                        "switchgear",
-                        "power quality",
                         'user-defined']
                          
     if component_type not in valid_components:
@@ -52,9 +50,7 @@ def get_component_dict(component_type,
                           "wet mate",
                           "dry mate",
                           "transformer",
-                          "collection point",
-                          "switchgear",
-                          "power quality"]:
+                          "collection point"]:
                               
         system_type = "electrical system"
 
@@ -154,12 +150,6 @@ def get_reliability_tables(compdict):
     
     collection_point_CFR_df = base_df.copy()
     collection_point_NCFR_df = base_df.copy()
-    
-    switchgear_CFR_df = base_df.copy()
-    switchgear_NCFR_df = base_df.copy()
-    
-    power_quality_CFR_df = base_df.copy()
-    power_quality_NCFR_df = base_df.copy()
 
     for key_id, data_dict in compdict.iteritems():
         
@@ -285,24 +275,7 @@ def get_reliability_tables(compdict):
             collection_point_NCFR_df = collection_point_NCFR_df.append(
                                                             record_NCFR,
                                                             ignore_index=True)
-        
-        if component_type == 'switchgear':
-        
-            switchgear_CFR_df = switchgear_CFR_df.append(record_CFR,
-                                                         ignore_index=True)
-            switchgear_NCFR_df = switchgear_NCFR_df.append(record_NCFR,
-                                                           ignore_index=True)
-        
-        if component_type == 'power quality':
-        
-            power_quality_CFR_df = power_quality_CFR_df.append(
-                                                        record_CFR,
-                                                        ignore_index=True)
-            power_quality_NCFR_df = power_quality_NCFR_df.append(
-                                                        record_NCFR,
-                                                        ignore_index=True)
             
-
     tables = {
                 'chain CFR': chain_CFR_df,
                 'chain NCFR': chain_NCFR_df,
@@ -342,12 +315,6 @@ def get_reliability_tables(compdict):
                 
                 'collection_point CFR': collection_point_CFR_df,
                 'collection_point NCFR': collection_point_NCFR_df,
-                
-                'switchgear CFR': switchgear_CFR_df,
-                'switchgear NCFR': switchgear_NCFR_df,
-                
-                'power_quality CFR': power_quality_CFR_df,
-                'power_quality NCFR': power_quality_NCFR_df
               }
 
     return tables

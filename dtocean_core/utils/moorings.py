@@ -69,10 +69,6 @@ def get_component_dict(component_type,
     
         # Build shared items
         data_dict["item3"] = record.iloc[0]["Name"]
-        data_dict["item4"] = [record.iloc[0]["Material"],
-                              record.iloc[0]["Grade"],
-                              record.iloc[0]["Colour"]]
-        data_dict["item11"] = record.iloc[0]["Cost"]
                               
         # Build component specific items
         if component_type in ["chain", "forerunner assembly"]:
@@ -83,6 +79,7 @@ def get_component_dict(component_type,
                                   record.iloc[0]["Connecting Length"]]
             data_dict["item7"] = [record.iloc[0]["Dry Mass per Unit Length"],
                                   record.iloc[0]["Wet Mass per Unit Length"]]
+            data_dict["item11"] = record.iloc[0]["Cost per Unit Length"]
                                   
         elif component_type in ["shackle", "swivel"]:
             
@@ -92,6 +89,7 @@ def get_component_dict(component_type,
                                   record.iloc[0]["Connecting Length"]]        
             data_dict["item7"] = [record.iloc[0]["Dry Unit Mass"],
                                   record.iloc[0]["Wet Unit Mass"]]
+            data_dict["item11"] = record.iloc[0]["Cost"]
                                   
         elif component_type == "pile":
             
@@ -101,6 +99,7 @@ def get_component_dict(component_type,
                                   record.iloc[0]["Thickness"]]
             data_dict["item7"] = [record.iloc[0]["Dry Mass per Unit Length"],
                                   record.iloc[0]["Wet Mass per Unit Length"]]
+            data_dict["item11"] = record.iloc[0]["Cost per Unit Length"]
     
         elif component_type == "drag anchor":
             
@@ -134,6 +133,7 @@ def get_component_dict(component_type,
                                                    
             data_dict["item9"] = {'sand': sand_df.values.tolist()[0],
                                   'soft': soft_df.values.tolist()[0]}
+            data_dict["item11"] = record.iloc[0]["Cost"]
                                   
         elif component_type == "rope":
             
@@ -145,19 +145,22 @@ def get_component_dict(component_type,
         
             rope_array = rope_data[key_id]
             
+            data_dict["item4"] = [record.iloc[0]["Material"]]
             data_dict["item5"] = [record.iloc[0]["Minimum Break Load"],
                                   rope_array.tolist()]
-            data_dict["item6"] = [record.iloc[0]["Outer Diameter"]]
+            data_dict["item6"] = [record.iloc[0]["Diameter"]]
             data_dict["item7"] = [record.iloc[0]["Dry Mass per Unit Length"],
                                   record.iloc[0]["Wet Mass per Unit Length"]]
+            data_dict["item11"] = record.iloc[0]["Cost per Unit Length"]
                                   
         elif component_type == "cable":
             
             data_dict["item5"] = [record.iloc[0]["Minimum Break Load"],
                                   record.iloc[0]["Minimum Bend Radius"]]
-            data_dict["item6"] = [record.iloc[0]["Outer Diameter"]]
+            data_dict["item6"] = [record.iloc[0]["Diameter"]]
             data_dict["item7"] = [record.iloc[0]["Dry Mass per Unit Length"],
                                   record.iloc[0]["Wet Mass per Unit Length"]]
+            data_dict["item11"] = record.iloc[0]["Cost per Unit Length"]
 
         else:
             

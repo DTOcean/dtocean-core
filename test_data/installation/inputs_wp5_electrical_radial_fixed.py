@@ -391,8 +391,6 @@ wet_mate = xls_file.parse(sheet_names[2])
 dry_mate = xls_file.parse(sheet_names[3])
 transformer = xls_file.parse(sheet_names[4])
 collection_point = xls_file.parse(sheet_names[5])
-switchgear = xls_file.parse(sheet_names[6])
-power_quality = xls_file.parse(sheet_names[7])
 
 ### M & F
 mf_network = {}
@@ -524,8 +522,6 @@ test_data = {"component.rov" : equipment_rov,
              "component.static_cable" : static_cables,
              "component.wet_mate_connectors" : wet_mate,    
              "component.collection_points" : collection_point,
-             "component.power_quality" : power_quality,
-             "component.switchgear" : switchgear,
              "component.transformers" : transformer
              }
 
