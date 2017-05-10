@@ -8,43 +8,48 @@ Created on Wed Sep 21 11:49:00 2016
 import os
 from collections import Counter
 
+import utm
 import numpy as np
 import pandas as pd
 from shapely.geometry import Point
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 installation_dir = os.path.join(this_dir, "installation")
+elec_dir = os.path.join(this_dir, "electrical")
 
 ### Equipment
 file_path = os.path.join(installation_dir, 'logisticsDB_equipment_python.xlsx')
 xls_file = pd.ExcelFile(file_path, encoding = 'utf-8')
 sheet_names = xls_file.sheet_names
 
-equipment_rov= xls_file.parse(sheet_names[0])
-equipment_divers = xls_file.parse(sheet_names[1])
-equipment_cable_burial = xls_file.parse(sheet_names[2])
-equipment_excavating = xls_file.parse(sheet_names[3])
-equipment_mattress = xls_file.parse(sheet_names[4])
-equipment_rock_filter_bags = xls_file.parse(sheet_names[5])
-equipment_split_pipe = xls_file.parse(sheet_names[6])
-equipment_hammer = xls_file.parse(sheet_names[7])
-equipment_drilling_rigs = xls_file.parse(sheet_names[8])
-equipment_vibro_driver = xls_file.parse(sheet_names[9])
+equipment_rov = xls_file.parse("rov")
+equipment_divers = xls_file.parse("divers")
+equipment_cable_burial = xls_file.parse("cable_burial")
+equipment_excavating = xls_file.parse("excavating")
+equipment_mattress = xls_file.parse("mattress")
+equipment_rock_filter_bags = xls_file.parse("rock_filter_bags")
+equipment_split_pipe = xls_file.parse("split_pipe")
+equipment_hammer = xls_file.parse("hammer")
+equipment_drilling_rigs = xls_file.parse("drilling_rigs")
+equipment_vibro_driver = xls_file.parse("vibro_driver")
 
 ### Ports
 file_path = os.path.join(installation_dir, 'logisticsDB_ports_python.xlsx')
 xls_file = pd.ExcelFile(file_path, encoding = 'utf-8')
-ports = xls_file.parse(header=0, index_col=0)
+ports = xls_file.parse()
 
 port_names = ports["Name"]
 port_x = ports.pop("UTM x")
 port_y = ports.pop("UTM y")
+port_utm = ports.pop("UTM zone")
 
 port_points = []
 
-for x, y in zip(port_x, port_y):
+for x, y, zone_str in zip(port_x, port_y, port_utm):
     
-    point = Point(x, y)
+    zone_number_str, zone_letter = zone_str.split()
+    lat, lon = utm.to_latlon(x, y, int(zone_number_str), zone_letter)
+    point = Point(lon, lat)
     port_points.append(point)
     
 port_locations = {name: point for name, point in zip(port_names, port_points)}
@@ -52,7 +57,19 @@ port_locations = {name: point for name, point in zip(port_names, port_points)}
 ### Vessels
 file_path = os.path.join(installation_dir, 'logisticsDB_vessel_python.xlsx')
 xls_file = pd.ExcelFile(file_path, encoding = 'utf-8')
-vessels = xls_file.parse(header=0, index_col=0)
+helicopter_df = xls_file.parse(sheetname="Helicopter")
+ahts_df = xls_file.parse(sheetname="AHTS")
+multicat_df = xls_file.parse(sheetname="Multicat")
+barge_df = xls_file.parse(sheetname="Barge")
+crane_barge_df = xls_file.parse(sheetname="Crane Barge")
+crane_vessel_df = xls_file.parse(sheetname="Crane Vessel")
+csv_df = xls_file.parse(sheetname="CSV")
+ctv_df = xls_file.parse(sheetname="CTV")
+clb_df = xls_file.parse(sheetname="CLB")
+clv_df = xls_file.parse(sheetname="CLV")
+jackup_barge_df = xls_file.parse(sheetname="Jackup Barge")
+jackup_vssel_df = xls_file.parse(sheetname="Jackup Vessel")
+tugboat_df = xls_file.parse(sheetname="Tugboat")
 
 ### Export
 file_path = os.path.join(installation_dir, 'export_area_30.xlsx')
@@ -274,15 +291,11 @@ vessel_sf_dict = {"Parameter":  ['Deck space [m^2]',
                                  'Bollard pull [t]',
                                  'Turntable loading [t]',
                                  'Turntable inner diameter [m]',
-                                 'Turntable outer diameter [m]',
-                                 'Dredge depth [m]',
                                  'AH winch rated pull [t]',
                                  'AH drum capacity [m]',
                                  'JackUp max payload [t]',
                                  'JackUp max water depth [m]'],
                 "Safety Factor": [0.2,
-                                  0.2,
-                                  0.2,
                                   0.2,
                                   0.2,
                                   0.2,
@@ -1310,7 +1323,7 @@ electrical_components.loc[:, 'Quantity'] = [1]*len(electrical_components)
 
 # elec db
 file_name = 'mock_db.xlsx'
-xls_file = pd.ExcelFile(os.path.join(installation_dir, file_name),
+xls_file = pd.ExcelFile(os.path.join(elec_dir, file_name),
                         encoding = 'utf-8')
 sheet_names = xls_file.sheet_names
 static_cables = xls_file.parse(sheet_names[0])
@@ -1853,7 +1866,19 @@ test_data = {"component.rov" : equipment_rov,
              "component.hammer" : equipment_hammer,
              "component.drilling_rigs" : equipment_drilling_rigs,
              "component.vibro_driver" : equipment_vibro_driver,
-             "component.vessels" : vessels,
+             "component.vehicle_helicopter": helicopter_df,
+             "component.vehicle_vessel_ahts": ahts_df,
+             "component.vehicle_vessel_multicat": multicat_df,
+             "component.vehicle_vessel_crane_barge": crane_barge_df,
+             "component.vehicle_vessel_barge": barge_df,
+             "component.vehicle_vessel_crane_vessel": crane_vessel_df,
+             "component.vehicle_vessel_csv": csv_df,
+             "component.vehicle_vessel_ctv": ctv_df,
+             "component.vehicle_vessel_clb": clb_df,
+             "component.vehicle_vessel_clv": clv_df,
+             "component.vehicle_vessel_jackup_barge": jackup_barge_df,
+             "component.vehicle_vessel_jackup_vessel": jackup_vssel_df,
+             "component.vehicle_vessel_tugboat": tugboat_df,
              "component.ports" : ports,
              "component.port_locations": port_locations,
 

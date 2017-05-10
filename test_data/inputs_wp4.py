@@ -14,6 +14,7 @@ from dtocean_core.utils.moorings import get_moorings_tables
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 data_dir = os.path.join(this_dir, "moorings")
+elec_dir = os.path.join(this_dir, "electrical")
 
 #fex = pickle.load(open(str(data_dir)+'\\fex_pelamiscuboid.pkl','rb'))
 
@@ -144,6 +145,12 @@ groutden = 2450.0 #grout density
 compdict = eval(open(os.path.join(data_dir, 'dummycompdb.txt')).read())
 comp_tables = get_moorings_tables(compdict) #component database
 
+# Umbilical Cables
+component_data_path = os.path.join(elec_dir, 'mock_db.xlsx')
+xls_file = pd.ExcelFile(component_data_path, encoding = 'utf-8')
+sheet_names = xls_file.sheet_names
+dynamic_cable = xls_file.parse(sheet_names[1])
+
 wlevmax = 5.0 #water level maximum offset
 wlevmin = 0.0 #water level minimum offset
 currentvel = 1.25 #current velocity
@@ -236,9 +243,9 @@ pilefricresnoncal = pd.read_csv(os.path.join(data_dir,
                                 index_col=False,
                                 names=['Soil Friction Angle',
                                        'Friction Angle Sand-Pile',
-                                       'Maximum Bearing Capacity Factor',
-                                       'Maximum Unit Skin Friction',
-                                       'Maximum End Bearing Capacity'])  
+                                       'Max Bearing Capacity Factor',
+                                       'Max Unit Skin Friction',
+                                       'Max End Bearing Capacity'])  
 
 #plate anchor holding capacity factors                                
 hcfdrsoil = pd.read_csv(os.path.join(data_dir,
@@ -491,7 +498,7 @@ test_data = {'constants.line_bearing_capacity_factor': linebcf,
                                          comp_tables["rope axial stiffness"],
              'component.moorings_shackle': comp_tables["shackle"],
              'component.moorings_swivel': comp_tables["swivel"],
-             'component.moorings_umbilical': comp_tables["cable"],
+             "component.dynamic_cable" : dynamic_cable,
              'component.foundations_anchor_sand':
                                              comp_tables["drag anchor sand"],
              'component.foundations_anchor_soft':

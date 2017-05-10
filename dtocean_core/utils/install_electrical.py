@@ -74,40 +74,41 @@ def set_cables(component_data_df, network_design, hierarchy, db, cable_type):
     for _, electrical_component in cables.iterrows():
     
         index = electrical_component['Key Identifier']
-    
+            
         mass.append(
-            db[db['Key Identifier'] == index]['Dry Mass'].item())
+            db[db['Key Identifier'] == index][
+                                        'Dry Mass per Unit Length'].item())
 
         diameter.append(
             db[db['Key Identifier'] == index]['Diameter'].item())
 
         mbr.append(
-            db[db['Key Identifier'] == index]['Minimum Bend Radius'].item())
+            db[db['Key Identifier'] == index]['Min Bend Radius'].item())
 
         mbl.append(
-            db[db['Key Identifier'] == index]['Minimum Break Load'].item())
+            db[db['Key Identifier'] == index]['Min Break Load'].item())
 
     total_mass = [None]*len(mass)
 
-    cables_dict = {'Marker' : ids,
-                   'Type' : types,
-                   'Length' : length,
-                   'Upstream Interface Marker' :
+    cables_dict = {'Marker': ids,
+                   'Type': types,
+                   'Length': length,
+                   'Upstream Interface Marker':
                        up_interface_data["up_marker"],
-                   'Downstream Interface Marker' :
+                   'Downstream Interface Marker':
                        down_interface_data["down_marker"],
-                   'Upstream Interface Type' : up_interface_type,
-                   'Downstream Interface Type' : down_interface_type,
-                   'Upstream Component Type' : up_interface_data["up_type"],
-                   'Upstream Component Id' : up_interface_data["up_id"],
-                   'Downstream Component Type' :
+                   'Upstream Interface Type': up_interface_type,
+                   'Downstream Interface Type': down_interface_type,
+                   'Upstream Component Type': up_interface_data["up_type"],
+                   'Upstream Component Id': up_interface_data["up_id"],
+                   'Downstream Component Type':
                        down_interface_data["down_type"],
-                   'Downstream Component Id' : down_interface_data["down_id"],
-                   'Mass' : mass,
-                   'Diameter' : diameter,
-                   'MBR' : mbr,
-                   'MBL' : mbl,
-                   'Total Mass' : total_mass}
+                   'Downstream Component Id': down_interface_data["down_id"],
+                   'Mass': mass,
+                   'Diameter': diameter,
+                   'MBR': mbr,
+                   'MBL': mbl,
+                   'Total Mass': total_mass}
 
     cables_df = pd.DataFrame(cables_dict)
 
@@ -179,28 +180,28 @@ def set_collection_points(component_data_df,
     pigtail_cable_mass = [None]*len(mass)
     pigtail_total_mass = [None]*len(mass)
 
-    collection_points_dict = {'Marker' : ids,
-                              'Type' : all_cp_types,
-                              'Length' : length,
-                              'Upstream Interface Marker' :
+    collection_points_dict = {'Marker': ids,
+                              'Type': all_cp_types,
+                              'Length': length,
+                              'Upstream Interface Marker':
                                       all_interfaces['up_markers'],
-                              'Downstream Interface Marker' :
+                              'Downstream Interface Marker':
                                       all_interfaces['down_markers'],
-                              'Upstream Interface Type' :
+                              'Upstream Interface Type':
                                       all_interfaces['up_type'],
-                              'Downstream Interface Type' :
+                              'Downstream Interface Type':
                                       all_interfaces['down_type'],
-                              'Mass' : mass,
-                              'X Coord' : x,
-                              'Y Coord' : y,
-                              'Length' : length,
-                              'Width' : width,
-                              'Height' : height,
-                              'N Pigtails' : pigtail_n,
-                              'Pigtail Length' : pigtail_length,
-                              'Pigail Diameter' : pigail_diameter,
-                              'Pigtail Cable Mass' : pigtail_cable_mass,
-                              'Pigtail Total Mass' : pigtail_total_mass
+                              'Mass': mass,
+                              'X Coord': x,
+                              'Y Coord': y,
+                              'Length': length,
+                              'Width': width,
+                              'Height': height,
+                              'N Pigtails': pigtail_n,
+                              'Pigtail Length': pigtail_length,
+                              'Pigail Diameter': pigail_diameter,
+                              'Pigtail Cable Mass': pigtail_cable_mass,
+                              'Pigtail Total Mass': pigtail_total_mass
                               }
 
     collection_points_df = pd.DataFrame(collection_points_dict)
@@ -251,20 +252,20 @@ def set_connectors(component_data_df, db):
                 db[db['Key Identifier'] == index]['Height'].item())
         
         mating_force.append(
-                db[db['Key Identifier'] == index]['Mating'].item())
+                db[db['Key Identifier'] == index]['Mating Force'].item())
         
         demating_force.append(
-                db[db['Key Identifier'] == index]['Demating'].item())
+                db[db['Key Identifier'] == index]['Demating Force'].item())
         
         markers.append(connector.Marker)
 
-    connectors_dict = {'Mass' : mass,
-                       'Length' : length,
-                       'Width' : width,
-                       'Height' : height,
-                       'Mating Force' : mating_force,
-                       'Demating Force' : demating_force,
-                       'Marker' : markers}
+    connectors_dict = {'Mass': mass,
+                       'Length': length,
+                       'Width': width,
+                       'Height': height,
+                       'Mating Force': mating_force,
+                       'Demating Force': demating_force,
+                       'Marker': markers}
 
     connector_df = pd.DataFrame(connectors_dict)
     connector_df.set_index('Marker', inplace = True)
@@ -423,10 +424,10 @@ def get_collection_point_interfaces(components,
                 up_interface_marker.append(None)
 
     # make dict to return
-    interfaces = {"up_markers" : up_interface_marker,
-                  "up_type" : list_as_string(up_interface_type),
-                  "down_markers" : down_interface_marker,
-                  "down_type" : list_as_string(down_interface_type)}
+    interfaces = {"up_markers": up_interface_marker,
+                  "up_type": list_as_string(up_interface_type),
+                  "down_markers": down_interface_marker,
+                  "down_type": list_as_string(down_interface_type)}
 
     return interfaces
 
@@ -774,9 +775,9 @@ def control_logic_cables_down(components,
     clean_down_component_type = ['device' if 'device' in item else item for
                                  item in down_component_type]
 
-    interfaces = {"down_marker" : down_interface_marker,
-                  "down_type" : clean_down_component_type,
-                  "down_id" : down_component_id}
+    interfaces = {"down_marker": down_interface_marker,
+                  "down_type": clean_down_component_type,
+                  "down_id": down_component_id}
 
     return interfaces
 
@@ -856,9 +857,9 @@ def control_logic_cables_up(components, network_design, component_data_df):
                 # find next system in the array
                 parent = find_marker_key(network_design, marker, True)
 
-    interfaces = {"up_marker" : up_interface_marker,
-                  "up_type" : up_component_type,
-                  "up_id" : up_component_id}
+    interfaces = {"up_marker": up_interface_marker,
+                  "up_type": up_component_type,
+                  "up_id": up_component_id}
                   
     return interfaces
 
@@ -897,11 +898,11 @@ def get_umbilical_terminations(network_design,
         downstream_x.append(downstream.x)
         downstream_y.append(downstream.y)
 
-    umbilical_terminations_dict = {'Marker' : markers,
-                                   'Upstream UTM X' : upstream_x,
-                                   'Upstream UTM Y' : upstream_y,
-                                   'Downstream UTM X' : downstream_x,
-                                   'Downstream UTM Y' : downstream_y,}
+    umbilical_terminations_dict = {'Marker': markers,
+                                   'Upstream UTM X': upstream_x,
+                                   'Upstream UTM Y': upstream_y,
+                                   'Downstream UTM X': downstream_x,
+                                   'Downstream UTM Y': downstream_y,}
 
     umbilical_terminations_df = pd.DataFrame(umbilical_terminations_dict)
     

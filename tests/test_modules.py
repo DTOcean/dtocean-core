@@ -295,7 +295,7 @@ def test_electrical_inputs(module_menu, core, tidal_project, var_tree):
     electrical_input_status = electrical_branch.get_input_status(core, 
                                                                  project)
                                                     
-    assert "component.switchgear" in electrical_input_status
+    assert "component.transformers" in electrical_input_status
     
 def test_get_electrical_interface(module_menu, core, tidal_project, var_tree):
     

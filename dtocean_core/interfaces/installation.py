@@ -38,6 +38,7 @@ module_logger = logging.getLogger(__name__)
 
 import pickle
 
+import utm
 import numpy as np
 import pandas as pd
 
@@ -115,7 +116,19 @@ class InstallationInterface(ModuleInterface):
                         "component.hammer",
                         "component.drilling_rigs",
                         "component.vibro_driver",
-                        "component.vessels",
+                        "component.vehicle_helicopter",
+                        "component.vehicle_vessel_ahts",
+                        "component.vehicle_vessel_multicat",
+                        "component.vehicle_vessel_crane_barge",
+                        "component.vehicle_vessel_barge",
+                        "component.vehicle_vessel_crane_vessel",
+                        "component.vehicle_vessel_csv",
+                        "component.vehicle_vessel_ctv",
+                        "component.vehicle_vessel_clb",
+                        "component.vehicle_vessel_clv",
+                        "component.vehicle_vessel_jackup_barge",
+                        "component.vehicle_vessel_jackup_vessel",
+                        "component.vehicle_vessel_tugboat",
                         "component.ports",
                         "component.port_locations",
                         "bathymetry.layers",
@@ -185,7 +198,6 @@ class InstallationInterface(ModuleInterface):
                         "component.dynamic_cable",
                         "component.static_cable",
                         "component.wet_mate_connectors",
-                        "component.collection_points",
                         "component.transformers",
                         "device.control_subsystem_installation",
                         "device.two_stage_assembly",
@@ -316,7 +328,6 @@ class InstallationInterface(ModuleInterface):
                     "component.dynamic_cable",
                     "component.static_cable",
                     "component.wet_mate_connectors",
-                    "component.collection_points",
                     "component.transformers",
                     "corridor.layers",
                     "project.landfall_contruction_technique",
@@ -360,7 +371,23 @@ class InstallationInterface(ModuleInterface):
                   "hammer": "component.hammer",
                   "drilling_rigs": "component.drilling_rigs",
                   "vibro_driver": "component.vibro_driver",
-                  "vessels": "component.vessels",
+                  "helicopter": "component.vehicle_helicopter",
+                  "vessel_ahts": "component.vehicle_vessel_ahts",
+                  "vessel_multicat": "component.vehicle_vessel_multicat",
+                  "vessel_crane_barge": 
+                      "component.vehicle_vessel_crane_barge",
+                  "vessel_barge": "component.vehicle_vessel_barge",
+                  "vessel_crane_vessel":
+                      "component.vehicle_vessel_crane_vessel",
+                  "vessel_csv": "component.vehicle_vessel_csv",
+                  "vessel_ctv": "component.vehicle_vessel_ctv",
+                  "vessel_clb": "component.vehicle_vessel_clb",
+                  "vessel_clv": "component.vehicle_vessel_clv",
+                  "vessel_jackup_barge":
+                      "component.vehicle_vessel_jackup_barge",
+                  "vessel_jackup_vessel":
+                      "component.vehicle_vessel_jackup_vessel",
+                  "vessel_tugboat": "component.vehicle_vessel_tugboat",
                   "ports": "component.ports",
                   "port_locations": "component.port_locations",
                   "site": "bathymetry.layers",
@@ -433,7 +460,6 @@ class InstallationInterface(ModuleInterface):
                   "elec_db_dynamic_cable": "component.dynamic_cable",
                   "elec_db_static_cable": "component.static_cable",
                   "elec_db_wet_mate": "component.wet_mate_connectors",
-                  "elec_db_switchgear": "component.switchgear",
                   "elec_db_transformers": "component.transformers",
                   "device_component_costs":
                       "project.device_phase_installation_costs",
@@ -1475,83 +1501,72 @@ class InstallationInterface(ModuleInterface):
         name_map = {"User/DDS": "dataframe"}
 
         ### Equipment
-        name_map = {"ROV class": "ROV class [-]",
-                    "Depth rating": "Depth rating [m]",
+        name_map = {"Depth Rating": "Depth rating [m]",
                     "Length": "Length [m]",
                     "Width": "Width [m]",
                     "Height": "Height [m]",
-                    "Weight": "Weight [t]",
+                    "Dry Mass": "Weight [t]",
                     "Payload": "Payload [t]",
-                    "Horse power": "Horse power [hp]",
-                    "BP forward": "BP forward [kgf]",
-                    "BP lateral": "BP lateral [kgf]",
-                    "BP vertical": "BP vertical [kgf]",
-                    "Manipulator number": "Manipulator number [-]",
-                    "Manipulator grip force": "Manipulator grip force [N]",
-                    "Manipulator wirst torque":
-                        "Manipulator wirst torque [Nm]",
-                    "AE footprint": "AE footprint [m^2]",
-                    "AE weight": "AE weight [t]",
-                    "AE supervisor": "AE supervisor [-]",
-                    "AE technician": "AE technician [-]",
-                    "ROV day rate": "ROV day rate [EURO/day]",
-                    "Supervisor rate": "Supervisor rate [EURO/12h]",
-                    "Technician rate": "Technician rate [EURO/12h]"
+                    "Manipulator Grip Force": "Manipulator grip force [N]",
+                    "Additional Equipment Footprint": "AE footprint [m^2]",
+                    "Additional Equipment Mass": "AE weight [t]",
+                    "Number of Supervisors": "AE supervisor [-]",
+                    "Number of Technicians": "AE technician [-]",
+                    "Equipment Day Rate": "ROV day rate [EURO/day]",
+                    "Supervisor Day Rate": "Supervisor rate [EURO/12h]",
+                    "Technician Day Rate": "Technician rate [EURO/12h]"
                     }
 
         rov_df = data.rov
+        rov_df = rov_df.drop(["Name"], 1)
+        rov_df.loc[:, "Supervisor Day Rate"] *= 0.5
+        rov_df.loc[:, "Technician Day Rate"] *= 0.5
         rov_df = rov_df.rename(columns=name_map)
+        
+        assert set(name_map.values()).issubset(set(rov_df.columns))
 
         # divers
-        name_map = {"Type diving": "	Type diving [-]",
-                    "Max operating depth": "Max operating depth [m]",
-                    "Deployment eq. footprint":
+        name_map = {"Max Operating Depth": "Max operating depth [m]",
+                    "Deployment Equipment Footprint":
                         "Deployment eq. footprint [m^2]",
-                    "Deployment eq. weight": "Deployment eq. weight [t]",
-                    "Nr supervisors": "Nr supervisors [-]",
-                    "Nr divers": "Nr divers [-]",
-                    "Nr tenders": "Nr tenders [-]",
-                    "Nr technicians": "Nr technicians [-]",
-                    "Nr support technicians": "Nr support technicians [-]",
-                    "Deployment eq. day rate":
-                        "Deployment eq. day rate [EURO/day]",
-                    "Supervisor day rate": "Supervisor day rate [EURO/day]",
-                    "Divers day rate": "Divers day rate [EURO/day]",
-                    "Tenders day rate	": "Tenders day rate [EURO/day]",
-                    "Technicians day rate": "Technicians day rate [EURO/day]",
-                    "Life support day rate":
-                        "Life support day rate [EURO/day]",
-                    "Total day rate": "Total day rate [EURO/day]"
+                    "Deployment Equipment Mass": "Deployment eq. weight [t]",
+                    "Total Day Rate": "Total day rate [EURO/day]"
                     }
 
         divers_df = data.divers
+        divers_df = divers_df.drop(["Name"], 1)
         divers_df = divers_df.rename(columns=name_map)
         
+        assert set(name_map.values()).issubset(set(divers_df.columns))
+        
         # cable_burial
-        name_map = {"Burial tool type": "Burial tool type [-]",
-                    "Max operating depth": "Max operating depth [m]",
-                    "Tow force required": "Tow force required [t]",
+        name_map = {"Max Operating Depth": "Max operating depth [m]",
+                    "Tow Force Required": "Tow force required [t]",
                     "Length": "Length [m]",
                     "Width": "Width [m]",
                     "Height": "Height [m]",
-                    "Weight": "Weight [t]",
-                    "Jetting capability": "Jetting capability [yes/no]",
-                    "Ploughing capability": "Ploughing capability [yes/no]",
-                    "Cutting capability": "Cutting capability [yes/no]",
-                    "Jetting trench depth": "Jetting trench depth [m]",
-                    "Ploughing trench depth": "Ploughing trench depth [m]",
-                    "Cutting trench depth": "Cutting trench depth [m]",
-                    "Max cable diameter": "Max cable diameter [mm]",
-                    "Min cable bending radius":
+                    "Dry Mass": "Weight [t]",
+                    "Jetting Capability": "Jetting capability [yes/no]",
+                    "Ploughing Capability": "Ploughing capability [yes/no]",
+                    "Cutting Capability": "Cutting capability [yes/no]",
+                    "Jetting Trench Depth": "Jetting trench depth [m]",
+                    "Ploughing Trench Depth": "Ploughing trench depth [m]",
+                    "Cutting Trench Depth": "Cutting trench depth [m]",
+                    "Max Cable Diameter": "Max cable diameter [mm]",
+                    "Min Cable Bending Radius":
                         "Min cable bending radius [m]",
-                    "AE footprint": "AE footprint [m^2]",
-                    "AE weight": "AE weight [t]",
-                    "Burial tool day rate": "Burial tool day rate [EURO/day]",
-                    "Personnel day rate": "Personnel day rate [EURO/12h]"
+                    "Additional Equipment Footprint": "AE footprint [m^2]",
+                    "Additional Equipment Mass": "AE weight [t]",
+                    "Equipment Day Rate": "Burial tool day rate [EURO/day]",
+                    "Personnel Day Rate": "Personnel day rate [EURO/12h]"
                     }
         
         cable_burial_df = data.cable_burial
+        cable_burial_df = cable_burial_df.drop(["Name"], 1)
+        cable_burial_df.loc[:, "Personnel Day Rate"] *= 0.5
         cable_burial_df = cable_burial_df.rename(columns=name_map)
+        
+        assert set(name_map.values()).issubset(set(cable_burial_df.columns))
         
         # Map boolean columns to yes/no
         yes_no_map = {True: "yes",
@@ -1564,132 +1579,117 @@ class InstallationInterface(ModuleInterface):
                                  })
         
         # excavating
-        name_map = {"Depth rating": "Depth rating [m]",
+        name_map = {"Depth Rating": "Depth rating [m]",
                     "Width": "Width [m]",
                     "Height": "Height [m]",
-                    "Length or diameter": "Lenght or diameter[m]",
-                    "Nozzle diameter": "Nozzle diameter [m]",
-                    "Weight": "Weight [t]",
-                    "Max pressure": "Max pressure [bar]",
-                    "Max flow rate": "Max flow rate [bar]",
-                    "Max torque": "Max torque [bar]",
-                    "Thrust": "Thrust [t]",
-                    "Propeller speed": "Propeller speed [rpm]",
-                    "Excavator day rate": "Excavator day rate [EURO/day]",
-                    "Personnel day rate": "Personnel day rate [EURO/12h]"
+                    "Dry Mass": "Weight [t]",
+                    "Equipment Day Rate": "Excavator day rate [EURO/day]",
+                    "Personnel Day Rate": "Personnel day rate [EURO/12h]"
                     }
 
         excavating_df = data.excavating
+        excavating_df = excavating_df.drop(["Name"], 1)
+        excavating_df.loc[:, "Personnel Day Rate"] *= 0.5
         excavating_df = excavating_df.rename(columns=name_map)
         
+        assert set(name_map.values()).issubset(set(excavating_df.columns))
+
         # mattresses
-        name_map = {"Concrete resistance": "Concrete resistance [N/mm^2]",
-                    "Concrete density": "Concrete density [kg/m^3]",
-                    "Unit length": "Unit lenght [m]",
-                    "Unit width": "Unit width [m]",
-                    "Unit thickness": "Unit thickness [m]",
-                    "Unit weight air": "Unit weight air [t]",
-                    "Unit weight water": "Unit weight water [t]",
-                    "Nr looped ropes": "Nr looped ropes [-]",
-                    "Ropes diameter": "Ropes diameter [mm]",
-                    "Cost per unit": "Cost per unit [EURO]"
+        name_map = {"Length": "Unit lenght [m]",
+                    "Width": "Unit width [m]",
+                    "Thickness": "Unit thickness [m]",
+                    "Dry Mass": "Unit weight air [t]",
+                    "Cost": "Cost per unit [EURO]"
                     }
         
         mattresses_df = data.mattresses
+        mattresses_df = mattresses_df.drop(["Name"], 1)
         mattresses_df = mattresses_df.rename(columns=name_map)
+
+        assert set(name_map.values()).issubset(set(mattresses_df.columns))
         
         # rock bags
-        name_map = {"Weight": "Weight [t]",
-                    "Particle diameter min": "Particle diameter min [mm]",
-                    "Particle diameter max": "Particle diameter max [mm]",
-                    "Mesh size": "Mesh size [mm]",
+        name_map = {"Dry Mass": "Weight [t]",
                     "Diameter": "Diameter [m]",
                     "Height": "Height [m]",
-                    "Volume": "Volume [m^ 3]",
-                    "Velocity unit": "Velocity unit [m/s]",
-                    "Velocity grouped": "Velocity grouped [m/s]",
-                    "Cost per unit": "Cost per unit [EURO]"
+                    "Cost": "Cost per unit [EURO]"
                     }
 
         rock_bags_df = data.rock_bags
+        rock_bags_df = rock_bags_df.drop(["Name"], 1)
         rock_bags_df = rock_bags_df.rename(columns=name_map)
+
+        assert set(name_map.values()).issubset(set(rock_bags_df.columns))
         
         # split_pipes
-        name_map = {"Material": "Material [-]",
-                    "Unit weight air": "Unit weight air [kg]",
-                    "Unit weight water": "Unit weight water [kg]",
-                    "Unit length": "Unit length [mm]",
-                    "Unit wall thickness": "Unit wall thichness [mm]",
-                    "Unit inner diameter": "Unit inner diameter [mm]",
-                    "Unit outer diameter": "Unit outer diameter [mm]",
-                    "Max cable size": "Max cable size [mm]",
-                    "Min bending radius": "Min bending radius [m]",
-                    "Cost per unit": "Cost per unit [EURO]"
+        name_map = {"Length": "Unit length [mm]",
+                    "Cost": "Cost per unit [EURO]"
                     }
 
         split_pipes_df = data.split_pipes
+        split_pipes_df = split_pipes_df.drop(["Name"], 1)
         split_pipes_df = split_pipes_df.rename(columns=name_map)
 
+        assert set(name_map.values()).issubset(set(split_pipes_df.columns))
+
         # hammer
-        name_map = {"Depth rating": "Depth rating [m]",
+        name_map = {"Depth Rating": "Depth rating [m]",
                     "Length": "Length [m]",
-                    "Weight in air": "Weight in air [t]",
-                    "Min pile diameter": "Min pile diameter [mm]",
-                    "Max pile diameter": "Max pile diameter [mm]",
-                    "Max blow energy": "Max blow energy [kJ]",
-                    "Min blow energy": "Min blow energy [kJ]",
-                    "Blow rate at max blow energy":
-                        "Blow rate at max blow energy [bl/min]",
-                    "AE footprint": "AE footprint [m^2]",
-                    "AE weight": "AE weight [t]",
-                    "Hammer day rate": "Hammer day rate [EURO/day]",
-                    "Personnel day rate": "Personnel day rate [EURO/12h]"
+                    "Dry Mass": "Weight in air [t]",
+                    "Min Pile Diameter": "Min pile diameter [mm]",
+                    "Max Pile Diameter": "Max pile diameter [mm]",
+                    "Additional Equipment Footprint": "AE footprint [m^2]",
+                    "Additional Equipment Mass": "AE weight [t]",
+                    "Equipment Day Rate": "Hammer day rate [EURO/day]",
+                    "Personnel Day Rate": "Personnel day rate [EURO/12h]"
                     }
 
         hammer_df = data.hammer
+        hammer_df = hammer_df.drop(["Name"], 1)
+        hammer_df.loc[:, "Personnel Day Rate"] *= 0.5
         hammer_df = hammer_df.rename(columns=name_map)
+
+        assert set(name_map.values()).issubset(set(hammer_df.columns))
 
         # drilling rigs
         name_map = {"Diameter": "Diameter [m]",
                     "Length": "Length [m]",
-                    "Weight": "Weight [t]",
-                    "Drilling diameter range": "Drilling diameter range [m]",
-                    "Max drilling depth": "Max drilling depth [m]",
-                    "Max water depth": "Max water depth [m]",
-                    "Torque": "Torque [kNm]",
-                    "Pull back": "Pull back [t]",
-                    "AE footprint": "AE footprint [m^2]",
-                    "AE weight": "AE weight [t]",
-                    "Drill rig day rate": "Drill rig day rate [EURO/day]",
-                    "Personnel day rate": "Personnel day rate [EURO/day]"
+                    "Dry Mass": "Weight [t]",
+                    "Drilling Diameter Range": "Drilling diameter range [m]",
+                    "Max Drilling Depth": "Max drilling depth [m]",
+                    "Max Water Depth": "Max water depth [m]",
+                    "Additional Equipment Footprint": "AE footprint [m^2]",
+                    "Additional Equipment Mass": "AE weight [t]",
+                    "Equipment Day Rate": "Drill rig day rate [EURO/day]",
+                    "Personnel Day Rate": "Personnel day rate [EURO/day]"
                     }
 
         drilling_rigs_df = data.drilling_rigs
+        drilling_rigs_df = drilling_rigs_df.drop(["Name"], 1)
         drilling_rigs_df = drilling_rigs_df.rename(columns=name_map)
+
+        assert set(name_map.values()).issubset(set(drilling_rigs_df.columns))
 
         # vibro driver
         name_map = {"Width": "Width [m]",
                     "Length": "Length [m]",
                     "Height": "Height [m]",
-                    "Vibro driver weight": "Vibro driver weight [m]",
-                    "Clamp weight": "Clamp weight [m]",
-                    "Eccentric moment": "Eccentric moment [m.kg]",
-                    "Max frequency": "Max frequency [hz]",
-                    "Max centrifugal force": "Max centrifugal force [kN]",
-                    "Max line pull": "Max line pull [kN]",
-                    "Min pile diameter": "Min pile diameter [mm]",
-                    "Max pile diameter": "Max pile diameter [mm]",
-                    "Max pile weight": "Max pile weight [t]",
-                    "Power": "Power [kW]",
-                    "Oil flow": "Oil flow [l/min]",
-                    "AE footprint": "AE footprint [m^2]",
-                    "AE weight": "AE weight [t]",
-                    "Vibro diver day rate": "Vibro diver day rate [EURO/day]",
-                    "Personnel day rate": "Personnel day rate [EURO/day]"
+                    "Vibro Driver Mass": "Vibro driver weight [m]",
+                    "Clamp Mass": "Clamp weight [m]",
+                    "Min Pile Diameter": "Min pile diameter [mm]",
+                    "Max Pile Diameter": "Max pile diameter [mm]",
+                    "Max Pile Mass": "Max pile weight [t]",
+                    "Additional Equipment Footprint": "AE footprint [m^2]",
+                    "Additional Equipment Mass": "AE weight [t]",
+                    "Equipment Day Rate": "Vibro diver day rate [EURO/day]",
+                    "Personnel Day Rate": "Personnel day rate [EURO/day]"
                     }
 
         vibro_driver_df = data.vibro_driver
+        vibro_driver_df = vibro_driver_df.drop(["Name"], 1)
         vibro_driver_df = vibro_driver_df.rename(columns=name_map)
+        
+        assert set(name_map.values()).issubset(set(vibro_driver_df.columns))
 
         ### make equipment class here
         # Divide cable burial equipments per trenching capabilities
@@ -1723,144 +1723,140 @@ class InstallationInterface(ModuleInterface):
                                                    vibro_driver_df)
                      }
                      
-        
         ### Ports
         name_map = {"Name": "Name [-]",
                     "Country": "Country [-]",
-#                    "UTM x": "UTM x [m]",
-#                    "UTM y": "UTM y [m]",
-                    "UTM zone": "UTM zone [-]",
-                    "Type of terminal": "Type of terminal [Quay/Dry-dock]",
-                    "Entrance width": "Entrance width [m]",
-                    "Terminal length": "Terminal length [m]",
-                    "Terminal load bearing": "Terminal load bearing [t/m^2]",
-                    "Terminal draught": "Terminal draught [m]",
-                    "Terminal area": "Terminal area [m^2]",
-                    "Max gantry crane lift capacity":
+                    "Type of Terminal": "Type of terminal [Quay/Dry-dock]",
+                    "Entrance Width": "Entrance width [m]",
+                    "Terminal Length": "Terminal length [m]",
+                    "Terminal Load Bearing": "Terminal load bearing [t/m^2]",
+                    "Terminal Draught": "Terminal draught [m]",
+                    "Terminal Area": "Terminal area [m^2]",
+                    "Max Gantry Crane Lift Capacity":
                         "Max gantry crane lift capacity [t]",
-                    "Max tower crane lift capacity":
+                    "Max Tower Crane Lift Capacity":
                         "Max tower crane lift capacity [t]",
-                    "Jacking capability": "Jacking capability [yes/no]"
+                    "Jacking Capability": "Jacking capability [yes/no]"
                     }
 
         ports_df = data.ports
         ports_df = ports_df.rename(columns=name_map)
+
+        assert set(name_map.values()).issubset(set(ports_df.columns))
         
-        port_locations = data.port_locations
+        # Add utm point and zone
         port_x = []
         port_y = []
         port_names = []
+        port_utm_zone = []
 
-        for name, point in port_locations.iteritems():
+        for name, point in data.port_locations.iteritems():
             
             port_names.append(name)
-            xy = list(point.coords)[0]
-            port_x.append(xy[0])
-            port_y.append(xy[1])
+            
+            lonlat = list(point.coords)[0]
+            latlon = list(reversed(lonlat))
+            x, y, utm_number, utm_letter = utm.from_latlon(*latlon)
+            utm_zone_str = "{} {}".format(utm_number, utm_letter)
+                        
+            port_x.append(x)
+            port_y.append(y)
+            port_utm_zone.append(utm_zone_str)
             
         port_location_dict = {"Name [-]": port_names,
                               "UTM x [m]": port_x,
-                              "UTM y [m]": port_y}
+                              "UTM y [m]": port_y,
+                              "UTM zone [-]": port_utm_zone}
         port_location_df = pd.DataFrame(port_location_dict)
         
         ports_df = pd.merge(ports_df, port_location_df, on="Name [-]")
         
         ports_df = ports_df.replace(
                                 {"Jacking capability [yes/no]": yes_no_map})
-
+        
         ### Vessels
-        name_map = {"Vessel class": "Vessel class [-]",
-                    "Vessel type": "Vessel type [-]",
-                    "Gross tonnage": "Gross tonnage [ton]",
+        name_map = {"Vessel Type": "Vessel type [-]",
+                    "Gross Tonnage": "Gross tonnage [ton]",
                     "Length": "Length [m]",
                     "Beam": "Beam [m]",
-                    "Min. draft": "Min. draft [m]",
-                    "Max. draft": "Max. draft [m]",
-                    "Travel range": "Travel range [km]",
-                    "Engine size": "Engine size [BHP]",
-                    "Fuel tank": "Fuel tank [m^3]",
+                    "Max Draft": "Max. draft [m]",
                     "Consumption": "Consumption [l/h]",
-                    "Consumption towing": "Consumption towing [l/h]",
-                    "Deck space": "Deck space [m^2]",
-                    "Deck loading": "Deck loading [t/m^2]",
-                    "Max. cargo": "Max. cargo [t]",
-                    "Transit speed": "Transit speed [m/s]",
-                    "Max. Speed": "Max. Speed [m/s]",
-                    "Bollard pull": "Bollard pull [t]",
-                    "Crew size": "Crew size [-]",
-                    "External  personnel": "External  personnel [-]",
-                    "OLC: Transit maxHs": "OLC: Transit maxHs [m]",
-                    "OLC: Transit maxTp": "OLC: Transit maxTp [s]",
-                    "OLC: Transit maxCs": "OLC: Transit maxCs [m/s]",
-                    "OLC: Transit maxWs": "OLC: Transit maxWs [m/s]",
-                    "OLC: Towing maxHs": "OLC: Towing maxHs [m]",
-                    "OLC: Towing maxTp": "OLC: Towing maxTp [s]",
-                    "OLC: Towing maxCs": "OLC: Towing maxCs [knots]",
-                    "OLC: Towing maxWs": "OLC: Towing maxWs [m/s]",
-                    "OLC: Jacking maxHs": "OLC: Jacking maxHs [m]",
-                    "OLC: Jacking maxTp": "OLC: Jacking maxTp [s]",
-                    "OLC: Jacking maxCs": "OLC: Jacking maxCs [m/s]",
-                    "OLC: Jacking maxWs": "OLC: Jacking maxWs [m/s]",
-                    "Crane capacity": "Crane capacity [t]",
-                    "Crane radius": "Crane radius [m]",
-                    "Turntable number": "Turntable number [-]",
+                    "Towing Consumption": "Consumption towing [l/h]",
+                    "Transit Speed": "Transit speed [m/s]",
+                    "Deck Space": "Deck space [m^2]",
+                    "Max Deck Pressure": "Deck loading [t/m^2]",
+                    "Max Cargo Mass": "Max. cargo [t]",
+                    "Max Crane Load Mass": "Crane capacity [t]",
+                    "Bollard Pull": "Bollard pull [t]",
+                    "Number of Turntables": "Turntable number [-]",
                     "Turntable loading": "Turntable loading [t]",
-                    "Turntable outer diameter":
-                        "Turntable outer diameter [m]",
-                    "Turntable inner diameter":
+                    "Max Turntable Load Mass": "Turntable loading [t]",
+                    "Turntable Inner Diameter":
                         "Turntable inner diameter [m]",
-                    "Turntable height": "Turntable height [m]",
-                    "Cable splice": "Cable splice [yes/no]",
-                    "Ground out capabilities":
-                        "Ground out capabilities [yes/no]",
-                    "DP": "DP [-]",
-                    "Rock storage capacity": "Rock storage capacity [t]",
-                    "Max dumping depth": "Max dumping depth [m]",
-                    "Max dumping capacity": "Max dumping capacity [t/h]",
-                    "Fall pipe diameter": "Fall pipe diameter [mm]",
-                    "Diving moonpool": "Diving moonpool [yes/no]",
-                    "Diving depth": "Diving depth [m]",
-                    "Diving capacity": "Diving capacity [-]",
-                    "ROV inspection": "ROV inspection [yes/no]",
-                    "ROV inspection max depth":
-                        "ROV inspection max depth [m]",
-                    "ROV workclass": "ROV workclass [yes/no]",
-                    "ROV workclass max depth": "ROV workclass max depth [m]",
-                    "JackUp leg length": "JackUp leg lenght [m]",
-                    "JackUp leg diameter": "JackUp leg diameter [m]",
-                    "JackUp max water depth": "JackUp max water depth [m]",
-                    "JackUp speed Up": "JackUp speed Up [m/min]",
-                    "JackUp speed down": "JackUp speed down [m/min]",
-                    "JackUp max payload": "JackUp max payload [t]",
-                    "Mooring number  winches": "Mooring number  winches [-]",
-                    "Mooring line pull": "Mooring line pull [t]",
-                    "Mooring wire length": "Mooring wire lenght [m]",
-                    "Mooring number anchors": "Mooring number anchors [-]",
-                    "Mooring anchor weight": "Mooring anchor weight [t]",
-                    "AH drum capacity": "AH drum capacity [m]",
-                    "AH wire size": "AH wire size [mm]",
-                    "AH winch rated pull": "AH winch rated pull [t]",
-                    "AH winch break load": "AH winch break load [t]",
-                    "Dredge depth": "Dredge depth [m]",
-                    "Dredge type": "Dredge type [-]",
-                    "Mob time": "Mob time [h]",
-                    "Mob percentage": "Mob percentage [%]",
-                    "Op min Day Rate": "Op min Day Rate [EURO/day]",
-                    "Op max Day Rate": "Op max Day Rate [EURO/day]"
+                    "Cable Splice Capabilities": "Cable splice [yes/no]",
+                    "Dynamic Positioning Capabilities": "DP [-]",
+                    "Max Jack-Up Water Depth":
+                        "JackUp max water depth [m]",
+                    "Jack-Up Lowering Velocity": "JackUp speed down [m/min]",
+                    "Max Jack-Up Payload": "JackUp max payload [t]",
+                    "Anchor Handling Drum Capacity": "AH drum capacity [m]",
+                    "Anchor Handling Winch Rated Pull":
+                        "AH winch rated pull [t]",
+                    "External  Personnel": "External  personnel [-]",
+                    "Max Towing Hs": "OLC: Towing maxHs [m]",
+                    "Max Jacking Hs": "OLC: Jacking maxHs [m]",
+                    "Max Jacking Tp": "OLC: Jacking maxTp [s]",
+                    "Max Jacking Current Velocity":
+                        "OLC: Jacking maxCs [m/s]",
+                    "Max Jacking Wind Velocity":
+                        "OLC: Jacking maxWs [m/s]",
+                    "Max Transit Hs": "OLC: Transit maxHs [m]",
+                    "Max Transit Tp": "OLC: Transit maxTp [s]",
+                    "Max Transit Current Velocity":
+                        "OLC: Transit maxCs [m/s]",
+                    "Max Transit Wind Velocity":
+                        "OLC: Transit maxWs [m/s]",
+                    "Mobilisation Time": "Mob time [h]",
+                    "Mobilisation Percentage Cost": "Mob percentage [%]",
+                    "Min Day Rate": "Op min Day Rate [EURO/day]",
+                    "Max Day Rate": "Op max Day Rate [EURO/day]"
                     }
+            
+        data.helicopter["Vessel type [-]"] = "Helicopter"
+        data.vessel_ahts["Vessel type [-]"] = "AHTS"
+        data.vessel_multicat["Vessel type [-]"] = "Multicat"
+        data.vessel_barge["Vessel type [-]"] = "Barge"
+        data.vessel_crane_barge["Vessel type [-]"] = "Crane Barge"
+        data.vessel_crane_vessel["Vessel type [-]"] = "Crane Vessel"
+        data.vessel_csv["Vessel type [-]"] = "CSV"
+        data.vessel_ctv["Vessel type [-]"] = "CTV"
+        data.vessel_clb["Vessel type [-]"] = "CLB"
+        data.vessel_clv["Vessel type [-]"] = "CLV"
+        data.vessel_jackup_barge["Vessel type [-]"] = "JUP Barge"
+        data.vessel_jackup_vessel["Vessel type [-]"] = "JUP Vessel"
+        data.vessel_tugboat["Vessel type [-]"] = "Tugboat"
 
-        vessels_df = data.vessels
+        vessels_df = pd.concat([data.helicopter,
+                                data.vessel_ahts,
+                                data.vessel_multicat,
+                                data.vessel_crane_barge,
+                                data.vessel_barge,
+                                data.vessel_crane_vessel,
+                                data.vessel_csv,
+                                data.vessel_ctv,
+                                data.vessel_clb,
+                                data.vessel_clv,
+                                data.vessel_jackup_barge,
+                                data.vessel_jackup_vessel,
+                                data.vessel_tugboat],
+                               ignore_index=True)
         vessels_df = vessels_df.rename(columns=name_map)
-        
-        # Map boolean columns to yes/no
-        cable_burial_df = cable_burial_df.replace(
-                            {"Cable splice [yes/no]": yes_no_map,
-                             "Ground out capabilities [yes/no]": yes_no_map,
-                             "Diving moonpool [yes/no]": yes_no_map,
-                             "ROV inspection [yes/no]": yes_no_map,
-                             "ROV workclass [yes/no]": yes_no_map
-                             })
 
+        assert set(name_map.values()).issubset(set(vessels_df.columns))
+        
+        # Map boolean columns
+        vessels_df = vessels_df.replace({"Cable splice [yes/no]": yes_no_map})
+        
         ### Site
         site_df_unsort = bathymetry.to_dataframe()
         site_df = site_df_unsort.unstack(level = 'layer')
@@ -2113,28 +2109,28 @@ class InstallationInterface(ModuleInterface):
         max_cs = sub_systems["Max Current Velocity"].max()
 
         device_dict = {
-            "Type": device_type,
-            "Length": data.system_length,
-            "Width": data.system_width,
-            "Height": data.system_height,
-            "Dry Mass": data.system_mass,
-            "Sub-System List": sub_system_list,
-            "Assembly Strategy": sub_assembly_strategy,
-            "Assembly Duration": data.assembly_duration,
-            "Load Out": data.load_out_method.lower(),
-            "Transportation Method": data.transportation_method.lower(),
-            "Bollard Pull": data.bollard_pull,
-            "Connect Duration": data.connect_duration,
-            "Disconnect Duration": data.disconnect_duration,
-            "Max Hs": max_hs,
-            "Max Tp": max_tp,
-            "Max Wind Speed": max_ws,
-            "Max Current Speed": max_cs,
-            "Project Start Date": data.project_start_date
+            "Type": [device_type],
+            "Length": [data.system_length],
+            "Width": [data.system_width],
+            "Height": [data.system_height],
+            "Dry Mass": [data.system_mass],
+            "Sub-System List": [sub_system_list],
+            "Assembly Strategy": [sub_assembly_strategy],
+            "Assembly Duration": [data.assembly_duration],
+            "Load Out": [data.load_out_method.lower()],
+            "Transportation Method": [data.transportation_method.lower()],
+            "Bollard Pull": [data.bollard_pull],
+            "Connect Duration": [data.connect_duration],
+            "Disconnect Duration": [data.disconnect_duration],
+            "Max Hs": [max_hs],
+            "Max Tp": [max_tp],
+            "Max Wind Speed": [max_ws],
+            "Max Current Speed": [max_cs],
+            "Project Start Date": [data.project_start_date]
             }
 
         device_df = pd.DataFrame(device_dict)
-
+        
         name_map = {
             "Type": "type [-]",
             "Length": "length [m]",
@@ -2157,7 +2153,7 @@ class InstallationInterface(ModuleInterface):
             }
 
         device_df = device_df.rename(columns=name_map)
-
+        
         ### Subdevice
         name_map = {
             "Length": "length [m]",
