@@ -6,6 +6,8 @@ Created on Wed Sep 21 11:49:00 2016
 """
 
 import os
+
+import utm
 import pandas as pd
 import numpy as np
 from shapely.geometry import Point
@@ -33,12 +35,40 @@ equipment_vibro_driver = xls_file.parse(sheet_names[9])
 ### Ports
 file_path = os.path.join(installation_dir, 'logisticsDB_ports_python.xlsx')
 xls_file = pd.ExcelFile(file_path, encoding = 'utf-8')
-ports = xls_file.parse(header=0, index_col=0)
+ports = xls_file.parse()
+
+port_names = ports["Name"]
+port_x = ports.pop("UTM x")
+port_y = ports.pop("UTM y")
+port_utm = ports.pop("UTM zone")
+
+port_points = []
+
+for x, y, zone_str in zip(port_x, port_y, port_utm):
+    
+    zone_number_str, zone_letter = zone_str.split()
+    lat, lon = utm.to_latlon(x, y, int(zone_number_str), zone_letter)
+    point = Point(lon, lat)
+    port_points.append(point)
+    
+port_locations = {name: point for name, point in zip(port_names, port_points)}
 
 ### Vessels
 file_path = os.path.join(installation_dir, 'logisticsDB_vessel_python.xlsx')
 xls_file = pd.ExcelFile(file_path, encoding = 'utf-8')
-vessels = xls_file.parse(header=0, index_col=0)
+helicopter_df = xls_file.parse(sheetname="Helicopter")
+ahts_df = xls_file.parse(sheetname="AHTS")
+multicat_df = xls_file.parse(sheetname="Multicat")
+barge_df = xls_file.parse(sheetname="Barge")
+crane_barge_df = xls_file.parse(sheetname="Crane Barge")
+crane_vessel_df = xls_file.parse(sheetname="Crane Vessel")
+csv_df = xls_file.parse(sheetname="CSV")
+ctv_df = xls_file.parse(sheetname="CTV")
+clb_df = xls_file.parse(sheetname="CLB")
+clv_df = xls_file.parse(sheetname="CLV")
+jackup_barge_df = xls_file.parse(sheetname="Jackup Barge")
+jackup_vssel_df = xls_file.parse(sheetname="Jackup Vessel")
+tugboat_df = xls_file.parse(sheetname="Tugboat")
 
 ### Export
 file_path = os.path.join(installation_dir, 'export_area_30.xlsx')
@@ -369,8 +399,21 @@ test_data = {"component.rov" : equipment_rov,
              "component.hammer" : equipment_hammer,
              "component.drilling_rigs" : equipment_drilling_rigs,
              "component.vibro_driver" : equipment_vibro_driver,
-             "component.vessels" : vessels,
+             "component.vehicle_helicopter": helicopter_df,
+             "component.vehicle_vessel_ahts": ahts_df,
+             "component.vehicle_vessel_multicat": multicat_df,
+             "component.vehicle_vessel_crane_barge": crane_barge_df,
+             "component.vehicle_vessel_barge": barge_df,
+             "component.vehicle_vessel_crane_vessel": crane_vessel_df,
+             "component.vehicle_vessel_csv": csv_df,
+             "component.vehicle_vessel_ctv": ctv_df,
+             "component.vehicle_vessel_clb": clb_df,
+             "component.vehicle_vessel_clv": clv_df,
+             "component.vehicle_vessel_jackup_barge": jackup_barge_df,
+             "component.vehicle_vessel_jackup_vessel": jackup_vssel_df,
+             "component.vehicle_vessel_tugboat": tugboat_df,
              "component.ports" : ports,
+             "component.port_locations": port_locations,
 
              "project.electrical_network" : electrical_network,
              "project.electrical_component_data" : electrical_components,

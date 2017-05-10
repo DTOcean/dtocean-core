@@ -770,7 +770,6 @@ test_data = {
                                     comp_tables["rope axial stiffness"],
         'component.moorings_shackle': comp_tables["shackle"],
         'component.moorings_swivel': comp_tables["swivel"],
-        'component.moorings_umbilical': comp_tables["cable"],
         'component.foundations_anchor_sand': comp_tables["drag anchor sand"],
         'component.foundations_anchor_soft': comp_tables["drag anchor soft"]
         }

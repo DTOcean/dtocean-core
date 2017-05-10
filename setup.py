@@ -177,6 +177,7 @@ setup(name='dtocean-core',
         'pyyaml',
         'setuptools',
         'shapely',
+        'utm',
         'xarray',
         'xlrd',
         'xlwt'

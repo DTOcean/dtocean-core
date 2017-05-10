@@ -73,7 +73,7 @@ def get_component_dict(component_type,
         # Build component specific items
         if component_type in ["chain", "forerunner assembly"]:
             
-            data_dict["item5"] = [record.iloc[0]["Minimum Break Load"],
+            data_dict["item5"] = [record.iloc[0]["Min Break Load"],
                                   record.iloc[0]["Axial Stiffness"]]
             data_dict["item6"] = [record.iloc[0]["Diameter"],
                                   record.iloc[0]["Connecting Length"]]
@@ -83,7 +83,7 @@ def get_component_dict(component_type,
                                   
         elif component_type in ["shackle", "swivel"]:
             
-            data_dict["item5"] = [record.iloc[0]["Minimum Break Load"],
+            data_dict["item5"] = [record.iloc[0]["Min Break Load"],
                                   record.iloc[0]["Axial Stiffness"]]
             data_dict["item6"] = [record.iloc[0]["Diameter"],
                                   record.iloc[0]["Connecting Length"]]        
@@ -108,7 +108,7 @@ def get_component_dict(component_type,
                           "supplied if component_type is 'drag anchor'")
                 raise ValueError(errStr)
             
-            data_dict["item5"] = [record.iloc[0]["Minimum Break Load"],
+            data_dict["item5"] = [record.iloc[0]["Min Break Load"],
                                   record.iloc[0]["Axial Stiffness"]]
             data_dict["item6"] = [record.iloc[0]["Width"],
                                   record.iloc[0]["Depth"],
@@ -146,7 +146,7 @@ def get_component_dict(component_type,
             rope_array = rope_data[key_id]
             
             data_dict["item4"] = [record.iloc[0]["Material"]]
-            data_dict["item5"] = [record.iloc[0]["Minimum Break Load"],
+            data_dict["item5"] = [record.iloc[0]["Min Break Load"],
                                   rope_array.tolist()]
             data_dict["item6"] = [record.iloc[0]["Diameter"]]
             data_dict["item7"] = [record.iloc[0]["Dry Mass per Unit Length"],
@@ -155,8 +155,8 @@ def get_component_dict(component_type,
                                   
         elif component_type == "cable":
             
-            data_dict["item5"] = [record.iloc[0]["Minimum Break Load"],
-                                  record.iloc[0]["Minimum Bend Radius"]]
+            data_dict["item5"] = [record.iloc[0]["Min Break Load"],
+                                  record.iloc[0]["Min Bend Radius"]]
             data_dict["item6"] = [record.iloc[0]["Diameter"]]
             data_dict["item7"] = [record.iloc[0]["Dry Mass per Unit Length"],
                                   record.iloc[0]["Wet Mass per Unit Length"]]
@@ -177,54 +177,42 @@ def get_moorings_tables(compdict):
     cable_df = pd.DataFrame(columns=[
                             'Key Identifier',
                             'Name',
-                            'Material',
-                            'Grade',
-                            'Colour',
-                            'Minimum Break Load',
-                            'Minimum Bend Radius',
-                            'Outer Diameter',
+                            'Min Break Load',
+                            'Min Bend Radius',
+                            'Diameter',
                             'Dry Mass per Unit Length',
                             'Wet Mass per Unit Length',
-                            'Cost',
+                            'Cost per Unit Length',
                             'Environmental Impact'])
     
     chain_df = pd.DataFrame(columns=[
                             'Key Identifier',
                             'Name',
-                            'Material',
-                            'Grade',
-                            'Colour',
-                            'Minimum Break Load',
+                            'Min Break Load',
                             'Axial Stiffness',
                             'Diameter',
                             'Connecting Length',
                             'Dry Mass per Unit Length',
                             'Wet Mass per Unit Length',
-                            'Cost',
+                            'Cost per Unit Length',
                             'Environmental Impact'])
                             
     forerunner_df = pd.DataFrame(columns=[
                             'Key Identifier',
                             'Name',
-                            'Material',
-                            'Grade',
-                            'Colour',
-                            'Minimum Break Load',
+                            'Min Break Load',
                             'Axial Stiffness',
                             'Diameter',
                             'Connecting Length',
                             'Dry Mass per Unit Length',
                             'Wet Mass per Unit Length',
-                            'Cost',
+                            'Cost per Unit Length',
                             'Environmental Impact'])
                             
     shackle_df = pd.DataFrame(columns=[                             
                              'Key Identifier',
                              'Name',
-                             'Material',
-                             'Grade',
-                             'Colour',
-                             'Minimum Break Load',
+                             'Min Break Load',
                              'Axial Stiffness',
                              'Diameter',
                              'Connecting Length',
@@ -236,10 +224,7 @@ def get_moorings_tables(compdict):
     swivel_df = pd.DataFrame(columns=[                             
                              'Key Identifier',
                              'Name',
-                             'Material',
-                             'Grade',
-                             'Colour',
-                             'Minimum Break Load',
+                             'Min Break Load',
                              'Axial Stiffness',
                              'Diameter',
                              'Connecting Length',
@@ -251,25 +236,19 @@ def get_moorings_tables(compdict):
     pile_df = pd.DataFrame(columns=[ 
                              'Key Identifier',
                              'Name',
-                             'Material',
-                             'Grade',
-                             'Colour',
                              'Yield Stress',
                              'Youngs Modulus',
                              'Diameter',
                              'Thickness',
                              'Dry Mass per Unit Length',
                              'Wet Mass per Unit Length',
-                             'Cost',
+                             'Cost per Unit Length',
                              'Environmental Impact'])
                              
     anchor_df = pd.DataFrame(columns=[
                              'Key Identifier',
                              'Name',
-                             'Material',
-                             'Grade',
-                             'Colour',
-                             'Minimum Break Load',
+                             'Min Break Load',
                              'Axial Stiffness',
                              'Width',
                              'Depth',
@@ -298,13 +277,11 @@ def get_moorings_tables(compdict):
                              'Key Identifier',
                              'Name',
                              'Material',
-                             'Grade',
-                             'Colour',
-                             'Minimum Break Load',
-                             'Outer Diameter',
+                             'Min Break Load',
+                             'Diameter',
                              'Dry Mass per Unit Length',
                              'Wet Mass per Unit Length',
-                             'Cost',
+                             'Cost per Unit Length',
                              'Environmental Impact'])
                              
     rope_dict = {}
@@ -322,24 +299,12 @@ def get_moorings_tables(compdict):
         values.append(key_id)
 
         columns.append("Name")
-        values.append(data_dict["item3"])
-        
-        columns.append("Material")
-        values.append(data_dict["item4"][0])
-
-        columns.append("Grade")
-        values.append(data_dict["item4"][1])
-        
-        columns.append("Colour")
-        values.append(data_dict["item4"][2])          
-
-        columns.append("Cost")
-        values.append(data_dict["item11"])
+        values.append(data_dict["item3"])       
                               
         # Build component specific items
         if component_type in ["chain", "forerunner assembly"]:
             
-            columns.append("Minimum Break Load")
+            columns.append("Min Break Load")
             values.append(data_dict["item5"][0])
             
             columns.append("Axial Stiffness")
@@ -356,6 +321,9 @@ def get_moorings_tables(compdict):
             
             columns.append("Wet Mass per Unit Length")
             values.append(data_dict["item7"][1])
+            
+            columns.append("Cost per Unit Length")
+            values.append(data_dict["item11"])
 
             record = pd.Series(values, index=columns)
             
@@ -366,7 +334,7 @@ def get_moorings_tables(compdict):
                 
         elif component_type in ["shackle", "swivel"]:
             
-            columns.append("Minimum Break Load")
+            columns.append("Min Break Load")
             values.append(data_dict["item5"][0])
             
             columns.append("Axial Stiffness")
@@ -383,6 +351,9 @@ def get_moorings_tables(compdict):
             
             columns.append("Wet Unit Mass")
             values.append(data_dict["item7"][1])
+            
+            columns.append("Cost")
+            values.append(data_dict["item11"])
             
             record = pd.Series(values, index=columns)
             
@@ -411,12 +382,15 @@ def get_moorings_tables(compdict):
             columns.append("Wet Mass per Unit Length")
             values.append(data_dict["item7"][1])
             
+            columns.append("Cost per Unit Length")
+            values.append(data_dict["item11"])
+            
             record = pd.Series(values, index=columns)
             pile_df = pile_df.append(record, ignore_index=True)
             
         elif component_type == "drag anchor":
             
-            columns.append("Minimum Break Load")
+            columns.append("Min Break Load")
             values.append(data_dict["item5"][0])
             
             columns.append("Axial Stiffness")
@@ -439,6 +413,9 @@ def get_moorings_tables(compdict):
             
             columns.append("Wet Unit Mass")
             values.append(data_dict["item7"][1])
+            
+            columns.append("Cost")
+            values.append(data_dict["item11"])
             
             record = pd.Series(values, index=columns)
             anchor_df = anchor_df.append(record, ignore_index=True)
@@ -470,11 +447,14 @@ def get_moorings_tables(compdict):
 
             
         elif component_type == "rope":
+                        
+            columns.append("Material")
+            values.append(data_dict["item4"][0])
             
-            columns.append("Minimum Break Load")
+            columns.append("Min Break Load")
             values.append(data_dict["item5"][0])
             
-            columns.append("Outer Diameter")
+            columns.append("Diameter")
             values.append(data_dict["item6"][0])
             
             columns.append("Dry Mass per Unit Length")
@@ -482,6 +462,9 @@ def get_moorings_tables(compdict):
             
             columns.append("Wet Mass per Unit Length")
             values.append(data_dict["item7"][1])
+            
+            columns.append("Cost per Unit Length")
+            values.append(data_dict["item11"])
             
             record = pd.Series(values, index=columns)
             rope_df = rope_df.append(record, ignore_index=True)
@@ -491,13 +474,13 @@ def get_moorings_tables(compdict):
 
         elif component_type == "cable":
             
-            columns.append("Minimum Break Load")
+            columns.append("Min Break Load")
             values.append(data_dict["item5"][0])
             
-            columns.append("Minimum Bend Radius")
+            columns.append("Min Bend Radius")
             values.append(data_dict["item5"][1])
             
-            columns.append("Outer Diameter")
+            columns.append("Diameter")
             values.append(data_dict["item6"][0])
             
             columns.append("Dry Mass per Unit Length")
@@ -505,6 +488,9 @@ def get_moorings_tables(compdict):
             
             columns.append("Wet Mass per Unit Length")
             values.append(data_dict["item7"][1])
+            
+            columns.append("Cost per Unit Length")
+            values.append(data_dict["item11"])
             
             record = pd.Series(values, index=columns)
             cable_df = cable_df.append(record, ignore_index=True)

@@ -1050,8 +1050,8 @@ class ElectricalInterface(ModuleInterface):
                     "Dry Mass per Unit Length": "dry_mass",
                     "Wet Mass per Unit Length": "wet_mass",
                     "Diameter": "diameter",
-                    "Minimum Bend Radius": "mbr",
-                    "Minimum Break Load": "mbl",
+                    "Min Bend Radius": "mbr",
+                    "Min Break Load": "mbl",
                     "Number of Fibre Optic Channels": "fibre",
                     "Cost per Unit Length": "cost",
                     "Max Temperature": "max_operating_temp",
@@ -1157,7 +1157,6 @@ class ElectricalInterface(ModuleInterface):
                      "Height": "height",
                      "Width": "width",
                      "Depth": "depth",
-                     "Foundation Type": "foundation",
                      "Cost": "cost",
                      "Max Water Depth": "max_water_depth",
                      "Number of Fibre Optic Channels": "fibre",
@@ -1181,6 +1180,7 @@ class ElectricalInterface(ModuleInterface):
         collection_points_df["busbar"] = None
         collection_points_df["cooling"] = None
         collection_points_df["operating_environment"] = None
+        collection_points_df["foundation"] = None
 
         # Build in centre of gravity
         cog_dict = collection_point_cog
