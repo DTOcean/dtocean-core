@@ -28,13 +28,14 @@ def installation_phase_cost_output(input_dict):
 
     '''
 
-    data = {"Equipment" : input_dict['COST']['Equipment Cost [EUR]'],
-            "Fuel" : input_dict['COST']['Fuel Cost [EUR]'],
-            "Port" : input_dict['COST']['Port Cost [EUR]'],
-            "Vessel" : input_dict['COST']['Vessel Cost [EUR]']}
+    data = {"Equipment": input_dict['COST']['Equipment Cost [EUR]'],
+            "Fuel": input_dict['COST']['Fuel Cost [EUR]'],
+            "Port": input_dict['COST']['Port Cost [EUR]'],
+            "Vessel": input_dict['COST']['Vessel Cost [EUR]']}
 
     return data
-    
+
+
 def installation_phase_time_result(input_dict):
 
     '''Collect installation phase time results in dict for output.
@@ -47,16 +48,17 @@ def installation_phase_time_result(input_dict):
 
     '''
 
-    data = {"Prep" : input_dict['TIME']['Preparation Time [h]'],
-            "Sea" : input_dict['TIME']['Sea Operation Time [h]'],
-            "Transit" : input_dict['TIME']['Sea Transit Time [h]'],
-            "Total" : input_dict['TIME']['Total Time [h]']}
+    data = {"Prep": input_dict['TIME']['Preparation Time [h]'],
+            "Sea": input_dict['TIME']['Sea Operation Time [h]'],
+            "Transit": input_dict['TIME']['Sea Transit Time [h]'],
+            "Total": input_dict['TIME']['Total Time [h]']}
 
     wait_time = sum(input_dict['TIME']['Waiting Time [h]'])
 
     data["Wait"] = wait_time
 
     return data
+
 
 def installation_phase_date_result(input_dict):
     
@@ -70,33 +72,9 @@ def installation_phase_date_result(input_dict):
 
     '''
 
-    data = {"Start" : input_dict['DATE']['Start Date'].to_datetime(),
-            "Depart" : input_dict['DATE']['Depart Date'].to_datetime(),
-            "End" : input_dict['DATE']['End Date'].to_datetime()}
-
-
-    return data
-
-
-def installation_phase_date_result_timeseries(input_dict):
-    
-    '''Collect installation phase date results in dict for output.
-
-    Args:
-        input_dict (dict) [-]: Dictionary of installation phase time data.
-
-    Returns:
-        data (dict) [-]: Formatted dictionary for output.
-
-    '''
-
-    start = input_dict['DATE']['Start Date'].to_datetime()
-    depart = input_dict['DATE']['Depart Date'].to_datetime()
-    end = input_dict['DATE']['End Date'].to_datetime()
-
-    data = [(start, "Start"),
-            (depart, "Depart"),
-            (end, "End")]
+    data = {"Start": input_dict['DATE']['Start Date'].to_datetime(),
+            "Depart": input_dict['DATE']['Depart Date'].to_datetime(),
+            "End": input_dict['DATE']['End Date'].to_datetime()}
 
     return data
 

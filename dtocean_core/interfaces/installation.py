@@ -52,8 +52,7 @@ from . import ModuleInterface
 from ..utils.installation import (installation_phase_cost_output,
                                   installation_phase_time_result,
                                   find_marker_key_mf,
-                                  installation_phase_date_result,
-                                  installation_phase_date_result_timeseries)
+                                  installation_phase_date_result)
 
 from ..utils.install_electrical import (set_collection_points,
                                         set_cables,
@@ -856,7 +855,7 @@ class InstallationInterface(ModuleInterface):
                 values['TIME']['Preparation Time [h]']
 
             self.data.install_support_structure_dates = \
-                installation_phase_date_result_timeseries(values)
+                installation_phase_date_result(values)
 
             self._compile_phase(cost_dict,
                                 time_dict,
@@ -876,7 +875,9 @@ class InstallationInterface(ModuleInterface):
                 values['TIME']['Preparation Time [h]']
             
             self.data.install_devices_dates = \
-                installation_phase_date_result_timeseries(values)
+                installation_phase_date_result(values)
+                
+            print self.data.install_devices_dates
             
             self._compile_phase(cost_dict,
                                 time_dict,
@@ -947,7 +948,7 @@ class InstallationInterface(ModuleInterface):
                 values['TIME']['Preparation Time [h]']
             
             self.data.install_dynamic_cable_dates = \
-                installation_phase_date_result_timeseries(values)
+                installation_phase_date_result(values)
             
             self._compile_phase(cost_dict,
                                 time_dict,
@@ -987,7 +988,7 @@ class InstallationInterface(ModuleInterface):
                 values['TIME']['Preparation Time [h]']
             
             self.data.install_array_cable_dates = \
-                installation_phase_date_result_timeseries(values)
+                installation_phase_date_result(values)
             
             self._compile_phase(cost_dict,
                                 time_dict,
@@ -1029,7 +1030,7 @@ class InstallationInterface(ModuleInterface):
                 values['TIME']['Preparation Time [h]']
             
             self.data.install_subsea_collection_point_dates = \
-                installation_phase_date_result_timeseries(values)
+                installation_phase_date_result(values)
             
             self._compile_phase(cost_dict,
                                 time_dict,
@@ -1049,7 +1050,7 @@ class InstallationInterface(ModuleInterface):
                 values['TIME']['Preparation Time [h]']
             
             self.data.install_cable_protection_dates = \
-                installation_phase_date_result_timeseries(values)
+                installation_phase_date_result(values)
             
             self._compile_phase(cost_dict,
                                 time_dict,
@@ -1122,7 +1123,7 @@ class InstallationInterface(ModuleInterface):
                 values['TIME']['Preparation Time [h]']
             
             self.data.install_driven_piles_dates = \
-                installation_phase_date_result_timeseries(values)
+                installation_phase_date_result(values)
             
             self._compile_phase(cost_dict,
                                 time_dict,
@@ -1162,7 +1163,7 @@ class InstallationInterface(ModuleInterface):
                 values['TIME']['Preparation Time [h]']
             
             self.data.install_gravity_based_dates = \
-                installation_phase_date_result_timeseries(values)
+                installation_phase_date_result(values)
             
             self._compile_phase(cost_dict,
                                 time_dict,
@@ -1182,7 +1183,7 @@ class InstallationInterface(ModuleInterface):
                 values['TIME']['Preparation Time [h]']
             
             self.data.install_pile_anchor_dates = \
-                installation_phase_date_result_timeseries(values)
+                installation_phase_date_result(values)
             
             self._compile_phase(cost_dict,
                                 time_dict,
@@ -1199,7 +1200,7 @@ class InstallationInterface(ModuleInterface):
                 values['TIME']['Preparation Time [h]']
             
             self.data.install_drag_embedment_dates = \
-                installation_phase_date_result_timeseries(values)
+                installation_phase_date_result(values)
 
             self._compile_phase(cost_dict,
                                 time_dict,
@@ -1216,7 +1217,7 @@ class InstallationInterface(ModuleInterface):
                  values['TIME']['Preparation Time [h]']
               
             self.data.install_suction_embedment_dates = \
-                installation_phase_date_result_timeseries(values)
+                installation_phase_date_result(values)
 
             self._compile_phase(cost_dict,
                                 time_dict,
@@ -1501,7 +1502,8 @@ class InstallationInterface(ModuleInterface):
         name_map = {"User/DDS": "dataframe"}
 
         ### Equipment
-        name_map = {"Depth Rating": "Depth rating [m]",
+        name_map = {"Class": "ROV class [-]",
+                    "Depth Rating": "Depth rating [m]",
                     "Length": "Length [m]",
                     "Width": "Width [m]",
                     "Height": "Height [m]",
@@ -2502,7 +2504,7 @@ class InstallationInterface(ModuleInterface):
 
             static_cable_df = static_cable_df.rename(columns=name_map)
 
-            trenching = [[data.cable_tool.lower()]]*len(static_cable_df)
+            trenching = [data.cable_tool.lower()]*len(static_cable_df)
             static_cable_df.loc[:, 'trench type [-]'] = pd.Series(trenching)
             static_cable_df = static_cable_df.set_index('Marker')
             static_cable_df.index.name = 'id [-]'
