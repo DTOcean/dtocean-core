@@ -51,25 +51,6 @@ class UnknownData(Structure):
         return deepcopy(data)
 
 
-class DateTimeData(Structure):
-
-    '''A datetime.dateime data object'''
-
-    def get_data(self, raw, meta_data):
-
-        if not isinstance(raw, datetime):
-
-            errStr = ("DateTimeData requires a datetime.datetime object as "
-                      "raw data.")
-            raise ValueError(errStr)
-
-        return raw
-
-    def get_value(self, data):
-
-        return data
-
-
 class SeriesData(Structure):
 
     '''Structure represented in a series of some sort'''
@@ -2146,8 +2127,7 @@ class SimpleDict(Structure):
             except AttributeError:
 
                 errStr = ("Raw data may not be a dictionary. Type is actually "
-                          "{}.").format(meta_data._types,
-                                        type(raw_dict))
+                          "{}.").format(type(raw_dict))
                 raise AttributeError(errStr)
 
             except TypeError:
@@ -2431,6 +2411,74 @@ class SimpleDictColumn(SimpleDict):
     def _auto_file_output(self):
         
         return
+    
+    
+class DateTimeData(Structure):
+
+    '''A datetime.dateime data object'''
+
+    def get_data(self, raw, meta_data):
+
+        if not isinstance(raw, datetime):
+
+            errStr = ("DateTimeData requires a datetime.datetime object as "
+                      "raw data.")
+            raise ValueError(errStr)
+
+        return raw
+
+    def get_value(self, data):
+
+        return data
+
+
+class DateTimeDict(DateTimeData):
+
+    '''Dictionary containing a named variable as a key and a datatime as the
+    value.'''
+
+    def get_data(self, raw, meta_data):
+
+        raw_dict = raw
+        typed_dict = {}
+
+        try:
+
+            for key, value in raw_dict.iteritems():
+                            
+                date_item = super(DateTimeDict, self).get_data(value, meta_data)
+                typed_dict[key] = date_item
+
+        except AttributeError:
+
+            errStr = ("Raw data may not be a dictionary. Type is actually "
+                      "{}.").format(type(raw_dict))
+            raise AttributeError(errStr)
+
+        except TypeError:
+
+            errStr = ("Raw data is of incorrect type. Should be "
+                      "datetime.datetime, but is {}.").format(type(value))
+            raise TypeError(errStr)
+        
+        # Test keys against valid values
+        if meta_data.valid_values is not None:
+            
+            for key in typed_dict.iterkeys():
+                
+                if key not in meta_data.valid_values:
+                    
+                    valid_str = ", ".join(meta_data.valid_values)
+                    errStr = ("Raw data key '{}' does not match any valid "
+                              "value from: {}").format(key,
+                                                       valid_str)
+                    raise ValueError(errStr)
+
+        return typed_dict
+
+    def get_value(self, data):
+
+        return deepcopy(data)
         
         
 class TriStateData(Structure):
