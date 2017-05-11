@@ -2185,6 +2185,16 @@ class InstallationInterface(ModuleInterface):
 
         penetration_rate_df = data.penetration_rates
         penetration_rate_df = penetration_rate_df.rename(columns=name_map)
+        
+        technique_map = {"Drilling rig": "Drilling rig [m/h]",
+                         "Hammer": "Hammer [m/h]",
+                         "Vibro driver": "Vibro driver [m/h]",
+                         "ROV with suction pump":
+                             "ROV with suction pump [m/h]",
+                         "ROV with jetting": "ROV with jetting [m/h]"}
+            
+        penetration_rate_df = penetration_rate_df.replace(
+                                                {"Technique": technique_map})
 
         # Installation soil compatibility/laying rate
         name_map = {
