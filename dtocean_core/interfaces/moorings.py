@@ -716,6 +716,46 @@ class MooringsInterface(ModuleInterface):
                 errStr = ("Selected umbilical component '{}' not found in "
                           "component dictionary").format(self._variables.preumb)
                 raise KeyError(errStr)
+        
+        # Data tweaks
+        if self.data.hs == 0.0:
+            hs_max= []
+        else:
+            hs_max = [self.data.hs]
+            
+        if self.data.wavedir == 0.0:
+            wavedir_max = [0.]
+        else:
+            wavedir_max = [self.data.wavedir]
+            
+        if self.data.tp == 0.0:
+            tp_max= []
+        else:
+            tp_max = [self.data.tp]
+            
+        if self.data.gamma == 0.0:
+            gamma_max= []
+        else:
+            gamma_max = [self.data.gamma]
+            
+        # Add header rows where necessary
+        self.data.hcfdrsoil.loc[-1] = [20, 25, 30, 35, 40]
+        self.data.hcfdrsoil = self.data.hcfdrsoil.sort_index()
+        
+        self.data.pilemomcoefam.loc[-1] = [10, 5, 4, 3, 2]
+        self.data.pilemomcoefam = self.data.pilemomcoefam.sort_index()
+        
+        self.data.pilemomcoefbm.loc[-1] = [10, 5, 4, 3, 2]
+        self.data.pilemomcoefbm = self.data.pilemomcoefbm.sort_index()
+        
+        self.data.subgradereaccoef.loc[-1] = [35, 50, 65, 85]
+        self.data.subgradereaccoef = self.data.subgradereaccoef.sort_index()
+        
+        self.data.wakeampfactorcyl.loc[-1] = [0.65, 1.05]
+        self.data.wakeampfactorcyl = self.data.wakeampfactorcyl.sort_index()
+        
+        self.data.winddragcoefrect.loc[-1] = [0, 1, 2, 4, 6, 10, 20]
+        self.data.winddragcoefrect = self.data.winddragcoefrect.sort_index()
                 
 #    #-------------------------------------------------------------------------- 
 #    #--------------------------------------------------------------------------
@@ -946,112 +986,93 @@ class MooringsInterface(ModuleInterface):
 #                                                                                    inertia coefficients [-] 
 #        preline (list) [-]: predefined mooring component list
 #        fabcost (float) [-]: optional fabrication cost factor
-                
-        if self.data.hs == 0.0:
-            hs_max= []
-        else:
-            hs_max = [self.data.hs]
-            
-        if self.data.wavedir == 0.0:
-            wavedir_max = [0.]
-        else:
-            wavedir_max = [self.data.wavedir]
-            
-        if self.data.tp == 0.0:
-            tp_max= []
-        else:
-            tp_max = [self.data.tp]
-            
-        if self.data.gamma == 0.0:
-            gamma_max= []
-        else:
-            gamma_max = [self.data.gamma]
 
-        input_data = Variables(devices,
-                               self.data.gravity,
-                               self.data.seaden,
-                               self.data.airden,
-                               self.data.steelden,
-                               self.data.conden,
-                               self.data.groutden,
-                               compdict,
-                               safe_soil, 
-                               None,
-                               safe_bathy,
-                               bathy_deltax,
-                               bathy_deltay,
-                               self.data.wlevmax,
-                               self.data.wlevmin,
-                               self.data.currentvel,
-                               self.data.currentdir,
-                               self.data.currentprof.lower(),
-                               wavedir_max,
-                               hs_max,
-                               tp_max,
-                               gamma_max,
-                               self.data.windvel,
-                               self.data.winddir,
-                               self.data.windgustvel,
-                               self.data.windgustdir,
-                               soilprops_df,
-                               self.data.linebcf,
-                               self.data.k1coef.reset_index().values,
-                               self.data.soilsen,
-                               self.data.subgradereaccoef.reset_index().values,
-                               self.data.piledefcoef.reset_index().values,
-                               self.data.pilemomcoefam.reset_index().values,
-                               self.data.pilemomcoefbm.reset_index().values,
-                               self.data.pilefricresnoncal.reset_index().values,
-                               self.data.hcfdrsoil.reset_index().values,                               
-                               systype,
-                               self.data.depvar,
-                               self.data.sysprof.lower(),
-                               self.data.sysmass,
-                               self.data.syscog,
-                               self.data.sysvol,
-                               self.data.sysheight,
-                               self.data.syswidth,
-                               self.data.syslength,
-                               self.data.sysrough,
-                               sysorig,
-                               fair_loc_list,
-                               self.data.foundloc,
-                               umbilical_connection,
-                               self.data.sysdryfa,
-                               self.data.sysdryba,
-                               self.data.dragcoefcyl.values,
-                               self.data.wakeampfactorcyl.values,
-                               self.data.winddragcoefrect.values,
-                               self.data.currentdragcoefrect.values,
-                               self.data.driftcoeffloatrect.values,
-                               Clen,
-                               thrustcurv,
-                               hubheight,
-                               self.data.sysorienang,
-                               fex_list,
-                               premoor_low,
-                               self.data.maxdisp,
-                               prefound_low,
-                               self.data.coststeel,
-                               self.data.costgrout,
-                               self.data.costcon,
-                               self.data.groutstr,
-                               preumb,
-                               self.data.umbsf,
-                               self.data.foundsf,
-                               self.data.prefootrad,
-                               seabed_connection_dict,
-                               substation_props,
-                               self.data.moorsfuls,
-                               self.data.moorsfals,
-                               self.data.groutsf,
-                               self.data.syswetfa,
-                               self.data.syswetba,
-                               self.data.sysdraft,
-                               self.data.waveinertiacoefrect.values,
-                               self.data.preline,
-                               self.data.fabcost
-                               )
+        input_data = Variables(
+                           devices,
+                           self.data.gravity,
+                           self.data.seaden,
+                           self.data.airden,
+                           self.data.steelden,
+                           self.data.conden,
+                           self.data.groutden,
+                           compdict,
+                           safe_soil, 
+                           None,
+                           safe_bathy,
+                           bathy_deltax,
+                           bathy_deltay,
+                           self.data.wlevmax,
+                           self.data.wlevmin,
+                           self.data.currentvel,
+                           self.data.currentdir,
+                           self.data.currentprof.lower(),
+                           wavedir_max,
+                           hs_max,
+                           tp_max,
+                           gamma_max,
+                           self.data.windvel,
+                           self.data.winddir,
+                           self.data.windgustvel,
+                           self.data.windgustdir,
+                           soilprops_df,
+                           self.data.linebcf,
+                           self.data.k1coef.reset_index().values,
+                           self.data.soilsen,
+                           self.data.subgradereaccoef.reset_index().values,
+                           self.data.piledefcoef.reset_index().values,
+                           self.data.pilemomcoefam.reset_index().values,
+                           self.data.pilemomcoefbm.reset_index().values,
+                           self.data.pilefricresnoncal.reset_index().values,
+                           self.data.hcfdrsoil.reset_index().values,                               
+                           systype,
+                           self.data.depvar,
+                           self.data.sysprof.lower(),
+                           self.data.sysmass,
+                           self.data.syscog,
+                           self.data.sysvol,
+                           self.data.sysheight,
+                           self.data.syswidth,
+                           self.data.syslength,
+                           self.data.sysrough,
+                           sysorig,
+                           fair_loc_list,
+                           self.data.foundloc,
+                           umbilical_connection,
+                           self.data.sysdryfa,
+                           self.data.sysdryba,
+                           self.data.dragcoefcyl.reset_index().values,
+                           self.data.wakeampfactorcyl.reset_index().values,
+                           self.data.winddragcoefrect.reset_index().values,
+                           self.data.currentdragcoefrect.reset_index().values,
+                           self.data.driftcoeffloatrect.reset_index().values,
+                           Clen,
+                           thrustcurv,
+                           hubheight,
+                           self.data.sysorienang,
+                           fex_list,
+                           premoor_low,
+                           self.data.maxdisp,
+                           prefound_low,
+                           self.data.coststeel,
+                           self.data.costgrout,
+                           self.data.costcon,
+                           self.data.groutstr,
+                           preumb,
+                           self.data.umbsf,
+                           self.data.foundsf,
+                           self.data.prefootrad,
+                           seabed_connection_dict,
+                           substation_props,
+                           self.data.moorsfuls,
+                           self.data.moorsfals,
+                           self.data.groutsf,
+                           self.data.syswetfa,
+                           self.data.syswetba,
+                           self.data.sysdraft,
+                           self.data.waveinertiacoefrect.reset_index().values,
+                           self.data.preline,
+                           self.data.fabcost
+                           )
         
         if export_data:
             pickle.dump(input_data, open("moorings_inputs.pkl", "wb" ))
