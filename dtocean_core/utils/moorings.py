@@ -85,7 +85,7 @@ def get_component_dict(component_type,
             
             data_dict["item5"] = [record.iloc[0]["Min Break Load"],
                                   record.iloc[0]["Axial Stiffness"]]
-            data_dict["item6"] = [record.iloc[0]["Diameter"],
+            data_dict["item6"] = [record.iloc[0]["Nominal Diameter"],
                                   record.iloc[0]["Connecting Length"]]        
             data_dict["item7"] = [record.iloc[0]["Dry Unit Mass"],
                                   record.iloc[0]["Wet Unit Mass"]]
@@ -96,7 +96,7 @@ def get_component_dict(component_type,
             data_dict["item5"] = [record.iloc[0]["Yield Stress"],
                                   record.iloc[0]["Youngs Modulus"]]
             data_dict["item6"] = [record.iloc[0]["Diameter"],
-                                  record.iloc[0]["Thickness"]]
+                                  record.iloc[0]["Wall Thickness"]]
             data_dict["item7"] = [record.iloc[0]["Dry Mass per Unit Length"],
                                   record.iloc[0]["Wet Mass per Unit Length"]]
             data_dict["item11"] = record.iloc[0]["Cost per Unit Length"]
@@ -214,7 +214,10 @@ def get_moorings_tables(compdict):
                              'Name',
                              'Min Break Load',
                              'Axial Stiffness',
-                             'Diameter',
+                             'Width',
+                             'Depth',
+                             'Height',
+                             'Nominal Diameter',
                              'Connecting Length',
                              'Dry Unit Mass',
                              'Wet Unit Mass',
@@ -226,7 +229,10 @@ def get_moorings_tables(compdict):
                              'Name',
                              'Min Break Load',
                              'Axial Stiffness',
-                             'Diameter',
+                             'Width',
+                             'Depth',
+                             'Height',
+                             'Nominal Diameter',
                              'Connecting Length',
                              'Dry Unit Mass',
                              'Wet Unit Mass',
@@ -239,7 +245,7 @@ def get_moorings_tables(compdict):
                              'Yield Stress',
                              'Youngs Modulus',
                              'Diameter',
-                             'Thickness',
+                             'Wall Thickness',
                              'Dry Mass per Unit Length',
                              'Wet Mass per Unit Length',
                              'Cost per Unit Length',
@@ -340,7 +346,16 @@ def get_moorings_tables(compdict):
             columns.append("Axial Stiffness")
             values.append(data_dict["item5"][1])
             
-            columns.append("Diameter")
+            columns.append("Width")
+            values.append(data_dict["item6"][0])
+            
+            columns.append("Depth")
+            values.append(data_dict["item6"][0])
+            
+            columns.append("Height")
+            values.append(data_dict["item6"][0])
+            
+            columns.append("Nominal Diameter")
             values.append(data_dict["item6"][0])
             
             columns.append("Connecting Length")
@@ -373,7 +388,7 @@ def get_moorings_tables(compdict):
             columns.append("Diameter")
             values.append(data_dict["item6"][0])
             
-            columns.append("Thickness")
+            columns.append("Wall Thickness")
             values.append(data_dict["item6"][1])
             
             columns.append("Dry Mass per Unit Length")
