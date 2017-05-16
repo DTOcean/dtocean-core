@@ -132,7 +132,6 @@ class InstallationInterface(ModuleInterface):
                         "component.port_locations",
                         "bathymetry.layers",
                         "corridor.layers",
-                        "device.subsystem_installation",
                         "project.electrical_network",
                         "project.electrical_component_data",
                         "project.cable_routes",
@@ -181,6 +180,7 @@ class InstallationInterface(ModuleInterface):
                         "device.system_width",
                         "device.system_height",
                         "device.system_mass",
+                        "device.subsystem_installation",
                         "device.assembly_duration",
                         "device.load_out_method",
                         "device.transportation_method",
@@ -876,8 +876,6 @@ class InstallationInterface(ModuleInterface):
             
             self.data.install_devices_dates = \
                 installation_phase_date_result(values)
-                
-            print self.data.install_devices_dates
             
             self._compile_phase(cost_dict,
                                 time_dict,
@@ -902,7 +900,7 @@ class InstallationInterface(ModuleInterface):
             device_cost_class_breakdown = device_component_costs.sum(
                                                  numeric_only=True).to_dict()
             device_component_costs = device_component_costs.reset_index()
-                
+        
         self.data.device_component_costs = device_component_costs
         self.data.device_component_cost_breakdown = \
                                         device_component_cost_breakdown
@@ -2192,9 +2190,11 @@ class InstallationInterface(ModuleInterface):
                          "ROV with suction pump":
                              "ROV with suction pump [m/h]",
                          "ROV with jetting": "ROV with jetting [m/h]"}
-            
+        
+        penetration_rate_df = penetration_rate_df.reset_index()
         penetration_rate_df = penetration_rate_df.replace(
                                                 {"Technique": technique_map})
+        penetration_rate_df = penetration_rate_df.set_index("Technique")
 
         # Installation soil compatibility/laying rate
         name_map = {
