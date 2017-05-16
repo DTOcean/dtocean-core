@@ -2446,7 +2446,8 @@ class DateTimeDict(DateTimeData):
 
             for key, value in raw_dict.iteritems():
                             
-                date_item = super(DateTimeDict, self).get_data(value, meta_data)
+                date_item = super(DateTimeDict, self).get_data(value,
+                                                               meta_data)
                 typed_dict[key] = date_item
 
         except AttributeError:
