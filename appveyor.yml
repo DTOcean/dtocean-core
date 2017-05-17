@@ -7,6 +7,17 @@
 #      general configuration      #
 #---------------------------------#
 
+# Build only for commits to certain locations
+only_commits:
+  files:
+    - dtocean_core/
+    - tests/
+    - setup.py
+    
+skip_commits:
+  files:
+    - dtocean_core/config/
+
 # version format
 version: 1.1.dev0.build{build}
 
