@@ -138,7 +138,7 @@ def test_connect(core, project, module_menu, tree):
     
     assert inputs["device.system_type"] == 'satisfied'
     
-def test_module_unavailable_inputs(core, project, module_menu, tree):
+def test_module_overwritten_inputs(core, project, module_menu, tree):
 
     project = deepcopy(project) 
 
@@ -152,8 +152,8 @@ def test_module_unavailable_inputs(core, project, module_menu, tree):
     inputs = electric_branch.get_input_status(core, 
                                               project)
         
-    assert inputs['device.power_rating'] == 'unavailable'
-    assert inputs['project.layout'] == 'unavailable'
+    assert inputs['device.power_rating'] == 'overwritten'
+    assert inputs['project.layout'] == 'overwritten'
     
 #    inputs = moorings_branch.get_input_status(core, 
 #                                              project)
