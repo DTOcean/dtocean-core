@@ -2514,11 +2514,11 @@ class InstallationInterface(ModuleInterface):
 
             static_cable_df = static_cable_df.rename(columns=name_map)
 
-            trenching = [data.cable_tool.lower()]*len(static_cable_df)
+            trenching = [[data.cable_tool.lower()]]*len(static_cable_df)
             static_cable_df.loc[:, 'trench type [-]'] = pd.Series(trenching)
             static_cable_df = static_cable_df.set_index('Marker')
             static_cable_df.index.name = 'id [-]'
-
+            
             if 'floating' in system_type.lower():
                 
                 if data.umbilical_terminations is None:

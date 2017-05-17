@@ -363,7 +363,7 @@ layout_dict = {'device001': [587850.,6650550.],
 #    layout_dict[device['device']] = (device['x coord'], device['y coord'], 0)
 
 ### Electrical
-tool = ['Jetting']
+tool = 'Jetting'
 
 electrical_network = {
  'nodes': {'array': {'Export cable': {'marker': [[0, 1]],
