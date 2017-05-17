@@ -1,6 +1,6 @@
 [![appveyor](https://ci.appveyor.com/api/projects/status/github/DTOcean/dtocean-core?branch=master&svg=true)](https://ci.appveyor.com/project/DTOcean/dtocean-core)
 [![codecov](https://codecov.io/gh/DTOcean/dtocean-core/branch/master/graph/badge.svg)](https://codecov.io/gh/DTOcean/dtocean-core)
-[**Lintly Score**](https://lintly.com/gh/DTOcean/dtocean-core/)
+[![Lintly](https://lintly.com/gh/DTOcean/dtocean-core/badge.svg)](https://lintly.com/gh/DTOcean/dtocean-core/)
 [![release](https://img.shields.io/github/release/DTOcean/dtocean-core.svg)](https://github.com/DTOcean/dtocean-core/releases/latest)
 
 # DTOcean Core Module (Version 1.0)
