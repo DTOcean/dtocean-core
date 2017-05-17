@@ -18,18 +18,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   interfaces.
 - Added new parameter for recording JONSWAP spectrum gamma value in extreme
   calculations used by the moorings module.
-- Added more complete device subsystem descriptions for maintanence module.
+- Added more complete device subsystem descriptions for maintenance module.
   These split the requirements for each subsystem for access and the different
-  maintanence strategies.
+  maintenance strategies.
 - Added DateTimeDict data structure for dictionaries of datetime.datetime
   objects.
-- Completed database integration for installation and maintanence modules.
+- Completed database integration for installation and maintenance modules.
 - Add change log.
 
 ### Changed
 
 - Renamed tools submodule to utils.
-- Changed database stored proceedure calls to match changes to database
+- Changed database stored procedure calls to match changes to database
   structure.
 - Added "category" and "group" fields to DDS and removed "symbol, sample_value,
   maximum_value, minimum_value, default_value, input_widget, output_widget"
@@ -68,12 +68,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Schema is no longer set in database configuration.
 - Removed farm.point_sea_surface_height
 - Removed lead times as unused.
-- Remove unused power qulaity variables.
+- Remove unused power quality variables.
 - Removed unused switchgear variables.
 - Removed numerous unused fields from component tables.
 - Removed numerous unused fields from equipment tables.
-- Removed numerous usused fields from ports table.
-- Removed numerous usused fields from vessels table.
+- Removed numerous unused fields from ports table.
+- Removed numerous unused fields from vessels table.
 - Removed some header lines from inputs to moorings module and hard coded them
   into the interface. 
 
