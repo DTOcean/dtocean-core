@@ -153,7 +153,7 @@ setup(name='dtocean-core',
       license="GPLv3",
       packages=find_packages(),
       install_requires=[
-        'aneris=0.10.0.dev0',
+        'aneris==0.10.0.dev0',
         'basemap',
         'dtocean-hydrodynamics>=1.0',
         'dtocean-electrical>=1.0',
