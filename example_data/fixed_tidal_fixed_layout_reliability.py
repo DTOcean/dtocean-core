@@ -824,7 +824,7 @@ test_data = {
         "farm.nogo_areas": nogo_areas,
         "project.offshore_reactive_limit": offshore_reactive_limit,
         "project.onshore_infrastructure_cost": onshore_infrastructure_cost,
-        "farm.power_law_exponent": power_law_exponent,
+#        "farm.power_law_exponent": power_law_exponent,
         "project.rated_power": rated_array_power,
         "farm.shipping_hist": shipping_hist,
         "farm.spec_gamma": spectrum_gamma_farm,

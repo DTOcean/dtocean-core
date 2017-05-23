@@ -95,25 +95,52 @@ class HydroInterface(ModuleInterface):
                        ]
         '''
 
-        input_list  =  ['bathymetry.layers',
+        input_list  =  ['site.lease_boundary',
+                        'bathymetry.layers',
+                        
+                        MaskVariable('bathymetry.mannings',
+                                     "device.system_type",
+                                     ["Tidal Fixed", "Tidal Floating"]),
+                                     
                         "corridor.landing_point",
+                        'farm.nogo_areas',
+                        
+                        MaskVariable("farm.blockage_ratio",
+                                     "device.system_type",
+                                     ["Tidal Fixed", "Tidal Floating"]),
+
+                        MaskVariable("farm.spectrum_name",   
+                                     "device.system_type",
+                                     ["Wave Fixed", "Wave Floating"]),
+
+                        MaskVariable("farm.spec_gamma",   
+                                     "device.system_type",
+                                     ["Wave Fixed", "Wave Floating"]),
+
+                        MaskVariable("farm.spec_spread",   
+                                     "device.system_type",
+                                     ["Wave Fixed", "Wave Floating"]),
+                                     
+                        MaskVariable("farm.tidal_occurrence_point",
+                                     "device.system_type",
+                                     ["Tidal Fixed", "Tidal Floating"]),
+
+                        MaskVariable("farm.tidal_series",
+                                     "device.system_type",
+                                     ["Tidal Fixed", "Tidal Floating"]),
+
+                        MaskVariable("farm.wave_series",
+                                     "device.system_type",
+                                     ["Wave Fixed", "Wave Floating"]),
+                        
+                        'device.system_type',
+                        'device.power_rating',
                         'device.coordinate_system',
                         'device.installation_depth_max',
                         'device.installation_depth_min',
                         'device.minimum_distance_x',
                         'device.minimum_distance_y',
-                        'device.power_rating',
-                        'device.system_type',
                         'device.yaw',
-                        'site.lease_boundary',
-                        'project.main_direction',
-                        'farm.nogo_areas',
-                        'project.rated_power',
-                        'options.boundary_padding',
-                        'options.optimisation_threshold',
-                        'options.power_bin_width',
-                        'options.user_array_layout',
-                        'options.user_array_option',
                         
                         MaskVariable("device.bidirection",
                                      "device.system_type",
@@ -143,45 +170,18 @@ class HydroInterface(ModuleInterface):
                                      "device.system_type",
                                      ["Wave Fixed", "Wave Floating"]),
                                      
-                        MaskVariable('bathymetry.mannings',
-                                     "device.system_type",
-                                     ["Tidal Fixed", "Tidal Floating"]),
-
-                        MaskVariable("farm.blockage_ratio",
-                                     "device.system_type",
-                                     ["Tidal Fixed", "Tidal Floating"]),
-
-                        MaskVariable('farm.power_law_exponent',
-                                     "device.system_type",
-                                     ["Tidal Fixed", "Tidal Floating"]),
-
-                        MaskVariable("farm.spectrum_name",   
-                                     "device.system_type",
-                                     ["Wave Fixed", "Wave Floating"]),
-
-                        MaskVariable("farm.spec_gamma",   
-                                     "device.system_type",
-                                     ["Wave Fixed", "Wave Floating"]),
-
-                        MaskVariable("farm.spec_spread",   
-                                     "device.system_type",
-                                     ["Wave Fixed", "Wave Floating"]),
-
+                        'project.main_direction',
+                        'project.rated_power',
+                        
                         MaskVariable("project.tidal_occurrence_nbins",
                                      "device.system_type",
-                                     ["Tidal Fixed", "Tidal Floating"]),
-
-                        MaskVariable("farm.tidal_occurrence_point",
-                                     "device.system_type",
-                                     ["Tidal Fixed", "Tidal Floating"]),
-
-                        MaskVariable("farm.tidal_series",
-                                     "device.system_type",
-                                     ["Tidal Fixed", "Tidal Floating"]),
-
-                        MaskVariable("farm.wave_series",
-                                     "device.system_type",
-                                     ["Wave Fixed", "Wave Floating"]),
+                                     ["Tidal Fixed", "Tidal Floating"]),  
+                                     
+                        'options.boundary_padding',
+                        'options.optimisation_threshold',
+                        'options.power_bin_width',
+                        'options.user_array_option',
+                        'options.user_array_layout',
 
                         MaskVariable("options.tidal_data_directory",   
                                      "device.system_type",
@@ -328,7 +328,6 @@ class HydroInterface(ModuleInterface):
                     "type": "device.system_type",
                     "user_array_layout": "options.user_array_layout",
                     "user_array_option": "options.user_array_option",
-                    "velocity_shear": "farm.power_law_exponent",
                     "wave_data_directory": "device.wave_data_directory",
                     "wave_occurrence": "farm.wave_occurrence",
                     "wave_series": "farm.wave_series",
@@ -403,13 +402,16 @@ class HydroInterface(ModuleInterface):
                          self.data.pow_bins)
 
         if 'Tidal' in self.data.type:
+            
+            x = self.data.tidal_series.coords["UTM x"]
+            y = self.data.tidal_series.coords["UTM y"]
                         
             tide_dict = {"U": self.data.tidal_series.U.values, 
                          "V": self.data.tidal_series.V.values, 
                          "SSH": self.data.tidal_series.SSH.values, 
                          "TI": self.data.tidal_series.TI.values, 
-                         "x": self.data.tidal_series.x.values, 
-                         "y": self.data.tidal_series.y.values,
+                         "x": x.values, 
+                         "y": y.values,
                          "t": self.data.tidal_series.t.values,  
                          "xc": self.data.tidal_occurrence_point.x, 
                          "yc": self.data.tidal_occurrence_point.y,
@@ -438,9 +440,12 @@ class HydroInterface(ModuleInterface):
                            
             self.data.tidal_occurrence = matrix_xset
             
+            x = self.data.geophysics.coords["UTM x"]
+            y = self.data.geophysics.coords["UTM y"]
+            
             # Flatten mannings number
-            xgrid, ygrid = np.meshgrid(self.data.geophysics.x.values,
-                                       self.data.geophysics.y.values)
+            xgrid, ygrid = np.meshgrid(x.values,
+                                       y.values)
             geogrid = self.data.geophysics.values
             geoflat = np.array(zip(xgrid.flatten(),
                                    ygrid.flatten(),
@@ -525,7 +530,7 @@ class HydroInterface(ModuleInterface):
         Site = WP2_SiteData(numpy_lease,
                             numpy_nogo,
                             occurrence_matrix,
-                            self.data.velocity_shear,
+                            7.,
                             main_direction_vec,
                             safe_xyz,
                             geoflat,
