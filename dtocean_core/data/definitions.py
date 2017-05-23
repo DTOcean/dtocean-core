@@ -151,7 +151,7 @@ class TimeSeries(SeriesData):
             xlabel = ""
 
         if self.meta.result.units is not None:
-            xlabel = "{} {}".format(xlabel, self.meta.result.units[0])
+            xlabel = "{} [${}$]".format(xlabel, self.meta.result.units[0])
 
         plt.xlabel(xlabel.strip())
         
@@ -519,7 +519,7 @@ class LineTable(TableData):
         xlabel = self.meta.result.labels[0]
 
         if self.meta.result.units is not None:
-            xlabel = "{} {}".format(xlabel, self.meta.result.units[0])
+            xlabel = "{} [${}$]".format(xlabel, self.meta.result.units[0])
 
         plt.xlabel(xlabel)
         
@@ -962,8 +962,8 @@ class NumpyLine(NumpyND):
             xunit = self.meta.result.units[0]
             yunit = self.meta.result.units[1]
 
-            if xunit is not None: xlabel = "{} {}".format(xlabel, xunit)
-            if yunit is not None: ylabel = "{} {}".format(ylabel, yunit)
+            if xunit is not None: xlabel = "{} [${}$]".format(xlabel, xunit)
+            if yunit is not None: ylabel = "{} [${}$]".format(ylabel, yunit)
 
             xlabel = xlabel.lstrip()
             ylabel = ylabel.lstrip()
@@ -1061,7 +1061,7 @@ class NumpyLineDict(NumpyLine):
             xlabel = self.meta.result.labels[0]
 
         if self.meta.result.units is not None:
-            xlabel = "{} {}".format(xlabel, self.meta.result.units[0])
+            xlabel = "{} [${}$]".format(xlabel, self.meta.result.units[0])
 
         plt.xlabel(xlabel)
 
@@ -1477,8 +1477,8 @@ class CartesianList(Numpy2D):
             ylabel = self.meta.result.labels[1]
 
         if self.meta.result.units is not None:
-            xlabel = "{} {}".format(xlabel, self.meta.result.units[0])
-            ylabel = "{} {}".format(ylabel, self.meta.result.units[1])
+            xlabel = "{} [${}$]".format(xlabel, self.meta.result.units[0])
+            ylabel = "{} [${}$]".format(ylabel, self.meta.result.units[1])
         
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
@@ -2050,7 +2050,7 @@ class SimpleList(Structure):
         plt.title(self.meta.result.title)
 
         if self.meta.result.units is not None:
-            plt.ylabel(self.meta.result.units[0])
+            plt.ylabel("${}$".format(self.meta.result.units[0]))
 
         self.fig_handle = plt.gcf()
 
@@ -2228,7 +2228,7 @@ class SimpleDict(Structure):
                    labels)
         
         if self.meta.result.units is not None:
-            plt.ylabel(self.meta.result.units[0])
+            plt.ylabel("[${}$]".format(self.meta.result.units[0]))
         
         plt.title(self.meta.result.title)
         
@@ -2618,8 +2618,8 @@ class PointData(Structure):
             ylabel = self.meta.result.labels[1]
 
         if self.meta.result.units is not None:
-            xlabel = "{} {}".format(xlabel, self.meta.result.units[0])
-            ylabel = "{} {}".format(ylabel, self.meta.result.units[1])
+            xlabel = "{} [${}$]".format(xlabel, self.meta.result.units[0])
+            ylabel = "{} [${}$]".format(ylabel, self.meta.result.units[1])
 
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
@@ -2672,8 +2672,8 @@ class PointList(PointData):
             ylabel = self.meta.result.labels[1]
 
         if self.meta.result.units is not None:
-            xlabel = "{} {}".format(xlabel, self.meta.result.units[0])
-            ylabel = "{} {}".format(ylabel, self.meta.result.units[1])
+            xlabel = "{} [${}$]".format(xlabel, self.meta.result.units[0])
+            ylabel = "{} [${}$]".format(ylabel, self.meta.result.units[1])
 
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
@@ -2789,8 +2789,8 @@ class PointDict(PointData):
             ylabel = self.meta.result.labels[1]
 
         if self.meta.result.units is not None:
-            xlabel = "{} {}".format(xlabel, self.meta.result.units[0])
-            ylabel = "{} {}".format(ylabel, self.meta.result.units[1])
+            xlabel = "{} [${}$]".format(xlabel, self.meta.result.units[0])
+            ylabel = "{} [${}$]".format(ylabel, self.meta.result.units[1])
 
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
@@ -2909,8 +2909,8 @@ class PolygonData(Structure):
         ax1.margins(0.1,0.1)
         ax1.autoscale_view()
 
-        xlabel = 'UTM x (m)'
-        ylabel = 'UTM y (m)'
+        xlabel = 'UTM x [$m$]'
+        ylabel = 'UTM y [$m$]'
 
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
@@ -3121,8 +3121,8 @@ class PolygonList(PolygonData):
         ax1.margins(0.1,0.1)
         ax1.autoscale_view()
 
-        xlabel = 'UTM x (m)'
-        ylabel = 'UTM y (m)'
+        xlabel = 'UTM x [$m$]'
+        ylabel = 'UTM y [$m$]'
 
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
@@ -3374,25 +3374,22 @@ class XGrid2D(XGridND):
 
     @staticmethod
     def auto_plot(self):
-
-        x = self.data.result.x
-        y = self.data.result.y        
+        
+        x = self.data.result.coords[self.meta.result.labels[0]]
+        y = self.data.result.coords[self.meta.result.labels[1]]
 
         fig = plt.figure()
         ax1 = fig.add_subplot(1,1,1,aspect='equal')
         plt.contourf(x,y,self.data.result.T)
-        plt.colorbar()
+        clb = plt.colorbar()
 
-        xlabel=''
-        ylabel=''
-
-        if self.meta.result.labels is not None:
-            xlabel = self.meta.result.labels[0]
-            ylabel = self.meta.result.labels[1]
+        xlabel = self.meta.result.labels[0]
+        ylabel = self.meta.result.labels[1]
 
         if self.meta.result.units is not None:
-            xlabel = "{} {}".format(xlabel, self.meta.result.units[0])
-            ylabel = "{} {}".format(ylabel, self.meta.result.units[1])
+            xlabel = "{} [${}$]".format(xlabel, self.meta.result.units[0])
+            ylabel = "{} [${}$]".format(ylabel, self.meta.result.units[1])
+            clb.set_label("${}$".format(self.meta.result.units[2]))
 
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
@@ -3588,16 +3585,16 @@ class Strata(XSet3D):
         bathy = self.data.result["depth"].sel(layer="layer 1")
 
         x = bathy.x
-        y = bathy.y        
+        y = bathy.y
 
         fig = plt.figure()
         ax1 = fig.add_subplot(1,1,1,aspect='equal')
         plt.contourf(x, y, bathy.T)
         clb = plt.colorbar()
         
-        xlabel = "UTM x (m)"
-        ylabel = "UTM y (m)"
-        zlabel = "Depth (m)"
+        xlabel = "UTM x [$m$]"
+        ylabel = "UTM y [$m$]"
+        zlabel = "Depth [$m$]"
 
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
