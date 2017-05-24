@@ -142,18 +142,19 @@ class TimeSeries(SeriesData):
         # Pad the y-axis slightly
         ymin, ymax = ax.get_ylim()
         ylength = ymax - ymin
-        ymargin = 0.05 * ylength
+        ymargin = (0.05 * ylength) / ylength
+                
         ax.margins(y=ymargin)
 
         if self.meta.result.labels is not None:
-            xlabel = self.meta.result.labels[0]
+            ylabel = self.meta.result.labels[0]
         else:
-            xlabel = ""
+            ylabel = ""
 
         if self.meta.result.units is not None:
-            xlabel = "{} [${}$]".format(xlabel, self.meta.result.units[0])
+            ylabel = "{} [${}$]".format(ylabel, self.meta.result.units[0])
 
-        plt.xlabel(xlabel.strip())
+        plt.ylabel(ylabel.strip())
         
         plt.title(self.meta.result.title)
 
@@ -190,7 +191,7 @@ class TimeSeriesColumn(TimeSeries):
     
     """The first two entries of the tables key of the DDS entry should refer
     to the date and time columns within the database. These do not need to be
-    specified in the labels key."""
+    specified in the labels key, but all other columns should be labelled."""
 
     @staticmethod
     def auto_db(self):
@@ -991,9 +992,10 @@ class NumpyLineArray(NumpyLine):
 
         Table = self._db.safe_reflect_table(table, schema)
         result = self._db.session.query(
-                     Table.columns[self.meta.result.tables[1]]).one()
+                     Table.columns[self.meta.result.tables[1]]).one_or_none()
 
-        self.data.result = result[0]
+        if result is not None and result[0] is not None:
+            self.data.result = result[0]
         
         return
 
@@ -1256,22 +1258,15 @@ class HistogramColumn(Histogram):
         bin_uppers = self._db.session.query(
                      Table.columns[self.meta.result.tables[3]]).all()
 
-
         all_bin_values = [x[0] for x in bin_values]
-        
-        if set(all_bin_values) == set([None]): all_bin_values = None
-            
         all_bin_lowers = [x[0] for x in bin_lowers]
-        
-        if set(all_bin_lowers) == set([None]): all_bin_lowers = None
-            
         all_bin_uppers = [x[0] for x in bin_uppers]
         
-        if set(all_bin_uppers) == set([None]): all_bin_uppers = None
-        
+        if not all_bin_values or not all_bin_lowers or not all_bin_uppers:
+            self.data.result = None
+            return
         
         lowest_val = min(all_bin_lowers)
-
         bin_separators = [lowest_val] + all_bin_uppers
         
         result = (all_bin_values, bin_separators)
@@ -1426,9 +1421,10 @@ class CartesianDataColumn(CartesianData):
 
         Table = self._db.safe_reflect_table(table, schema)
         result = self._db.session.query(
-                     Table.columns[self.meta.result.tables[1]]).one()
+                     Table.columns[self.meta.result.tables[1]]).one_or_none()
 
-        self.data.result = result[0]
+        if result is not None and result[0] is not None:
+            self.data.result = result[0]
 
         return
         
@@ -1572,9 +1568,10 @@ class CartesianListColumn(CartesianList):
 
         Table = self._db.safe_reflect_table(table, schema)
         result = self._db.session.query(
-                     Table.columns[self.meta.result.tables[1]]).one()
+                     Table.columns[self.meta.result.tables[1]]).one_or_none()
 
-        self.data.result = result[0]
+        if result is not None and result[0] is not None:
+            self.data.result = result[0]
         
         return
 
@@ -2285,9 +2282,10 @@ class SimpleDataColumn(SimpleData):
 
         Table = self._db.safe_reflect_table(table, schema)
         result = self._db.session.query(
-                     Table.columns[self.meta.result.tables[1]]).one()
+                     Table.columns[self.meta.result.tables[1]]).one_or_none()
 
-        self.data.result = result[0]
+        if result is not None and result[0] is not None:
+            self.data.result = result[0]
 
         return
         
@@ -2317,17 +2315,20 @@ class SimpleDataForeignColumn(SimpleData):
 
         TableOne = self._db.safe_reflect_table(table, schema)
         table_two_id = self._db.session.query(
-                            TableOne.columns[self.meta.result.tables[2]]).one()
-                                                 
+                TableOne.columns[self.meta.result.tables[2]]).one_or_none()
+        
+        if table_two_id is None or table_two_id[0] is None: return
+                                               
         schema, table = self.meta.result.tables[1].split(".")
 
         TableTwo = self._db.safe_reflect_table(table, schema)
         query = self._db.session.query(
                                 TableTwo.columns[self.meta.result.tables[4]])
         result = query.filter(TableTwo.columns[
-                            self.meta.result.tables[3]]==table_two_id[0]).one()
-                     
-        self.data.result = result[0]
+                self.meta.result.tables[3]]==table_two_id[0]).one_or_none()
+                
+        if result is not None and result[0] is not None:
+            self.data.result = result[0]
 
         return
         
@@ -2832,12 +2833,12 @@ class PointDataColumn(PointData):
 
         Table = self._db.safe_reflect_table(table, schema)
         result = self._db.session.query(
-                     Table.columns[self.meta.result.tables[1]]).one()
+                     Table.columns[self.meta.result.tables[1]]).one_or_none()
                      
-        if result[0] is None:
-            point = None
-        else:
+        if result is not None and result[0] is not None:
             point = to_shape(result[0])
+        else:
+            point = None
 
         self.data.result = point
 
@@ -3001,9 +3002,9 @@ class PolygonDataColumn(PolygonData):
 
         Table = self._db.safe_reflect_table(table, schema)
         result = self._db.session.query(
-                     Table.columns[self.meta.result.tables[1]]).one()
+                     Table.columns[self.meta.result.tables[1]]).one_or_none()
 
-        if result[0] is not None:
+        if result is not None and result[0] is not None:
             point = to_shape(result[0])
         else:
             point = None
@@ -3153,10 +3154,10 @@ class PolygonListColumn(PolygonList):
                      
         all_entries = [x[0] for x in result]
         
-        if set(all_entries) == set([None]):
-            polygons = None
-        else:
+        if all_entries:
             polygons = [to_shape(wkb_poly) for wkb_poly in all_entries]
+        else:
+            polygons = None
 
         self.data.result = polygons
 
