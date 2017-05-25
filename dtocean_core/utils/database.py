@@ -53,9 +53,13 @@ def bathy_records_to_strata(bathy_records=None,
         bathy_table, xi, yj = init_bathy_records(bathy_records,
                                                  has_mannings)
         
-    else:
+    elif pre_bathy is not None:
         
         bathy_table, xi, yj = pre_bathy
+        
+    else:
+        
+        return None
         
     msg = "Building layers..."
     module_logger.debug(msg)
@@ -115,9 +119,13 @@ def bathy_records_to_mannings(bathy_records=None, pre_bathy=None):
         bathy_table, xi, yj = init_bathy_records(bathy_records,
                                                  True)
 
-    else:
+    elif pre_bathy is not None:
         
         bathy_table, xi, yj = pre_bathy
+        
+    else:
+        
+        return None
         
     msg = "Building mannings..."
     module_logger.debug(msg)
@@ -159,10 +167,7 @@ def tidal_series_records_to_xset(tidal_records):
                                                     'turbulence_intensity',
                                                     'ssh'])
                                                     
-    if tidal_table.empty:
-        
-        errStr = "No tidal time series records were retrieved"
-        raise ValueError(errStr)
+    if tidal_table.empty: return None
     
     msg = "Converting PostGIS Point types to coordinates..."
     module_logger.debug(msg)
@@ -244,10 +249,7 @@ def init_bathy_records(bathy_records, has_mannings=False):
     
     bathy_table = pd.DataFrame.from_records(bathy_records, columns=bathy_cols)
         
-    if bathy_table.empty:
-        
-        errStr = "No bathymetry records were retrieved"
-        raise ValueError(errStr)
+    if bathy_table.empty: return None
         
     msg = "Converting PostGIS Point types to coordinates..."
     module_logger.debug(msg)
