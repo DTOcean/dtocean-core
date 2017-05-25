@@ -327,7 +327,7 @@ def test_get_electrical_interface(module_menu, core, tidal_project, var_tree):
                                         project,
                                         mod_name)
                                         
-    assert interface.data.max_temp is not None
+    assert interface.data.voltage is not None
     
 def test_electrical_interface_entry(module_menu, core, tidal_project, var_tree):
     

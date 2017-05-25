@@ -166,7 +166,7 @@ ny = len(y)
 # Bathymetry
 X, Y = np.meshgrid(x,y)
 Z = np.zeros(X.shape) - 50.
-depths = Z.T[:, :, np.newaxis]
+depths = Z.T[:,:, np.newaxis]
 
 sediments = np.chararray((nx,ny,1), itemsize=20)
 sediments[:] = "loose sand"
@@ -244,10 +244,6 @@ max_100_year_gust_dir = 0.0
 max_50_year_water_level = 5.0 #water level maximum offset
 min_50_year_water_level = 0.0 #water level minimum offset
 
-# Shipping
-shipping_hist = ([0.8, 0.2],
-                 [0., 100., 500.]) # Probability, Deadweight bins
-
 ## CABLE CORRIDOR
 
 startx = 0.
@@ -268,7 +264,7 @@ ny = len(y)
 # Bathymetry
 X, Y = np.meshgrid(x,y)
 Z = np.zeros(X.shape) - 50.
-depths = Z.T[:, :, np.newaxis]
+depths = Z.T[:,:, np.newaxis]
 
 sediments = np.chararray((nx,ny,1), itemsize=20)
 sediments[:] = "loose sand"
@@ -291,11 +287,6 @@ corridor_10year_current_dir = 0.
 
 # Wave characterists
 corridor_100year_wave_dir = 0.
-
-# Shipping
-corridor_shipping_hist = ([0.8, 0.2],
-                          [0., 100., 500.]) # Probability, Deadweight bins
-                          
 
 ## SHORELINE
             
@@ -364,13 +355,8 @@ rated_array_power = 5.
 ## ELECTRICAL NETWORK
 
 # Farm
-ac_power_flow = "True"
-control_signal_type = "Fibre Optic"
-control_signal_cable = "True"
-control_signal_channels = 4.
 devices_per_string = 10
 network_configuration = ["Radial"]
-offshore_reactive_limit = None
 min_voltage = 15.
 max_voltage = 30.
 connector_type = "Wet-Mate"
@@ -599,27 +585,27 @@ hcfdrsoil = [
 table_path = os.path.join(env_dir, "species_protected.csv")
 
 protected_table = pd.read_csv(table_path, index_col=None)
-name_map1 ={ "subclass or group" : "Subclass or Group",
-                     "observed" : "Observed"}
+name_map1 ={ "subclass or group": "Subclass or Group",
+                     "observed": "Observed"}
 protected_table = protected_table.rename(columns=name_map1)
 print protected_table
 
 table_path = os.path.join(env_dir, "species_receptors.csv")
 receptors_table = pd.read_csv(table_path, index_col=None)
-name_map2 ={ "subclass or group" : "Subclass or Group",
-                     "observed" : "Observed",
-                     "observed january" : "Observed January",
-                     "observed february" : "Observed February",
-                     "observed march" : "Observed March",
-                     "observed april" : "Observed April",
-                     "observed may" : "Observed May",
-                     "observed june" : "Observed June",
-                     "observed july" : "Observed July",
-                     "observed august" : "Observed August",
-                     "observed september" : "Observed September",
-                     "observed october" : "Observed October",
-                     "observed november" : "Observed November",
-                     "observed december" : "Observed December"                     
+name_map2 ={ "subclass or group": "Subclass or Group",
+                     "observed": "Observed",
+                     "observed january": "Observed January",
+                     "observed february": "Observed February",
+                     "observed march": "Observed March",
+                     "observed april": "Observed April",
+                     "observed may": "Observed May",
+                     "observed june": "Observed June",
+                     "observed july": "Observed July",
+                     "observed august": "Observed August",
+                     "observed september": "Observed September",
+                     "observed october": "Observed October",
+                     "observed november": "Observed November",
+                     "observed december": "Observed December"                     
                      }
                      
 receptors_table = receptors_table.rename(columns=name_map2)
@@ -655,8 +641,6 @@ op_threshold = 0.
 
 test_data = {
         "bathymetry.layers": strata,
-        "farm.max_soil_resistivity": max_soil_res,
-        "farm.max_seabed_temp": max_temp,
         "constants.line_bearing_capacity_factor": line_bcf,
         "constants.pile_Am_moment_coefficient": pilemomcoefam,
         "constants.pile_Bm_moment_coefficient": pilemomcoefbm,
@@ -681,15 +665,14 @@ test_data = {
         "constants.rectangular_drift": driftcoeffloatrect,
         "constants.rectangular_wave_inertia": waveinertiacoefrect,
         "corridor.layers": export_strata,
-        "corridor.max_soil_resistivity": corridor_max_soil_res,
-        "corridor.max_seabed_temp": corridor_max_temp,
         "farm.collection_point_type": collection_point_type,
         "farm.connector_type": connector_type,
         "component.collection_points": collection_points,
         "component.dry_mate_connectors": dry_mate_connectors,
         "component.dynamic_cable": dynamic_cable,
-        "project.equipment_gradient_constraint": equipment_gradient_constraint,
-        "component.installation_soil_compatibility": installation_soil_compatibility,
+        "project.equipment_gradient_constraint":equipment_gradient_constraint,
+        "component.installation_soil_compatibility":
+            installation_soil_compatibility,
         "component.static_cable": static_cable,
         "component.transformers": transformers,
         "component.wet_mate_connectors": wet_mate_connectors,
@@ -698,11 +681,7 @@ test_data = {
         "project.export_voltage": corridor_voltage,
         "corridor.landing_point": landing_point,
         "corridor.nogo_areas": corridor_nogo_areas,
-        "corridor.shipping_hist": corridor_shipping_hist,
         "project.export_target_burial_depth": corridor_target_burial_depth,
-        "corridor.tidal_current_direction": corridor_10year_current_dir,
-        "corridor.tidal_current_flow": corridor_10year_current,
-        "corridor.wave_direction": corridor_100year_wave_dir,
         "device.wave_data_directory": wave_data_directory,
         "device.connector_type": connection,
         "device.coordinate_system": lCS,
@@ -716,8 +695,6 @@ test_data = {
         "device.power_rating": rated_power_device,
         "device.prescribed_footprint_radius": footprint_radius,
         "device.system_draft": device_draft,
-
-
         "device.umbilical_connection_point": umbilical_connection,
         "project.umbilical_safety_factor": umbilical_safety,
         "device.voltage": device_voltage,
@@ -737,34 +714,21 @@ test_data = {
         "device.system_width": sys_width,
         "device.wet_beam_area": sys_wet_beam,
         "device.wet_frontal_area": sys_wet_frontal,
-        "project.ac_power_flow": ac_power_flow,
-
-        "device.control_signal_cable": control_signal_cable,
-        "device.control_signal_channels": control_signal_channels,
-        "device.control_signal_type": control_signal_type,
         "project.devices_per_string": devices_per_string,
         "farm.direction_of_max_surface_current":  max_10year_current_dir,
-        "project.layout" : layout,
+        "project.layout": layout,
         "project.main_direction": main_direction,
         "bathymetry.mannings": geo_raw,
         "farm.max_surface_current_10_year": max_10year_current,
         "project.network_configuration": network_configuration,
         "farm.nogo_areas": nogo_areas,
-        "project.offshore_reactive_limit": offshore_reactive_limit,
         "project.onshore_infrastructure_cost": onshore_infrastructure_cost,
-#        "farm.point_sea_surface_height": point_SSH,
-#        "farm.power_law_exponent": power_law_exponent,
         "project.rated_power": rated_array_power,
-        "farm.shipping_hist": shipping_hist,
         "farm.spec_gamma": spectrum_gamma_farm,
         "farm.spec_spread": spectrum_dir_spreading_farm,
         "farm.spectrum_name": spectrum_type_farm,
         "project.target_burial_depth": target_burial_depth,
-
-
         "farm.wave_series": wave_series,
-        "project.voltage_limit_max": max_voltage,
-        "project.voltage_limit_min": min_voltage,
         "farm.wave_direction_100_year": predominant_100year_wave_dir,
         "farm.current_profile": current_profile,
         "project.grout_strength_safety_factor": grout_safety,
@@ -776,22 +740,21 @@ test_data = {
         "farm.mean_wind_direction_100_year": mean_100_year_wind_dir,
         "farm.mean_wind_speed_100_year": mean_100_year_wind_speed,
         "farm.min_water_level_50_year": min_50_year_water_level,
-        "farm.protected_table" : protected_table,
-        "farm.receptors_table" : receptors_table,
-        "farm.hydro_energy_modif_weight" : hydro_energy_modif_weight,
-        "farm.hydro_collision_risk_weight" : hydro_collision_risk_weight,
-        "farm.hydro_turbidity_risk_weight" : hydro_turbidity_risk_weight,
-        "device.hydro_underwater_noise_risk_weight" : hydro_underwater_noise_risk_weight,
-        "farm.hydro_reserve_effect_weight" : hydro_reserve_effect_weight,
-        "device.hydro_reef_effect_weight" : hydro_reef_effect_weight,
-        "device.hydro_resting_place_weight" : hydro_resting_place_weight,
-        "farm.initial_turbidity" : initial_turbidity,
-        "project.hydro_measured_turbidity" : hydro_measured_turbidity,
-        "farm.initial_noise" : initial_noise,
-        "project.hydro_measured_noise" : hydro_measured_noise,  
-        "project.fishery_restricted_area" : fishery_restricted_area,
-        
-        
+        "farm.protected_table": protected_table,
+        "farm.receptors_table": receptors_table,
+        "farm.hydro_energy_modif_weight": hydro_energy_modif_weight,
+        "farm.hydro_collision_risk_weight": hydro_collision_risk_weight,
+        "farm.hydro_turbidity_risk_weight": hydro_turbidity_risk_weight,
+        "device.hydro_underwater_noise_risk_weight":
+            hydro_underwater_noise_risk_weight,
+        "farm.hydro_reserve_effect_weight": hydro_reserve_effect_weight,
+        "device.hydro_reef_effect_weight": hydro_reef_effect_weight,
+        "device.hydro_resting_place_weight": hydro_resting_place_weight,
+        "farm.initial_turbidity": initial_turbidity,
+        "project.hydro_measured_turbidity": hydro_measured_turbidity,
+        "farm.initial_noise": initial_noise,
+        "project.hydro_measured_noise": hydro_measured_noise,  
+        "project.fishery_restricted_area": fishery_restricted_area,
         "project.cost_of_concrete": cost_concrete,
         "project.cost_of_grout": cost_grout,
         "project.cost_of_steel": cost_steel,
@@ -800,8 +763,6 @@ test_data = {
         'component.foundations_pile': comp_tables["pile"],
         'component.foundations_anchor_sand': comp_tables["drag anchor sand"],
         'component.foundations_anchor_soft': comp_tables["drag anchor soft"]
-        
-
         }
              
 if __name__ == "__main__":
