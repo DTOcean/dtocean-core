@@ -121,7 +121,6 @@ collection_point_found = {11: [[0,0,0],[0,0,0]],
 
 max_temp= 10.
 max_soil_res = 10.
-shipping_hist = ([0.5,0.5],[0,0.5,1])
 voltage = 11000.
 mean_power_hist_per_device = {
                           'Device001': ([0, 1.33, 1.33, 1.34],
@@ -131,10 +130,8 @@ mean_power_hist_per_device = {
                           'Device003': ([0, 0.4, 2.4, 1.2],
                                         [0, 0.25, 0.5, 0.75, 1])
                              }
-offshore_reactive_limit = None
 network_configuration = "Radial"
 
-ac_power_flow = "True"
 target_burial_depth = 10
 devices_per_string = 10
 corridor_current_dir = 0.
@@ -142,7 +139,6 @@ corridor_nogo_areas = ([(40.,40.),(40.,110.),(110.,110.), (110.,40.)],)
                                 
 corridor_max_surf_current = 0.
 corridor_wave_dir = 0. 
-corridor_shipping_hist = ([0.5,0.5],[0,0.5,1])
 corridor_target_burial_depth= 20.
 corridor_landing_point = [0,0,1]
 
@@ -212,9 +208,6 @@ export_strata = {"values": {"depth": export_depth_array,
 corridor_max_temp = 10.
 corridor_max_soil_res = 10.
 corridor_voltage = 33000.
-control_signal_type = "Fibre Optic"
-control_signal_cable = "True"
-control_signal_channels = 4.
 min_voltage = 0.9
 max_voltage = 1.0
 
@@ -251,57 +244,40 @@ umbilical_connection = [0,0,-0.5]
 umbsf = 2.0
 gravity = 9.80665 #gravity
 
-test_data = { "bathymetry.layers" : strata,
-              "farm.nogo_areas" : nogo_areas,
-              "farm.direction_of_max_surface_current" : current_dir,
-              "farm.max_surface_current_10_year" : max_surf_current,
-              "farm.wave_direction_100_year" : wave_dir, 
-              "device.power_rating" : power_rating,
-              "project.layout" : layout, 
-              "project.number_of_devices" : number_devices, 
-              "project.annual_energy" : annual_power, 
-              "component.static_cable" : static_cable ,
-              "component.dynamic_cable" : dynamic_cable ,
-              "component.wet_mate_connectors" : wet_mate_connectors, 
-              "component.dry_mate_connectors" : dry_mate_connectors ,
-              "component.transformers" : transformers,
-              "component.collection_points" : collection_points,
+test_data = { "bathymetry.layers": strata,
+              "farm.nogo_areas": nogo_areas,
+              "device.power_rating": power_rating,
+              "project.layout": layout, 
+              "project.number_of_devices": number_devices, 
+              "project.annual_energy": annual_power, 
+              "component.static_cable": static_cable ,
+              "component.dynamic_cable": dynamic_cable ,
+              "component.wet_mate_connectors": wet_mate_connectors, 
+              "component.dry_mate_connectors": dry_mate_connectors ,
+              "component.transformers": transformers,
+              "component.collection_points": collection_points,
               "component.collection_point_cog": collection_point_cog,
               "component.collection_point_foundations": collection_point_found,
-              "farm.max_seabed_temp" : max_temp, 
-              "farm.max_soil_resistivity" : max_soil_res, 
-              "farm.shipping_hist" : shipping_hist, 
-              "device.voltage" : voltage, 
-              "device.connector_type" : connection,
-              "project.offshore_reactive_limit" : offshore_reactive_limit,
-              "project.network_configuration" : network_configuration ,
-              "project.ac_power_flow" : ac_power_flow, 
-              "project.target_burial_depth" : target_burial_depth, 
-              "project.devices_per_string" : devices_per_string, 
-              "corridor.tidal_current_direction" : corridor_current_dir,
-              "corridor.nogo_areas" : corridor_nogo_areas, 
-              "corridor.tidal_current_flow" : corridor_max_surf_current, 
-              "corridor.wave_direction" : corridor_wave_dir, 
-              "corridor.shipping_hist" : corridor_shipping_hist,
+              "device.voltage": voltage, 
+              "device.connector_type": connection,
+              "project.network_configuration": network_configuration ,
+              "project.target_burial_depth": target_burial_depth, 
+              "project.devices_per_string": devices_per_string, 
+              "corridor.nogo_areas": corridor_nogo_areas, 
               "project.export_target_burial_depth":
                   corridor_target_burial_depth, 
-              "corridor.landing_point" : corridor_landing_point,
-              "corridor.layers" : export_strata, 
-              "corridor.max_seabed_temp" : corridor_max_temp, 
-              "corridor.max_soil_resistivity" : corridor_max_soil_res, 
-              "project.export_voltage" : corridor_voltage, 
-              "project.equipment_gradient_constraint" : equipment_gradient_constraint,
-              "component.installation_soil_compatibility" : installation_soil_compatibility,
+              "corridor.landing_point": corridor_landing_point,
+              "corridor.layers": export_strata, 
+              "project.export_voltage": corridor_voltage, 
+              "project.equipment_gradient_constraint":
+                  equipment_gradient_constraint,
+              "component.installation_soil_compatibility":
+                  installation_soil_compatibility,
               "device.constant_power_factor": power_factor,
-              "device.control_signal_type" : control_signal_type, 
-              "device.control_signal_cable" : control_signal_cable,
-              "device.control_signal_channels" : control_signal_channels, 
-              "project.voltage_limit_min" : min_voltage, 
-              "project.voltage_limit_max" : max_voltage,
-              "device.prescribed_footprint_radius" : footprint_radius,
-              "project.onshore_infrastructure_cost" : onshore_infrastructure_cost,
+              "device.prescribed_footprint_radius": footprint_radius,
+              "project.onshore_infrastructure_cost":
+                  onshore_infrastructure_cost,
               "project.mean_power_hist_per_device": mean_power_hist_per_device,
-              'device.system_draft': device_draft,
               'device.umbilical_connection_point': umbilical_connection,
               "project.umbilical_safety_factor": umbsf,
               'constants.gravity': gravity,

@@ -111,21 +111,9 @@ class ElectricalInterface(ModuleInterface):
                         'component.collection_point_cog',
                         'component.collection_point_foundations',
                         'bathymetry.layers',
-                        'farm.max_seabed_temp',
-                        'farm.max_soil_resistivity',
-                        'farm.max_surface_current_10_year',
                         'farm.nogo_areas',
-                        'farm.direction_of_max_surface_current',
-                        'farm.wave_direction_100_year',
-                        'farm.shipping_hist',
                         'corridor.layers',
-                        'corridor.max_seabed_temp',
-                        'corridor.max_soil_resistivity',
-                        'corridor.tidal_current_flow',
                         'corridor.nogo_areas',
-                        'corridor.tidal_current_direction',
-                        'corridor.wave_direction',
-                        'corridor.shipping_hist',
                         'corridor.landing_point',
                         'project.layout',
                         'project.mean_power_hist_per_device',
@@ -139,10 +127,6 @@ class ElectricalInterface(ModuleInterface):
                         'device.footprint_coords',
                         'device.power_factor',
                         'device.constant_power_factor',
-                        
-                         MaskVariable('device.system_draft',
-                                      'device.system_type',
-                                      ['Tidal Floating', 'Wave Floating']),
 
                          MaskVariable('device.umbilical_type',
                                       'device.system_type',
@@ -163,15 +147,7 @@ class ElectricalInterface(ModuleInterface):
                         'project.equipment_gradient_constraint',
                         'component.installation_soil_compatibility',
                         'project.export_voltage',
-                        'project.voltage_limit_min',
-                        'project.voltage_limit_max',
                         'project.onshore_infrastructure_cost',
-                        'project.onshore_losses',
-                        'project.offshore_reactive_limit',
-                        'project.ac_power_flow',
-                        'device.control_signal_type',
-                        'device.control_signal_cable',
-                        'device.control_signal_channels',
                         'options.user_installation_tool',
                         'constants.gravity'
                         ]
@@ -247,19 +223,11 @@ class ElectricalInterface(ModuleInterface):
                      'device.power_factor',
                      'device.prescribed_footprint_radius',
                      'device.umbilical_type',
-                     'project.ac_power_flow',
-                     'device.control_signal_cable',
-                     'device.control_signal_channels',
-                     'device.control_signal_type',
                      'project.devices_per_string',
                      'project.main_direction',
                      'farm.nogo_areas',
-                     'project.offshore_reactive_limit',
                      'project.onshore_infrastructure_cost',
-                     'project.onshore_losses',
                      'project.target_burial_depth',
-                     'project.voltage_limit_max',
-                     'project.voltage_limit_min',
                      'options.user_installation_tool'                    
                     ]
                     
@@ -289,9 +257,6 @@ class ElectricalInterface(ModuleInterface):
                   
         id_map = {"bathymetry": "bathymetry.layers", 
                   "nogo_areas": "farm.nogo_areas",
-                  "current_dir": "farm.direction_of_max_surface_current",
-                  "max_surf_current":  "farm.max_surface_current_10_year",
-                  "wave_dir":"farm.wave_direction_100_year",
                   "device_type": "device.system_type", 
                   "power_rating": "device.power_rating",
                   "layout": "project.layout",
@@ -305,41 +270,24 @@ class ElectricalInterface(ModuleInterface):
                   "collection_point_cog": "component.collection_point_cog",
                   "collection_point_foundations": 
                                   "component.collection_point_foundations",
-                  "max_temp": "farm.max_seabed_temp",
-                  "max_soil_res": "farm.max_soil_resistivity",
-                  "shipping_hist": "farm.shipping_hist",     
                   "voltage": "device.voltage",
-                  "offshore_reactive_limit": "project.offshore_reactive_limit",
                   "network_configuration": "project.network_configuration",           
-                  "ac_power_flow": "project.ac_power_flow",
                   "target_burial_depth": "project.target_burial_depth", 
                   "devices_per_string": "project.devices_per_string",
-                  "corridor_current_dir": "corridor.tidal_current_direction",
                   "corridor_nogo_areas": "corridor.nogo_areas",
-                  "corridor_max_surf_current": "corridor.tidal_current_flow",    
-                  "corridor_wave_dir": "corridor.wave_direction",
-                  "corridor_shipping_hist": "corridor.shipping_hist",
                   "corridor_target_burial_depth":
                       "project.export_target_burial_depth",
                   "corridor_landing_point": "corridor.landing_point",
                   "export_strata": "corridor.layers",
-                  "corridor_max_temp": "corridor.max_seabed_temp",
-                  "corridor_max_soil_res": "corridor.max_soil_resistivity",     
                   "corridor_voltage": "project.export_voltage",
                   "equipment_gradient_constraint":
                       "project.equipment_gradient_constraint",
                   "installation_soil_compatibility":
                       "component.installation_soil_compatibility",
-                  "control_signal_type": "device.control_signal_type",
-                  "control_signal_cable": "device.control_signal_cable",
-                  "control_signal_channels": "device.control_signal_channels",
-                  "min_voltage": "project.voltage_limit_min",
-                  "max_voltage": "project.voltage_limit_max",
                   "footprint_radius": "device.prescribed_footprint_radius",
                   "footprint_coords": "device.footprint_coords",
                   "onshore_infrastructure_cost":
                       "project.onshore_infrastructure_cost",
-                  "onshore_losses": "project.onshore_losses",
                   "mean_power_hist_per_device":
                       "project.mean_power_hist_per_device",
                   "electrical_network": "project.electrical_network",
@@ -353,7 +301,6 @@ class ElectricalInterface(ModuleInterface):
                   "constant_power_factor": "device.constant_power_factor",
                   "umbilical_cables": "project.umbilical_cable_data",
                   "dev_umbilical_point": "device.umbilical_connection_point",
-                  "system_draft": 'device.system_draft',
                   "umbilical_sf": "project.umbilical_safety_factor",
                   "main_direction": "project.main_direction",
                   'substation_layout': 'project.substation_layout',
@@ -661,29 +608,16 @@ class ElectricalInterface(ModuleInterface):
                                                                 split_name[2]) 
         
         bathymetry = bathymetry.rename(columns=mapping)
-        
-        bathymetry = bathymetry.replace(to_replace = renaming_bathymetry)
-
-        # Convert the directions from bearings to radians
-        site_current_dir = bearing_to_radians(data.current_dir)
-        site_wave_dir = bearing_to_radians(data.wave_dir)
-
-        # Only use bin ends for shipping history
-        shipping_hist = []
-        full_bins = data.shipping_hist["bins"]
-        
-        for i, value in enumerate(data.shipping_hist["values"]):
-            bin_edge = [full_bins[i+1], value]
-            shipping_hist.append(bin_edge)
+        bathymetry = bathymetry.replace(to_replace=renaming_bathymetry)
                         
         site = ElectricalSiteData(bathymetry,
                                   data.nogo_areas,
-                                  data.max_temp,
-                                  data.max_soil_res,
-                                  site_current_dir,
-                                  data.max_surf_current,
-                                  site_wave_dir,
-                                  shipping_hist)
+                                  None,
+                                  None,
+                                  None,
+                                  None,
+                                  None,
+                                  None)
         
 #    class ElectricalExportData(object):
 #        
@@ -747,30 +681,17 @@ class ElectricalInterface(ModuleInterface):
                                         "layer {} start".format(split_name[2]) 
 
         export_bathymetry = export_bathymetry.rename(columns=export_mapping)
-        
         export_bathymetry = export_bathymetry.replace(
                                               to_replace=renaming_bathymetry)
-        
-        # Convert the directions from bearings to radians
-        export_current_dir = bearing_to_radians(data.corridor_current_dir)
-        export_wave_dir = bearing_to_radians(data.corridor_wave_dir)
-
-        # Only use bin ends for shipping history
-        export_shipping_hist = []
-        full_bins = data.corridor_shipping_hist["bins"]
-        
-        for i, value in enumerate(data.corridor_shipping_hist["values"]):
-            bin_edge = [full_bins[i+1], value]
-            export_shipping_hist.append(bin_edge)
 
         export = ElectricalExportData(export_bathymetry,
                                       data.corridor_nogo_areas,
-                                      data.corridor_max_temp,
-                                      data.corridor_max_soil_res,
-                                      export_current_dir,
-                                      data.corridor_max_surf_current,
-                                      export_wave_dir,
-                                      export_shipping_hist)
+                                      None,
+                                      None,
+                                      None,
+                                      None,
+                                      None,
+                                      None)
                                       
 #    class ElectricalMachineData(object):
 #    
@@ -825,7 +746,7 @@ class ElectricalInterface(ModuleInterface):
                                     data.footprint_radius,
                                     data.footprint_coords, #implent either... or... 
                                     umbilical_connection,
-                                    data.system_draft)
+                                    None)
 
 #    class ElectricalArrayData(object):
 #                                        
@@ -903,31 +824,6 @@ class ElectricalInterface(ModuleInterface):
             opt_args["onshore_infrastructure_cost"] = \
                                         data.onshore_infrastructure_cost
                                         
-        if data.onshore_losses is not None:
-            opt_args["onshore_losses"] = data.onshore_losses
-            
-        if data.control_signal_type is not None:
-            name_map = {"Fibre Optic": "fibre optic"}
-            opt_args["control_signal_type"] = \
-                                            name_map[data.control_signal_type]
-            
-        if data.control_signal_cable is not None:
-            opt_args["control_signal_cable"] = data.control_signal_cable
-            
-        if data.control_signal_channels is not None:
-            opt_args["control_signal_channels"] = \
-                                        data.control_signal_channels
-                                        
-        if data.min_voltage is not None:
-            opt_args["voltage_limit_min"] = data.min_voltage
-            
-        if data.max_voltage is not None:
-            opt_args["voltage_limit_max"] = data.max_voltage
-            
-        if data.offshore_reactive_limit is not None:
-            opt_args["offshore_reactive_limit"] = \
-                                        data.offshore_reactive_limit
-                                        
         if data.main_direction is not None:
             opt_args["orientation_angle"] = data.main_direction
         
@@ -994,7 +890,7 @@ class ElectricalInterface(ModuleInterface):
                                     [data.network_configuration],
                                     data.corridor_voltage,
                                     None,
-                                    data.ac_power_flow,
+                                    None,
                                     data.target_burial_depth,
                                     data.corridor_target_burial_depth,
                                     None,

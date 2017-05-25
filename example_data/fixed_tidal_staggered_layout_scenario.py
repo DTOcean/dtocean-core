@@ -273,9 +273,6 @@ max_100_year_gust_dir = 0.0
 max_50_year_water_level = 5.0 #water level maximum offset
 min_50_year_water_level = 0.0 #water level minimum offset
 
-# Shipping
-shipping_hist = ([0.8, 0.2],
-                 [0., 100., 500.]) # Probability, Deadweight bins
 
 ## CABLE CORRIDOR
 
@@ -320,10 +317,6 @@ corridor_10year_current_dir = 0.
 
 # Wave characterists
 corridor_100year_wave_dir = 0.
-
-# Shipping
-corridor_shipping_hist = ([0.8, 0.2],
-                          [0., 100., 500.]) # Probability, Deadweight bins
                           
 
 ## SHORELINE
@@ -451,13 +444,8 @@ rated_array_power = 5.
 ## ELECTRICAL NETWORK
 
 # Farm
-ac_power_flow = "True"
-control_signal_type = "Fibre Optic"
-control_signal_cable = "True"
-control_signal_channels = 4.
 devices_per_string = 10
 network_configuration = ["Radial"]
-offshore_reactive_limit = None
 min_voltage = 15.
 max_voltage = 30.
 connector_type = "Wet-Mate"
@@ -768,8 +756,6 @@ op_threshold = 0.
 
 test_data = {
         "bathymetry.layers": strata,
-        "farm.max_soil_resistivity": max_soil_res,
-        "farm.max_seabed_temp": max_temp,
         "constants.line_bearing_capacity_factor": line_bcf,
         "constants.pile_Am_moment_coefficient": pilemomcoefam,
         "constants.pile_Bm_moment_coefficient": pilemomcoefbm,
@@ -794,8 +780,6 @@ test_data = {
         "constants.rectangular_drift": driftcoeffloatrect,
         "constants.rectangular_wave_inertia": waveinertiacoefrect,
         "corridor.layers": export_strata,
-        "corridor.max_soil_resistivity": corridor_max_soil_res,
-        "corridor.max_seabed_temp": corridor_max_temp,
         "farm.collection_point_type": collection_point_type,
         "farm.connector_type": connector_type,
         "component.collection_points": collection_points,
@@ -813,11 +797,7 @@ test_data = {
         "project.export_voltage": corridor_voltage,
         "corridor.landing_point": landing_point,
         "corridor.nogo_areas": corridor_nogo_areas,
-        "corridor.shipping_hist": corridor_shipping_hist,
         "project.export_target_burial_depth": corridor_target_burial_depth,
-        "corridor.tidal_current_direction": corridor_10year_current_dir,
-        "corridor.tidal_current_flow": corridor_10year_current,
-        "corridor.wave_direction": corridor_100year_wave_dir,
         "device.bidirection": bidirection,
         "device.connector_type": connection,
         "device.coordinate_system": lCS,
@@ -853,11 +833,7 @@ test_data = {
         "device.system_width": sys_width,
         "device.wet_beam_area": sys_wet_beam,
         "device.wet_frontal_area": sys_wet_frontal,
-        "project.ac_power_flow": ac_power_flow,
         "farm.blockage_ratio": blockage_ratio,
-        "device.control_signal_cable": control_signal_cable,
-        "device.control_signal_channels": control_signal_channels,
-        "device.control_signal_type": control_signal_type,
         "project.devices_per_string": devices_per_string,
         "farm.direction_of_max_surface_current":  max_10year_current_dir,
         "project.main_direction": main_direction,
@@ -865,17 +841,13 @@ test_data = {
         "farm.max_surface_current_10_year": max_10year_current,
         "project.network_configuration": network_configuration,
         "farm.nogo_areas": nogo_areas,
-        "project.offshore_reactive_limit": offshore_reactive_limit,
         "project.onshore_infrastructure_cost": onshore_infrastructure_cost,
 #        "farm.power_law_exponent": power_law_exponent,
         "project.rated_power": rated_array_power,
-        "farm.shipping_hist": shipping_hist,
         "project.target_burial_depth": target_burial_depth,
         "project.tidal_occurrence_nbins": n_bins,
         "farm.tidal_occurrence_point": tidal_point,
         "farm.tidal_series": tidal_series_raw,
-        "project.voltage_limit_max": max_voltage,
-        "project.voltage_limit_min": min_voltage,
         "farm.wave_direction_100_year": predominant_100year_wave_dir,
         "farm.current_profile": current_profile,
         "project.grout_strength_safety_factor": grout_safety,
