@@ -1023,8 +1023,9 @@ class NumpyLineColumn(NumpyLine):
         trim_col1 = [item[0] for item in col1]
                     
         line = zip(trim_col0, trim_col1)
-
-        self.data.result = line
+        
+        if line:
+            self.data.result = line
         
         return
 
