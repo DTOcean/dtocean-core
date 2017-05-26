@@ -170,13 +170,13 @@ class HydroInterface(ModuleInterface):
                                      "device.system_type",
                                      ["Wave Fixed", "Wave Floating"]),
                                      
-                        'project.main_direction',
                         'project.rated_power',
                         
                         MaskVariable("project.tidal_occurrence_nbins",
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),  
                                      
+                        'project.main_direction',
                         'options.boundary_padding',
                         'options.optimisation_threshold',
                         'options.power_bin_width',
