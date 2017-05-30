@@ -638,6 +638,12 @@ class HydroInterface(ModuleInterface):
                                
         elif self.data.user_array_option == "User Defined Fixed":
             
+            if self.data.user_array_layout is None:
+                
+                errStr = ("A predefined array layout must be provided when "
+                          "using a 'User Defined' array layout option")
+                raise ValueError(errStr)
+            
             numpy_layout = np.array([point.coords[0]
                                     for point in self.data.user_array_layout])
                                                     
