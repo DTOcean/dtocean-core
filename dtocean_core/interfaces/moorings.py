@@ -1079,7 +1079,7 @@ class MooringsInterface(ModuleInterface):
                                
         main = Main(input_data)    
         
-        if debug_entry: return;
+        if debug_entry: return
         
         # Run the module
         main()
