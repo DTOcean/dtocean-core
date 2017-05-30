@@ -627,33 +627,33 @@ class HydroInterface(ModuleInterface):
             tidal_bidirectional = None
             tidal_data_folder = None
             
-                             
-        if self.data.user_array_option == "User Defined Flexible":
-            
-            numpy_layout = np.array([point.coords[0]
-                                    for point in self.data.user_array_layout])
-            
-            user_array_dict = {'Option': 3,
-                               'Value': numpy_layout}
-                               
-        elif self.data.user_array_option == "User Defined Fixed":
+        # Set user_array_dict value key
+        if self.data.user_array_option in ["User Defined Flexible",
+                                           "User Defined Fixed"]:
             
             if self.data.user_array_layout is None:
                 
                 errStr = ("A predefined array layout must be provided when "
-                          "using a 'User Defined' array layout option")
+                          "using the '{}' array layout option").format(
+                                                  self.data.user_array_option)
                 raise ValueError(errStr)
-            
+                
             numpy_layout = np.array([point.coords[0]
                                     for point in self.data.user_array_layout])
-                                                    
-            user_array_dict = {'Option': 2,
-                               'Value': numpy_layout}
-                               
+            
+            user_array_dict = {'Value': numpy_layout}
+            
         else:
             
-            user_array_dict = {'Option': 1,
-                               'Value': self.data.user_array_option.lower()}
+            user_array_dict = {'Value': self.data.user_array_option.lower()}
+                         
+        # Set user_array_dict option key
+        if self.data.user_array_option == "User Defined Flexible":
+            user_array_dict['Option'] = 3
+        elif self.data.user_array_option == "User Defined Fixed":
+            user_array_dict['Option'] = 2
+        else:
+            user_array_dict['Option'] = 1
                                
         if 'Floating' in self.data.type:
             float_flag = True
