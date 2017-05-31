@@ -260,7 +260,7 @@ def test_tidal_interface_entry(module_menu, core, tidal_project, var_tree):
                                 os.path.join(dir_path,
                                              "inputs_wp2_tidal.pkl"))
                                                        
-    can_execute = module_menu.is_executable(core, project,  mod_name)
+    can_execute = module_menu.is_executable(core, project, mod_name)
     
     if not can_execute:
         
@@ -276,6 +276,47 @@ def test_tidal_interface_entry(module_menu, core, tidal_project, var_tree):
     interface.connect(debug_entry=True)
                                         
     assert True
+    
+def test_tidal_interface_entry_fail(module_menu,
+                                    core,
+                                    tidal_project,
+                                    var_tree):
+        
+    mod_name = "Hydrodynamics"
+    
+    project_menu = ProjectMenu()
+    project = deepcopy(tidal_project) 
+    module_menu.activate(core, project, mod_name)
+    project_menu.initiate_dataflow(core, project)
+    
+    hydro_branch = var_tree.get_branch(core, project, mod_name)
+    hydro_branch.read_test_data(core,
+                                project,
+                                os.path.join(dir_path,
+                                             "inputs_wp2_tidal.pkl"))
+    
+    user_layout = hydro_branch.get_input_variable(core,
+                                                  project,
+                                                  "options.user_array_layout")
+    user_layout.set_raw_interface(core, None)
+    user_layout.read(core, project)
+                                                       
+    can_execute = module_menu.is_executable(core, project, mod_name)
+    
+    if not can_execute:
+        
+        inputs = hydro_branch.get_input_status(core, project)
+        pprint(inputs)
+        assert can_execute
+        
+    connector = _get_connector(project, "modules")
+    interface = connector.get_interface(core,
+                                        project,
+                                        mod_name)
+    
+    with pytest.raises(ValueError):
+        interface.connect(debug_entry=True)
+                                        
     
 def test_electrical_inputs(module_menu, core, tidal_project, var_tree):
         
