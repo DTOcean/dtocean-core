@@ -376,7 +376,8 @@ def test_NumpyLine_auto_plot(tmpdir):
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
                          "title": "test",
-                         "labels": ["x", "f(x)"]})
+                         "labels": ["x", "f(x)"],
+                         "units": ["m", "m^{2}"]})
     
     test = NumpyLine()
     
@@ -416,6 +417,39 @@ def test_NumpyLineDict():
     assert "Sin(x)" in b
     assert max(b["Sin(x)"][:,1]) == 1
     assert b["Cos(x)"][0,1] == b["Cos(x)"][-1,1]
+    
+
+def test_NumpyLineDict_auto_plot(tmpdir):
+        
+    coarse_sample = np.linspace(0., 2*np.pi, num=5)
+    fine_sample = np.linspace(0., 2*np.pi, num=9)
+    
+    coarse_sin = zip(coarse_sample, np.sin(coarse_sample))
+    fine_cos = zip(fine_sample, np.cos(fine_sample))
+    
+    raw = {"Sin(x)" : coarse_sin,
+           "Cos(x)" : fine_cos}
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test",
+                         "labels": ["x", "f(x)"],
+                         "units": ["m", "m^{2}"]})
+    
+    test = NumpyLineDict()
+    
+    fout_factory = InterfaceFactory(AutoPlot)
+    PlotCls = fout_factory(meta, test)
+    
+    plot = PlotCls()
+    plot.data.result = test.get_data(raw, meta)
+    plot.meta.result = meta
+
+    plot.connect()
+    
+    assert len(plt.get_fignums()) == 1
+    plt.close("all")
+    
     
 def test_XGrid2D_available(core):
     
