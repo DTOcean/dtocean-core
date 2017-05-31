@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   objects.
 - Completed database integration for installation and maintenance modules.
 - Add change log.
+- Added better error if predefined array layout option is chosen but no layout
+  is given.
 
 ### Changed
 
@@ -45,6 +47,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Device construction strategy is now simplified to offer just a "two stage
   assembly" option.
 - Split vessels table into separate tables per vehicle type.
+- Improved plot labelling and included Latex symbols.
+- Reordered Hydrodynamics module inputs.
 
 ### Fixed
 
@@ -62,6 +66,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed installation module dates based outputs.
 - General improvements to variable and table column names.
 - Fixed chosen trenching type variable definition.
+- Fixed bugs with database reading empty tables - now returns None.
+- Fixed TimeSeries structure plots.
    
 ### Removed
 
@@ -75,7 +81,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Removed numerous unused fields from ports table.
 - Removed numerous unused fields from vessels table.
 - Removed some header lines from inputs to moorings module and hard coded them
-  into the interface. 
+  into the interface.
+- Removed power law exponent variable as this is not used when Manning's number
+  is used to describe channel roughness.
+- Removed variables that are inputs to the electrical module but are not used 
+  in any way.
 
 ## [1.0.0] - 2017-02-23
 
