@@ -12,6 +12,7 @@ only_commits:
   files:
     - dds/
     - dtocean_core/
+    - test_data/
     - tests/
     - setup.py
     
