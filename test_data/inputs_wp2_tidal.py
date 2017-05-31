@@ -159,7 +159,11 @@ pos = [(450., 100.),
 FixedArrayLayout = np.array(pos)
 
 # Lease area is extended beyond bathymetry limits.
-lease_area = np.array([[50., 50.],[1050., 50.],[1050., 250.],[50., 250.]],dtype=float)
+lease_area = np.array([[50., 50.],
+                       [1050., 50.],
+                       [1050., 250.],
+                       [50., 250.]],
+                      dtype=float)
 power_law_exponent = np.array([7.])
 nogo_areas = [np.array([[50., 50.],[60., 50.],[60., 60.],[50., 60.]])]
 rated_array_power = 10
@@ -204,7 +208,6 @@ test_data = {'bathymetry.layers': strata,
              'site.lease_boundary': lease_area,
              'project.main_direction': main_direction,
              'farm.nogo_areas': nogo_areas,
-#             'farm.power_law_exponent': power_law_exponent,
              'project.rated_power': rated_array_power,
              'farm.tidal_series': tidal_series_raw,
              'project.tidal_occurrence_nbins': n_bins,
