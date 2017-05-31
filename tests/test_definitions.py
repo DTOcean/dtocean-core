@@ -4,12 +4,15 @@ import pytest
 from datetime import datetime, timedelta
 
 import numpy as np
+import matplotlib.pyplot as plt
 
-from dtocean_core.core import Core
+from aneris.control.factory import InterfaceFactory
+from dtocean_core.core import AutoFileInput, AutoFileOutput, AutoPlot, Core
 from dtocean_core.menu import ProjectMenu
 from dtocean_core.pipeline import Tree
 from dtocean_core.data import CoreMetaData
-from dtocean_core.data.definitions import (IndexTable,
+from dtocean_core.data.definitions import (SeriesData,
+                                           IndexTable,
                                            Histogram,
                                            HistogramDict,
                                            LineTable,
@@ -64,7 +67,60 @@ def project(core, tree):
     new_project = device_type.connect(core, new_project, tree)
              
     return new_project
+
+def test_SeriesData():
     
+    raw = np.random.rand(100)
+
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test",
+                         "labels": ['mass'],
+                         "units": ["kg"]})
+    
+    test = SeriesData()
+    a = test.get_data(raw, meta)
+    b = test.get_value(a)
+
+    assert len(b) == len(raw)
+
+
+def test_SeriesData_auto_file(tmpdir):
+        
+    raw = np.random.rand(100)
+    test_path = tmpdir.mkdir("sub").join("test.csv")
+    test_path_str = str(test_path)
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test",
+                         "labels": ['mass'],
+                         "units": ["kg"]})
+    
+    test = SeriesData()
+    
+    fout_factory = InterfaceFactory(AutoFileOutput)
+    FOutCls = fout_factory(meta, test)
+    
+    fout = FOutCls()
+    fout._path = test_path_str
+    fout.data.result = test.get_data(raw, meta)
+
+    fout.connect()
+    
+    assert len(tmpdir.listdir()) == 1
+              
+    fin_factory = InterfaceFactory(AutoFileInput)
+    FInCls = fin_factory(meta, test)
+              
+    fin = FInCls()
+    fin._path = test_path_str
+    
+    fin.connect()
+    
+    assert len(fin.data.result) == len(raw)
+
+
 def test_TimeSeries(core):
     
     dates = []
@@ -91,6 +147,91 @@ def test_TimeSeries(core):
 
     assert len(b) == len(dates)
     assert len(b.resample('D').mean()) == 2
+
+
+def test_TimeSeries_auto_file(tmpdir):
+        
+    dates = []
+    dt = datetime(2010, 12, 01)
+    end = datetime(2010, 12, 02, 23, 59, 59)
+    step = timedelta(seconds=3600)
+    
+    while dt < end:
+        dates.append(dt)
+        dt += step
+        
+    values = np.random.rand(len(dates))
+    raw = [(d, v) for d, v in zip(dates, values)]
+
+    test_path = tmpdir.mkdir("sub").join("test.csv")
+    test_path_str = str(test_path)
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test",
+                         "labels": ['mass'],
+                         "units": ["kg"]})
+    
+    test = TimeSeries()
+    
+    fout_factory = InterfaceFactory(AutoFileOutput)
+    FOutCls = fout_factory(meta, test)
+    
+    fout = FOutCls()
+    fout._path = test_path_str
+    fout.data.result = test.get_data(raw, meta)
+
+    fout.connect()
+    
+    assert len(tmpdir.listdir()) == 1
+              
+    fin_factory = InterfaceFactory(AutoFileInput)
+    FInCls = fin_factory(meta, test)
+              
+    fin = FInCls()
+    fin._path = test_path_str
+    
+    fin.connect()
+    result = fin.data.result
+    
+    assert len(result) == len(dates)
+    assert len(result.resample('D').mean()) == 2
+
+
+def test_TimeSeries_auto_plot(tmpdir):
+        
+    dates = []
+    dt = datetime(2010, 12, 01)
+    end = datetime(2010, 12, 02, 23, 59, 59)
+    step = timedelta(seconds=3600)
+    
+    while dt < end:
+        dates.append(dt)
+        dt += step
+        
+    values = np.random.rand(len(dates))
+    raw = [(d, v) for d, v in zip(dates, values)]
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test",
+                         "labels": ['mass'],
+                         "units": ["kg"]})
+    
+    test = TimeSeries()
+    
+    fout_factory = InterfaceFactory(AutoPlot)
+    PlotCls = fout_factory(meta, test)
+    
+    plot = PlotCls()
+    plot.data.result = test.get_data(raw, meta)
+    plot.meta.result = meta
+
+    plot.connect()
+    
+    assert len(plt.get_fignums()) == 1
+    plt.close("all")
+    
     
 def test_TimeTable(core):
     
