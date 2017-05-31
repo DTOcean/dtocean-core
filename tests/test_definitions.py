@@ -16,6 +16,7 @@ from dtocean_core.data.definitions import (SeriesData,
                                            Histogram,
                                            HistogramDict,
                                            LineTable,
+                                           NumpyLine,
                                            NumpyLineDict,
                                            PointData,
                                            PointDict,
@@ -309,8 +310,90 @@ def test_LineTable(core):
     assert "Thrust" in b
     assert len(b) == len(velocity)
     assert b.index.name == "Velocity"
+
+
+def test_NumpyLine():
     
-def test_NumpyLineDict(core):
+    coarse_sample = np.linspace(0., 2*np.pi, num=5)
+    raw = zip(coarse_sample, np.sin(coarse_sample))
+
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test",
+                         "labels": ["x", "f(x)"]})
+    
+    test = NumpyLine()
+    a = test.get_data(raw, meta)
+    b = test.get_value(a)
+    
+    assert max(b[:,1]) == 1
+    
+
+@pytest.mark.parametrize("fext", [".csv", ".xls", ".xlsx"])
+def test_NumpyLine_auto_file(tmpdir, fext):
+        
+    coarse_sample = np.linspace(0., 2*np.pi, num=5)
+    raw = zip(coarse_sample, np.sin(coarse_sample))
+
+    test_path = tmpdir.mkdir("sub").join("test{}".format(fext))
+    test_path_str = str(test_path)
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test",
+                         "labels": ["x", "f(x)"]})
+    
+    test = NumpyLine()
+    
+    fout_factory = InterfaceFactory(AutoFileOutput)
+    FOutCls = fout_factory(meta, test)
+    
+    fout = FOutCls()
+    fout._path = test_path_str
+    fout.data.result = test.get_data(raw, meta)
+
+    fout.connect()
+    
+    assert len(tmpdir.listdir()) == 1
+              
+    fin_factory = InterfaceFactory(AutoFileInput)
+    FInCls = fin_factory(meta, test)
+              
+    fin = FInCls()
+    fin._path = test_path_str
+    
+    fin.connect()
+    result = fin.data.result
+    
+    assert max(result[:,1]) == 1
+
+
+def test_NumpyLine_auto_plot(tmpdir):
+        
+    coarse_sample = np.linspace(0., 2*np.pi, num=5)
+    raw = zip(coarse_sample, np.sin(coarse_sample))
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test",
+                         "labels": ["x", "f(x)"]})
+    
+    test = NumpyLine()
+    
+    fout_factory = InterfaceFactory(AutoPlot)
+    PlotCls = fout_factory(meta, test)
+    
+    plot = PlotCls()
+    plot.data.result = test.get_data(raw, meta)
+    plot.meta.result = meta
+
+    plot.connect()
+    
+    assert len(plt.get_fignums()) == 1
+    plt.close("all")
+
+
+def test_NumpyLineDict():
     
     coarse_sample = np.linspace(0., 2*np.pi, num=5)
     fine_sample = np.linspace(0., 2*np.pi, num=9)
