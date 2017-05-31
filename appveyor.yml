@@ -10,6 +10,7 @@
 # Build only for commits to certain locations
 only_commits:
   files:
+    - dds/
     - dtocean_core/
     - tests/
     - setup.py
