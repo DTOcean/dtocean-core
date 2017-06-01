@@ -34,6 +34,10 @@ from descartes import PolygonPatch
 from geoalchemy2.shape import to_shape
 
 from aneris.boundary import Structure
+from ..utils.database import (get_table_df,
+                              get_one_from_column,
+                              filter_one_from_column,
+                              get_all_from_columns)
 
 BLUE = '#6699cc'
 
@@ -197,11 +201,11 @@ class TimeSeriesColumn(TimeSeries):
     def auto_db(self):
         
         schema, table = self.meta.result.tables[0].split(".")
-
-        df = pd.read_sql_table(table,
-                               self._db._engine,
-                               schema=schema,
-                               columns=self.meta.result.tables[1:])
+        
+        df = get_table_df(self._db,
+                          schema,
+                          table,
+                          self.meta.result.tables[1:])
                                        
         if df.empty:
             
@@ -224,7 +228,7 @@ class TimeSeriesColumn(TimeSeries):
             df = df.drop("Date", 1)
             df = df.drop("Time", 1)
             df = df.set_index("DateTime")
-            
+                        
             result = df.to_records()
             
         self.data.result = result
@@ -378,10 +382,10 @@ class TableDataColumn(TableData):
         
         schema, table = self.meta.result.tables[0].split(".")
 
-        df = pd.read_sql_table(table,
-                               self._db._engine,
-                               schema=schema,
-                               columns=self.meta.result.tables[1:])
+        df = get_table_df(self._db,
+                          schema,
+                          table,
+                          self.meta.result.tables[1:])
                                
         if df.empty:
             
@@ -460,10 +464,10 @@ class IndexTableColumn(IndexTable):
         
         schema, table = self.meta.result.tables[0].split(".")
 
-        df = pd.read_sql_table(table,
-                               self._db._engine,
-                               schema=schema,
-                               columns=self.meta.result.tables[1:])
+        df = get_table_df(self._db,
+                          schema,
+                          table,
+                          self.meta.result.tables[1:])
                                
         if df.empty:
             
@@ -545,10 +549,10 @@ class LineTableColumn(LineTable):
         
         schema, table = self.meta.result.tables[0].split(".")
 
-        df = pd.read_sql_table(table,
-                               self._db._engine,
-                               schema=schema,
-                               columns=self.meta.result.tables[1:])
+        df = get_table_df(self._db,
+                          schema,
+                          table,
+                          self.meta.result.tables[1:])
                                
         if df.empty:
             
@@ -615,12 +619,15 @@ class TimeTable(TableData):
         TableData.auto_file_input(self)
         
         df = self.data.result
-        
+                
         try:
         
+            df = df.set_index("DateTime")
             df.index = df.index.map(
                                 lambda x: pd.to_datetime(x, format=fmtStr))
-               
+            df.index.name = "DateTime"
+            df = df.reset_index()
+                           
         except ValueError:  # wrong datetime object format
             
             errStr = ("TimeTable requires a datetime.datetime object "
@@ -652,10 +659,10 @@ class TimeTableColumn(TimeTable):
         
         schema, table = self.meta.result.tables[0].split(".")
 
-        df = pd.read_sql_table(table,
-                               self._db._engine,
-                               schema=schema,
-                               columns=self.meta.result.tables[1:])
+        df = get_table_df(self._db,
+                          schema,
+                          table,
+                          self.meta.result.tables[1:])
                                
         if df.empty:
             
@@ -767,10 +774,10 @@ class Numpy2DColumn(Numpy2D):
         
         schema, table = self.meta.result.tables[0].split(".")
 
-        df = pd.read_sql_table(table,
-                               self._db._engine,
-                               schema=schema,
-                               columns=self.meta.result.tables[1:4])
+        df = get_table_df(self._db,
+                          schema,
+                          table,
+                          self.meta.result.tables[1:4])
                                
         if df.empty:
             
@@ -825,10 +832,10 @@ class Numpy3DColumn(Numpy3D):
         
         schema, table = self.meta.result.tables[0].split(".")
 
-        df = pd.read_sql_table(table,
-                               self._db._engine,
-                               schema=schema,
-                               columns=self.meta.result.tables[1:5])
+        df = get_table_df(self._db,
+                          schema,
+                          table,
+                          self.meta.result.tables[1:5])
                                
         if df.empty:
             
@@ -990,9 +997,10 @@ class NumpyLineArray(NumpyLine):
             
         schema, table = self.meta.result.tables[0].split(".")
 
-        Table = self._db.safe_reflect_table(table, schema)
-        result = self._db.session.query(
-                     Table.columns[self.meta.result.tables[1]]).one_or_none()
+        result = get_one_from_column(self._db,
+                                     schema,
+                                     table,
+                                     self.meta.result.tables[1])
 
         if result is not None and result[0] is not None:
             self.data.result = result[0]
@@ -1013,19 +1021,14 @@ class NumpyLineColumn(NumpyLine):
 
         schema, table = self.meta.result.tables[0].split(".")
 
-        Table = self._db.safe_reflect_table(table, schema)
-        col0 = self._db.session.query(
-                     Table.columns[self.meta.result.tables[1]]).all()
-        col1 = self._db.session.query(
-                     Table.columns[self.meta.result.tables[2]]).all()
-     
-        trim_col0 = [item[0] for item in col0]
-        trim_col1 = [item[0] for item in col1]
-                    
-        line = zip(trim_col0, trim_col1)
+        col_lists = get_all_from_columns(self._db,
+                                         schema,
+                                         table,
+                                         self.meta.result.tables[1:3])
         
-        if line:
-            self.data.result = line
+        line = zip(col_lists[0], col_lists[1])
+        
+        if line: self.data.result = line
         
         return
 
@@ -1090,21 +1093,20 @@ class NumpyLineDictArrayColumn(NumpyLineDict):
 
         schema, table = self.meta.result.tables[0].split(".")
 
-        Table = self._db.safe_reflect_table(table, schema)
-        keys = self._db.session.query(
-                     Table.columns[self.meta.result.tables[1]]).all()
-        lines = self._db.session.query(
-                     Table.columns[self.meta.result.tables[2]]).all()
-
-        all_keys = [x[0] for x in keys]
-            
-        all_lines = [x[0] for x in lines]
-
+        col_lists = get_all_from_columns(self._db,
+                                         schema,
+                                         table,
+                                         self.meta.result.tables[1:3])
+        
+        all_keys = col_lists[0]
+        all_lines = col_lists[1]
+    
         result_dict = {key: line for key, line in zip(all_keys, all_lines)}
-            
-        self.data.result = result_dict
+        
+        if result_dict: self.data.result = result_dict
         
         return
+
 
 class NumpyBar(NumpyLine):
 
@@ -1251,20 +1253,16 @@ class HistogramColumn(Histogram):
 
         schema, table = self.meta.result.tables[0].split(".")
 
-        Table = self._db.safe_reflect_table(table, schema)
-        bin_values = self._db.session.query(
-                     Table.columns[self.meta.result.tables[1]]).all()
-        bin_lowers = self._db.session.query(
-                     Table.columns[self.meta.result.tables[2]]).all()
-        bin_uppers = self._db.session.query(
-                     Table.columns[self.meta.result.tables[3]]).all()
+        col_lists = get_all_from_columns(self._db,
+                                         schema,
+                                         table,
+                                         self.meta.result.tables[1:4])
 
-        all_bin_values = [x[0] for x in bin_values]
-        all_bin_lowers = [x[0] for x in bin_lowers]
-        all_bin_uppers = [x[0] for x in bin_uppers]
+        all_bin_values = col_lists[0]
+        all_bin_lowers = col_lists[1]
+        all_bin_uppers = col_lists[2]
         
         if not all_bin_values or not all_bin_lowers or not all_bin_uppers:
-            self.data.result = None
             return
         
         lowest_val = min(all_bin_lowers)
@@ -1420,9 +1418,10 @@ class CartesianDataColumn(CartesianData):
 
         schema, table = self.meta.result.tables[0].split(".")
 
-        Table = self._db.safe_reflect_table(table, schema)
-        result = self._db.session.query(
-                     Table.columns[self.meta.result.tables[1]]).one_or_none()
+        result = get_one_from_column(self._db,
+                                     schema,
+                                     table,
+                                     self.meta.result.tables[1])
 
         if result is not None and result[0] is not None:
             self.data.result = result[0]
@@ -1567,9 +1566,10 @@ class CartesianListColumn(CartesianList):
 
         schema, table = self.meta.result.tables[0].split(".")
 
-        Table = self._db.safe_reflect_table(table, schema)
-        result = self._db.session.query(
-                     Table.columns[self.meta.result.tables[1]]).one_or_none()
+        result = get_one_from_column(self._db,
+                                     schema,
+                                     table,
+                                     self.meta.result.tables[1])
 
         if result is not None and result[0] is not None:
             self.data.result = result[0]
@@ -1731,19 +1731,14 @@ class CartesianDictColumn(CartesianDict):
 
         schema, table = self.meta.result.tables[0].split(".")
 
-        Table = self._db.safe_reflect_table(table, schema)
-        keys = self._db.session.query(
-                     Table.columns[self.meta.result.tables[1]]).all()
-        values = self._db.session.query(
-                     Table.columns[self.meta.result.tables[2]]).all()
-                     
-        all_keys = [x[0] for x in keys]
-            
-        all_values = [x[0] for x in values]
+        col_lists = get_all_from_columns(self._db,
+                                         schema,
+                                         table,
+                                         self.meta.result.tables[1:3])
         
-        result_dict = dict(zip(all_keys, all_values))
+        result_dict = dict(zip(col_lists[0], col_lists[1]))
         
-        self.data.result = result_dict
+        if result_dict: self.data.result = result_dict
         
         return        
     
@@ -1911,19 +1906,14 @@ class CartesianListDictColumn(CartesianListDict):
 
         schema, table = self.meta.result.tables[0].split(".")
 
-        Table = self._db.safe_reflect_table(table, schema)
-        keys = self._db.session.query(
-                     Table.columns[self.meta.result.tables[1]]).all()
-        values = self._db.session.query(
-                     Table.columns[self.meta.result.tables[2]]).all()
-             
-        all_keys = [x[0] for x in keys]
-            
-        all_values = [x[0] for x in values]
+        col_lists = get_all_from_columns(self._db,
+                                         schema,
+                                         table,
+                                         self.meta.result.tables[1:3])
         
-        result_dict = dict(zip(all_keys, all_values))
+        result_dict = dict(zip(col_lists[0], col_lists[1]))
         
-        self.data.result = result_dict
+        if result_dict: self.data.result = result_dict
         
         return
 
@@ -2281,9 +2271,10 @@ class SimpleDataColumn(SimpleData):
 
         schema, table = self.meta.result.tables[0].split(".")
 
-        Table = self._db.safe_reflect_table(table, schema)
-        result = self._db.session.query(
-                     Table.columns[self.meta.result.tables[1]]).one_or_none()
+        result = get_one_from_column(self._db,
+                                     schema,
+                                     table,
+                                     self.meta.result.tables[1])
 
         if result is not None and result[0] is not None:
             self.data.result = result[0]
@@ -2313,20 +2304,22 @@ class SimpleDataForeignColumn(SimpleData):
             raise ValueError(errStr)
             
         schema, table = self.meta.result.tables[0].split(".")
-
-        TableOne = self._db.safe_reflect_table(table, schema)
-        table_two_id = self._db.session.query(
-                TableOne.columns[self.meta.result.tables[2]]).one_or_none()
         
+        table_two_id = get_one_from_column(self._db,
+                                           schema,
+                                           table,
+                                           self.meta.result.tables[2])
+
         if table_two_id is None or table_two_id[0] is None: return
                                                
         schema, table = self.meta.result.tables[1].split(".")
 
-        TableTwo = self._db.safe_reflect_table(table, schema)
-        query = self._db.session.query(
-                                TableTwo.columns[self.meta.result.tables[4]])
-        result = query.filter(TableTwo.columns[
-                self.meta.result.tables[3]]==table_two_id[0]).one_or_none()
+        result = filter_one_from_column(self._db,
+                                        schema,
+                                        table,
+                                        self.meta.result.tables[4],
+                                        self.meta.result.tables[3],
+                                        table_two_id[0])
                 
         if result is not None and result[0] is not None:
             self.data.result = result[0]
@@ -2357,15 +2350,15 @@ class SimpleListColumn(SimpleList):
 
         schema, table = self.meta.result.tables[0].split(".")
 
-        Table = self._db.safe_reflect_table(table, schema)
-        result = self._db.session.query(
-                     Table.columns[self.meta.result.tables[1]]).all()
-                     
-        all_entries = [x[0] for x in result]
+        col_lists = get_all_from_columns(self._db,
+                                         schema,
+                                         table,
+                                         [self.meta.result.tables[1]])
         
-        if set(all_entries) == set([None]): all_entries = None
-
-        self.data.result = all_entries
+        result = col_lists[0]
+        
+        if result or set(result) != set([None]):
+            self.data.result = result
 
         return
     
@@ -2393,14 +2386,17 @@ class SimpleDictColumn(SimpleDict):
 
         schema, table = self.meta.result.tables[0].split(".")
 
-        Table = self._db.safe_reflect_table(table, schema)
-        keys = self._db.session.query(
-                   Table.columns[self.meta.result.tables[1]]).all()
-        values = self._db.session.query(
-                     Table.columns[self.meta.result.tables[2]]).all()
+        col_lists = get_all_from_columns(self._db,
+                                         schema,
+                                         table,
+                                         self.meta.result.tables[1:3])
+        
+        keys = col_lists[0]
+        values = col_lists[1]
 
-        self.data.result = {key[0]: value[0] for key, value in
-                                                        zip(keys, values)}
+        result = {key: value for key, value in zip(keys, values)}
+        
+        if result: self.data.result = result
 
         return
     
@@ -2832,16 +2828,13 @@ class PointDataColumn(PointData):
 
         schema, table = self.meta.result.tables[0].split(".")
 
-        Table = self._db.safe_reflect_table(table, schema)
-        result = self._db.session.query(
-                     Table.columns[self.meta.result.tables[1]]).one_or_none()
+        result = get_one_from_column(self._db,
+                                     schema,
+                                     table,
+                                     self.meta.result.tables[1])
                      
         if result is not None and result[0] is not None:
-            point = to_shape(result[0])
-        else:
-            point = None
-
-        self.data.result = point
+            self.data.result = to_shape(result[0])
 
         return
         
@@ -2858,17 +2851,19 @@ class PointDictColumn(PointDict):
             raise ValueError(errStr)
 
         schema, table = self.meta.result.tables[0].split(".")
-
-        Table = self._db.safe_reflect_table(table, schema)
-        keys = self._db.session.query(
-                     Table.columns[self.meta.result.tables[1]]).all()
-        values = self._db.session.query(
-                     Table.columns[self.meta.result.tables[2]]).all()
-
-        points = [to_shape(result[0]) for result in values]
-        point_dict = {key[0]: point for key, point in zip(keys, points)}
         
-        self.data.result = point_dict
+        col_lists = get_all_from_columns(self._db,
+                                         schema,
+                                         table,
+                                         self.meta.result.tables[1:3])
+        
+        keys = col_lists[0]
+        wkb_points = col_lists[1]
+
+        points = [to_shape(wkb_point) for wkb_point in wkb_points]
+        point_dict = {key: point for key, point in zip(keys, points)}
+        
+        if point_dict: self.data.result = point_dict
 
         return
 
@@ -3001,16 +2996,13 @@ class PolygonDataColumn(PolygonData):
 
         schema, table = self.meta.result.tables[0].split(".")
 
-        Table = self._db.safe_reflect_table(table, schema)
-        result = self._db.session.query(
-                     Table.columns[self.meta.result.tables[1]]).one_or_none()
+        result = get_one_from_column(self._db,
+                                     schema,
+                                     table,
+                                     self.meta.result.tables[1])
 
         if result is not None and result[0] is not None:
-            point = to_shape(result[0])
-        else:
-            point = None
-
-        self.data.result = point
+            self.data.result = to_shape(result[0])
 
         return
 
@@ -3148,19 +3140,17 @@ class PolygonListColumn(PolygonList):
             raise ValueError(errStr)
 
         schema, table = self.meta.result.tables[0].split(".")
-
-        Table = self._db.safe_reflect_table(table, schema)
-        result = self._db.session.query(
-                     Table.columns[self.meta.result.tables[1]]).all()
-                     
-        all_entries = [x[0] for x in result]
         
-        if all_entries:
-            polygons = [to_shape(wkb_poly) for wkb_poly in all_entries]
-        else:
-            polygons = None
-
-        self.data.result = polygons
+        col_lists = get_all_from_columns(self._db,
+                                         schema,
+                                         table,
+                                         [self.meta.result.tables[1]])
+                     
+        all_entries = col_lists[0]
+        
+        if all_entries and set(all_entries) != set(None):
+            self.data.result = [to_shape(wkb_poly)
+                                                for wkb_poly in all_entries]
 
         return
         
@@ -3199,14 +3189,16 @@ class PolygonDictColumn(PolygonDict):
 
         schema, table = self.meta.result.tables[0].split(".")
 
-        Table = self._db.safe_reflect_table(table, schema)
-        keys = self._db.session.query(
-                     Table.columns[self.meta.result.tables[1]]).all()
-        values = self._db.session.query(
-                     Table.columns[self.meta.result.tables[2]]).all()
+        col_lists = get_all_from_columns(self._db,
+                                         schema,
+                                         table,
+                                         self.meta.result.tables[1:3])
+        
+        keys = col_lists[0]
+        values = col_lists[1]
 
-        polygons = [to_shape(wkb_poly[0]) for wkb_poly in values]
-        poly_dict = {key[0]: poly for key, poly in zip(keys, polygons)}
+        polygons = [to_shape(wkb_poly) for wkb_poly in values]
+        poly_dict = {key: poly for key, poly in zip(keys, polygons)}
         
         self.data.result = poly_dict
 

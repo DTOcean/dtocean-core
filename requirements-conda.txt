@@ -32,3 +32,4 @@ xlwt
 
 # TEST DEPENDENCIES
 pytest-cov
+pytest-mock
