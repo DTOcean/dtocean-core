@@ -220,6 +220,9 @@ class TimeSeriesColumn(TimeSeries):
                                              dt_labels)}
                                          
             df = df.rename(columns=name_map)
+            
+            # Don't allow Date to have any null
+            if pd.isnull(df["Date"]).any(): return
     
             dtstrs = [datetime.combine(date, time) for
                         date, time in zip(df["Date"], df["Time"])]
@@ -396,6 +399,9 @@ class TableDataColumn(TableData):
             name_map = {k: v for k, v in zip(self.meta.result.tables[1:],
                                              self.meta.result.labels)}
             df = df.rename(columns=name_map)
+            
+            # Don't allow all null values
+            if pd.isnull(df).all().all(): df = None
 
         self.data.result = df
 
@@ -478,6 +484,9 @@ class IndexTableColumn(IndexTable):
             name_map = {k: v for k, v in zip(self.meta.result.tables[1:],
                                              self.meta.result.labels)}
             df = df.rename(columns=name_map)
+            
+            # Don't allow null values in the keys
+            if pd.isnull(df[self.meta.result.labels[0]]).any(): df = None
 
         self.data.result = df
 
@@ -564,6 +573,9 @@ class LineTableColumn(LineTable):
                                              self.meta.result.labels)}
                                          
             df = df.rename(columns=name_map)
+            
+            # Don't allow null values in the keys
+            if pd.isnull(df[self.meta.result.labels[0]]).any(): df = None
 
         self.data.result = df
 
@@ -677,7 +689,10 @@ class TimeTableColumn(TimeTable):
                                              dt_labels)}
                                          
             df = df.rename(columns=name_map)
-    
+            
+            # Don't allow Date to have any null
+            if pd.isnull(df["Date"]).any(): return
+            
             dtstrs = [datetime.combine(date, time) for
                         date, time in zip(df["Date"], df["Time"])]
     
@@ -784,6 +799,9 @@ class Numpy2DColumn(Numpy2D):
             result = None
             
         else:
+            
+            # Don't allow first two columns to have any null
+            if pd.isnull(df[self.meta.result.tables[1:3]]).any().any(): return
 
             df = df.set_index(self.meta.result.tables[1:3])
             groups = df.groupby(level=df.index.names)
@@ -842,6 +860,9 @@ class Numpy3DColumn(Numpy3D):
             result = None
             
         else:
+            
+            # Don't allow first three columns to have any null
+            if pd.isnull(df[self.meta.result.tables[1:4]]).any().any(): return
     
             df = df.set_index(self.meta.result.tables[1:4])
             groups = df.groupby(level=df.index.names)
@@ -852,9 +873,9 @@ class Numpy3DColumn(Numpy3D):
     
             df = df.reindex(index)
             shape = map(len, df.index.levels)
-            
+                        
             result = df.values.reshape(shape)
-
+            
         self.data.result = result
 
         return
@@ -1025,8 +1046,11 @@ class NumpyLineColumn(NumpyLine):
                                          schema,
                                          table,
                                          self.meta.result.tables[1:3])
-        
+                
         line = zip(col_lists[0], col_lists[1])
+        
+        # Filter out None in first column
+        line = [(x, y) for (x, y) in line if x is not None]
         
         if line: self.data.result = line
         
@@ -1101,7 +1125,9 @@ class NumpyLineDictArrayColumn(NumpyLineDict):
         all_keys = col_lists[0]
         all_lines = col_lists[1]
     
-        result_dict = {key: line for key, line in zip(all_keys, all_lines)}
+        # Don't allow any None keys
+        result_dict = {key: line for key, line in zip(all_keys, all_lines)
+                                                            if key is not None}
         
         if result_dict: self.data.result = result_dict
         

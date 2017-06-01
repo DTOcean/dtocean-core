@@ -11,8 +11,6 @@ from dtocean_core.core import AutoFileInput, AutoFileOutput, AutoPlot, Core
 from dtocean_core.data import CoreMetaData
 from dtocean_core.data.definitions import (Histogram,
                                            HistogramDict,
-                                           NumpyLine,
-                                           NumpyLineDict,
                                            PointData,
                                            PointDict,
                                            PointList,
@@ -31,145 +29,6 @@ def core():
     new_core = Core()
         
     return new_core
-
-
-def test_NumpyLine():
-    
-    coarse_sample = np.linspace(0., 2*np.pi, num=5)
-    raw = zip(coarse_sample, np.sin(coarse_sample))
-
-    meta = CoreMetaData({"identifier": "test",
-                         "structure": "test",
-                         "title": "test",
-                         "labels": ["x", "f(x)"]})
-    
-    test = NumpyLine()
-    a = test.get_data(raw, meta)
-    b = test.get_value(a)
-    
-    assert max(b[:,1]) == 1
-    
-
-@pytest.mark.parametrize("fext", [".csv", ".xls", ".xlsx"])
-def test_NumpyLine_auto_file(tmpdir, fext):
-        
-    coarse_sample = np.linspace(0., 2*np.pi, num=5)
-    raw = zip(coarse_sample, np.sin(coarse_sample))
-
-    test_path = tmpdir.mkdir("sub").join("test{}".format(fext))
-    test_path_str = str(test_path)
-    
-    meta = CoreMetaData({"identifier": "test",
-                         "structure": "test",
-                         "title": "test",
-                         "labels": ["x", "f(x)"]})
-    
-    test = NumpyLine()
-    
-    fout_factory = InterfaceFactory(AutoFileOutput)
-    FOutCls = fout_factory(meta, test)
-    
-    fout = FOutCls()
-    fout._path = test_path_str
-    fout.data.result = test.get_data(raw, meta)
-
-    fout.connect()
-    
-    assert len(tmpdir.listdir()) == 1
-              
-    fin_factory = InterfaceFactory(AutoFileInput)
-    FInCls = fin_factory(meta, test)
-              
-    fin = FInCls()
-    fin._path = test_path_str
-    
-    fin.connect()
-    result = fin.data.result
-    
-    assert max(result[:,1]) == 1
-
-
-def test_NumpyLine_auto_plot(tmpdir):
-        
-    coarse_sample = np.linspace(0., 2*np.pi, num=5)
-    raw = zip(coarse_sample, np.sin(coarse_sample))
-    
-    meta = CoreMetaData({"identifier": "test",
-                         "structure": "test",
-                         "title": "test",
-                         "labels": ["x", "f(x)"],
-                         "units": ["m", "m^{2}"]})
-    
-    test = NumpyLine()
-    
-    fout_factory = InterfaceFactory(AutoPlot)
-    PlotCls = fout_factory(meta, test)
-    
-    plot = PlotCls()
-    plot.data.result = test.get_data(raw, meta)
-    plot.meta.result = meta
-
-    plot.connect()
-    
-    assert len(plt.get_fignums()) == 1
-    plt.close("all")
-
-
-def test_NumpyLineDict():
-    
-    coarse_sample = np.linspace(0., 2*np.pi, num=5)
-    fine_sample = np.linspace(0., 2*np.pi, num=9)
-    
-    coarse_sin = zip(coarse_sample, np.sin(coarse_sample))
-    fine_cos = zip(fine_sample, np.cos(fine_sample))
-    
-    raw = {"Sin(x)" : coarse_sin,
-           "Cos(x)" : fine_cos}
-
-    meta = CoreMetaData({"identifier": "test",
-                         "structure": "test",
-                         "title": "test",
-                         "labels": ["x", "f(x)"]})
-    
-    test = NumpyLineDict()
-    a = test.get_data(raw, meta)
-    b = test.get_value(a)
-    
-    assert "Sin(x)" in b
-    assert max(b["Sin(x)"][:,1]) == 1
-    assert b["Cos(x)"][0,1] == b["Cos(x)"][-1,1]
-    
-
-def test_NumpyLineDict_auto_plot(tmpdir):
-        
-    coarse_sample = np.linspace(0., 2*np.pi, num=5)
-    fine_sample = np.linspace(0., 2*np.pi, num=9)
-    
-    coarse_sin = zip(coarse_sample, np.sin(coarse_sample))
-    fine_cos = zip(fine_sample, np.cos(fine_sample))
-    
-    raw = {"Sin(x)" : coarse_sin,
-           "Cos(x)" : fine_cos}
-    
-    meta = CoreMetaData({"identifier": "test",
-                         "structure": "test",
-                         "title": "test",
-                         "labels": ["x", "f(x)"],
-                         "units": ["m", "m^{2}"]})
-    
-    test = NumpyLineDict()
-    
-    fout_factory = InterfaceFactory(AutoPlot)
-    PlotCls = fout_factory(meta, test)
-    
-    plot = PlotCls()
-    plot.data.result = test.get_data(raw, meta)
-    plot.meta.result = meta
-
-    plot.connect()
-    
-    assert len(plt.get_fignums()) == 1
-    plt.close("all")
     
     
 def test_XGrid2D_available(core):
@@ -177,7 +36,8 @@ def test_XGrid2D_available(core):
     all_objs = core.control._store._structures
 
     assert "XGrid2D" in all_objs.keys()
-    
+
+
 def test_XGrid2D(core):
     
     raw = {"values": np.random.randn(2, 3),
