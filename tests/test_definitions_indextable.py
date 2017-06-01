@@ -1,5 +1,7 @@
 import pytest
 
+import uuid
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -24,7 +26,10 @@ def test_IndexTable_available():
 
 def test_IndexTable():
     
-    labels = list(map(chr, range(10)))
+    labels = []
+    while len(labels) != 10:
+        labels = list(set([uuid.uuid4().hex[:6].upper() for _ in xrange(10)]))
+        
     data = [2 * float(x) for x in range(10)]
     
     raw = {"Label": labels,
@@ -51,7 +56,10 @@ def test_IndexTable_auto_file(tmpdir, fext):
     test_path = tmpdir.mkdir("sub").join("test{}".format(fext))
     test_path_str = str(test_path)
         
-    labels = list(map(chr, range(10)))
+    labels = []
+    while len(labels) != 10:
+        labels = list(set([uuid.uuid4().hex[:6].upper() for _ in xrange(10)]))
+        
     data = [2 * float(x) for x in range(10)]
     
     raw = {"Label": labels,
@@ -100,7 +108,10 @@ def test_IndexTableColumn_available():
 
 def test_IndexTableColumn_auto_db(mocker):
     
-    labels = list(map(chr, range(10)))
+    labels = []
+    while len(labels) != 10:
+        labels = list(set([uuid.uuid4().hex[:6].upper() for _ in xrange(10)]))
+        
     data = [2 * float(x) for x in range(10)]
     
     mock_dict = {"label": labels,
