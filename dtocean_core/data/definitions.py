@@ -1291,6 +1291,9 @@ class HistogramColumn(Histogram):
         if not all_bin_values or not all_bin_lowers or not all_bin_uppers:
             return
         
+        # Don't allow None in the bin separators
+        if None in all_bin_lowers or None in all_bin_uppers: return
+        
         lowest_val = min(all_bin_lowers)
         bin_separators = [lowest_val] + all_bin_uppers
         
@@ -1575,10 +1578,8 @@ class CartesianList(Numpy2D):
     def get_valid_extensions(cls):
         
         return [".csv", ".xls", ".xlsx"]
-    
-    
-        
-        
+
+
 class CartesianListColumn(CartesianList):
 
     @staticmethod
@@ -1762,7 +1763,8 @@ class CartesianDictColumn(CartesianDict):
                                          table,
                                          self.meta.result.tables[1:3])
         
-        result_dict = dict(zip(col_lists[0], col_lists[1]))
+        result_dict = {k: v for k, v in zip(col_lists[0], col_lists[1])
+                                        if k is not None and v is not None}
         
         if result_dict: self.data.result = result_dict
         
@@ -1937,7 +1939,8 @@ class CartesianListDictColumn(CartesianListDict):
                                          table,
                                          self.meta.result.tables[1:3])
         
-        result_dict = dict(zip(col_lists[0], col_lists[1]))
+        result_dict = {k: v for k, v in zip(col_lists[0], col_lists[1])
+                                        if k is not None and v is not None}
         
         if result_dict: self.data.result = result_dict
         
