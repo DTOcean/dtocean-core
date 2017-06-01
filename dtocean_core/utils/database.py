@@ -386,3 +386,51 @@ def build_tidal_series_step(step_table, xi, yj):
 
     return u_array, v_array, ssh_array, ti_array
 
+
+def get_table_df(db, schema, table, columns):
+    
+    df = pd.read_sql_table(table,
+                           db._engine,
+                           schema=schema,
+                           columns=columns)
+    
+    return df
+
+
+def get_one_from_column(db, schema, table, column):
+    
+    Table = db.safe_reflect_table(table, schema)
+    result = db.session.query(Table.columns[column]).one_or_none()
+    
+    return result
+
+
+def filter_one_from_column(db,
+                           schema,
+                           table,
+                           result_column,
+                           filter_column,
+                           filter_value):
+
+    TableTwo = db.safe_reflect_table(table, schema)
+    query = db.session.query(TableTwo.columns[result_column])
+    result = query.filter(
+                TableTwo.columns[filter_column]==filter_value).one_or_none()
+    
+    return result
+
+
+def get_all_from_columns(db, schema, table, columns):
+    
+    Table = db.safe_reflect_table(table, schema)
+    
+    col_lists = []
+    
+    for column in columns:
+        
+        col_all = db.session.query(Table.columns[column]).all()
+        trim_col = [item[0] for item in col_all]
+        
+        col_lists.append(trim_col)
+        
+    return col_lists
