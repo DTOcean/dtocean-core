@@ -191,21 +191,6 @@ def test_PolygonList(core):
     assert b[0].exterior.coords[0][0] == 0.
     assert b[1].exterior.coords[2][1] == 11.
 
-def test_Histogram(core):
-    
-    test_data = np.random.random(10)
-    values, bins = np.histogram(test_data)
-
-    meta = CoreMetaData({"identifier": "test",
-                         "structure": "test",
-                         "title": "test"})
-    
-    test = Histogram()
-    a = test.get_data((values, bins), meta)
-    b = test.get_value(a)
-
-    assert len(b["values"]) == len(values)
-    assert len(b["bins"]) == len(values) + 1
     
 def test_HistogramDict(core):
     
