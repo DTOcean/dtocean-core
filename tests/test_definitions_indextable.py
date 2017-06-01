@@ -141,3 +141,60 @@ def test_IndexTableColumn_auto_db(mocker):
     assert "Data" in result
     assert len(result) == len(data)
     assert result.index.name == "Label"
+
+
+def test_IndexTableColumn_auto_db_empty(mocker):
+    
+    mock_dict = {"label": [],
+                 "data": []}
+    mock_df = pd.DataFrame(mock_dict)
+    
+    mocker.patch('dtocean_core.data.definitions.get_table_df',
+                 return_value=mock_df)
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test",
+                         "labels": ["Label", "Data"],
+                         "tables": ["mock.mock", "label", "data"]})
+    
+    test = IndexTableColumn()
+    
+    query_factory = InterfaceFactory(AutoQuery)
+    QueryCls = query_factory(meta, test)
+    
+    query = QueryCls()
+    query.meta.result = meta
+    
+    query.connect()
+        
+    assert query.data.result is None
+
+
+def test_IndexTableColumn_auto_db_none(mocker):
+    
+    mock_dict = {"label": [None, None],
+                 "data": [1, 2]}
+    mock_df = pd.DataFrame(mock_dict)
+    
+    mocker.patch('dtocean_core.data.definitions.get_table_df',
+                 return_value=mock_df)
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test",
+                         "labels": ["Label", "Data"],
+                         "tables": ["mock.mock", "label", "data"]})
+    
+    test = IndexTableColumn()
+    
+    query_factory = InterfaceFactory(AutoQuery)
+    QueryCls = query_factory(meta, test)
+    
+    query = QueryCls()
+    query.meta.result = meta
+    
+    query.connect()
+        
+    assert query.data.result is None
+    

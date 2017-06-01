@@ -174,3 +174,74 @@ def test_LineTableColumn_auto_db(mocker):
     assert "Thrust" in result
     assert len(result) == len(velocity)
     assert result.index.name == "Velocity"
+    
+
+def test_LineTableColumn_auto_db_empty(mocker):
+    
+    mock_dict = {"velocity": [],
+                 "thrust": [],
+                 "power": []}
+    mock_df = pd.DataFrame(mock_dict)
+    
+    mocker.patch('dtocean_core.data.definitions.get_table_df',
+                 return_value=mock_df)
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test",
+                         "labels": ["Velocity", "Thrust", "Power"],
+                         "units": ["m/s", "N", "W"],
+                         "tables": ["mock.mock",
+                                    "velocity",
+                                    "thrust",
+                                    "power"]
+                         })
+    
+    test = LineTableColumn()
+    
+    query_factory = InterfaceFactory(AutoQuery)
+    QueryCls = query_factory(meta, test)
+    
+    query = QueryCls()
+    query.meta.result = meta
+    
+    query.connect()
+        
+    assert query.data.result is None
+
+
+def test_LineTableColumn_auto_db_none(mocker):
+    
+    thrust = [2 * float(x) for x in range(10)]
+    power = [3 * float(x) for x in range(10)]
+    
+    mock_dict = {"velocity": [None]*10,
+                 "thrust": thrust,
+                 "power": power}
+    mock_df = pd.DataFrame(mock_dict)
+    
+    mocker.patch('dtocean_core.data.definitions.get_table_df',
+                 return_value=mock_df)
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test",
+                         "labels": ["Velocity", "Thrust", "Power"],
+                         "units": ["m/s", "N", "W"],
+                         "tables": ["mock.mock",
+                                    "velocity",
+                                    "thrust",
+                                    "power"]
+                         })
+    
+    test = LineTableColumn()
+    
+    query_factory = InterfaceFactory(AutoQuery)
+    QueryCls = query_factory(meta, test)
+    
+    query = QueryCls()
+    query.meta.result = meta
+    
+    query.connect()
+        
+    assert query.data.result is None

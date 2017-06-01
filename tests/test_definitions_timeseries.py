@@ -186,3 +186,74 @@ def test_TimeSeriesColumn_auto_db(mocker):
         
     assert len(result) == len(dates)
     assert len(result.resample('D').mean()) == 2
+
+
+def test_TimeSeriesColumn_auto_db_empty(mocker):
+    
+    mock_dict = {"date": [],
+                 "time": [],
+                 "mass": []}
+    mock_df = pd.DataFrame(mock_dict)
+    
+    mocker.patch('dtocean_core.data.definitions.get_table_df',
+                 return_value=mock_df)
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test",
+                         "labels": ['mass'],
+                         "units": ["kg"],
+                         "tables": ["mock.mock", "date", "time", "mass"]})
+    
+    test = TimeSeriesColumn()
+    
+    query_factory = InterfaceFactory(AutoQuery)
+    QueryCls = query_factory(meta, test)
+    
+    query = QueryCls()
+    query.meta.result = meta
+    
+    query.connect()
+        
+    assert query.data.result is None
+
+
+def test_TimeSeriesColumn_auto_db_none(mocker):
+    
+    dates = []
+    dt = datetime(2010, 12, 01)
+    end = datetime(2010, 12, 02, 23, 59, 59)
+    step = timedelta(seconds=3600)
+    
+    while dt < end:
+        dates.append(dt)
+        dt += step
+        
+    values = np.random.rand(len(dates))
+    
+    mock_dict = {"date": [None] * len(dates),
+                 "time": [x.time() for x in dates],
+                 "mass": values}
+    mock_df = pd.DataFrame(mock_dict)
+    
+    mocker.patch('dtocean_core.data.definitions.get_table_df',
+                 return_value=mock_df)
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test",
+                         "labels": ['mass'],
+                         "units": ["kg"],
+                         "tables": ["mock.mock", "date", "time", "mass"]})
+    
+    test = TimeSeriesColumn()
+    
+    query_factory = InterfaceFactory(AutoQuery)
+    QueryCls = query_factory(meta, test)
+    
+    query = QueryCls()
+    query.meta.result = meta
+    
+    query.connect()
+        
+    assert query.data.result is None
