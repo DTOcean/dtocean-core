@@ -1791,8 +1791,8 @@ class Connector(object):
                            checked_vars,
                            checked_values)
         
-        # Set the execution level to the ouptut level
-        if register_level:
+        # Set the execution level to the output level
+        if register_level and output_level is not None:
             simulation.set_execution_level(output_level)
 
         return

@@ -9,7 +9,9 @@ from dtocean_core.core import Core, Project
 from dtocean_core.menu import ModuleMenu, ProjectMenu, ThemeMenu
 from dtocean_core.pipeline import Tree
 
+
 dir_path = os.path.dirname(__file__)
+
 
 # Using a py.test fixture to reduce boilerplate and test times.
 @pytest.fixture(scope="module")
@@ -20,11 +22,13 @@ def core():
     
     return new_core
     
+
 @pytest.fixture(scope="module")
 def var_tree():
 
     return Tree()
-    
+
+
 @pytest.fixture(scope="module")
 def project(core, var_tree):
     '''Share a Project object'''
@@ -48,18 +52,21 @@ def project(core, var_tree):
     
     return new_project
 
+
 def test_init_core():
     
     new_core = Core()
     
     assert isinstance(new_core, Core)
-    
+
+
 def test_init_project():
     
     new_project = Project("Test")
     
     assert isinstance(new_project, Project)
-    
+
+
 def test_is_valid_variable():
     
     core = Core()
@@ -68,6 +75,33 @@ def test_is_valid_variable():
     result = core.is_valid_variable(test_var)
     
     assert result
+
+
+def test_execute_output_level(core, var_tree):
+    
+    project_title = "Test"  
+    
+    project_menu = ProjectMenu()
+    
+    new_project = project_menu.new_project(core, project_title)
+    
+    options_branch = var_tree.get_branch(core,
+                                         new_project,
+                                         "System Type Selection")
+    device_type = options_branch.get_input_variable(core,
+                                                    new_project,
+                                                    "device.system_type")
+    device_type.set_raw_interface(core, "Tidal Fixed")
+    device_type.read(core, new_project)
+    
+    project_menu._execute(core,
+                          new_project,
+                          "System Type Selection")
+    
+    current_sim = new_project.get_simulation()
+    output_level = "System Type Selection {}".format(core._markers["output"])
+    
+    assert current_sim._execution_level == output_level.lower()
     
 #def test_dump_project(core, project, var_tree, tmpdir):
 #    
