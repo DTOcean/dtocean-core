@@ -153,7 +153,8 @@ class ConnectorMenu(object):
                        project,
                        interface_name,
                        force_level=None,
-                       allow_unavailable=False):
+                       allow_unavailable=False,
+                       set_output_level=True):
 
         '''Execute the given interface
         '''
@@ -165,7 +166,8 @@ class ConnectorMenu(object):
                                     project,
                                     interface_name,
                                     level=force_level,
-                                    allow_unavailable=allow_unavailable)
+                                    allow_unavailable=allow_unavailable,
+                                    set_output_level=set_output_level)
 
         return
         
@@ -233,7 +235,10 @@ class ProjectMenu(ConnectorMenu):
            
         """
                 
-        self._execute(core, project, "System Type Selection")
+        self._execute(core,
+                      project,
+                      "System Type Selection",
+                      set_output_level=False)
         
         # Build the module and theme hubs
         core.new_hub(project)
@@ -270,7 +275,8 @@ class ProjectMenu(ConnectorMenu):
             
         self._execute(core,
                       project,
-                      "Site and System Options")
+                      "Site and System Options",
+                      set_output_level=False)
 
         self.activate(core,
                       project,
@@ -297,7 +303,8 @@ class ProjectMenu(ConnectorMenu):
                             
         self._execute(core,
                       project,
-                      "Site Boundary Selection")
+                      "Site Boundary Selection",
+                      set_output_level=False)
                       
         self.activate(core,
                       project,
@@ -329,7 +336,8 @@ class ProjectMenu(ConnectorMenu):
 
         self._execute(core,
                       project,
-                      "Database Filtering Interface")
+                      "Database Filtering Interface",
+                      set_output_level=False)
         
         return
         

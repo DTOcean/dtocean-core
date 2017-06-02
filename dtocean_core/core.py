@@ -1728,7 +1728,8 @@ class Connector(object):
                                 interface_name,
                                 level=None,
                                 register_level=True,
-                                allow_unavailable=False):
+                                allow_unavailable=False,
+                                set_output_level=True):
 
         '''Add the data required for connecting the interface and then
         connect it'''
@@ -1778,9 +1779,13 @@ class Connector(object):
                                                          project,
                                                          interface)
         
-                                         
-        output_level = "{} {}".format(level, core._markers["output"])
-        output_level = output_level.lower()
+        # Set a level for the datastate including the output marker
+        if set_output_level:
+            output_level = "{} {}".format(level, core._markers["output"])
+            output_level = output_level.lower()
+        else:
+            output_level = None
+        
         core.add_datastate(project,
                            output_level,
                            checked_vars,
