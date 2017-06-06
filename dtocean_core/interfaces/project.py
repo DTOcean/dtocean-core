@@ -156,7 +156,7 @@ class SystemTypeInterface(ProjectInterface):
         return
 
 
-class OptionsInterface(ProjectInterface, QueryInterface):
+class OptionsInterface(ProjectInterface):
     
     '''Interface for providing database filtering option values
     '''
@@ -324,18 +324,11 @@ class OptionsInterface(ProjectInterface, QueryInterface):
         return
 
 
-class SiteBoundaryInterface(ProjectInterface, QueryInterface):
+class SiteBoundaryInterface(ProjectInterface):
     
     '''Interface for populating cable corridor & lease area polygons and
     the projection string
     '''
-    
-    def __init__(self):
-
-        ProjectInterface.__init__(self)
-        QueryInterface.__init__(self)
-        
-        return
         
     @classmethod         
     def get_name(cls):

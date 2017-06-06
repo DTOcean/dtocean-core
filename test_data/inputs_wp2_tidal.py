@@ -7,6 +7,7 @@ Created on Thu Apr 09 10:39:38 2015
 
 import os
 import numpy as np
+import pandas as pd
 
 from scipy.stats import multivariate_normal, norm
 
@@ -101,7 +102,7 @@ tidal_performance = {"Velocity": X,
 # Tidal time series
 n_bins = 6
 time_points = 48
-t = np.linspace(0, 1, time_points)
+t = pd.date_range('1/1/2011', periods=time_points, freq='H')
 
 rv = norm()
 time_sin = np.sin(np.linspace(0, 4*np.pi, time_points))
