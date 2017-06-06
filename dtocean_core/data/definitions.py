@@ -2650,6 +2650,7 @@ class PointData(Structure):
 
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
+        plt.ticklabel_format(useOffset=False)
 
         plt.title(self.meta.result.title)
 
@@ -2704,6 +2705,7 @@ class PointList(PointData):
 
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
+        plt.ticklabel_format(useOffset=False)
 
         plt.title(self.meta.result.title)
 
@@ -2821,6 +2823,7 @@ class PointDict(PointData):
 
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
+        plt.ticklabel_format(useOffset=False)
 
         plt.title(self.meta.result.title)
 
@@ -2940,6 +2943,7 @@ class PolygonData(Structure):
 
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
+        plt.ticklabel_format(useOffset=False)
 
         plt.title(self.meta.result.title)
 
@@ -3149,6 +3153,7 @@ class PolygonList(PolygonData):
 
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
+        plt.ticklabel_format(useOffset=False)
 
         plt.title(self.meta.result.title)
 
@@ -3402,7 +3407,7 @@ class XGrid2D(XGridND):
         y = self.data.result.coords[self.meta.result.labels[1]]
 
         fig = plt.figure()
-        ax1 = fig.add_subplot(1,1,1,aspect='equal')
+        ax1 = fig.add_subplot(1, 1, 1, aspect='equal')
         plt.contourf(x,y,self.data.result.T)
         clb = plt.colorbar()
 
@@ -3622,6 +3627,7 @@ class Strata(XSet3D):
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         clb.set_label(zlabel)
+        plt.ticklabel_format(useOffset=False)
         
         plt.title(self.meta.result.title)
 

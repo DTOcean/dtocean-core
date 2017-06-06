@@ -12,6 +12,7 @@ from dtocean_core.pipeline import Tree
 
 dir_path = os.path.dirname(__file__)
 
+
 # Using a py.test fixture to reduce boilerplate and test times.
 @pytest.fixture(scope="module")
 def core():
@@ -20,7 +21,8 @@ def core():
     new_core = Core()
         
     return new_core
-    
+
+
 @pytest.fixture(scope="module")
 def tree():
     '''Share a Tree object'''
@@ -28,7 +30,8 @@ def tree():
     new_tree = Tree()
         
     return new_tree
-    
+
+
 @pytest.fixture(scope="module")
 def project(core, tree):
     '''Share a Project object'''
@@ -51,8 +54,9 @@ def project(core, tree):
     project_menu.initiate_pipeline(core, new_project)
              
     return new_project
-    
-def test_perf_plot_available(core, project, tree):
+
+
+def test_TidalPowerPerformancePlot_available(core, project, tree):
     
     project = deepcopy(project) 
     module_menu = ModuleMenu()
@@ -74,8 +78,9 @@ def test_perf_plot_available(core, project, tree):
     result = ct_curve.get_available_plots(core, project)
     
     assert 'Tidal Power Performance' in result
-    
-def test_thrust_plot(core, project, tree):
+
+
+def test_TidalPowerPerformancePlot(core, project, tree):
     
     project = deepcopy(project) 
     module_menu = ModuleMenu()
@@ -99,4 +104,53 @@ def test_thrust_plot(core, project, tree):
     assert len(plt.get_fignums()) == 1
     
     plt.close("all")
+    
+    
+def test_TidalVelocityPlot_available(core, project, tree):
+    
+    project = deepcopy(project) 
+    module_menu = ModuleMenu()
+    project_menu = ProjectMenu()
+    
+    mod_name = "Hydrodynamics"
+    module_menu.activate(core, project, mod_name)
+    project_menu.initiate_dataflow(core, project)
 
+    hydro_branch = tree.get_branch(core, project, mod_name)
+    hydro_branch.read_test_data(core,
+                                project,
+                                os.path.join(dir_path,
+                                             "inputs_wp2_tidal.pkl"))
+                                                       
+    currents = hydro_branch.get_input_variable(core,
+                                               project,
+                                               "farm.tidal_series")
+    result = currents.get_available_plots(core, project)
+    
+    assert "Tidal Currents" in result
+    
+
+def test_TidalVelocityPlot(core, project, tree):
+
+    project = deepcopy(project) 
+    module_menu = ModuleMenu()
+    project_menu = ProjectMenu()
+    
+    mod_name = "Hydrodynamics"
+    module_menu.activate(core, project, mod_name)
+    project_menu.initiate_dataflow(core, project)
+    
+    hydro_branch = tree.get_branch(core, project, mod_name)
+    hydro_branch.read_test_data(core,
+                                project,
+                                os.path.join(dir_path,
+                                             "inputs_wp2_tidal.pkl"))
+                                                       
+    currents = hydro_branch.get_input_variable(core,
+                                               project,
+                                               "farm.tidal_series")
+    currents.plot(core, project, "Tidal Currents")
+    
+    assert len(plt.get_fignums()) == 1
+    
+    plt.close("all")
