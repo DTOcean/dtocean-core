@@ -63,7 +63,7 @@ def test_XSet3D(core):
     a = test.get_data(raw, meta)
     b = test.get_value(a)
     
-    assert b["a"].shape == (2,3,1)
+    assert b["a"].shape == (2, 3, 1)
     assert b["a"].units == 'POWER!'
     assert b.t.units == 's'
 
