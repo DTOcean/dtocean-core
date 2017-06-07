@@ -1,11 +1,8 @@
 
-import pytest
-
 import numpy as np
-import matplotlib.pyplot as plt
 
 from aneris.control.factory import InterfaceFactory
-from dtocean_core.core import AutoFileInput, AutoFileOutput, AutoPlot, Core
+from dtocean_core.core import AutoFileInput, AutoFileOutput, Core
 from dtocean_core.data import CoreMetaData
 from dtocean_core.data.definitions import SeriesData
 
