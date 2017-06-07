@@ -80,6 +80,7 @@ def test_get_query_interface(core, project, tree):
     
 @pytest.mark.skipif(port_open == False,
                     reason="can't connect to DB")
+@pytest.mark.xfail
 def test_filter_interface(core, project, tree):
     
     project = deepcopy(project) 
@@ -110,7 +111,8 @@ def test_filter_interface(core, project, tree):
     assert True
 
 @pytest.mark.skipif(port_open == False,
-                    reason="can't connect to DB")    
+                    reason="can't connect to DB")
+@pytest.mark.xfail
 def test_connect_TableDataColumn(core, project, tree):
 
     var_id = "hidden.available_sites"
