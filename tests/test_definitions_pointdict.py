@@ -1,66 +1,89 @@
 import pytest
 
+import matplotlib.pyplot as plt
+from geoalchemy2.elements import WKTElement
+
 from aneris.control.factory import InterfaceFactory
 from dtocean_core.core import (AutoFileInput,
                                AutoFileOutput,
+                               AutoPlot,
                                AutoQuery,
                                Core)
 from dtocean_core.data import CoreMetaData
-from dtocean_core.data.definitions import CartesianData, CartesianDataColumn
+from dtocean_core.data.definitions import PointDict, PointDictColumn
 
 
-def test_CartesianData_available():
+def test_PointDict_available():
     
     new_core = Core()
     all_objs = new_core.control._store._structures
 
-    assert "CartesianData" in all_objs.keys()
+    assert "PointDict" in all_objs.keys()
 
 
-def test_CartesianData():
+def test_PointDict():
 
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
                          "title": "test"})
     
-    test = CartesianData()
+    test = PointDict()
     
-    raw = (0, 1)
+    raw = {"one"   : (0., 0.),
+           "two"   : (1., 1.),
+           "three" : (2., 2.)
+           }
+
     a = test.get_data(raw, meta)
     b = test.get_value(a)
     
-    assert b[0] == 0
-    assert b[1] == 1
+    assert b["one"].x == 0.
+    assert b["two"].y == 1.
             
-    raw = (0, 1, -1)
+    raw = {"one"   : (0., 0., 0.),
+           "two"   : (1., 1., 1.),
+           "three" : (2., 2., 2.)
+           }
+
     a = test.get_data(raw, meta)
     b = test.get_value(a)
     
-    assert b[0] == 0
-    assert b[1] == 1 
-    assert b[2] == -1
+    assert b["one"].x == 0.
+    assert b["two"].y == 1.
+    assert b["three"].z == 2.
             
-    raw = (0, 1, -1, 1)
+    raw = {"one"   : (0., 0., 0., 0.),
+           "two"   : (1., 1., 1., 1.),
+           "three" : (2., 2., 2., 2.)
+           }
     
     with pytest.raises(ValueError):
         test.get_data(raw, meta)
     
 
 @pytest.mark.parametrize("fext", [".csv", ".xls", ".xlsx"])
-def test_CartesianData_auto_file(tmpdir, fext):
+def test_PointDict_auto_file(tmpdir, fext):
 
     test_path = tmpdir.mkdir("sub").join("test{}".format(fext))
     test_path_str = str(test_path)
            
-    raws = [(0, 1), (0, 1, -1)]
+    raws = [{"one"   : (0., 0.),
+             "two"   : (1., 1.),
+             "three" : (2., 2.)},
+            {"one"   : (0., 0., 0.),
+             "two"   : (1., 1., 1.),
+             "three" : (2., 2., 2.)}
+            ]
     
-    for raw in raws:
+    ztests = [False, True]
+    
+    for raw, ztest in zip(raws, ztests):
     
         meta = CoreMetaData({"identifier": "test",
                              "structure": "test",
                              "title": "test"})
     
-        test = CartesianData()
+        test = PointDict()
         
         fout_factory = InterfaceFactory(AutoFileOutput)
         FOutCls = fout_factory(meta, test)
@@ -82,35 +105,64 @@ def test_CartesianData_auto_file(tmpdir, fext):
         fin.connect()
         result = test.get_data(fin.data.result, meta)
         
-        assert result[0] == 0
-        assert result[1] == 1
+        assert result["one"].x == 0.
+        assert result["two"].y == 1.
+        assert result["one"].has_z == ztest
 
 
-def test_CartesianDataColumn_available():
+def test_PointDict_auto_plot(tmpdir):
+        
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test"})
+    
+    raw = {"one"   : (0., 0.),
+           "two"   : (1., 1.),
+           "three" : (2., 2.)
+           }
+    
+    test = PointDict()
+    
+    fout_factory = InterfaceFactory(AutoPlot)
+    PlotCls = fout_factory(meta, test)
+    
+    plot = PlotCls()
+    plot.data.result = test.get_data(raw, meta)
+    plot.meta.result = meta
+
+    plot.connect()
+    
+    assert len(plt.get_fignums()) == 1
+    plt.close("all")
+
+
+def test_PointDictColumn_available():
     
     new_core = Core()
     all_objs = new_core.control._store._structures
 
-    assert "CartesianDataColumn" in all_objs.keys()
+    assert "PointDictColumn" in all_objs.keys()
     
 
-def test_CartesianDataColumn_auto_db(mocker):
+def test_PointDictColumn_auto_db(mocker):
     
-    raws = [(0, 1), (0, 1, -1)]
+    names = ["one", "two"]
+    raw_data = [[WKTElement("POINT (0 0)"), WKTElement("POINT (1 1)")],
+                [WKTElement("POINT (0 0 0)"), WKTElement("POINT (1 1 1)")]]
     
-    for raw in raws:
+    for raw in raw_data:
 
-        mock_list = [raw]
+        mock_lists = [names, raw]
         
-        mocker.patch('dtocean_core.data.definitions.get_one_from_column',
-                     return_value=mock_list)
+        mocker.patch('dtocean_core.data.definitions.get_all_from_columns',
+                     return_value=mock_lists)
     
         meta = CoreMetaData({"identifier": "test",
                              "structure": "test",
                              "title": "test",
                              "tables": ["mock.mock", "position"]})
         
-        test = CartesianDataColumn()
+        test = PointDictColumn()
         
         query_factory = InterfaceFactory(AutoQuery)
         QueryCls = query_factory(meta, test)
@@ -121,23 +173,23 @@ def test_CartesianDataColumn_auto_db(mocker):
         query.connect()
         result = test.get_data(query.data.result, meta)
             
-        assert result[0] == 0
-        assert result[1] == 1
+        assert result["one"].x == 0.
+        assert result["two"].y == 1.
 
 
-def test_CartesianDataColumn_auto_db_empty(mocker):
+def test_PointDictColumn_auto_db_empty(mocker):
     
-    mock_list = None
-        
-    mocker.patch('dtocean_core.data.definitions.get_one_from_column',
-                 return_value=mock_list)
+    mock_lists = [[], []]
+    
+    mocker.patch('dtocean_core.data.definitions.get_all_from_columns',
+                 return_value=mock_lists)
 
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
                          "title": "test",
                          "tables": ["mock.mock", "position"]})
 
-    test = CartesianDataColumn()
+    test = PointDictColumn()
     
     query_factory = InterfaceFactory(AutoQuery)
     QueryCls = query_factory(meta, test)
@@ -150,19 +202,19 @@ def test_CartesianDataColumn_auto_db_empty(mocker):
     assert query.data.result is None
 
 
-def test_CartesianDataColumn_auto_db_none(mocker):
+def test_PointDictColumn_auto_db_none(mocker):
     
-    mock_list = [None]
-        
-    mocker.patch('dtocean_core.data.definitions.get_one_from_column',
-                 return_value=mock_list)
+    mock_lists = [[None, None], [None, None]]
+    
+    mocker.patch('dtocean_core.data.definitions.get_all_from_columns',
+                 return_value=mock_lists)
 
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
                          "title": "test",
                          "tables": ["mock.mock", "position"]})
     
-    test = CartesianDataColumn()
+    test = PointDictColumn()
     
     query_factory = InterfaceFactory(AutoQuery)
     QueryCls = query_factory(meta, test)

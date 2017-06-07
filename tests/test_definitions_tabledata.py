@@ -2,12 +2,10 @@ import pytest
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 from aneris.control.factory import InterfaceFactory
 from dtocean_core.core import (AutoFileInput,
                                AutoFileOutput,
-                               AutoPlot,
                                AutoQuery,
                                Core)
 from dtocean_core.data import CoreMetaData

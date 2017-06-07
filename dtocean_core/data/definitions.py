@@ -2546,6 +2546,12 @@ class PointData(Structure):
             
         else:
             
+            # Don't allow misshapen data
+            if not 1 < len(raw) < 4:
+                errStr = ("Raw data must contain 2 or 3 coordinates. "
+                          "Given data has {}").format(len(raw))
+                raise ValueError(errStr)
+            
             point = Point(*[float(x) for x in raw])
 
         return point
@@ -2580,7 +2586,7 @@ class PointData(Structure):
                              "the columns' headers shuld be defined as: "
                              "x, y, z(optional))")
         
-        self.data.result = [Point(xyz) for xyz in data]
+        self.data.result = Point(data[0])
         
         return
      
@@ -2889,11 +2895,11 @@ class PointDictColumn(PointDict):
                                          table,
                                          self.meta.result.tables[1:3])
         
-        keys = col_lists[0]
-        wkb_points = col_lists[1]
-
-        points = [to_shape(wkb_point) for wkb_point in wkb_points]
-        point_dict = {key: point for key, point in zip(keys, points)}
+        filter_dict = {k: v for k, v in zip(col_lists[0], col_lists[1])
+                                        if k is not None and v is not None}
+        
+        point_dict = {key: to_shape(wkb_point)
+                                    for key, wkb_point in filter_dict.items()}
         
         if point_dict: self.data.result = point_dict
 
@@ -2904,7 +2910,26 @@ class PolygonData(Structure):
 
     def get_data(self, raw, meta_data):
         
-        ring = Polygon(raw)
+        if isinstance (raw, Polygon):
+            
+            ring = raw
+            
+        else:
+            
+            np_raw = np.array(raw)
+            
+            if len(np_raw.shape) != 2:
+                errStr = ("Raw data must have exactly 2 dimensions. Given "
+                          "data has {}").format(len(np_raw))
+                raise ValueError(errStr)
+            
+            # Don't allow misshapen data
+            if not 1 < np_raw.shape[1] < 4:
+                errStr = ("Raw data must contain 2 or 3 dimensional "
+                          "coordinates. Given data has {}").format(len(raw))
+                raise ValueError(errStr)
+            
+            ring = Polygon(np_raw)
         
         return ring
 
@@ -2965,18 +2990,25 @@ class PolygonData(Structure):
                              "Supported format are {},{},{}".format('.csv',
                                                                     '.xls',
                                                                     '.xlsx'))  
+             
+        if len(df) < 3:
+            raise ValueError("PolygonError: A LinearRing must have ",
+                             "at least 3 coordinate tuples")
         
-        if "x" in df.columns and "y" in df.columns:
-            if len(df.x)<3:
-                raise ValueError("PolygonError: A LinearRing must have ",
-                                 "at least 3 coordinate tuples")
+        
+        if "x" in df.columns and "y" in df.columns and "z" in df.columns:
+            
+            data = Polygon(np.c_[df.x, df.y, df.z])
+            
+        elif "x" in df.columns and "y" in df.columns:
             
             data = Polygon(np.c_[df.x, df.y])
+            
         else:
             
             raise ValueError("The specified file structure is not supported, "
-                             "the columns' headers shuld be defined as: "
-                             "x, y")
+                             "the columns' headers should be defined as: "
+                             "x, y, z(optional)")
                              
         self.data.result = data
         
@@ -2994,8 +3026,15 @@ class PolygonData(Structure):
         else:
             raise TypeError("The result does not contain valid",
                             " Polygon object.")
+            
+        if data.shape[1] == 2:
+            columns = ["x", "y"]
+        elif data.shape[1] == 3:
+            columns = ["x", "y", "z"]
+        else:
+            errStr = "Look, I'm a doctor, not an escalator."
+            raise SystemError(errStr)
         
-        columns = ["x", "y"]
         df = pd.DataFrame(data, columns=columns)
         
         if ".xls" in self._path:
@@ -3070,7 +3109,22 @@ class PolygonList(PolygonData):
                                                                     '.xls',
                                                                     '.xlsx'))  
         
-        if "ID" in df.columns and "x" in df.columns and "y" in df.columns:
+        if ("ID" in df.columns and
+            "x" in df.columns and
+            "y" in df.columns and
+            "z" in df.columns):
+            
+            ks = np.unique(df.ID)
+            data = []
+            for k in ks:
+                t = df[df["ID"]==k]
+                if len(t.x)<3:
+                    raise ValueError("PolygonError: A LinearRing must have ",
+                                     "at least 3 coordinate tuples")
+                                     
+                data.append(Polygon(np.c_[t.x, t.y, t.z]))
+
+        elif "ID" in df.columns and "x" in df.columns and "y" in df.columns:
             
             ks = np.unique(df.ID)
             data = []
@@ -3081,11 +3135,12 @@ class PolygonList(PolygonData):
                                      "at least 3 coordinate tuples")
                                      
                 data.append(Polygon(np.c_[t.x, t.y]))
+                
         else:
             
             raise ValueError("The specified file structure is not supported, "
                              "the columns' headers shuld be defined as: "
-                             "x, y")
+                             "x, y, z(optional)")
                              
         self.data.result = data
         
@@ -3105,8 +3160,15 @@ class PolygonList(PolygonData):
             else:
                 raise TypeError("The result list does not contain valid",
                                 " Polygon objects.")
+                                        
+        if data[0][1].shape[1] == 2:
+            columns = ["ID", "x", "y"]
+        elif data[0][1].shape[1] == 3:
+            columns = ["ID", "x", "y", "z"]
+        else:
+            errStr = "I'm a doctor, not a bricklayer."
+            raise SystemError(errStr)
         
-        columns = ["ID", "x", "y"]
         df = pd.DataFrame(columns=columns)
         for k, v in data:
             df2 = pd.DataFrame(v, columns=columns[1:])
@@ -3179,10 +3241,10 @@ class PolygonListColumn(PolygonList):
                                          schema,
                                          table,
                                          [self.meta.result.tables[1]])
-                     
+                             
         all_entries = col_lists[0]
-        
-        if all_entries and set(all_entries) != set(None):
+                
+        if all_entries and set(all_entries) != set([None]):
             self.data.result = [to_shape(wkb_poly)
                                                 for wkb_poly in all_entries]
 
@@ -3403,8 +3465,11 @@ class XGrid2D(XGridND):
     @staticmethod
     def auto_plot(self):
         
-        x = self.data.result.coords[self.meta.result.labels[0]]
-        y = self.data.result.coords[self.meta.result.labels[1]]
+        xcoord = self.data.result.coords[self.meta.result.labels[0]]
+        ycoord = self.data.result.coords[self.meta.result.labels[1]]
+        
+        xuniques, x = np.unique(xcoord, return_inverse=True)
+        yuniques, y = np.unique(ycoord, return_inverse=True)
 
         fig = plt.figure()
         ax1 = fig.add_subplot(1, 1, 1, aspect='equal')
@@ -3421,6 +3486,9 @@ class XGrid2D(XGridND):
 
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
+        
+        ax1.set_xticklabels(xuniques)
+        ax1.set_yticklabels(yuniques)
         
         plt.title(self.meta.result.title)
 
@@ -3612,8 +3680,8 @@ class Strata(XSet3D):
         
         bathy = self.data.result["depth"].sel(layer="layer 1")
 
-        x = bathy.x
-        y = bathy.y
+        x = bathy.coords[self.meta.result.labels[0]]
+        y = bathy.coords[self.meta.result.labels[1]]
 
         fig = plt.figure()
         ax1 = fig.add_subplot(1,1,1,aspect='equal')
@@ -3650,8 +3718,8 @@ class Strata(XSet3D):
         values_dict = {"depth": strata["depth"].values,
                        "sediment": strata["sediment"].values}
                                
-        coord_list = [strata.coords["x"],
-                      strata.coords["y"],
+        coord_list = [strata.coords[self.meta.result.labels[0]],
+                      strata.coords[self.meta.result.labels[1]],
                       strata.coords["layer"]]
         
         raw_dict = {"values": values_dict,

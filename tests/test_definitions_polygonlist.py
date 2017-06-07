@@ -1,70 +1,103 @@
 import pytest
 
+import matplotlib.pyplot as plt
+from geoalchemy2.elements import WKTElement
+
 from aneris.control.factory import InterfaceFactory
 from dtocean_core.core import (AutoFileInput,
                                AutoFileOutput,
+                               AutoPlot,
                                AutoQuery,
                                Core)
 from dtocean_core.data import CoreMetaData
-from dtocean_core.data.definitions import (CartesianListDict,
-                                           CartesianListDictColumn)
+from dtocean_core.data.definitions import PolygonList, PolygonListColumn
 
 
-def test_CartesianListDict_available():
+def test_PolygonList_available():
     
     new_core = Core()
     all_objs = new_core.control._store._structures
 
-    assert "CartesianListDict" in all_objs.keys()
+    assert "PolygonList" in all_objs.keys()
 
 
-def test_CartesianListDict():
+def test_PolygonList():
 
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
                          "title": "test"})
+
+    raw = [[(0., 0.),
+            (1., 1.),
+            (2., 2.)],
+           [(10., 10.),
+            (11., 11.),
+            (12., 12.)]
+           ]
     
-    test = CartesianListDict()
-    
-    raw = {"a": [(0, 1), (1, 2)], "b": [(3, 4), (4, 5)]}
+    test = PolygonList()
     a = test.get_data(raw, meta)
     b = test.get_value(a)
     
-    assert len(b) == 2
-    assert b["a"][0][0] == 0
-    assert b["a"][0][1] == 1
+    assert b[0].exterior.coords[0][0] == 0.
+    assert b[1].exterior.coords[2][1] == 12.
             
-    raw = {"a": [(0, 1, -1), (1, 2, -2)], "b": [(3, 4, -3), (4, 5, -5)]}
+    raw = [[(0., 0., 0.),
+            (1., 1., 1.),
+            (2., 2., 2.)],
+           [(10., 10., 10.),
+            (11., 11., 11.),
+            (12., 12., 12.)]
+           ]
+    
     a = test.get_data(raw, meta)
     b = test.get_value(a)
     
-    assert len(b) == 2
-    assert b["a"][0][0] == 0
-    assert b["a"][0][1] == 1 
-    assert b["a"][0][2] == -1
-            
-    raw = {"a": [(0, 1, -1, 1)]}
+    assert b[0].exterior.coords[0][0] == 0.
+    assert b[1].exterior.coords[2][1] == 12.
+    assert b[0].exterior.coords[1][2] == 1.
+
+    raw = [[(0., 0., 0., 0),
+            (1., 1., 1., 1.),
+            (2., 2., 2., 2.)],
+           [(10., 10., 10., 10.),
+            (11., 11., 11., 11.),
+            (12., 12., 12., 12.)]
+           ]
     
     with pytest.raises(ValueError):
         test.get_data(raw, meta)
     
 
 @pytest.mark.parametrize("fext", [".csv", ".xls", ".xlsx"])
-def test_CartesianListDict_auto_file(tmpdir, fext):
+def test_PolygonList_auto_file(tmpdir, fext):
 
     test_path = tmpdir.mkdir("sub").join("test{}".format(fext))
     test_path_str = str(test_path)
            
-    raws = [{"a": [(0, 1), (1, 2)], "b": [(3, 4), (4, 5)]},
-            {"a": [(0, 1, -1), (1, 2, -2)], "b": [(3, 4, -3), (4, 5, -5)]}]
+    raws = [[[(0., 0.),
+              (1., 1.),
+              (2., 2.)],
+             [(10., 10.),
+              (11., 11.),
+              (12., 12.)]],
+            [[(0., 0., 0.),
+              (1., 1., 1.),
+              (2., 2., 2.)],
+             [(10., 10., 10.),
+              (11., 11., 11.),
+              (12., 12., 12.)]]
+            ]
+               
+    ztests = [False, True]
     
-    for raw in raws:
+    for raw, ztest in zip(raws, ztests):
     
         meta = CoreMetaData({"identifier": "test",
                              "structure": "test",
                              "title": "test"})
     
-        test = CartesianListDict()
+        test = PolygonList()
         
         fout_factory = InterfaceFactory(AutoFileOutput)
         FOutCls = fout_factory(meta, test)
@@ -86,27 +119,58 @@ def test_CartesianListDict_auto_file(tmpdir, fext):
         fin.connect()
         result = test.get_data(fin.data.result, meta)
         
-        assert len(result) == 2
-        assert result["a"][0][0] == 0
-        assert result["a"][0][1] == 1
+        assert result[0].exterior.coords[0][0] == 0.
+        assert result[1].exterior.coords[2][1] == 12.
+        assert result[0].has_z == ztest
+        
+
+def test_PolygonList_auto_plot(tmpdir):
+        
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test"})
+    
+    raw = [[(0., 0., 0.),
+            (1., 1., 1.),
+            (2., 2., 2.)],
+           [(10., 10., 10.),
+            (11., 11., 11.),
+            (12., 12., 12.)]
+           ]
+    
+    test = PolygonList()
+    
+    fout_factory = InterfaceFactory(AutoPlot)
+    PlotCls = fout_factory(meta, test)
+    
+    plot = PlotCls()
+    plot.data.result = test.get_data(raw, meta)
+    plot.meta.result = meta
+
+    plot.connect()
+    
+    assert len(plt.get_fignums()) == 1
+    plt.close("all")
 
 
-def test_CartesianListDictColumn_available():
+def test_PolygonListColumn_available():
     
     new_core = Core()
     all_objs = new_core.control._store._structures
 
-    assert "CartesianListDictColumn" in all_objs.keys()
+    assert "PolygonListColumn" in all_objs.keys()
     
 
-def test_CartesianListDictColumn_auto_db(mocker):
+def test_PolygonListColumn_auto_db(mocker):
     
-    raws = [{"a": [(0, 1), (1, 2)], "b": [(3, 4), (4, 5)]},
-            {"a": [(0, 1, -1), (1, 2, -2)], "b": [(3, 4, -3), (4, 5, -5)]}]
+    raws = [[WKTElement("POLYGON ((0 0, 1 0, 1 1, 0 0))"),
+             WKTElement("POLYGON ((10 10, 11 10, 11 11, 10 10))")],
+            [WKTElement("POLYGON ((0 0 0, 1 0 0, 1 1 0, 0 0 0))"),
+             WKTElement("POLYGON ((10 10 0, 11 10 0, 11 11 0, 10 10 0))")]]
     
     for raw in raws:
-
-        mock_lists = [raw.keys(), raw.values()]
+        
+        mock_lists = [raw]
         
         mocker.patch('dtocean_core.data.definitions.get_all_from_columns',
                      return_value=mock_lists)
@@ -114,9 +178,9 @@ def test_CartesianListDictColumn_auto_db(mocker):
         meta = CoreMetaData({"identifier": "test",
                              "structure": "test",
                              "title": "test",
-                             "tables": ["mock.mock", "name", "position"]})
+                             "tables": ["mock.mock", "position"]})
         
-        test = CartesianListDictColumn()
+        test = PolygonListColumn()
         
         query_factory = InterfaceFactory(AutoQuery)
         QueryCls = query_factory(meta, test)
@@ -126,15 +190,14 @@ def test_CartesianListDictColumn_auto_db(mocker):
         
         query.connect()
         result = test.get_data(query.data.result, meta)
-        
-        assert len(result) == 2
-        assert result["a"][0][0] == 0
-        assert result["a"][0][1] == 1
+            
+        assert result[0].exterior.coords[0][0] == 0.
+        assert result[1].exterior.coords[2][1] == 11.
 
 
-def test_CartesianListDictColumn_auto_db_empty(mocker):
+def test_PolygonListColumn_auto_db_empty(mocker):
     
-    mock_lists = [[], []]
+    mock_lists = [[]]
     
     mocker.patch('dtocean_core.data.definitions.get_all_from_columns',
                  return_value=mock_lists)
@@ -144,7 +207,7 @@ def test_CartesianListDictColumn_auto_db_empty(mocker):
                          "title": "test",
                          "tables": ["mock.mock", "position"]})
 
-    test = CartesianListDictColumn()
+    test = PolygonListColumn()
     
     query_factory = InterfaceFactory(AutoQuery)
     QueryCls = query_factory(meta, test)
@@ -157,9 +220,9 @@ def test_CartesianListDictColumn_auto_db_empty(mocker):
     assert query.data.result is None
 
 
-def test_CartesianListDictColumn_auto_db_none(mocker):
+def test_PolygonListColumn_auto_db_none(mocker):
     
-    mock_lists = [[None, None], [None, None]]
+    mock_lists = [[None]]
     
     mocker.patch('dtocean_core.data.definitions.get_all_from_columns',
                  return_value=mock_lists)
@@ -169,7 +232,7 @@ def test_CartesianListDictColumn_auto_db_none(mocker):
                          "title": "test",
                          "tables": ["mock.mock", "position"]})
     
-    test = CartesianListDictColumn()
+    test = PolygonListColumn()
     
     query_factory = InterfaceFactory(AutoQuery)
     QueryCls = query_factory(meta, test)
@@ -180,4 +243,3 @@ def test_CartesianListDictColumn_auto_db_none(mocker):
     query.connect()
         
     assert query.data.result is None
-
