@@ -27,6 +27,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Add change log.
 - Added better error if predefined array layout option is chosen but no layout
   is given.
+- Added more comprehensive tests of various Structure subclasses.
+- Allow suppression of datastate output level when executing interfaces using
+  Connector.execute_interface. All DB output interfaces are no longer tagged
+  with an output level and are not hidden when using module-only output scope.
+- Added plots for tidal stream velocities over the domain, choosing a random
+  time point.
+
 
 ### Changed
 
@@ -49,6 +56,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Split vessels table into separate tables per vehicle type.
 - Improved plot labelling and included Latex symbols.
 - Reordered Hydrodynamics module inputs.
+- Renamed test_structures as test_definitions.
+- SQLAlchemy calls moved out of structure definitions and into utils.database.
+  This allows for easier testing of structure database read code.
+- Reorganised plot interfaces to have separate files for related data.
 
 ### Fixed
 
