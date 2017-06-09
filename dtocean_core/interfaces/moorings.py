@@ -449,7 +449,7 @@ class MooringsInterface(ModuleInterface):
         ## ENVIRONMENT
         
         # Bathymetry (**assume layer 1 in uppermost**)
-        zv = self.data.bathymetry["depth"].sel(layer="layer 1").values
+        zv = self.data.bathymetry["depth"].sel(layer="layer 1").values.T
         xv, yv = np.meshgrid(self.data.bathymetry["x"].values,
                              self.data.bathymetry["y"].values)
         bathy_table = np.dstack([xv.flatten(), yv.flatten(), zv.flatten()])[0]
