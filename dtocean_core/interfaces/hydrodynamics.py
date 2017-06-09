@@ -446,11 +446,11 @@ class HydroInterface(ModuleInterface):
             # Flatten mannings number
             xgrid, ygrid = np.meshgrid(x.values,
                                        y.values)
-            geogrid = self.data.geophysics.values
+            geogrid = self.data.geophysics.values.T
             geoflat = np.array(zip(xgrid.flatten(),
                                    ygrid.flatten(),
                                    geogrid.flatten()))
-    
+                
         else:
                         
             occurrence_matrix = make_wave_statistics(self.data.wave_series)
@@ -514,7 +514,7 @@ class HydroInterface(ModuleInterface):
         numpy_landing = np.array(self.data.export_landing_point.coords[0])
         
         # Bathymetry (**assume layer 1 in uppermost**)
-        zv = self.data.bathymetry["depth"].sel(layer="layer 1").values
+        zv = self.data.bathymetry["depth"].sel(layer="layer 1").values.T
         xv, yv = np.meshgrid(self.data.bathymetry["x"].values,
                              self.data.bathymetry["y"].values)
         xyz = np.dstack([xv.flatten(), yv.flatten(), zv.flatten()])[0]
