@@ -225,20 +225,26 @@ def make_tide_statistics(dictinput):
     '''
 
     # extract data from dictionary
-    uf=dictinput['U']
-    vf=dictinput['V']
-    TI=dictinput['TI']
-    SSH=dictinput['SSH']
-    t=dictinput['t']
-    x=dictinput['x']
-    y=dictinput['y']
-    xc=dictinput['xc']
-    yc=dictinput['yc']
-    ns=dictinput['ns']
+    uf = dictinput['U']
+    vf = dictinput['V']
+    TI = dictinput['TI']
+    SSH = dictinput['SSH']
+    t = dictinput['t']
+    x = dictinput['x']
+    y = dictinput['y']
+    xc = dictinput['xc']
+    yc = dictinput['yc']
+    ns = dictinput['ns']
 
     # start by interpolation to get a time serie    
-    u=uf[np.argmin(abs(x-xc)), np.argmin(abs(y-yc)), :]
-    v=vf[np.argmin(abs(x-xc)), np.argmin(abs(y-yc)), :]
+    u = uf[np.argmin(abs(x-xc)), np.argmin(abs(y-yc)), :]
+    v = vf[np.argmin(abs(x-xc)), np.argmin(abs(y-yc)), :]
+    
+    if np.isnan(u).any() or np.isnan(v).any():
+        
+        errStr = ("Time series at extraction point is not valid. Does the "
+                  "given point lie within the lease area?")
+        raise ValueError(errStr)
 
     # define increment and PDF axis
     du = 0.01
@@ -248,106 +254,112 @@ def make_tide_statistics(dictinput):
     vmax = np.max(v) + dv
     vmin = np.min(v) - dv
 
-    ltabu=np.ceil(np.array([umax-umin])/du) 
-    ltabv=np.ceil(np.array([vmax-vmin])/dv)
+    ltabu = np.ceil(np.array([umax - umin]) / du) 
+    ltabv = np.ceil(np.array([vmax - vmin]) / dv)
     
     # then define each axis and center the bins
 
-    tabu=np.linspace(umin, umax, ltabu)
-    tabv=np.linspace(vmin, vmax, ltabv)
-    sPDF = (ltabu-1, ltabv-1)
-    PDF=np.zeros(sPDF)
-    ub=np.zeros(ltabu-1)
-    vb=np.zeros(ltabv-1)
+    tabu = np.linspace(umin, umax, ltabu)
+    tabv = np.linspace(vmin, vmax, ltabv)
+    sPDF = (ltabu - 1, ltabv - 1)
+    PDF = np.zeros(sPDF)
+    ub = np.zeros(ltabu - 1)
+    vb = np.zeros(ltabv - 1)
 
-    for iu in range(0,ltabu-1):
-        for iv in range(0,ltabv-1):
+    for iu in range(0, ltabu - 1):
+        for iv in range(0, ltabv - 1):
             booluv=np.array([(u > tabu[iu]) &
-                             (u <= tabu[iu+1]) & 
+                             (u <= tabu[iu + 1]) & 
                              (v > tabv[iv]) & 
-                             (v <= tabv[iv+1])])
+                             (v <= tabv[iv + 1])])
             NPDF=booluv.astype(int)
-            PDF[iu,iv]=np.sum((NPDF==1)*1)
-            ub[iu]=(tabu[iu]+tabu[iu+1])/2.
-            vb[iv]=(tabv[iv]+tabv[iv+1])/2.
+            PDF[iu, iv] = np.sum((NPDF == 1) * 1)
+            ub[iu] = (tabu[iu] + tabu[iu + 1]) / 2.
+            vb[iv] = (tabv[iv] + tabv[iv + 1]) / 2.
 
     # PDF normalization
 
-    PDF=PDF/len(u)/du/dv
+    PDF = PDF / len(u) / du / dv
 
     # Now find the direction with maximum variance
 
-    um=np.zeros(ns)
-    vm=np.zeros(ns)
-    Pb=np.zeros(ns)
+    um = np.zeros(ns)
+    vm = np.zeros(ns)
+    Pb = np.zeros(ns)
 
-    if (np.max(ub) -np.min(ub)) > (np.max(vb) - np.min(vb)):
+    if (np.max(ub) - np.min(ub)) > (np.max(vb) - np.min(vb)):
 
-       tabc=np.linspace(np.min(ub), np.max(ub), ns)
+       tabc = np.linspace(np.min(ub), np.max(ub), ns)
 
     # Now get the bounds for the probability estimation (largest variance u)
 
-       tabc1=np.zeros(ns)
-       tabc2=np.zeros(ns)
-       dc=tabc[1]-tabc[0]
-       tabc1=tabc-dc/2
-       tabc2=tabc+dc/2
+       tabc1 = np.zeros(ns)
+       tabc2 = np.zeros(ns)
+       dc = tabc[1] - tabc[0]
+       tabc1 = tabc - dc / 2
+       tabc2 = tabc + dc / 2
 
-       for ic in range(0,ns):
-           imu=np.argmin(abs(tabc[ic]-tabu-1))
+       for ic in range(0, ns):
+           imu=np.argmin(abs(tabc[ic] - tabu - 1))
            # avoid division by 0
-           if np.sum(PDF[imu,:]) == 0.:
+           if np.sum(PDF[imu, :]) == 0.:
                vm[ic] = 0.
            else:
-               vm[ic]=np.sum(PDF[imu,:]*vb*dv)/np.sum(PDF[imu,:]*dv)
-           um[ic]=tabu[imu]
-           imu1=np.argmin(abs(tabc1[ic]-tabu))
-           imu2=np.argmin(abs(tabc2[ic]-tabu))
-           Pb[ic]=np.sum(
-               np.sum(PDF[np.max((0,imu1)):np.min((ltabu,imu2)),:]*du)*dv)
+               vm[ic] = np.sum(PDF[imu, :] * vb * dv) / \
+                                                 np.sum(PDF[imu, :] * dv)
+                                                 
+           um[ic] = tabu[imu]
+           imu1 = np.argmin(abs(tabc1[ic] - tabu))
+           imu2 = np.argmin(abs(tabc2[ic] - tabu))
+           
+           pdf_slice = PDF[np.max((0, imu1)):np.min((ltabu, imu2)), :]
+           Pb[ic] = np.sum(np.sum(pdf_slice * du) * dv)
    
     # Now get the bounds for the probability estimation (largest variance v)
 
     else:
         
-       tabc=np.linspace(np.min(vb), np.max(vb), ns)
+       tabc = np.linspace(np.min(vb), np.max(vb), ns)
 
-       tabc1=np.zeros(ns)
-       tabc2=np.zeros(ns)
-       dc=tabc[1]-tabc[0]
-       tabc1=tabc-dc/2
-       tabc2=tabc+dc/2
+       tabc1 = np.zeros(ns)
+       tabc2 = np.zeros(ns)
+       dc = tabc[1] - tabc[0]
+       tabc1 = tabc - dc / 2
+       tabc2 = tabc + dc / 2
 
        for ic in range(0,ns):
-           imv=np.argmin(abs(tabc[ic]-tabv-1))
+           imv = np.argmin(abs(tabc[ic] - tabv - 1))
            # avoid division by 0
-           if np.sum(PDF[:,imv]) == 0.:
+           if np.sum(PDF[:, imv]) == 0.:
                um[ic] = 0.
            else:
-               um[ic]=np.sum(PDF[:,imv]*ub*du)/np.sum(PDF[:,imv]*du)
-           vm[ic]=tabv[imv]
-           imv1=np.argmin(abs(tabc1[ic]-tabv))
-           imv2=np.argmin(abs(tabc2[ic]-tabv))
-           Pb[ic]=np.sum(
-               np.sum(PDF[:,np.max((0,imv1)):np.min((ltabv,imv2))]*du)*dv)
+               um[ic] = np.sum(PDF[:, imv] * ub * du) / \
+                                                     np.sum(PDF[:, imv] * du)
+            
+           vm[ic] = tabv[imv]
+           imv1 = np.argmin(abs(tabc1[ic] - tabv))
+           imv2 = np.argmin(abs(tabc2[ic] - tabv))
+           
+           pdf_slice = PDF[:, np.max((0, imv1)):np.min((ltabv, imv2))]
+           Pb[ic]= np.sum(np.sum(pdf_slice * du) * dv)
 
     # Now get the time step with the closest characteristic
     # try to minimize the difference (um - u)+(vm-v)
 
-    itmin=np.zeros(ns)
-    for ic in range(0,ns):
-        itmin[ic]=np.argmin(abs(um[ic]-u)+abs(vm[ic]-v))
+    itmin = np.zeros(ns)
+    for ic in range(0, ns):
+        itmin[ic] = np.argmin(abs(um[ic] - u) + abs(vm[ic] - v))
  
     # convert itmin to integer
     
-    ind=itmin.astype(int)   
-    inds=ind.tolist()
-    V=vf[:,:,inds]
-    U=uf[:,:,inds]
-    t=t[inds]
-    p=Pb
-    TI=TI[:,:,inds]
-    SSH=SSH[:,:,inds]
+    ind = itmin.astype(int)   
+    inds = ind.tolist()
+    V = vf[:, :, inds]
+    U = uf[:, :, inds]
+    t = t[inds]
+    p = Pb
+    TI = TI[:, :, inds]
+    SSH = SSH[:, :, inds]
 
     # remove 0 probability bins
     zero_pb = np.where(p == 0.)
@@ -360,15 +372,15 @@ def make_tide_statistics(dictinput):
     ns = ns - np.array(zero_pb).size
 
     # output
-    dictoutput = {'U'    : U,
-                  'V'    : V,
-                  'SSH'  : SSH,
-                  'TI'   : TI,
-                  'x'    : x,
-                  'y'    : y,
-                  'p'    : p,
-                  't'    : t,
-                  'ns'   : ns
+    dictoutput = {'U': U,
+                  'V': V,
+                  'SSH': SSH,
+                  'TI': TI,
+                  'x': x,
+                  'y': y,
+                  'p': p,
+                  't': t,
+                  'ns': ns
                   }
     
     return dictoutput
