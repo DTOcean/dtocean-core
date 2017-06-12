@@ -40,13 +40,28 @@ except ImportError:
 
 logging.getLogger(__name__).addHandler(NullHandler())
 
+
+def init_config():
+    
+    """Copy config files to user data directory"""
+    
+    objdir = ObjDirectory(__name__, "config")
+    datadir = UserDataDirectory("dtocean_core", "DTOcean", "config")
+    dirmap = DirectoryMap(datadir, objdir)
+    
+    dirmap.copy_all()
+    
+    return
+
+
 def start_logging():
 
     """Start python logger"""
 
-    objdir = ObjDirectory(__name__, "config")
     datadir = UserDataDirectory("dtocean_core", "DTOcean", "config")
-    dirmap = DirectoryMap(datadir, objdir)
 
-    log = Logger(dirmap)
+    log = Logger(datadir)
     log("dtocean_core", info_message="Begin logging for dtocean_core.")
+    
+    return
+
