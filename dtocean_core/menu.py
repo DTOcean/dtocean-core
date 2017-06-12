@@ -26,7 +26,7 @@ import abc
 import yaml
 
 from aneris.utilities.database import check_host_port
-from polite.paths import ObjDirectory, UserDataDirectory, DirectoryMap
+from polite.paths import UserDataDirectory
 from polite.configuration import ReadYAML
 
 from .core import Connector
@@ -592,12 +592,8 @@ class DataMenu(object):
 
     def _init_dbdefs(self, db_config_name="database.yaml"):
 
-        objdir = ObjDirectory(__name__, "config")
         datadir = UserDataDirectory("dtocean_core", "DTOcean", "config")
-        dirmap = DirectoryMap(datadir, objdir)
-        
-        dbyaml = ReadYAML(dirmap, db_config_name)
-        dbyaml.copy_config()
+        dbyaml = ReadYAML(datadir, db_config_name)
         
         config = dbyaml.read()
                 
