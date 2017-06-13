@@ -38,6 +38,8 @@ module_logger = logging.getLogger(__name__)
 import os
 import pickle
 
+from polite.paths import Directory, UserDataDirectory
+from polite.configuration import ReadINI
 from dtocean_reliability.main import Variables, Main
 
 from . import ThemeInterface
@@ -157,10 +159,8 @@ class ReliabilityInterface(ThemeInterface):
                         "project.elec_subsystem_mttf" ,
                         
                         "project.moor_found_reliability" ,
-                        "project.moor_found_mttf" ,
-
-
-                      ]
+                        "project.moor_found_mttf"
+                       ]
         
         return output_list
         
@@ -328,7 +328,19 @@ class ReliabilityInterface(ThemeInterface):
         input_dict["mttfreq_hours"] = mttfreq_hours
             
         if export_data:
-            pickle.dump(input_dict, open("reliability_inputs.pkl", "wb" ))
+            
+            datadir = UserDataDirectory("dtocean_core", "DTOcean", "config")
+            files_ini = ReadINI(datadir, "files.ini")
+            files_config = files_ini.get_config()
+            
+            appdir_path = datadir.get_path("..")
+            debug_folder = files_config["debug"]["path"]
+            debug_path = os.path.join(appdir_path, debug_folder)
+            debugdir = Directory(debug_path)
+            debugdir.makedir()
+
+            pkl_path = debugdir.get_path("reliability_inputs.pkl")
+            pickle.dump(input_dict, open(pkl_path, "wb" ))
                         
         input_variables = Variables(input_dict["mission_time_hours"], # mission time in hours
                                     input_dict["mttfreq_hours"], # target mean time to failure in hours

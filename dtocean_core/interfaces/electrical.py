@@ -36,11 +36,14 @@ import logging
 
 module_logger = logging.getLogger(__name__)
 
+import os
 import pickle
 
 import numpy as np
 import pandas as pd
 
+from polite.paths import Directory, UserDataDirectory
+from polite.configuration import ReadINI
 from dtocean_electrical.main import Electrical
 from dtocean_electrical.inputs import (ElectricalComponentDatabase,
                                        ElectricalMachineData,
@@ -338,7 +341,19 @@ class ElectricalInterface(ModuleInterface):
         if debug_entry: return
 
         if export_data:
-            pickle.dump(input_dict, open("electrical_inputs.pkl", "wb" ))
+            
+            datadir = UserDataDirectory("dtocean_core", "DTOcean", "config")
+            files_ini = ReadINI(datadir, "files.ini")
+            files_config = files_ini.get_config()
+            
+            appdir_path = datadir.get_path("..")
+            debug_folder = files_config["debug"]["path"]
+            debug_path = os.path.join(appdir_path, debug_folder)
+            debugdir = Directory(debug_path)
+            debugdir.makedir()
+
+            pkl_path = debugdir.get_path("electrical_inputs.pkl")
+            pickle.dump(input_dict, open(pkl_path, "wb" ))
         
         elec = Electrical(input_dict["site_data"],
                           input_dict["array_data"],
@@ -348,7 +363,9 @@ class ElectricalInterface(ModuleInterface):
         solution, installation_tool = elec.run_module()
         
         if export_data:
-            pickle.dump(solution, open("electrical_outputs.pkl", "wb" ))
+            
+            pkl_path = debugdir.get_path("electrical_outputs.pkl")
+            pickle.dump(solution, open(pkl_path, "wb" ))
                         
         # Convert to MWh 
         annual_energy_togrid = solution.annual_yield / 1e6

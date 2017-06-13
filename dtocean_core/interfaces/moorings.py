@@ -32,6 +32,7 @@ Note:
 """
 
 # Built in modules
+import os
 import pickle
 
 # External 3rd party libraries
@@ -39,6 +40,8 @@ import numpy as np
 import pandas as pd
 
 # External DTOcean libraries
+from polite.paths import Directory, UserDataDirectory
+from polite.configuration import ReadINI
 from aneris.boundary.interface import MaskVariable
 from dtocean_moorings.main import Variables, Main
 
@@ -1075,7 +1078,19 @@ class MooringsInterface(ModuleInterface):
                            )
         
         if export_data:
-            pickle.dump(input_data, open("moorings_inputs.pkl", "wb" ))
+            
+            datadir = UserDataDirectory("dtocean_core", "DTOcean", "config")
+            files_ini = ReadINI(datadir, "files.ini")
+            files_config = files_ini.get_config()
+            
+            appdir_path = datadir.get_path("..")
+            debug_folder = files_config["debug"]["path"]
+            debug_path = os.path.join(appdir_path, debug_folder)
+            debugdir = Directory(debug_path)
+            debugdir.makedir()
+
+            pkl_path = debugdir.get_path("moorings_inputs.pkl")
+            pickle.dump(input_data, open(pkl_path, "wb" ))
                                
         main = Main(input_data)    
         
@@ -1096,9 +1111,10 @@ class MooringsInterface(ModuleInterface):
                 
                 result["moorings"] = main.sysmoorinsttab
                 result["umbilical"] = main.sysumbinsttab
-            
-            pickle.dump(result, open("moorings_outputs.pkl", "wb" ))
-            
+                      
+            pkl_path = debugdir.get_path("moorings_outputs.pkl")
+            pickle.dump(result, open(pkl_path, "wb" ))
+        
         # Raise an error on foundation not found output
         if main.sysfoundinsttab['type [-]'].isin(
                             ["Foundation solution not found"]).any():
