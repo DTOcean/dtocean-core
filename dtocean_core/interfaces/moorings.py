@@ -49,6 +49,7 @@ from dtocean_moorings.main import Variables, Main
 from . import ModuleInterface
 from ..utils.moorings import get_component_dict
 
+
 class MooringsInterface(ModuleInterface):
     
     '''Interface to the moorings and foundations module.
@@ -1090,7 +1091,7 @@ class MooringsInterface(ModuleInterface):
             debugdir.makedir()
 
             pkl_path = debugdir.get_path("moorings_inputs.pkl")
-            pickle.dump(input_data, open(pkl_path, "wb" ))
+            pickle.dump(input_data, open(pkl_path, "wb"))
                                
         main = Main(input_data)    
         
@@ -1113,7 +1114,7 @@ class MooringsInterface(ModuleInterface):
                 result["umbilical"] = main.sysumbinsttab
                       
             pkl_path = debugdir.get_path("moorings_outputs.pkl")
-            pickle.dump(result, open(pkl_path, "wb" ))
+            pickle.dump(result, open(pkl_path, "wb"))
         
         # Raise an error on foundation not found output
         if main.sysfoundinsttab['type [-]'].isin(

@@ -31,11 +31,6 @@ Note:
                   Adam Collin <a.collin@ed.ac.uk>
 """
 
-# Set up logging
-import logging
-
-module_logger = logging.getLogger(__name__)
-
 import os
 import pickle
 
@@ -784,7 +779,7 @@ class InstallationInterface(ModuleInterface):
             debugdir.makedir()
 
             pkl_path = debugdir.get_path("installation_inputs.pkl")
-            pickle.dump(arg_dict, open(pkl_path, "wb" ))
+            pickle.dump(arg_dict, open(pkl_path, "wb"))
                         
         ### Call module
         installation_output = installation_main(
@@ -824,7 +819,7 @@ class InstallationInterface(ModuleInterface):
         if export_data:
             
             pkl_path = debugdir.get_path("installation_outputs.pkl")
-            pickle.dump(installation_output, open(pkl_path, "wb" ))
+            pickle.dump(installation_output, open(pkl_path, "wb"))
 
         ### Collect outputs
         

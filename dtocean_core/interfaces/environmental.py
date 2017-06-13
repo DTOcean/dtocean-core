@@ -1021,8 +1021,8 @@ class EnvironmentalInterface(ThemeInterface):
 
             pkl_path = debugdir.get_path(
                                     "environmental_ElectricalStage_inputs.pkl")
-            pickle.dump(elec_input_dict, open(pkl_path, "wb" ))      
-#                                                 
+            pickle.dump(elec_input_dict, open(pkl_path, "wb"))
+                                                 
         ( elec_confidence, 
           elec_eis, 
           elec_recommendation_dict, 

@@ -701,7 +701,7 @@ class HydroInterface(ModuleInterface):
             debugdir.makedir()
 
             pkl_path = debugdir.get_path("hydrodynamics_inputs.pkl")
-            pickle.dump(iWP2input, open(pkl_path, "wb" ))
+            pickle.dump(iWP2input, open(pkl_path, "wb"))
         
         if not iWP2input.stopWP2run:
            main = WP2(iWP2input,
@@ -716,7 +716,7 @@ class HydroInterface(ModuleInterface):
         if export_data:
             
             pkl_path = debugdir.get_path("hydrodynamics_outputs.pkl")
-            pickle.dump(result, open(pkl_path, "wb" ))
+            pickle.dump(result, open(pkl_path, "wb"))
         
         AEP_per_device = {}
         pow_per_device = {}
