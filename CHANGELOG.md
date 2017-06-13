@@ -33,7 +33,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   with an output level and are not hidden when using module-only output scope.
 - Added plots for tidal stream velocities over the domain, choosing a random
   time point.
-
+- Added configuration file for setting the location of logs and debug files
+  using the files.ini configuration file (found in
+  User\AppData\Roaming\DTOcean\dtocean_core\config folder).
 
 ### Changed
 
@@ -60,6 +62,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - SQLAlchemy calls moved out of structure definitions and into utils.database.
   This allows for easier testing of structure database read code.
 - Reorganised plot interfaces to have separate files for related data.
+- Changed setup.py to copy configuration files from source code to AppData as a
+  post-install step.
 
 ### Fixed
 
