@@ -31,12 +31,15 @@ Note:
                   Mathew Topper <mathew.topper@tecnalia.com>
 """
 
+import os
 import math
 import pickle
 
 import pandas as pd
 import numpy as np
 
+from polite.paths import Directory, UserDataDirectory
+from polite.configuration import ReadINI
 from aneris.boundary.interface import MaskVariable
 from dtocean_environment.main import (HydroStage,
                                       ElectricalStage,
@@ -1005,8 +1008,20 @@ class EnvironmentalInterface(ThemeInterface):
                                                elec_weighting_dict)
                                                  
         if export_data:
-            pickle.dump(elec_input_dict,
-                        open("environmental_ElectricalStage_inputs.pkl", "wb"))        
+            
+            datadir = UserDataDirectory("dtocean_core", "DTOcean", "config")
+            files_ini = ReadINI(datadir, "files.ini")
+            files_config = files_ini.get_config()
+            
+            appdir_path = datadir.get_path("..")
+            debug_folder = files_config["debug"]["path"]
+            debug_path = os.path.join(appdir_path, debug_folder)
+            debugdir = Directory(debug_path)
+            debugdir.makedir()
+
+            pkl_path = debugdir.get_path(
+                                    "environmental_ElectricalStage_inputs.pkl")
+            pickle.dump(elec_input_dict, open(pkl_path, "wb" ))      
 #                                                 
         ( elec_confidence, 
           elec_eis, 

@@ -36,6 +36,7 @@ import logging
 module_logger = logging.getLogger(__name__)
 
 # Built in modules
+import os
 import pickle
 
 # External 3rd party libraries
@@ -44,6 +45,8 @@ import pandas as pd
 from dateutil.relativedelta import relativedelta
 
 # External DTOcean libraries
+from polite.paths import Directory, UserDataDirectory
+from polite.configuration import ReadINI
 from aneris.boundary.interface import MaskVariable
 from dtocean_maintenance.mainOptim import LCOE_Optimiser
 from dtocean_maintenance.inputOM import inputOM
@@ -1334,9 +1337,19 @@ class OperationsInterface(ModuleInterface):
                              control_param)
         
         if export_data:
-        
-            with open("oandm_inputs.pkl", "wb") as fstream:
-                pickle.dump(inputOMPtr, fstream, -1)            
+            
+            datadir = UserDataDirectory("dtocean_core", "DTOcean", "config")
+            files_ini = ReadINI(datadir, "files.ini")
+            files_config = files_ini.get_config()
+            
+            appdir_path = datadir.get_path("..")
+            debug_folder = files_config["debug"]["path"]
+            debug_path = os.path.join(appdir_path, debug_folder)
+            debugdir = Directory(debug_path)
+            debugdir.makedir()
+
+            pkl_path = debugdir.get_path("oandm_inputs.pkl")
+            pickle.dump(inputOMPtr, open(pkl_path, "wb" ))         
             
         # Call WP6 optimiser
         ptrOptim = LCOE_Optimiser(inputOMPtr)
@@ -1369,9 +1382,9 @@ class OperationsInterface(ModuleInterface):
         outputWP6 = ptrOptim()
         
         if export_data:
-        
-            with open("oandm_outputs.pkl", "wb") as fstream:
-                pickle.dump(outputWP6, fstream, -1)
+            
+            pkl_path = debugdir.get_path("oandm_outputs.pkl")
+            pickle.dump(outputWP6, open(pkl_path, "wb" ))
         
         self.data.capex_oandm = outputWP6["CapexOfArray [Euro]"]
         

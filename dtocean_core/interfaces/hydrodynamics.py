@@ -30,11 +30,14 @@ Note:
 .. moduleauthor:: Mathew Topper <mathew.topper@tecnalia.com>
 """
 
+import os
 import pickle
 
 import numpy as np
 from shapely.geometry import box
 
+from polite.paths import Directory, UserDataDirectory
+from polite.configuration import ReadINI
 from aneris.boundary.interface import MaskVariable
 from dtocean_hydro.input import WP2_SiteData, WP2_MachineData, WP2input
 from dtocean_hydro.main import WP2
@@ -684,9 +687,21 @@ class HydroInterface(ModuleInterface):
         iWP2input = WP2input(Machine,Site)
         
         if debug_entry: return
-        
+
         if export_data:
-            pickle.dump(iWP2input, open("hydrodynamics_inputs.pkl", "wb" ))
+            
+            datadir = UserDataDirectory("dtocean_core", "DTOcean", "config")
+            files_ini = ReadINI(datadir, "files.ini")
+            files_config = files_ini.get_config()
+            
+            appdir_path = datadir.get_path("..")
+            debug_folder = files_config["debug"]["path"]
+            debug_path = os.path.join(appdir_path, debug_folder)
+            debugdir = Directory(debug_path)
+            debugdir.makedir()
+
+            pkl_path = debugdir.get_path("hydrodynamics_inputs.pkl")
+            pickle.dump(iWP2input, open(pkl_path, "wb" ))
         
         if not iWP2input.stopWP2run:
            main = WP2(iWP2input,
@@ -699,7 +714,9 @@ class HydroInterface(ModuleInterface):
                raise RuntimeError(errStr)
                
         if export_data:
-            pickle.dump(result, open("hydrodynamics_outputs.pkl", "wb" ))
+            
+            pkl_path = debugdir.get_path("hydrodynamics_outputs.pkl")
+            pickle.dump(result, open(pkl_path, "wb" ))
         
         AEP_per_device = {}
         pow_per_device = {}

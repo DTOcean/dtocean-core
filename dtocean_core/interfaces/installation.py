@@ -36,12 +36,15 @@ import logging
 
 module_logger = logging.getLogger(__name__)
 
+import os
 import pickle
 
 import utm
 import numpy as np
 import pandas as pd
 
+from polite.paths import Directory, UserDataDirectory
+from polite.configuration import ReadINI
 from dtocean_installation.main import installation_main
 from dtocean_installation.configure import get_operations_template
 from dtocean_logistics.phases import EquipmentType
@@ -769,9 +772,20 @@ class InstallationInterface(ModuleInterface):
                         'foundations_df': foundations_df
                         }
             arg_dict.update(input_dict)
-                        
-            pickle.dump(arg_dict, open("installation_inputs.pkl", "wb" ))
+            
+            datadir = UserDataDirectory("dtocean_core", "DTOcean", "config")
+            files_ini = ReadINI(datadir, "files.ini")
+            files_config = files_ini.get_config()
+            
+            appdir_path = datadir.get_path("..")
+            debug_folder = files_config["debug"]["path"]
+            debug_path = os.path.join(appdir_path, debug_folder)
+            debugdir = Directory(debug_path)
+            debugdir.makedir()
 
+            pkl_path = debugdir.get_path("installation_inputs.pkl")
+            pickle.dump(arg_dict, open(pkl_path, "wb" ))
+                        
         ### Call module
         installation_output = installation_main(
                                     input_dict["vessels_df"],
@@ -808,9 +822,9 @@ class InstallationInterface(ModuleInterface):
         if debug_entry: return
 
         if export_data:
-
-            pickle.dump(
-                installation_output, open("installation_outputs.pkl", "wb" ))
+            
+            pkl_path = debugdir.get_path("installation_outputs.pkl")
+            pickle.dump(installation_output, open(pkl_path, "wb" ))
 
         ### Collect outputs
         
