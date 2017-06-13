@@ -159,7 +159,7 @@ class Bootstrap(Command):
 
 
 setup(name='dtocean-core',
-      version='1.1.dev2',
+      version='1.1.dev3',
       description='dtocean-core: The core component of the DTOcean tools',
       author=('Mathew Topper, '
               'Vincenzo Nava, '
