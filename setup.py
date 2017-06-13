@@ -7,7 +7,30 @@ import shutil
 
 from distutils.cmd import Command
 from setuptools import setup, find_packages
+from setuptools.command.develop import develop
+from setuptools.command.install import install
 from setuptools.command.test import test as TestCommand
+
+
+class PostDevelopCommand(develop):
+    """Post-installation for development mode."""
+    def run(self):
+        # PUT YOUR PRE-INSTALL SCRIPT HERE or CALL A FUNCTION
+        develop.run(self)
+        # PUT YOUR POST-INSTALL SCRIPT HERE or CALL A FUNCTION
+        from dtocean_core import init_config
+        init_config()
+
+
+class PostInstallCommand(install):
+    """Post-installation for installation mode."""
+    def run(self):
+        # PUT YOUR PRE-INSTALL SCRIPT HERE or CALL A FUNCTION
+        install.run(self)
+        # PUT YOUR POST-INSTALL SCRIPT HERE or CALL A FUNCTION
+        from dtocean_core import init_config
+        init_config()
+
 
 class PyTest(TestCommand):
     
@@ -170,7 +193,7 @@ setup(name='dtocean-core',
         'openpyxl',
         'pandas>=0.18',
         'pil',
-        'polite>=0.9,<0.10',
+        'polite>=0.10.dev0',
         'psycopg2',
         'pyproj',
         'python-dateutil',
@@ -196,7 +219,9 @@ setup(name='dtocean-core',
       # scripts=['post-install.py'],
       tests_require=['pytest',
                      'pytest-mock'],
-      cmdclass = {'test': PyTest,
+      cmdclass = {'develop': PostDevelopCommand,
+                  'install': PostInstallCommand,
+                  'test': PyTest,
                   'cleantest': CleanTest,
                   'bootstrap': Bootstrap,
                   },
