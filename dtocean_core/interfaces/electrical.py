@@ -352,7 +352,7 @@ class ElectricalInterface(ModuleInterface):
             debugdir.makedir()
 
             pkl_path = debugdir.get_path("electrical_inputs.pkl")
-            pickle.dump(input_dict, open(pkl_path, "wb" ))
+            pickle.dump(input_dict, open(pkl_path, "wb"))
         
         elec = Electrical(input_dict["site_data"],
                           input_dict["array_data"],
