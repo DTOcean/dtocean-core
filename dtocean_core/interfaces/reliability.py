@@ -30,13 +30,9 @@ Note:
 .. moduleauthor:: Mathew Topper <mathew.topper@tecnalia.com>
 """
 
-# Set up logging
-import logging
-
-module_logger = logging.getLogger(__name__)
-
 import os
 import pickle
+import logging
 
 from polite.paths import Directory, UserDataDirectory
 from polite.configuration import ReadINI
@@ -45,7 +41,9 @@ from dtocean_reliability.main import Variables, Main
 from . import ThemeInterface
 from ..utils.reliability import get_component_dict
 
-mod_dir = os.path.dirname(__file__)
+# Set up logging
+module_logger = logging.getLogger(__name__)
+
 
 class ReliabilityInterface(ThemeInterface):
     
@@ -340,7 +338,7 @@ class ReliabilityInterface(ThemeInterface):
             debugdir.makedir()
 
             pkl_path = debugdir.get_path("reliability_inputs.pkl")
-            pickle.dump(input_dict, open(pkl_path, "wb" ))
+            pickle.dump(input_dict, open(pkl_path, "wb"))
                         
         input_variables = Variables(input_dict["mission_time_hours"], # mission time in hours
                                     input_dict["mttfreq_hours"], # target mean time to failure in hours

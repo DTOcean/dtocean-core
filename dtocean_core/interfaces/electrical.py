@@ -31,13 +31,9 @@ Note:
                   Vincenzo Nava <vincenzo.nava@tecnalia.com>
 """
 
-# Set up logging
-import logging
-
-module_logger = logging.getLogger(__name__)
-
 import os
 import pickle
+import logging
 
 import numpy as np
 import pandas as pd
@@ -59,6 +55,9 @@ from . import ModuleInterface
 from ..utils.hydrodynamics import bearing_to_radians
 from ..utils.electrical import sanitise_network
 from ..utils.network import find_marker_key
+
+# Set up logging
+module_logger = logging.getLogger(__name__)
 
 
 class ElectricalInterface(ModuleInterface):
@@ -365,7 +364,7 @@ class ElectricalInterface(ModuleInterface):
         if export_data:
             
             pkl_path = debugdir.get_path("electrical_outputs.pkl")
-            pickle.dump(solution, open(pkl_path, "wb" ))
+            pickle.dump(solution, open(pkl_path, "wb"))
                         
         # Convert to MWh 
         annual_energy_togrid = solution.annual_yield / 1e6

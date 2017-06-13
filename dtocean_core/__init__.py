@@ -73,7 +73,7 @@ def start_logging():
     log_path = os.path.join(appdir_path, log_folder)
     logdir = Directory(log_path)
     
-    log = Logger(datadir)    
+    log = Logger(datadir)
     log_config_dict = log.read()
     
     # Update the file logger if present

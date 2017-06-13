@@ -31,13 +31,10 @@ Note:
                   Vincenzo Nava <vincenzo.nava@tecnalia.com>
 """
 
-# Set up logging
-import logging
-module_logger = logging.getLogger(__name__)
-
 # Built in modules
 import os
 import pickle
+import logging
 
 # External 3rd party libraries
 import numpy as np
@@ -61,6 +58,10 @@ from ..utils.operations import (get_input_tables,
                                 get_user_compdict,
                                 get_point_depth,
                                 get_events_table)
+
+# Set up logging
+module_logger = logging.getLogger(__name__)
+
 
 class OperationsInterface(ModuleInterface):
     
@@ -1349,7 +1350,7 @@ class OperationsInterface(ModuleInterface):
             debugdir.makedir()
 
             pkl_path = debugdir.get_path("oandm_inputs.pkl")
-            pickle.dump(inputOMPtr, open(pkl_path, "wb" ))         
+            pickle.dump(inputOMPtr, open(pkl_path, "wb"))
             
         # Call WP6 optimiser
         ptrOptim = LCOE_Optimiser(inputOMPtr)
@@ -1384,7 +1385,7 @@ class OperationsInterface(ModuleInterface):
         if export_data:
             
             pkl_path = debugdir.get_path("oandm_outputs.pkl")
-            pickle.dump(outputWP6, open(pkl_path, "wb" ))
+            pickle.dump(outputWP6, open(pkl_path, "wb"))
         
         self.data.capex_oandm = outputWP6["CapexOfArray [Euro]"]
         
