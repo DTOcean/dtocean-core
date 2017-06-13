@@ -21,10 +21,15 @@
 .. moduleauthor:: Mathew Topper <mathew.topper@tecnalia.com>
 """
 
+import os
 import logging
 from pkg_resources import get_distribution
 
-from polite.paths import ObjDirectory, UserDataDirectory, DirectoryMap
+from polite.configuration import ReadINI
+from polite.paths import (Directory,
+                          ObjDirectory,
+                          UserDataDirectory,
+                          DirectoryMap)
 from polite.configuration import Logger
 
 __version__ = get_distribution('dtocean-core').version
@@ -59,9 +64,28 @@ def start_logging():
     """Start python logger"""
 
     datadir = UserDataDirectory("dtocean_core", "DTOcean", "config")
-
-    log = Logger(datadir)
-    log("dtocean_core", info_message="Begin logging for dtocean_core.")
+    
+    files_ini = ReadINI(datadir, "files.ini")
+    files_config = files_ini.get_config()
+    
+    appdir_path = datadir.get_path("..")
+    log_folder = files_config["logs"]["path"]
+    log_path = os.path.join(appdir_path, log_folder)
+    logdir = Directory(log_path)
+    
+    log = Logger(datadir)    
+    log_config_dict = log.read()
+    
+    # Update the file logger if present
+    if "file" in log_config_dict["handlers"]:
+        log_filename = log_config_dict["handlers"]["file"]["filename"]
+        log_path = logdir.get_path(log_filename)
+        log_config_dict["handlers"]["file"]["filename"] = log_path
+        logdir.makedir()
+    
+    log.configure_logger(log_config_dict)
+    log.add_named_logger("dtocean_core",
+                         info_message="Begin logging for dtocean_core")
     
     return
 
