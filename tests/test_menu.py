@@ -5,12 +5,13 @@ from copy import deepcopy
 
 from aneris.entity import Pipeline
 from dtocean_core.core import Core
-from dtocean_core.menu import ModuleMenu, ProjectMenu, ThemeMenu 
+from dtocean_core.menu import DataMenu, ModuleMenu, ProjectMenu, ThemeMenu 
 from dtocean_core.pipeline import Tree
 from dtocean_core.interfaces.hydrodynamics import HydroInterface
 from dtocean_core.interfaces.economics import EconomicInterface
 from dtocean_core.interfaces.environmental import EnvironmentalInterface
 from dtocean_core.interfaces.reliability import ReliabilityInterface
+from polite.paths import Directory
 
 
 # Using a py.test fixture to reduce boilerplate and test times.
@@ -112,3 +113,55 @@ def test_activate_theme(core, project, theme_menu):
     module = hub._scheduled_interface_map["EnvironmentalInterface"]
     
     assert isinstance(module, EnvironmentalInterface)
+    
+    
+def test_DataMenu_get_available_databases(mocker, tmpdir):
+
+    # Make a source directory with some files
+    config_tmpdir = tmpdir.mkdir("config")
+    mock_dir = Directory(str(config_tmpdir))
+        
+    mocker.patch('dtocean_core.menu.UserDataDirectory',
+                 return_value=mock_dir)
+                 
+    datamenu = DataMenu()
+    dbs = datamenu.get_available_databases()
+    
+    assert len(dbs) > 0
+              
+              
+def test_DataMenu_get_database_dict(mocker, tmpdir):
+    
+    # Make a source directory with some files
+    config_tmpdir = tmpdir.mkdir("config")
+    mock_dir = Directory(str(config_tmpdir))
+        
+    mocker.patch('dtocean_core.menu.UserDataDirectory',
+                 return_value=mock_dir)
+                 
+    datamenu = DataMenu()
+    dbs = datamenu.get_available_databases()
+    db_id = dbs[0]
+    
+    db_dict = datamenu.get_database_dict(db_id)
+    
+    assert "host" in db_dict.keys()
+    
+    
+def test_DataMenu_update_database(mocker, tmpdir):
+    
+    # Make a source directory with some files
+    config_tmpdir = tmpdir.mkdir("config")
+    mock_dir = Directory(str(config_tmpdir))
+        
+    mocker.patch('dtocean_core.menu.UserDataDirectory',
+                 return_value=mock_dir)
+                 
+    datamenu = DataMenu()
+    dbs = datamenu.get_available_databases()
+    db_id = dbs[0]
+    
+    db_dict = datamenu.get_database_dict(db_id)
+    datamenu.update_database(db_id, db_dict)
+    
+    assert len(config_tmpdir.listdir()) == 1

@@ -38,7 +38,7 @@ import logging
 import numpy as np
 import pandas as pd
 
-from polite.paths import Directory, UserDataDirectory
+from polite.paths import Directory, ObjDirectory, UserDataDirectory
 from polite.configuration import ReadINI
 from dtocean_electrical.main import Electrical
 from dtocean_electrical.inputs import (ElectricalComponentDatabase,
@@ -341,11 +341,15 @@ class ElectricalInterface(ModuleInterface):
 
         if export_data:
             
-            datadir = UserDataDirectory("dtocean_core", "DTOcean", "config")
-            files_ini = ReadINI(datadir, "files.ini")
+            configdir = UserDataDirectory("dtocean_core", "DTOcean", "config")
+            
+            if not configdir.isfile("files.ini"): 
+                configdir = ObjDirectory("dtocean_core", "config")
+            
+            files_ini = ReadINI(configdir, "files.ini")
             files_config = files_ini.get_config()
             
-            appdir_path = datadir.get_path("..")
+            appdir_path = configdir.get_path("..")
             debug_folder = files_config["debug"]["path"]
             debug_path = os.path.join(appdir_path, debug_folder)
             debugdir = Directory(debug_path)
