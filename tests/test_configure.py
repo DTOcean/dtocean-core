@@ -24,14 +24,14 @@ def test_init_config_parser():
     
     overwrite = init_config_parser([])
     
-    assert overwrite == False
+    assert not overwrite
 
 
 def test_init_config_parser_overwrite():
     
     overwrite = init_config_parser(["--overwrite"])
     
-    assert overwrite == True
+    assert overwrite
     
     
 def test_init_config_interface(mocker, tmpdir):
@@ -43,7 +43,7 @@ def test_init_config_interface(mocker, tmpdir):
     mocker.patch('dtocean_core.UserDataDirectory',
                  return_value=mock_dir)
     mocker.patch('dtocean_core.init_config_parser',
-                 return_value=False)  
+                 return_value=False)
                  
     init_config_interface()
         

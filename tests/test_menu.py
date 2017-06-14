@@ -5,7 +5,7 @@ from copy import deepcopy
 
 from aneris.entity import Pipeline
 from dtocean_core.core import Core
-from dtocean_core.menu import DataMenu, ModuleMenu, ProjectMenu, ThemeMenu 
+from dtocean_core.menu import DataMenu, ModuleMenu, ProjectMenu, ThemeMenu
 from dtocean_core.pipeline import Tree
 from dtocean_core.interfaces.hydrodynamics import HydroInterface
 from dtocean_core.interfaces.economics import EconomicInterface
