@@ -686,19 +686,19 @@ class HydroInterface(ModuleInterface):
                                   
         iWP2input = WP2input(Machine,Site)
         
-        if debug_entry: return
-
         if export_data:
             
-            configdir = UserDataDirectory("dtocean_core", "DTOcean", "config")
-            
-            if not configdir.isfile("files.ini"):
+            userdir = UserDataDirectory("dtocean_core", "DTOcean", "config")
+                    
+            if userdir.isfile("files.ini"):
+                configdir = userdir
+            else:
                 configdir = ObjDirectory("dtocean_core", "config")
             
             files_ini = ReadINI(configdir, "files.ini")
             files_config = files_ini.get_config()
             
-            appdir_path = configdir.get_path("..")
+            appdir_path = userdir.get_path("..")
             debug_folder = files_config["debug"]["path"]
             debug_path = os.path.join(appdir_path, debug_folder)
             debugdir = Directory(debug_path)
@@ -706,6 +706,8 @@ class HydroInterface(ModuleInterface):
 
             pkl_path = debugdir.get_path("hydrodynamics_inputs.pkl")
             pickle.dump(iWP2input, open(pkl_path, "wb"))
+
+        if debug_entry: return
         
         if not iWP2input.stopWP2run:
            main = WP2(iWP2input,

@@ -61,7 +61,9 @@ def test_start_logging(mocker, tmpdir):
 
     start_logging()
     
-    assert True
+    logdir = config_tmpdir.join("..", "logs")
+    
+    assert len(logdir.listdir()) == 1
 
 
 def test_start_logging_user(mocker, tmpdir):
@@ -80,4 +82,6 @@ def test_start_logging_user(mocker, tmpdir):
     
     start_logging()
     
-    assert True
+    logdir = config_tmpdir.join("..", "logs")
+    
+    assert len(logdir.listdir()) == 1
