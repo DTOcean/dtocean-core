@@ -36,6 +36,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added configuration file for setting the location of logs and debug files
   using the files.ini configuration file (found in
   User\AppData\Roaming\DTOcean\dtocean_core\config folder).
+- Added configuration file generator called dtocean-core-config which copies
+  the default configuration to the
+  User\AppData\Roaming\DTOcean\dtocean_core\config folder.
 
 ### Changed
 
@@ -64,6 +67,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Reorganised plot interfaces to have separate files for related data.
 - Changed setup.py to copy configuration files from source code to AppData as a
   post-install step.
+- Using default configuration files in source code unless a user configuration
+  is found, or if the database definitions are written using
+  DataMenu.update_database.
 
 ### Fixed
 
