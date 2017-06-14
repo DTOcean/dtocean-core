@@ -26,7 +26,7 @@ import abc
 import yaml
 
 from aneris.utilities.database import check_host_port
-from polite.paths import UserDataDirectory
+from polite.paths import ObjDirectory, UserDataDirectory
 from polite.configuration import ReadYAML
 
 from .core import Connector
@@ -583,21 +583,27 @@ class DataMenu(object):
     def __init__(self):
 
         self._tree = Tree()
-        self._dbyaml = None
+        self._useryaml = None
         self._dbconfig = None
 
-        self._dbyaml, self._dbconfig = self._init_dbdefs()
+        self._useryaml, self._dbconfig = self._init_dbdefs()
 
         return
 
     def _init_dbdefs(self, db_config_name="database.yaml"):
 
-        datadir = UserDataDirectory("dtocean_core", "DTOcean", "config")
-        dbyaml = ReadYAML(datadir, db_config_name)
+        userconfigdir = UserDataDirectory("dtocean_core", "DTOcean", "config")
+        useryaml = ReadYAML(userconfigdir, db_config_name)
         
-        config = dbyaml.read()
+        if userconfigdir.isfile(db_config_name):
+            configdir = userconfigdir
+        else:
+            configdir = ObjDirectory("dtocean_core", "config")        
+        
+        configyaml = ReadYAML(configdir, db_config_name)
+        config = configyaml.read()
                 
-        return dbyaml, config
+        return useryaml, config
         
     def get_available_databases(self):
         
@@ -638,7 +644,7 @@ class DataMenu(object):
             safe_db_dict[k] = v
             
         self._dbconfig[identifier] = safe_db_dict
-        self._dbyaml.write(self._dbconfig)
+        self._useryaml.write(self._dbconfig)
         
         return
         
@@ -651,7 +657,7 @@ class DataMenu(object):
             raise ValueError(errStr)
             
         self._dbconfig.pop(identifier, None)
-        self._dbyaml.write(self._dbconfig)
+        self._useryaml.write(self._dbconfig)
         
         return
         

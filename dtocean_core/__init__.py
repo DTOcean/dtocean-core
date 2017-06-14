@@ -22,6 +22,8 @@
 """
 
 import os
+import sys
+import argparse
 import logging
 from pkg_resources import get_distribution
 
@@ -46,34 +48,26 @@ except ImportError:
 logging.getLogger(__name__).addHandler(NullHandler())
 
 
-def init_config():
-    
-    """Copy config files to user data directory"""
-    
-    objdir = ObjDirectory(__name__, "config")
-    datadir = UserDataDirectory("dtocean_core", "DTOcean", "config")
-    dirmap = DirectoryMap(datadir, objdir)
-    
-    dirmap.copy_all()
-    
-    return
-
-
 def start_logging():
 
     """Start python logger"""
 
-    datadir = UserDataDirectory("dtocean_core", "DTOcean", "config")
+    # Pick up the configuration from the user directory if it exists
+    configdir = UserDataDirectory("dtocean_core", "DTOcean", "config")
+            
+    if not (configdir.isfile("files.ini") and
+            configdir.isfile("logging.yaml")): 
+        configdir = ObjDirectory("dtocean_core", "config")
     
-    files_ini = ReadINI(datadir, "files.ini")
+    files_ini = ReadINI(configdir, "files.ini")
     files_config = files_ini.get_config()
     
-    appdir_path = datadir.get_path("..")
+    appdir_path = configdir.get_path("..")
     log_folder = files_config["logs"]["path"]
     log_path = os.path.join(appdir_path, log_folder)
     logdir = Directory(log_path)
     
-    log = Logger(datadir)
+    log = Logger(configdir)
     log_config_dict = log.read()
     
     # Update the file logger if present
@@ -87,5 +81,59 @@ def start_logging():
     log.add_named_logger("dtocean_core",
                          info_message="Begin logging for dtocean_core")
     
+    return
+
+
+def init_config(overwrite=False):
+    
+    """Copy config files to user data directory"""
+    
+    objdir = ObjDirectory(__name__, "config")
+    datadir = UserDataDirectory("dtocean_core", "DTOcean", "config")
+    dirmap = DirectoryMap(datadir, objdir)
+    
+    dirmap.copy_all(overwrite=overwrite)
+    
+    return datadir.get_path()
+
+
+def init_config_parser(args):
+    
+    '''Command line parser for init_config.
+    
+    Example:
+    
+        To get help::
+        
+            $ dtocean-core-config -h
+            
+    '''
+    
+    epiStr = ('Mathew Topper (c) 2017.')
+              
+    desStr = ("Copy user modifiable configuration files to "
+              "User\AppData\Roaming\DTOcean\dtocean-core\config")
+
+    parser = argparse.ArgumentParser(description=desStr,
+                                     epilog=epiStr)
+    
+    parser.add_argument("--overwrite",
+                        help=("overwrite any existing configuration files"),
+                        action="store_true")
+                        
+    args = parser.parse_args(args)
+    overwrite = args.overwrite
+    
+    return overwrite
+
+
+def init_config_interface():
+    
+    '''Command line interface for init_config.'''
+    
+    overwrite = init_config_parser(sys.argv[1:])
+    dir_path = init_config(overwrite=overwrite)
+    print "Copying configuration files to {}".format(dir_path)
+
     return
 
