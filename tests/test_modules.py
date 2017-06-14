@@ -5,6 +5,7 @@ from pprint import pprint
 
 import pytest
 
+from polite.paths import Directory
 from dtocean_core.core import Core
 from dtocean_core.menu import DataMenu, ModuleMenu, ProjectMenu, ThemeMenu 
 from dtocean_core.pipeline import Tree, _get_connector
@@ -167,8 +168,21 @@ def test_get_wave_interface(module_menu, core, wave_project, var_tree):
                                         mod_name)
     
     assert interface.data.wave_data_directory is not None
+
+
+def test_wave_interface_entry(module_menu,
+                              core,
+                              wave_project,
+                              var_tree,
+                              mocker,
+                              tmpdir):
     
-def test_wave_interface_entry(module_menu, core, wave_project, var_tree):
+    # Make a source directory with some files
+    config_tmpdir = tmpdir.mkdir("config")
+    mock_dir = Directory(str(config_tmpdir))
+        
+    mocker.patch('dtocean_core.interfaces.hydrodynamics.UserDataDirectory',
+                 return_value=mock_dir)
         
     mod_name = "Hydrodynamics"
     
@@ -197,7 +211,10 @@ def test_wave_interface_entry(module_menu, core, wave_project, var_tree):
                                         
     interface.connect(debug_entry=True)
                                         
-    assert True
+    debugdir = config_tmpdir.join("..", "debug")
+    
+    assert len(debugdir.listdir()) == 1
+
     
 def test_tidal_inputs(module_menu, core, tidal_project, var_tree):
         
@@ -244,8 +261,21 @@ def test_get_tidal_interface(module_menu, core, tidal_project, var_tree):
                                         mod_name)
                                         
     assert interface.data.perf_curves is not None
+
+
+def test_tidal_interface_entry(module_menu,
+                               core,
+                               tidal_project,
+                               var_tree,
+                               mocker,
+                               tmpdir):
     
-def test_tidal_interface_entry(module_menu, core, tidal_project, var_tree):
+    # Make a source directory with some files
+    config_tmpdir = tmpdir.mkdir("config")
+    mock_dir = Directory(str(config_tmpdir))
+        
+    mocker.patch('dtocean_core.interfaces.hydrodynamics.UserDataDirectory',
+                 return_value=mock_dir)
         
     mod_name = "Hydrodynamics"
     
@@ -275,8 +305,11 @@ def test_tidal_interface_entry(module_menu, core, tidal_project, var_tree):
                                         
     interface.connect(debug_entry=True)
                                         
-    assert True
+    debugdir = config_tmpdir.join("..", "debug")
     
+    assert len(debugdir.listdir()) == 1
+
+
 def test_tidal_interface_entry_fail(module_menu,
                                     core,
                                     tidal_project,
@@ -369,9 +402,22 @@ def test_get_electrical_interface(module_menu, core, tidal_project, var_tree):
                                         mod_name)
                                         
     assert interface.data.voltage is not None
+
+
+def test_electrical_interface_entry(module_menu,
+                                    core,
+                                    tidal_project,
+                                    var_tree,
+                                    mocker,
+                                    tmpdir):
     
-def test_electrical_interface_entry(module_menu, core, tidal_project, var_tree):
-    
+    # Make a source directory with some files
+    config_tmpdir = tmpdir.mkdir("config")
+    mock_dir = Directory(str(config_tmpdir))
+        
+    mocker.patch('dtocean_core.interfaces.electrical.UserDataDirectory',
+                 return_value=mock_dir)
+        
     mod_name = "Electrical Sub-Systems"
     #    project_menu = ProjectMenu()
 
@@ -402,8 +448,11 @@ def test_electrical_interface_entry(module_menu, core, tidal_project, var_tree):
                                         
     interface.connect(debug_entry=True)
                                         
-    assert True
+    debugdir = config_tmpdir.join("..", "debug")
     
+    assert len(debugdir.listdir()) == 1
+
+
 def test_moorings_inputs(module_menu, core, tidal_project, var_tree):
         
     mod_name = "Mooring and Foundations"
@@ -455,8 +504,21 @@ def test_get_moorings_interface(module_menu, core, tidal_project, var_tree):
                                         
     assert interface.data.winddir is not None
 
-def test_moorings_interface_entry(module_menu, core, tidal_project, var_tree):
+
+def test_moorings_interface_entry(module_menu,
+                                  core,
+                                  tidal_project,
+                                  var_tree,
+                                  mocker,
+                                  tmpdir):
     
+    # Make a source directory with some files
+    config_tmpdir = tmpdir.mkdir("config")
+    mock_dir = Directory(str(config_tmpdir))
+        
+    mocker.patch('dtocean_core.interfaces.moorings.UserDataDirectory',
+                 return_value=mock_dir)
+        
     mod_name = "Mooring and Foundations"
 #    project_menu = ProjectMenu()
  
@@ -487,7 +549,10 @@ def test_moorings_interface_entry(module_menu, core, tidal_project, var_tree):
                                         
     interface.connect(debug_entry=True)
                                         
-    assert True
+    debugdir = config_tmpdir.join("..", "debug")
+    
+    assert len(debugdir.listdir()) == 1
+
 
 def test_installation_inputs(module_menu, core, tidal_project, var_tree):
         
@@ -539,12 +604,22 @@ def test_get_installation_interface(module_menu, core, tidal_project,
                                         mod_name)
                                         
     assert interface.data.site is not None
-    
+
+
 def test_installation_interface_entry(module_menu,
                                       core,
                                       tidal_project,
-                                      var_tree):
+                                      var_tree,
+                                      mocker,
+                                      tmpdir):
     
+    # Make a source directory with some files
+    config_tmpdir = tmpdir.mkdir("config")
+    mock_dir = Directory(str(config_tmpdir))
+        
+    mocker.patch('dtocean_core.interfaces.installation.UserDataDirectory',
+                 return_value=mock_dir)
+        
     mod_name = "Installation"
     
     project_menu = ProjectMenu()
@@ -574,8 +649,11 @@ def test_installation_interface_entry(module_menu,
                                         
     interface.connect(debug_entry=True)
                                         
-    assert True
+    debugdir = config_tmpdir.join("..", "debug")
     
+    assert len(debugdir.listdir()) == 1
+
+
 def test_operations_inputs(module_menu, core, tidal_project, var_tree):
         
     mod_name = 'Operations and Maintenance'
@@ -625,12 +703,22 @@ def test_get_operations_interface(module_menu, core, tidal_project, var_tree):
                                         mod_name)
                                         
     assert interface.data.system_type is not None
-    
+
+
 def test_operations_interface_entry(module_menu,
                                     core,
                                     tidal_project,
-                                    var_tree):
+                                    var_tree,
+                                    mocker,
+                                    tmpdir):
     
+    # Make a source directory with some files
+    config_tmpdir = tmpdir.mkdir("config")
+    mock_dir = Directory(str(config_tmpdir))
+        
+    mocker.patch('dtocean_core.interfaces.operations.UserDataDirectory',
+                 return_value=mock_dir)
+        
     mod_name = 'Operations and Maintenance'
     
     project_menu = ProjectMenu()
@@ -660,7 +748,9 @@ def test_operations_interface_entry(module_menu,
                                         
     interface.connect(debug_entry=True)
                                         
-    assert True
+    debugdir = config_tmpdir.join("..", "debug")
+    
+    assert len(debugdir.listdir()) == 1
 
 
 def test_environmental_inputs(theme_menu, core, tidal_project, var_tree):
@@ -721,9 +811,17 @@ def test_get_environmental_interface(theme_menu,
 def test_environmental_interface_entry(theme_menu,
                                        core,
                                        tidal_project,
-                                       var_tree):
-                                       
+                                       var_tree,
+                                       mocker,
+                                       tmpdir):
     
+    # Make a source directory with some files
+    config_tmpdir = tmpdir.mkdir("config")
+    mock_dir = Directory(str(config_tmpdir))
+        
+    mocker.patch('dtocean_core.interfaces.environmental.UserDataDirectory',
+                 return_value=mock_dir)
+        
     theme_name = "Environmental Impact Assessment"
 #    project_menu = ProjectMenu()
  
@@ -754,7 +852,9 @@ def test_environmental_interface_entry(theme_menu,
                                         
     interface.connect(debug_entry=True)
                                         
-    assert True
+    debugdir = config_tmpdir.join("..", "debug")
+    
+    assert len(debugdir.listdir()) == 1
 
 
 def test_reliability_inputs(theme_menu, core, tidal_project, var_tree):
@@ -808,8 +908,20 @@ def test_get_reliability_interface(theme_menu, core, tidal_project, var_tree):
                                         
     assert interface.data.mission_time is not None
     
-def test_reliability_interface_entry(theme_menu, core, tidal_project, var_tree):
+def test_reliability_interface_entry(theme_menu,
+                                     core,
+                                     tidal_project,
+                                     var_tree,
+                                     mocker,
+                                     tmpdir):
     
+    # Make a source directory with some files
+    config_tmpdir = tmpdir.mkdir("config")
+    mock_dir = Directory(str(config_tmpdir))
+        
+    mocker.patch('dtocean_core.interfaces.reliability.UserDataDirectory',
+                 return_value=mock_dir)
+        
     theme_name = "Reliability"
 #    project_menu = ProjectMenu()
  
@@ -840,17 +952,6 @@ def test_reliability_interface_entry(theme_menu, core, tidal_project, var_tree):
                                         
     interface.connect(debug_entry=True)
                                         
-    assert True    
-
-
-if __name__ == "__main__":
+    debugdir = config_tmpdir.join("..", "debug")
     
-    from dtocean_core import start_logging
-    start_logging()
-    
-    my_core = core()
-    my_var_tree = var_tree()
-    
-    my_tidal_project = tidal_project(my_core, my_var_tree)
-    
-
+    assert len(debugdir.listdir()) == 1

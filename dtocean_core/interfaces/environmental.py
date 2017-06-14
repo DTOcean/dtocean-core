@@ -1009,15 +1009,17 @@ class EnvironmentalInterface(ThemeInterface):
                                                  
         if export_data:
             
-            configdir = UserDataDirectory("dtocean_core", "DTOcean", "config")
-            
-            if not configdir.isfile("files.ini"):
+            userdir = UserDataDirectory("dtocean_core", "DTOcean", "config")
+                    
+            if userdir.isfile("files.ini"):
+                configdir = userdir
+            else:
                 configdir = ObjDirectory("dtocean_core", "config")
             
             files_ini = ReadINI(configdir, "files.ini")
             files_config = files_ini.get_config()
             
-            appdir_path = configdir.get_path("..")
+            appdir_path = userdir.get_path("..")
             debug_folder = files_config["debug"]["path"]
             debug_path = os.path.join(appdir_path, debug_folder)
             debugdir = Directory(debug_path)
