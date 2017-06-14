@@ -907,7 +907,8 @@ def test_get_reliability_interface(theme_menu, core, tidal_project, var_tree):
                                         theme_name)
                                         
     assert interface.data.mission_time is not None
-    
+
+
 def test_reliability_interface_entry(theme_menu,
                                      core,
                                      tidal_project,
