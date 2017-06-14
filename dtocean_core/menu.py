@@ -15,15 +15,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Set up logging
-import logging
-import warnings
-
-module_logger = logging.getLogger(__name__)
-
 import os
 import abc
 import yaml
+import logging
 
 from aneris.utilities.database import check_host_port
 from polite.paths import ObjDirectory, UserDataDirectory
@@ -31,6 +26,10 @@ from polite.configuration import ReadYAML
 
 from .core import Connector
 from .pipeline import Tree, set_output_scope
+
+# Set up logging
+module_logger = logging.getLogger(__name__)
+
 
 class ConnectorMenu(object):
     
@@ -598,7 +597,7 @@ class DataMenu(object):
         if userconfigdir.isfile(db_config_name):
             configdir = userconfigdir
         else:
-            configdir = ObjDirectory("dtocean_core", "config")        
+            configdir = ObjDirectory("dtocean_core", "config")
         
         configyaml = ReadYAML(configdir, db_config_name)
         config = configyaml.read()

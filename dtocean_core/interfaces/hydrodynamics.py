@@ -692,7 +692,7 @@ class HydroInterface(ModuleInterface):
             
             configdir = UserDataDirectory("dtocean_core", "DTOcean", "config")
             
-            if not configdir.isfile("files.ini"): 
+            if not configdir.isfile("files.ini"):
                 configdir = ObjDirectory("dtocean_core", "config")
             
             files_ini = ReadINI(configdir, "files.ini")

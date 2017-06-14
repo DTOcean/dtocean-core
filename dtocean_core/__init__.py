@@ -56,7 +56,7 @@ def start_logging():
     configdir = UserDataDirectory("dtocean_core", "DTOcean", "config")
             
     if not (configdir.isfile("files.ini") and
-            configdir.isfile("logging.yaml")): 
+            configdir.isfile("logging.yaml")):
         configdir = ObjDirectory("dtocean_core", "config")
     
     files_ini = ReadINI(configdir, "files.ini")
@@ -136,4 +136,3 @@ def init_config_interface():
     print "Copying configuration files to {}".format(dir_path)
 
     return
-
