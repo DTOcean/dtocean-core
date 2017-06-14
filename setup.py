@@ -7,29 +7,7 @@ import shutil
 
 from distutils.cmd import Command
 from setuptools import setup, find_packages
-from setuptools.command.develop import develop
-from setuptools.command.install import install
 from setuptools.command.test import test as TestCommand
-
-
-class PostDevelopCommand(develop):
-    """Post-installation for development mode."""
-    def run(self):
-        # PUT YOUR PRE-INSTALL SCRIPT HERE or CALL A FUNCTION
-        develop.run(self)
-        # PUT YOUR POST-INSTALL SCRIPT HERE or CALL A FUNCTION
-        from dtocean_core import init_config
-        init_config()
-
-
-class PostInstallCommand(install):
-    """Post-installation for installation mode."""
-    def run(self):
-        # PUT YOUR PRE-INSTALL SCRIPT HERE or CALL A FUNCTION
-        install.run(self)
-        # PUT YOUR POST-INSTALL SCRIPT HERE or CALL A FUNCTION
-        from dtocean_core import init_config
-        init_config()
 
 
 class PyTest(TestCommand):
@@ -159,7 +137,7 @@ class Bootstrap(Command):
 
 
 setup(name='dtocean-core',
-      version='1.1.dev3',
+      version='1.1.dev4',
       description='dtocean-core: The core component of the DTOcean tools',
       author=('Mathew Topper, '
               'Vincenzo Nava, '
@@ -193,7 +171,7 @@ setup(name='dtocean-core',
         'openpyxl',
         'pandas>=0.18',
         'pil',
-        'polite>=0.10.dev0',
+        'polite>=0.10.dev1',
         'psycopg2',
         'pyproj',
         'python-dateutil',
@@ -209,6 +187,7 @@ setup(name='dtocean-core',
           'console_scripts':
               [
                'add-Te = dtocean_core.utils.hydrodynamics:add_Te_interface',
+               'dtocean-core-config = dtocean_core:init_config_interface'
                ]},
       package_data={'dtocean_core': ['data/yaml/*.yaml',
                                      'interfaces/reliability_data/*.yaml',
@@ -219,10 +198,7 @@ setup(name='dtocean-core',
       # scripts=['post-install.py'],
       tests_require=['pytest',
                      'pytest-mock'],
-      cmdclass={'develop': PostDevelopCommand,
-                'install': PostInstallCommand,
-                'conda': install,
-                'test': PyTest,
+      cmdclass={'test': PyTest,
                 'cleantest': CleanTest,
                 'bootstrap': Bootstrap,
                 },

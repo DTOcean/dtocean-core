@@ -18,7 +18,7 @@ numpy
 openpyxl
 pandas >=0.18
 pil
-polite =0.10.dev0
+polite =0.10.dev1
 psycopg2
 pyproj
 pyqt =4.11.4
