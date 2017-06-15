@@ -2234,8 +2234,11 @@ class SimpleDict(Structure):
         if not self.meta.result.types[0] in ["int", "float"]: return
 
         num_dict = self.data.result
+        
         labels = num_dict.keys()
-        sizes = np.array(num_dict.values())
+        labels.sort()
+        
+        sizes = np.array([num_dict[x] for x in labels])
 
         plt.figure()
         plt.bar(range(len(sizes)),
