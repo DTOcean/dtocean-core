@@ -2814,13 +2814,25 @@ class PointDict(PointData):
             y.append(coords.y)
 
         fig = plt.figure()
-        ax1 = fig.add_subplot(1,1,1,aspect='equal')
-        ax1.plot(x,y,'k+', mew=2, markersize=10)
-        ax1.margins(0.1,0.1)
+        ax1 = fig.add_subplot(1, 1, 1, aspect='equal')
+        ax1.plot(x, y, 'k+', mew=2, markersize=10)
+        ax1.margins(0.1, 0.1)
         ax1.autoscale_view()
+        
+        for key, point in self.data.result.iteritems():
+            
+            coords = list(point.coords)[0]
+            ax1.annotate(str(key),
+                         xy=coords[:2],
+                         xytext=(0, 10),
+                         xycoords='data',
+                         textcoords='offset pixels',
+                         horizontalalignment='center',
+                         weight="bold",
+                         size='large')
 
-        xlabel=''
-        ylabel=''
+        xlabel = ''
+        ylabel = ''
 
         if self.meta.result.labels is not None:
             xlabel = self.meta.result.labels[0]
