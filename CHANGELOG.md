@@ -39,6 +39,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added configuration file generator called dtocean-core-config which copies
   the default configuration to the
   User\AppData\Roaming\DTOcean\dtocean_core\config folder.
+- Added labels and units to various variables using PointDict structure.
+- Added key annotation to PointDict plots.
+- Added "Lease Area Array Layout" plot to show devices in relation to the lease
+  area definition.
+- Added "Te & Hm0 Time Series" to show the Te and Hm0 time series separately
+  from the wave directions.
+- Added "Wave Resource Occurrence Matrix" plot to show the wave module
+  occurrence matrix over all wave directions.
+- Added logging of module execution time (requires monotonic package).
 
 ### Changed
 
@@ -70,6 +79,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Using default configuration files in source code unless a user configuration
   is found, or if the database definitions are written using
   DataMenu.update_database.
+- SimpleDict bar plots are now sorted by label.
 
 ### Fixed
 

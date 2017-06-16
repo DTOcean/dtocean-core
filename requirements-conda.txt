@@ -13,6 +13,7 @@ dtocean-reliability >=1.0
 dtocean-environment >=1.0
 geoalchemy2
 matplotlib
+monotonic
 netcdf4
 numpy
 openpyxl
