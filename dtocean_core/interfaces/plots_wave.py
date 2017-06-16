@@ -59,8 +59,7 @@ class WaveOccurrencePlot(PlotInterface):
                        ]
         '''
 
-        input_list  =  ["farm.wave_occurrence"
-                        ]
+        input_list = ["farm.wave_occurrence"]
 
         return input_list
 
@@ -169,8 +168,7 @@ class TeHm0Plot(PlotInterface):
                        ]
         '''
 
-        input_list  =  ["farm.wave_series"
-                        ]
+        input_list = ["farm.wave_series"]
 
         return input_list
 

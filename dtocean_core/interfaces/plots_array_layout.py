@@ -37,7 +37,7 @@ GREY = '#999999'
 
 class ArrayLeasePlot(PlotInterface):
     
-    @classmethod         
+    @classmethod
     def get_name(cls):
         
         '''A class method for the common name of the interface.
@@ -48,17 +48,17 @@ class ArrayLeasePlot(PlotInterface):
         
         return "Lease Area Array Layout"
         
-    @classmethod         
+    @classmethod
     def declare_inputs(cls):
         
         '''A class method to declare all the variables required as inputs by
-        this interface. 
+        this interface.
         
         Returns:
           list: List of inputs identifiers
         
         Example:
-          The returned value can be None or a list of identifier strings which 
+          The returned value can be None or a list of identifier strings which
           appear in the data descriptions. For example::
           
               inputs = ["My:first:variable",
@@ -66,22 +66,21 @@ class ArrayLeasePlot(PlotInterface):
                        ]
         '''
 
-        input_list  =  ["site.lease_boundary",
-                        "project.layout",
-                        "options.boundary_padding"
-                        ]
+        input_list = ["site.lease_boundary",
+                      "project.layout",
+                      "options.boundary_padding"
+                      ]
                                                 
         return input_list
     
     @classmethod
     def declare_optional(cls):
         
-        option_list  =  ["options.boundary_padding"
-                         ]
+        option_list = ["options.boundary_padding"]
 
         return option_list
         
-    @classmethod 
+    @classmethod
     def declare_id_map(self):
         
         '''Declare the mapping for variable identifiers in the data description
@@ -89,7 +88,7 @@ class ArrayLeasePlot(PlotInterface):
         the data description or interface from effecting the other.
         
         Returns:
-          dict: Mapping of local to data description variable identifiers 
+          dict: Mapping of local to data description variable identifiers
         
         Example:
           The returned value must be a dictionary containing all the inputs and
@@ -120,7 +119,7 @@ class ArrayLeasePlot(PlotInterface):
             y.append(coords.y)
 
         fig = plt.figure()
-        ax1 = fig.add_subplot(1, 1, 1,aspect='equal')
+        ax1 = fig.add_subplot(1, 1, 1, aspect='equal')
         ax1.plot(x, y, 'k+', mew=2, markersize=10)
         
         for key, point in self.data.layout.iteritems():
@@ -184,6 +183,3 @@ class ArrayLeasePlot(PlotInterface):
         self.fig_handle = plt.gcf()
         
         return
-        
-
-    
