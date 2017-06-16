@@ -19,10 +19,12 @@ import os
 import abc
 import yaml
 import logging
+from datetime import timedelta
 
 from aneris.utilities.database import check_host_port
 from polite.paths import ObjDirectory, UserDataDirectory
 from polite.configuration import ReadYAML
+from monotonic import monotonic
 
 from .core import Connector
 from .pipeline import Tree, set_output_scope
@@ -423,7 +425,8 @@ class ModuleMenu(ConnectorMenu):
     def execute_current(self, core,
                               project,
                               execute_themes=True,
-                              allow_unavailable=False):
+                              allow_unavailable=False,
+                              log_execution_time=True):
         
         module_name = self.get_current(core, project)
 
@@ -457,11 +460,23 @@ class ModuleMenu(ConnectorMenu):
             
         # Unmask any states
         core.unmask_states(project)
+        
+        # Record the start time
+        if log_execution_time:
+            start_time = monotonic()
 
         self._execute(core,
                       project,
                       module_name,
                       allow_unavailable=allow_unavailable)
+        
+        # Log the execution time
+        if log_execution_time:
+            end_time = monotonic()
+            duration = timedelta(seconds=end_time - start_time)
+            logStr = ("Module '{}' execution duration was: "
+                      "{}").format(module_name, duration)
+            module_logger.info(logStr)
                       
         if not execute_themes: return
                                       
