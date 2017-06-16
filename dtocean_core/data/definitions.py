@@ -2423,23 +2423,11 @@ class SimpleDictColumn(SimpleDict):
                                          table,
                                          self.meta.result.tables[1:3])
         
-        keys = col_lists[0]
-        values = col_lists[1]
-
-        result = {key: value for key, value in zip(keys, values)}
+        result = {k: v for k, v in zip(col_lists[0], col_lists[1])
+                                        if k is not None and v is not None}
         
         if result: self.data.result = result
 
-        return
-    
-    @staticmethod
-    def _auto_file_input(self):
-        
-        return
-     
-    @staticmethod
-    def _auto_file_output(self):
-        
         return
     
     
