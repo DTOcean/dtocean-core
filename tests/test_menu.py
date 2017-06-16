@@ -1,6 +1,7 @@
 
 import pytest
 
+import os
 from copy import deepcopy
 
 from aneris.entity import Pipeline
@@ -12,6 +13,8 @@ from dtocean_core.interfaces.economics import EconomicInterface
 from dtocean_core.interfaces.environmental import EnvironmentalInterface
 from dtocean_core.interfaces.reliability import ReliabilityInterface
 from polite.paths import Directory
+
+dir_path = os.path.dirname(__file__)
 
 
 # Using a py.test fixture to reduce boilerplate and test times.
@@ -165,3 +168,26 @@ def test_DataMenu_update_database(mocker, tmpdir):
     datamenu.update_database(db_id, db_dict)
     
     assert len(config_tmpdir.listdir()) == 1
+              
+              
+def test_ModuleMenu_execute_current_nothemes(core,
+                                             project,
+                                             module_menu,
+                                             mocker):
+    
+    var_tree = Tree()
+    project = deepcopy(project)
+    mod_name = "Hydrodynamics"    
+    
+    module_menu.activate(core, project, mod_name)
+    mod_branch = var_tree.get_branch(core, project, mod_name)
+    mod_branch.read_test_data(core,
+                              project,
+                              os.path.join(dir_path, "inputs_wp2_tidal.pkl"))
+    
+    mocker.patch('dtocean_core.menu.ModuleMenu._execute',
+                 return_value=None)
+                 
+    module_menu.execute_current(core, project, execute_themes=False)
+    
+    assert True
