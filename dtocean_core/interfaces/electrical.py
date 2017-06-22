@@ -588,20 +588,6 @@ class ElectricalInterface(ModuleInterface):
 #                                          lease area; expressed as [val1, val2]
 #                                          where: val1 is the bin edge of the vessel
 #                                          deadweight (T) val2 is the frequency (pc)
-            
-        renaming_bathymetry = {"loose sand": "ls",
-                               "medium sand": "ms",
-                               "dense sand": "ds",
-                               "very soft clay": "vsc",
-                               "soft clay": "sc",
-                               "firm clay": "fc",
-                               "stiff clay": "stc",
-                               "hard glacial till": "hgt",
-                               "cemented": "c",
-                               "soft rock coral": "src",
-                               "hard rock": "hr",
-                               "gravel cobble": "gc"                            
-                               }
 
         bathymetry_pd_unsort = data.bathymetry.to_dataframe()
         bathymetry_pd = bathymetry_pd_unsort.unstack(level='layer')
@@ -628,9 +614,9 @@ class ElectricalInterface(ModuleInterface):
             elif split_name[0] == "depth":
                 mapping[bathymetry.columns.values[i]]= "layer {} start".format(
                                                                 split_name[2]) 
-        
+                
         bathymetry = bathymetry.rename(columns=mapping)
-        bathymetry = bathymetry.replace(to_replace=renaming_bathymetry)
+        bathymetry = bathymetry[bathymetry["layer 1 start"].notnull()]
                         
         site = ElectricalSiteData(bathymetry,
                                   data.nogo_areas,
@@ -677,7 +663,7 @@ class ElectricalInterface(ModuleInterface):
         
         export_cartesian_product_index = export_bathymetry_pd.index.labels
         
-        export_bathymetry=export_bathymetry_pd.reset_index()
+        export_bathymetry = export_bathymetry_pd.reset_index()
         export_bathymetry.insert(0,
                                  'i',
                                  export_cartesian_product_index[0].astype(
@@ -700,11 +686,11 @@ class ElectricalInterface(ModuleInterface):
                                         "layer {} type".format(split_name[2])  
             elif split_name[0] == "depth":
                 export_mapping[export_bathymetry.columns.values[i]] = \
-                                        "layer {} start".format(split_name[2]) 
-
+                                        "layer {} start".format(split_name[2])
+                                        
         export_bathymetry = export_bathymetry.rename(columns=export_mapping)
-        export_bathymetry = export_bathymetry.replace(
-                                              to_replace=renaming_bathymetry)
+        export_bathymetry = export_bathymetry[
+                                export_bathymetry["layer 1 start"].notnull()]
 
         export = ElectricalExportData(export_bathymetry,
                                       data.corridor_nogo_areas,
@@ -889,24 +875,9 @@ class ElectricalInterface(ModuleInterface):
             safety_factor = None
             
         # Make columns lower case on installation_soil_compatibility table
-        renaming_columns = {"loose sand": "ls",
-                            "medium sand": "ms",
-                            "dense sand": "ds",
-                            "very soft clay": "vsc",
-                            "soft clay": "sc",
-                            "firm clay": "fc",
-                            "stiff clay": "stc",
-                            "hard glacial till": "hgt",
-                            "cemented": "c",
-                            "soft rock coral": "src",
-                            "hard rock": "hr",
-                            "gravel cobble": "gc"                            
-                            }
-
         up_cols = data.installation_soil_compatibility.columns
         low_cols = [x.lower() for x in up_cols]
-        columns_renamed = [renaming_columns[x] for x in low_cols]
-        data.installation_soil_compatibility.columns = columns_renamed       
+        data.installation_soil_compatibility.columns = low_cols      
 
         options = ConfigurationOptions(
                                     [data.network_configuration],
