@@ -2576,8 +2576,15 @@ class PointData(Structure):
             raise ValueError("The specified file structure is not supported, "
                              "the columns' headers shuld be defined as: "
                              "x, y, z(optional))")
+                 
+        result = None
         
-        self.data.result = Point(data[0])
+        if len(data) == 1:
+            result = Point(data[0])
+        else:
+            result = [Point(coord) for coord in data]
+            
+        self.data.result = result
         
         return
      
