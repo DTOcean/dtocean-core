@@ -99,6 +99,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed chosen trenching type variable definition.
 - Fixed bugs with database reading empty tables - now returns None.
 - Fixed TimeSeries structure plots.
+- Fixed soil type name conversions with the Electrical module interface.
+- Fixed bug in PointList structure file I/O.
    
 ### Removed
 

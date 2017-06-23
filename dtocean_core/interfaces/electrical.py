@@ -877,7 +877,7 @@ class ElectricalInterface(ModuleInterface):
         # Make columns lower case on installation_soil_compatibility table
         up_cols = data.installation_soil_compatibility.columns
         low_cols = [x.lower() for x in up_cols]
-        data.installation_soil_compatibility.columns = low_cols      
+        data.installation_soil_compatibility.columns = low_cols
 
         options = ConfigurationOptions(
                                     [data.network_configuration],
