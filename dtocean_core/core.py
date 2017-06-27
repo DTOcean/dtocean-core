@@ -698,6 +698,10 @@ class Core(object):
         # A data store is required
         data_store = DataStorage(core_data)
         
+        # A sequencer is also required
+        sequencer = Sequencer(self._hub_sockets,
+                              core_interfaces)
+        
         # Flag to remove project directory
         remove_prj_dir = False
         
@@ -744,6 +748,13 @@ class Core(object):
             self.control.deserialise_states(simulation,
                                             root_dir=prj_dir_path)
             
+            # Replace interface objects in hubs for backwards compatibility
+            hub_ids = simulation.get_hub_ids()
+            
+            for hub_id in hub_ids:
+                hub = simulation.get_hub(hub_id)
+                sequencer.refresh_interfaces(hub)
+            
             simulations.append(simulation)
             
         # Replace the sim boxes with the simulations
@@ -753,10 +764,16 @@ class Core(object):
         pool = load_project.get_pool()
         data_store.deserialise_pool(self.data_catalog,
                                     pool,
-                                    root_dir=prj_dir_path)
+                                    root_dir=prj_dir_path,
+                                    warn_missing=True,
+                                    warn_unpickle=True)
         
         # Remove the project directory if necessary
         if remove_prj_dir: shutil.rmtree(prj_dir_path)
+        
+        # Reset the input / output statuses
+        for simulation in simulations:
+            self.set_interface_status(load_project, simulation)
                 
         return load_project
 
@@ -1172,12 +1189,12 @@ class Core(object):
 
         return
         
-    def set_interface_status(self, project):
+    def set_interface_status(self, project, simulation=None):
                 
         # This order is important as the input status relies on the output
         # status
-        self._set_outputs_status(project)
-        self._set_inputs_status(project)
+        self._set_outputs_status(project, simulation)
+        self._set_inputs_status(project, simulation)
         
         return
 
@@ -1370,9 +1387,9 @@ class Core(object):
         errStr = "Interface {} not in any Hub".format(interface_name)
         raise ValueError(errStr)
         
-    def _set_outputs_status(self, project):
+    def _set_outputs_status(self, project, simulation=None):
         
-        simulation = project.get_simulation()
+        if simulation is None: simulation = project.get_simulation()
         
         hub_dict = {}
                                                
@@ -1410,10 +1427,10 @@ class Core(object):
 
         return
         
-    def _set_inputs_status(self, project):
+    def _set_inputs_status(self, project, simulation=None):
         
         pool = project.get_pool()
-        simulation = project.get_simulation()
+        if simulation is None: simulation = project.get_simulation()
                                                
         hub_dict = {}
         hub_force_available = self._get_force_unavailable(simulation)
@@ -1425,7 +1442,8 @@ class Core(object):
             for hub_name in hub_force_available[hub_id]:
             
                 hub_unavailable = self._get_unavailable_outputs(project,
-                                                                hub_name)
+                                                                hub_name,
+                                                                simulation)
                 all_unavailable.extend(hub_unavailable)
                 
             force_unavailable = simulation.get_unavailable_variables()
@@ -1458,11 +1476,11 @@ class Core(object):
 
         return
         
-    def _get_unavailable_outputs(self, project, hub_id):
+    def _get_unavailable_outputs(self, project, hub_id, simulation=None):
 
         # Collect the not satisfied outputs of the modules for the input
         # status of the themes.
-        simulation = project.get_simulation()
+        if simulation is None: simulation = project.get_simulation()
         
         all_scheduled_outputs = []
 
