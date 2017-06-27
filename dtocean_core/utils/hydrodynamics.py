@@ -552,12 +552,14 @@ def make_power_histograms(device_power_pmfs,
         
         # Change outlying values to the rated power
         if adjust_outliers:
-            outlier_indices = dev_power_pmf[:,0] > rated_power
-            dev_power_pmf[outlier_indices,0] = rated_power
+            outlier_indices = dev_power_pmf[:, 0] > rated_power
+            dev_power_pmf[outlier_indices, 0] = rated_power
         
         hist, final_bins = np.histogram(dev_power_pmf[:,0], bins=power_bins)
-        output_occurrence = sum_bins(hist, dev_power_pmf[:,1])
-        bin_widths = [j-i for i, j in zip(power_bins[:-1], power_bins[1:])]
+        
+        sort_pow_idx = dev_power_pmf[:, 0].argsort()
+        output_occurrence = sum_bins(hist, dev_power_pmf[sort_pow_idx, 1])
+        bin_widths = [j - i for i, j in zip(power_bins[:-1], power_bins[1:])]
         device_hists[dev_id] = (output_occurrence / np.array(bin_widths),
                                 final_bins)
         
