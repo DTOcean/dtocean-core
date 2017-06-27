@@ -104,31 +104,20 @@ class ElectricalInterface(ModuleInterface):
                        ]
         '''
 
-        input_list  =  ['component.static_cable',
-                        'component.dynamic_cable',
-                        'component.wet_mate_connectors',
-                        'component.dry_mate_connectors',
-                        'component.transformers',
-                        'component.collection_points',
-                        'component.collection_point_cog',
-                        'component.collection_point_foundations',
-                        'bathymetry.layers',
+        input_list  =  ['bathymetry.layers',
                         'farm.nogo_areas',
                         'corridor.layers',
                         'corridor.nogo_areas',
                         'corridor.landing_point',
-                        'project.layout',
-                        'project.mean_power_hist_per_device',
-                        'project.annual_energy',
-                        'project.main_direction',
+                        
                         'device.system_type',
                         'device.power_rating',
                         'device.voltage',
                         'device.connector_type',
                         'device.prescribed_footprint_radius',
                         'device.footprint_coords',
-                        'device.power_factor',
                         'device.constant_power_factor',
+                        'device.power_factor',
 
                          MaskVariable('device.umbilical_type',
                                       'device.system_type',
@@ -138,19 +127,34 @@ class ElectricalInterface(ModuleInterface):
                                       'device.system_type',
                                       ['Tidal Floating', 'Wave Floating']),
                                       
+                        'component.static_cable',
+                        'component.dynamic_cable',
+                        'component.wet_mate_connectors',
+                        'component.dry_mate_connectors',
+                        'component.transformers',
+                        'component.collection_points',
+                        'component.collection_point_cog',
+                        'component.collection_point_foundations',
+                        'component.installation_soil_compatibility',
+                        
+                        'project.layout',
+                        'project.annual_energy',
+                        'project.main_direction',
+                        'project.mean_power_hist_per_device',
+                        'project.network_configuration',
+                        'project.target_burial_depth',
+                        'project.export_voltage',
+                        'project.export_target_burial_depth',
+                        'project.equipment_gradient_constraint',
+                        'project.devices_per_string',
+                        'project.onshore_infrastructure_cost',
+                        
                          MaskVariable('project.umbilical_safety_factor',
                                       'device.system_type',
                                       ['Tidal Floating', 'Wave Floating']),
-                                      
-                        'project.network_configuration',
-                        'project.export_target_burial_depth',
-                        'project.target_burial_depth',
-                        'project.devices_per_string',
-                        'project.equipment_gradient_constraint',
-                        'component.installation_soil_compatibility',
-                        'project.export_voltage',
-                        'project.onshore_infrastructure_cost',
+                        
                         'options.user_installation_tool',
+                        
                         'constants.gravity'
                         ]
                                                 
@@ -175,8 +179,8 @@ class ElectricalInterface(ModuleInterface):
                         ]
         '''
         
-        output_list = ['project.annual_energy',
-                       'project.array_efficiency',
+        output_list = ['project.array_efficiency',
+                       'project.electrical_network_efficiency',
                        'project.electrical_network',
                        'project.electrical_component_data',
                        'project.electrical_economics_data',
@@ -188,8 +192,7 @@ class ElectricalInterface(ModuleInterface):
                        'device.umbilical_type',
                        'project.umbilical_cable_data',
                        'project.umbilical_seabed_connection',
-                       'project.selected_installation_tool',
-                       'project.electrical_network_efficiency'
+                       'project.selected_installation_tool'
                        ]
 
         return output_list
