@@ -1,9 +1,12 @@
 
+import pytest
 import numpy as np
 import matplotlib.pyplot as plt
 
 from aneris.control.factory import InterfaceFactory
-from dtocean_core.core import (AutoPlot,
+from dtocean_core.core import (AutoFileInput,
+                               AutoFileOutput,
+                               AutoPlot,
                                AutoQuery,
                                Core)
 from dtocean_core.data import CoreMetaData
@@ -43,6 +46,53 @@ def test_NumpyLineDict():
     assert max(b["Sin(x)"][:,1]) == 1
     assert b["Cos(x)"][0,1] == b["Cos(x)"][-1,1]
     
+
+@pytest.mark.parametrize("fext", [".xls", ".xlsx"])
+def test_NumpyLine_auto_file(tmpdir, fext):
+
+    test_path = tmpdir.mkdir("sub").join("test{}".format(fext))
+    test_path_str = str(test_path)
+        
+    coarse_sample = np.linspace(0., 2*np.pi, num=5)
+    fine_sample = np.linspace(0., 2*np.pi, num=9)
+    
+    coarse_sin = zip(coarse_sample, np.sin(coarse_sample))
+    fine_cos = zip(fine_sample, np.cos(fine_sample))
+    
+    raw = {"Sin(x)" : coarse_sin,
+           "Cos(x)" : fine_cos}
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test",
+                         "labels": ["x", "f(x)"]})
+    
+    test = NumpyLineDict()
+    
+    fout_factory = InterfaceFactory(AutoFileOutput)
+    FOutCls = fout_factory(meta, test)
+    
+    fout = FOutCls()
+    fout._path = test_path_str
+    fout.data.result = test.get_data(raw, meta)
+
+    fout.connect()
+    
+    assert len(tmpdir.listdir()) == 1
+              
+    fin_factory = InterfaceFactory(AutoFileInput)
+    FInCls = fin_factory(meta, test)
+              
+    fin = FInCls()
+    fin._path = test_path_str
+    
+    fin.connect()
+    result = test.get_data(fin.data.result, meta)
+    
+    assert "Sin(x)" in result
+    assert max(result["Sin(x)"][:,1]) == 1
+    assert result["Cos(x)"][0,1] == result["Cos(x)"][-1,1]    
+
 
 def test_NumpyLineDict_auto_plot(tmpdir):
         

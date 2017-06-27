@@ -18,8 +18,8 @@
 import __builtin__
 
 import os
-import json
 from copy import deepcopy
+from cycler import cycler
 from datetime import datetime
 from itertools import product
 
@@ -28,6 +28,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 from shapely.geometry import Polygon, Point
 from descartes import PolygonPatch
@@ -943,7 +944,7 @@ class NumpyLine(NumpyND):
             data_ = self.data.result
         else:
             raise TypeError("Data type not understood: possible type for a "
-                            "CartesianList subclass is: numpy.ndarray")
+                            "NumpyND subclass is: numpy.ndarray")
         
         data = {"x": data_[:,0],
                 "y": data_[:,1]}
@@ -1074,18 +1075,102 @@ class NumpyLineDict(NumpyLine):
                                                         k, v in data.items()}
 
         return copy_dict
+    
+    @staticmethod
+    def auto_file_input(self):
+        
+        self.check_path()
+        
+        if ".xls" in self._path:
+            xl = pd.ExcelFile(self._path)
+        else:
+             raise TypeError("The specified file format is not supported.",
+                             "Supported format are {}, {}".format('.xls',
+                                                                  '.xlsx'))
+             
+        result = {}
+             
+        for sheet_name in xl.sheet_names:
+            
+            df = xl.parse(sheet_name)
+            
+            if "x" in df.columns and "y" in df.columns:
+                
+                data = np.c_[df.x, df.y]
+                
+            else:
+                
+                errStr = ("The specified file structure is not supported, "
+                          "the columns' headers shuld be defined as: (x, y)")
+                raise ValueError(errStr)
+            
+            # Sort on the zero axis
+            data = data[np.argsort(data[:, 0])]
+            
+            result[sheet_name] = data
+            
+        self.data.result = result
+        
+        return
+        
+    @staticmethod
+    def auto_file_output(self):
+        
+        self.check_path()
+        
+        data_dict = self.data.result
+        
+        if ".xls" in self._path:
+            xl = pd.ExcelWriter(self._path)
+        else:
+            raise TypeError("The specified file format is not supported.",
+                            "Supported format are "
+                            "{}, {}".format('.xls', '.xlsx'))
+        
+        # Sort the keys
+        keys = data_dict.keys()
+        keys.sort()
+        
+        for key in keys:
+            
+            value = data_dict[key]        
+
+            data = {"x": value[:, 0],
+                    "y": value[:, 1]}
+            df = pd.DataFrame(data)
+        
+            df.to_excel(xl, sheet_name=key, index=False)
+            
+        xl.save()
+                
+        return
+                
+    @staticmethod
+    def get_valid_extensions(cls):
+        
+        return [".xls", ".xlsx"]
 
     @staticmethod
     def auto_plot(self):
         
         plt.figure()
+        
+        kwargs = {}
+        
+        if len(self.data.result) < 10:
+            kwargs["label"] = self.data.result.keys()
+        else:
+            kwargs["color"] = '0.5'
 
         for line in self.data.result:
-            plt.plot(*zip(*self.data.result[line]), label = line)
+            plt.plot(*zip(*self.data.result[line]), **kwargs)
             
-        plt.legend()
+        if len(self.data.result) < 10:
+            plt.legend(bbox_to_anchor=(1.05, 1),
+                       loc=2,
+                       borderaxespad=0.)
 
-        xlabel=''
+        xlabel = ''
 
         if self.meta.result.labels is not None:
             xlabel = self.meta.result.labels[0]
@@ -1210,11 +1295,6 @@ class Histogram(Structure):
                            )
         
         return
-    
-    @staticmethod
-    def get_valid_extensions(cls):
-        
-        return [".csv", ".xls", ".xlsx"]
 
     @staticmethod
     def auto_file_output(self):
@@ -1241,6 +1321,11 @@ class Histogram(Structure):
                                                                    '.xlsx'))
                 
         return
+    
+    @staticmethod
+    def get_valid_extensions(cls):
+        
+        return [".csv", ".xls", ".xlsx"]
 
     @staticmethod
     def auto_plot(self):
@@ -1317,14 +1402,103 @@ class HistogramDict(Histogram):
                                                     for k, v in raw.items()}
 
         return hist_dict
+    
+    @staticmethod
+    def auto_file_input(self):
+        
+        self.check_path()
+
+        column_requirements = ("bin start", "bin end", "bin value")
+        
+        if ".xls" in self._path:
+            xl = pd.ExcelFile(self._path)
+        else:
+             raise TypeError("The specified file format is not supported.",
+                             "Supported format are {}, {}".format('.xls',
+                                                                  '.xlsx'))
+             
+        result = {}
+             
+        for sheet_name in xl.sheet_names:
+            
+            df = xl.parse(sheet_name)
+             
+            if all([x in df.columns for x in column_requirements]):
+                
+                data = np.c_[df["bin start"],df["bin end"], df["bin value"]]
+                
+            else:
+                
+                errStr = ("The specified file structure is not supported "
+                          "the columns' headers should be defined as: "
+                          "(bin start, bin end, bin value)")
+                raise ValueError(errStr)
+            
+            # Sort on the zero axis
+            data = data[np.argsort(data[:, 0])]  # is this needed?
+            
+            #check bin consistency
+            n_bins = data.shape[0]
+    
+            for ib in range(1, n_bins):
+                if not data[ib - 1, 1] == data[ib, 0]:
+                    errStr = ("The data format is incorrect. ",
+                              "The relation 'bin_end(i) == bin_start(i+1)' ",
+                              "is not satisfied ")
+                    raise ValueError(errStr)
+            
+            result[sheet_name] = (data[:, 2],
+                                  np.unique(data[:, [0, 1]].flatten())
+                                  )
+            
+        self.data.result = result
+        
+        return
+
+    @staticmethod
+    def auto_file_output(self):
+        
+        self.check_path()
+        
+        data_dict = self.data.result
+        
+        if ".xls" in self._path:
+            xl = pd.ExcelWriter(self._path)
+        else:
+            raise TypeError("The specified file format is not supported.",
+                            "Supported format are "
+                            "{}, {}".format('.xls', '.xlsx'))
+        
+        # Sort the keys
+        keys = data_dict.keys()
+        keys.sort()
+        
+        for key in keys:
+            
+            value = data_dict[key]
+        
+            data = {"bin start": value["bins"][:-1],
+                    "bin end": value["bins"][1:],
+                    "bin value": value["values"]}
+            df = pd.DataFrame(data)
+            
+            df.to_excel(xl, sheet_name=key, index=False)
+            
+        xl.save()
+        
+        return
+    
+    @staticmethod
+    def get_valid_extensions(cls):
+        
+        return [".xls", ".xlsx"]
 
     @staticmethod
     def auto_plot(self):
 
-        plt.figure()
-        prop_iter = iter(plt.rcParams['axes.prop_cycle'])
-
-        nhist = len(self.data.result)
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax.set_prop_cycle(cycler('color', ['c', 'm', 'y', 'k']))
 
         for i, hist in enumerate(self.data.result):
             bins = self.data.result[hist]['bins']
@@ -1333,11 +1507,19 @@ class HistogramDict(Histogram):
             width = np.ediff1d(bins)
             x = bins[:nvalues]
 
-            plt.bar(x+i*width/nhist, values, width/nhist, align = 'edge',
-                    label = hist, color=next(prop_iter)['color'] )
-        
-        plt.legend()
-        
+            ax.bar(x,
+                   values,
+                   zs=len(self.data.result) - i,
+                   zdir="y",
+                   width=width,
+                   align='edge',
+                   alpha=0.6)
+
+        plt.yticks(range(len(self.data.result)), 
+                   self.data.result.keys(),
+                   rotation=-15,
+                   va='center',
+                   ha='left')   
         plt.title(self.meta.result.title)
 
         self.fig_handle = plt.gcf()
@@ -2245,7 +2427,9 @@ class SimpleDict(Structure):
                 sizes,
                 align='center')
         plt.xticks(range(len(sizes)),
-                   labels)
+                   labels,
+                   rotation=30,
+                   ha="right")
         
         if self.meta.result.units is not None:
             plt.ylabel("[${}$]".format(self.meta.result.units[0]))
