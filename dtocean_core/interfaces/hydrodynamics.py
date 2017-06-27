@@ -213,6 +213,7 @@ class HydroInterface(ModuleInterface):
         
         output_list = [
                        'project.annual_energy',
+                       'project.array_efficiency',
                        'project.annual_energy_per_device',
                        'device.external_forces',
                        'project.layout',
@@ -287,6 +288,7 @@ class HydroInterface(ModuleInterface):
         id_map = {
                     "AEP_array": "project.annual_energy",
                     "AEP_per_device": "project.annual_energy_per_device",
+                    'array_efficiency': 'project.array_efficiency',
                     "bathymetry": "bathymetry.layers",
                     "bidirection": "device.bidirection",
                     "blockage_ratio": "farm.blockage_ratio",
@@ -743,6 +745,11 @@ class HydroInterface(ModuleInterface):
         # Total annual energy (convert to MWh)
         self.data.AEP_array = \
                        float(result.Annual_Energy_Production_Array) / 1e6
+                            
+        # Array capacity factor
+        ideal_energy = (365 * 24 * self.data.n_bodies *
+                                                self.data.rated_power_device)
+        self.data.array_efficiency = self.data.AEP_array / ideal_energy
         
         # Annual energy per device (convert to MWh)             
         for dev_id, AEP in zip(dev_ids, result.Annual_Energy_Production_perD):
