@@ -137,7 +137,7 @@ class Bootstrap(Command):
 
 
 setup(name='dtocean-core',
-      version='1.1.dev4',
+      version='1.1.dev5',
       description='dtocean-core: The core component of the DTOcean tools',
       author=('Mathew Topper, '
               'Vincenzo Nava, '
@@ -154,7 +154,7 @@ setup(name='dtocean-core',
       license="GPLv3",
       packages=find_packages(),
       install_requires=[
-        'aneris==0.10.0.dev0',
+        'aneris==0.10.dev1',
         'basemap',
         'dtocean-hydrodynamics>=1.0',
         'dtocean-electrical>=1.0',
