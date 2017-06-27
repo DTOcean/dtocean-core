@@ -66,26 +66,3 @@ def test_XSet3D(core):
     assert b["a"].shape == (2, 3, 1)
     assert b["a"].units == 'POWER!'
     assert b.t.units == 's'
-
-    
-def test_HistogramDict(core):
-    
-    test_data_one = np.random.random(10)
-    test_data_two = np.random.random(10)
-    
-    values_one, bins_one = np.histogram(test_data_one)
-    values_two, bins_two = np.histogram(test_data_two)
-
-    meta = CoreMetaData({"identifier": "test",
-                         "structure": "test",
-                         "title": "test"})
-                         
-    values_dict = {"test_one": (values_one, bins_one),
-                   "test_two": (values_two, bins_two)}
-    
-    test = HistogramDict()
-    a = test.get_data(values_dict, meta)
-    b = test.get_value(a)
-
-    assert len(b["test_one"]["values"]) == len(values_one)
-    assert len(b["test_two"]["bins"]) == len(b["test_two"]["values"]) + 1
