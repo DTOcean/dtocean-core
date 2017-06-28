@@ -13,11 +13,11 @@ handlers:
     formatter: simple
     stream: ext://sys.stdout
   file:
-    class : logging.handlers.TimedRotatingFileHandler
+    class : logging.handlers.RotatingFileHandler
     formatter: simple
     level: DEBUG
     filename: dtocean-core.log
-    when: D
+    backupCount: 99
 loggers:
   'dtocean_core':
     level: DEBUG

@@ -77,10 +77,16 @@ def start_logging():
         log_path = logdir.get_path(log_filename)
         log_config_dict["handlers"]["file"]["filename"] = log_path
         logdir.makedir()
+            
+    log.configure_logger(log_config_dict)        
+    logger = log.add_named_logger(
+                            "dtocean_core",
+                            info_message="Begin logging for dtocean_core")
     
-    log.configure_logger(log_config_dict)
-    log.add_named_logger("dtocean_core",
-                         info_message="Begin logging for dtocean_core")
+    # Rotate any rotating file handlers
+    for handler in logger.handlers:
+        if handler.__class__.__name__ == 'RotatingFileHandler':
+            handler.doRollover()
     
     return
 
