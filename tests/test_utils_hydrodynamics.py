@@ -10,7 +10,8 @@ import pandas as pd
 from dtocean_core.utils.hydrodynamics import (make_wave_statistics,
                                               make_tide_statistics,
                                               bearing_to_radians,
-                                              bearing_to_vector)
+                                              bearing_to_vector,
+                                              make_power_histograms)
                                         
 def test_make_wave_statistics_propability():
     
@@ -193,3 +194,31 @@ def test_bearing_to_vector(bearing, vector):
     test_vector = bearing_to_vector(bearing)
     
     assert np.isclose(test_vector, vector).all()
+    
+    
+def test_make_power_histograms():
+    
+    device_power_pmfs = {"device001": np.array([[0.2, 0.4],
+                                                [0.8, 0.5],
+                                                [1.2, 0.1]])}
+    rated_power = 1.0
+    
+    result = make_power_histograms(device_power_pmfs,
+                                   rated_power)
+    
+    assert len(result['device001'][0]) == 10
+    assert len(result['device001'][1]) == 11
+    assert np.isclose(result['device001'][0][9], 1)
+
+
+def test_make_power_histograms_width_error():
+    
+    device_power_pmfs = {"device001": np.array([[0.2, 0.4],
+                                                [0.8, 0.5],
+                                                [1.2, 0.1]])}
+    rated_power = 1.0
+    
+    with pytest.raises(ValueError):
+        make_power_histograms(device_power_pmfs,
+                              rated_power,
+                              bin_width=0.3)

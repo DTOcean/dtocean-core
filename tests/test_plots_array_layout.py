@@ -4,6 +4,7 @@ import pytest
 import os
 from copy import deepcopy
 
+import pandas as pd
 import matplotlib.pyplot as plt
 from shapely.geometry import Polygon
 
@@ -112,4 +113,111 @@ def test_ArrayLeasePlot(core, project, tree):
     assert len(plt.get_fignums()) == 1
 
     plt.close("all")
+    
+    
+def test_ArrayCablesPlot_available(core, project, tree):
+    
+    project = deepcopy(project)
+    module_menu = ModuleMenu()
+    project_menu = ProjectMenu()
 
+    mod_name = "Electrical Sub-Systems"
+    module_menu.activate(core, project, mod_name)
+    project_menu.initiate_dataflow(core, project)
+    
+    # Need to provide these inputs:
+    #   "site.lease_boundary",
+    #   "corridor.landing_point",
+    #   "project.layout",
+    #   "project.cable_routes",
+    #   "project.substation_layout"
+    
+    lease_area = Polygon([(0, 0), (20, 0), (20, 50), (0, 50)])
+    landing_point = [10, 0]
+    layout = {"device001": (10, 40)}
+    substation = {"array": [10, 20]}
+    
+    cable_dict = {"Marker": [0, 0, 0, 1, 1, 1],#
+                  "UTM X": [10, 10, 10, 10, 10, 10],
+                  "UTM Y": [40, 30, 20, 20, 10, 0],
+                  "Key Identifier": [None, None, None, None, None, None],
+                  "Depth": [None, None, None, None, None, None],
+                  "Burial Depth": [None, None, None, None, None, None],
+                  "Sediment": [None, None, None, None, None, None],
+                  "Split Pipe": [None, None, None, None, None, None]}
+    cable_df = pd.DataFrame(cable_dict)
+    
+    core.add_datastate(project,
+                       identifiers=["site.lease_boundary",
+                                    "corridor.landing_point",
+                                    "project.layout",
+                                    "project.substation_layout",
+                                    "project.cable_routes"],
+                       values=[lease_area,
+                               landing_point,
+                               layout,
+                               substation,
+                               cable_df])
+
+    mod_branch = tree.get_branch(core, project, mod_name)
+    cables = mod_branch.get_output_variable(core,
+                                            project,
+                                            "project.cable_routes")
+    result = cables.get_available_plots(core, project)
+
+    assert "Array Cable Layout" in result
+
+
+def test_ArrayCablesPlot(core, project, tree):
+    
+    project = deepcopy(project)
+    module_menu = ModuleMenu()
+    project_menu = ProjectMenu()
+
+    mod_name = "Electrical Sub-Systems"
+    module_menu.activate(core, project, mod_name)
+    project_menu.initiate_dataflow(core, project)
+    
+    # Need to provide these inputs:
+    #   "site.lease_boundary",
+    #   "corridor.landing_point",
+    #   "project.layout",
+    #   "project.cable_routes",
+    #   "project.substation_layout"
+    
+    lease_area = Polygon([(0, 0), (20, 0), (20, 50), (0, 50)])
+    landing_point = [10, 0]
+    layout = {"device001": (10, 40)}
+    substation = {"array": [10, 20]}
+    
+    cable_dict = {"Marker": [0, 0, 0, 1, 1, 1],
+                  "UTM X": [10, 10, 10, 10, 10, 10],
+                  "UTM Y": [40, 30, 20, 20, 10, 0],
+                  "Key Identifier": [None, None, None, None, None, None],
+                  "Depth": [None, None, None, None, None, None],
+                  "Burial Depth": [None, None, None, None, None, None],
+                  "Sediment": [None, None, None, None, None, None],
+                  "Split Pipe": [None, None, None, None, None, None]}
+    cable_df = pd.DataFrame(cable_dict)
+    
+    core.add_datastate(project,
+                       identifiers=["site.lease_boundary",
+                                    "corridor.landing_point",
+                                    "project.layout",
+                                    "project.substation_layout",
+                                    "project.cable_routes"],
+                       values=[lease_area,
+                               landing_point,
+                               layout,
+                               substation,
+                               cable_df])
+
+    mod_branch = tree.get_branch(core, project, mod_name)
+    cables = mod_branch.get_output_variable(core,
+                                            project,
+                                            "project.cable_routes")
+    cables.plot(core, project, "Array Cable Layout")
+
+    assert len(plt.get_fignums()) == 1
+
+    plt.close("all")
