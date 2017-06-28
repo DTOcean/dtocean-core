@@ -1084,9 +1084,9 @@ class NumpyLineDict(NumpyLine):
         if ".xls" in self._path:
             xl = pd.ExcelFile(self._path)
         else:
-             raise TypeError("The specified file format is not supported.",
-                             "Supported format are {}, {}".format('.xls',
-                                                                  '.xlsx'))
+            raise TypeError("The specified file format is not supported.",
+                            "Supported format are {}, {}".format('.xls',
+                                                                 '.xlsx'))
              
         result = {}
              
@@ -1133,7 +1133,7 @@ class NumpyLineDict(NumpyLine):
         
         for key in keys:
             
-            value = data_dict[key]        
+            value = data_dict[key]
 
             data = {"x": value[:, 0],
                     "y": value[:, 1]}
@@ -1413,9 +1413,9 @@ class HistogramDict(Histogram):
         if ".xls" in self._path:
             xl = pd.ExcelFile(self._path)
         else:
-             raise TypeError("The specified file format is not supported.",
-                             "Supported format are {}, {}".format('.xls',
-                                                                  '.xlsx'))
+            raise TypeError("The specified file format is not supported.",
+                            "Supported format are {}, {}".format('.xls',
+                                                                 '.xlsx'))
              
         result = {}
              
@@ -1425,7 +1425,7 @@ class HistogramDict(Histogram):
              
             if all([x in df.columns for x in column_requirements]):
                 
-                data = np.c_[df["bin start"],df["bin end"], df["bin value"]]
+                data = np.c_[df["bin start"], df["bin end"], df["bin value"]]
                 
             else:
                 
@@ -1437,7 +1437,7 @@ class HistogramDict(Histogram):
             # Sort on the zero axis
             data = data[np.argsort(data[:, 0])]  # is this needed?
             
-            #check bin consistency
+            # Check bin consistency
             n_bins = data.shape[0]
     
             for ib in range(1, n_bins):
@@ -1515,11 +1515,11 @@ class HistogramDict(Histogram):
                    align='edge',
                    alpha=0.6)
 
-        plt.yticks(range(len(self.data.result)), 
+        plt.yticks(range(len(self.data.result)),
                    self.data.result.keys(),
                    rotation=-15,
                    va='center',
-                   ha='left')   
+                   ha='left')
         plt.title(self.meta.result.title)
 
         self.fig_handle = plt.gcf()

@@ -104,60 +104,60 @@ class ElectricalInterface(ModuleInterface):
                        ]
         '''
 
-        input_list  =  ['bathymetry.layers',
-                        'farm.nogo_areas',
-                        'corridor.layers',
-                        'corridor.nogo_areas',
-                        'corridor.landing_point',
-                        
-                        'device.system_type',
-                        'device.power_rating',
-                        'device.voltage',
-                        'device.connector_type',
-                        'device.prescribed_footprint_radius',
-                        'device.footprint_coords',
-                        'device.constant_power_factor',
-                        'device.power_factor',
+        input_list = ['bathymetry.layers',
+                      'farm.nogo_areas',
+                      'corridor.layers',
+                      'corridor.nogo_areas',
+                      'corridor.landing_point',
+                      
+                      'device.system_type',
+                      'device.power_rating',
+                      'device.voltage',
+                      'device.connector_type',
+                      'device.prescribed_footprint_radius',
+                      'device.footprint_coords',
+                      'device.constant_power_factor',
+                      'device.power_factor',
 
-                         MaskVariable('device.umbilical_type',
-                                      'device.system_type',
-                                      ['Tidal Floating', 'Wave Floating']),
+                       MaskVariable('device.umbilical_type',
+                                    'device.system_type',
+                                    ['Tidal Floating', 'Wave Floating']),
 
-                         MaskVariable('device.umbilical_connection_point',
-                                      'device.system_type',
-                                      ['Tidal Floating', 'Wave Floating']),
-                                      
-                        'component.static_cable',
-                        'component.dynamic_cable',
-                        'component.wet_mate_connectors',
-                        'component.dry_mate_connectors',
-                        'component.transformers',
-                        'component.collection_points',
-                        'component.collection_point_cog',
-                        'component.collection_point_foundations',
-                        'component.installation_soil_compatibility',
-                        
-                        'project.layout',
-                        'project.annual_energy',
-                        'project.main_direction',
-                        'project.mean_power_hist_per_device',
-                        'project.network_configuration',
-                        'project.target_burial_depth',
-                        'project.export_voltage',
-                        'project.export_target_burial_depth',
-                        'project.equipment_gradient_constraint',
-                        'project.devices_per_string',
-                        'project.onshore_infrastructure_cost',
-                        
-                         MaskVariable('project.umbilical_safety_factor',
-                                      'device.system_type',
-                                      ['Tidal Floating', 'Wave Floating']),
-                        
-                        'options.user_installation_tool',
-                        
-                        'constants.gravity'
-                        ]
-                                                
+                       MaskVariable('device.umbilical_connection_point',
+                                    'device.system_type',
+                                    ['Tidal Floating', 'Wave Floating']),
+                                    
+                      'component.static_cable',
+                      'component.dynamic_cable',
+                      'component.wet_mate_connectors',
+                      'component.dry_mate_connectors',
+                      'component.transformers',
+                      'component.collection_points',
+                      'component.collection_point_cog',
+                      'component.collection_point_foundations',
+                      'component.installation_soil_compatibility',
+                      
+                      'project.layout',
+                      'project.annual_energy',
+                      'project.main_direction',
+                      'project.mean_power_hist_per_device',
+                      'project.network_configuration',
+                      'project.target_burial_depth',
+                      'project.export_voltage',
+                      'project.export_target_burial_depth',
+                      'project.equipment_gradient_constraint',
+                      'project.devices_per_string',
+                      'project.onshore_infrastructure_cost',
+                      
+                       MaskVariable('project.umbilical_safety_factor',
+                                    'device.system_type',
+                                    ['Tidal Floating', 'Wave Floating']),
+                      
+                      'options.user_installation_tool',
+                      
+                      'constants.gravity'
+                      ]
+        
         return input_list
 
     @classmethod        
