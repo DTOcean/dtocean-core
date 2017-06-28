@@ -529,8 +529,7 @@ def check_bin_widths(rated_power, bin_width):
     
 def make_power_histograms(device_power_pmfs,
                           rated_power,
-                          bin_width=None,
-                          adjust_outliers=True):
+                          bin_width=None):
     
     '''This function converts the hydrodynamics output into the array power
     output histogram required for Electrical analysis.
@@ -551,9 +550,8 @@ def make_power_histograms(device_power_pmfs,
     for dev_id,  dev_power_pmf in device_power_pmfs.iteritems():
         
         # Change outlying values to the rated power
-        if adjust_outliers:
-            outlier_indices = dev_power_pmf[:, 0] > rated_power
-            dev_power_pmf[outlier_indices, 0] = rated_power
+        outlier_indices = dev_power_pmf[:, 0] > rated_power
+        dev_power_pmf[outlier_indices, 0] = rated_power
         
         hist, final_bins = np.histogram(dev_power_pmf[:,0], bins=power_bins)
         
