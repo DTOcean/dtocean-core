@@ -48,6 +48,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added "Wave Resource Occurrence Matrix" plot to show the wave module
   occurrence matrix over all wave directions.
 - Added logging of module execution time (requires monotonic package).
+- Added robustness to opening dto files from older versions of the software.
+  Note, datastate corruption may still occur and new data may need to be added.
+- Added capacity factor as an output of the hydrodynamics interface.
+- Added plots for electrical cable layout.
 
 ### Changed
 
@@ -80,6 +84,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   is found, or if the database definitions are written using
   DataMenu.update_database.
 - SimpleDict bar plots are now sorted by label.
+- Changed title of project.array_efficiency variable metadata to Array Capacity
+  Factor.
+- Reordered electrical module inputs and outputs.
+- Switched timed rotating file logger for a standard rotating file logger which
+  is rolled over at each invocation of start_logging.
 
 ### Fixed
 
@@ -101,6 +110,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed TimeSeries structure plots.
 - Fixed soil type name conversions with the Electrical module interface.
 - Fixed bug in PointList structure file I/O.
+- Fixed power histogram calculation which was not ordering the powers
+  correctly.
+- Fixed file I/O and plots for NumpyLineDict and HistogramDict structures.
    
 ### Removed
 
@@ -119,6 +131,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   is used to describe channel roughness.
 - Removed variables that are inputs to the electrical module but are not used 
   in any way.
+- Remove adjust_outliers options from make_power_histograms as was always set
+  to True.
 
 ## [1.0.0] - 2017-02-23
 
