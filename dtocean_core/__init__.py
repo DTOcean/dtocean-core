@@ -79,14 +79,14 @@ def start_logging():
         logdir.makedir()
             
     log.configure_logger(log_config_dict)        
-    logger = log.add_named_logger(
-                            "dtocean_core",
-                            info_message="Begin logging for dtocean_core")
+    logger = log.add_named_logger("dtocean_core")
     
     # Rotate any rotating file handlers
     for handler in logger.handlers:
         if handler.__class__.__name__ == 'RotatingFileHandler':
             handler.doRollover()
+            
+    logger.info("Begin logging for dtocean_core")
     
     return
 

@@ -18,6 +18,7 @@ handlers:
     level: DEBUG
     filename: dtocean-core.log
     backupCount: 99
+    delay: True
 loggers:
   'dtocean_core':
     level: DEBUG

@@ -85,3 +85,23 @@ def test_start_logging_user(mocker, tmpdir):
     logdir = config_tmpdir.join("..", "logs")
     
     assert len(logdir.listdir()) == 1
+              
+
+def test_start_logging_rollover(mocker, tmpdir):
+    
+    # Make a source directory with some files
+    config_tmpdir = tmpdir.mkdir("config")
+    mock_dir = Directory(str(config_tmpdir))
+        
+    mocker.patch('dtocean_core.UserDataDirectory',
+                 return_value=mock_dir)
+
+    start_logging()
+    
+    logdir = config_tmpdir.join("..", "logs")
+    
+    assert len(logdir.listdir()) == 1
+              
+    start_logging()
+    
+    assert len(logdir.listdir()) == 2
