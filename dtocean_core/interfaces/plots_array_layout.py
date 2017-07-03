@@ -25,7 +25,7 @@ Created on Wed Apr 06 15:59:04 2016
 import numpy as np
 import matplotlib.pyplot as plt
 from descartes import PolygonPatch
-from shapely.geometry import Polygon
+from shapely.geometry import Point, Polygon
 
 from . import PlotInterface
 
@@ -247,9 +247,164 @@ class ArrayCablesPlot(PlotInterface):
         self.fig_handle = plt.gcf()
         
         return
+    
+    
+class ArrayFoundationsPlot(PlotInterface):
+    
+    @classmethod
+    def get_name(cls):
+        
+        '''A class method for the common name of the interface.
+        
+        Returns:
+          str: A unique string
+        '''
+        
+        return "Array Foundations Layout"
+        
+    @classmethod
+    def declare_inputs(cls):
+        
+        '''A class method to declare all the variables required as inputs by
+        this interface.
+        
+        Returns:
+          list: List of inputs identifiers
+        
+        Example:
+          The returned value can be None or a list of identifier strings which
+          appear in the data descriptions. For example::
+          
+              inputs = ["My:first:variable",
+                        "My:second:variable",
+                       ]
+        '''
+
+        input_list = ["site.lease_boundary",
+                      "project.layout",
+                      "project.substation_layout",
+                      "project.foundations_component_data"
+                      ]
+                                                
+        return input_list
+    
+    @classmethod
+    def declare_optional(cls):
+        
+        option_list = ["site.lease_boundary"]
+
+        return option_list
+        
+    @classmethod
+    def declare_id_map(self):
+        
+        '''Declare the mapping for variable identifiers in the data description
+        to local names for use in the interface. This helps isolate changes in
+        the data description or interface from effecting the other.
+        
+        Returns:
+          dict: Mapping of local to data description variable identifiers
+        
+        Example:
+          The returned value must be a dictionary containing all the inputs and
+          outputs from the data description and a local alias string. For
+          example::
+          
+              id_map = {"var1": "My:first:variable",
+                        "var2": "My:second:variable",
+                        "var3": "My:third:variable"
+                       }
+        
+        '''
+                  
+        id_map = {"lease_poly": "site.lease_boundary",
+                  "layout": "project.layout",
+                  'substation_layout': 'project.substation_layout',
+                  "foundations_components":
+                      "project.foundations_component_data",
+                  }
+
+        return id_map
+
+    def connect(self):
+        
+        fig = plt.figure()
+        ax1 = fig.add_subplot(1, 1, 1, aspect='equal')
+        
+        dplot = plot_point_dict(ax1,
+                                self.data.layout,
+                                "k+",
+                                "Devices",
+                                markersize=15)
+        splot = plot_point_dict(ax1,
+                                self.data.substation_layout,
+                                "gs",
+                                "Collection Points",
+                                markersize=15)
+        
+        foundation_marker = {'shallowfoundation': "b_", 
+                             'gravity': "r^",
+                             'pile': "co",
+                             'suctioncaisson': "mp",
+                             'directembedment': "y|",
+                             'drag': "0.75v"}
+        
+        foundation_name = {'shallowfoundation': "Shallow", 
+                           'gravity': "Gravity",
+                           'pile': "Pile",
+                           'suctioncaisson': "Suction Caisson",
+                           'directembedment': "Direct Embedment",
+                           'drag': "Drag"}
+        
+        foundations_locations = self.data.foundations_components[
+                                                ["Type", "UTM X", "UTM Y"]]
+        
+        locations_groups = foundations_locations.groupby("Type")
+        foundations_handles = []
+        
+        for name, group in locations_groups:
+            
+            plot_marker = foundation_marker[name]
+            plot_name = foundation_name[name]
+            
+            coords = group[["UTM X", "UTM Y"]].values
+            plot_dict = {i: Point(xy) for i, xy in enumerate(coords)}
+            fplot = plot_point_dict(ax1, plot_dict, plot_marker, plot_name)
+            
+            foundations_handles.append(fplot)
+        
+        if self.data.lease_poly is not None:
+            plot_lease_boundary(ax1, self.data.lease_poly)
+
+        ax1.margins(0.1, 0.1)
+        ax1.autoscale_view()
+
+        xlabel = 'UTM x [$m$]'
+        ylabel = 'UTM y [$m$]'
+        
+        all_handles = [dplot, splot] + foundations_handles
+
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+        plt.ticklabel_format(useOffset=False)
+        plt.legend(handles=all_handles,
+                   bbox_to_anchor=(1.05, 1),
+                   loc=2,
+                   borderaxespad=0.)
+        
+        plt.title("Foundations Layout")
+        
+        self.fig_handle = plt.gcf()
+        
+        return
 
 
-def plot_point_dict(ax, layout, marker, label=None, annotate=False):
+def plot_point_dict(ax,
+                    layout,
+                    marker,
+                    label=None,
+                    annotate=False,
+                    markersize=None):
     
     x = []
     y = []
@@ -262,6 +417,7 @@ def plot_point_dict(ax, layout, marker, label=None, annotate=False):
               "markersize": 10}
     
     if label is not None: kwargs["label"] = label
+    if markersize is not None: kwargs["markersize"] = markersize
 
     pplot = ax.plot(x, y, marker, **kwargs)
     
