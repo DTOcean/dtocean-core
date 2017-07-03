@@ -481,7 +481,7 @@ class MooringsInterface(ModuleInterface):
         soil_table = np.dstack([xv.flatten(),
                                 yv.flatten(),
                                 sv.flatten(),
-                                infv.flatten()])[0]            
+                                infv.flatten()])[0]
         safe_soil = soil_table[~np.equal(soil_table, None).any(axis=1)]
                                                 
         # Distances

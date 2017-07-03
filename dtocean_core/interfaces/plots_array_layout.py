@@ -342,14 +342,14 @@ class ArrayFoundationsPlot(PlotInterface):
                                 "Collection Points",
                                 markersize=15)
         
-        foundation_marker = {'shallowfoundation': "b_", 
+        foundation_marker = {'shallowfoundation': "b_",
                              'gravity': "r^",
                              'pile': "co",
                              'suctioncaisson': "mp",
                              'directembedment': "y|",
                              'drag': "0.75v"}
         
-        foundation_name = {'shallowfoundation': "Shallow", 
+        foundation_name = {'shallowfoundation': "Shallow",
                            'gravity': "Gravity",
                            'pile': "Pile",
                            'suctioncaisson': "Suction Caisson",
