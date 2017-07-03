@@ -1158,13 +1158,23 @@ class MooringsInterface(ModuleInterface):
         foundations_data = foundations_data[
             ~ foundations_data["type [-]"].str.contains(
                                                     "Foundation not required")]
-
-        foundations_data[['marker [-]']] = \
-                        foundations_data[['marker [-]']].apply(pd.to_numeric)
         
-        foundations_layers = pd.DataFrame(foundations_data['marker [-]'])
         layer_lists = foundations_data.pop(
             'layer information (layer number, soil type, soil depth) [-,-,m]')
+        
+        change_cols = ['x coord [m]',
+                       'y coord [m]',
+                       'bathymetry at MSL [m]',
+                       'length [m]',
+                       'width [m]',
+                       'height [m]',
+                       'installation depth [m]',
+                       'dry mass [kg]',
+                       'grout volume [m3]',
+                       'marker [-]']
+        
+        foundations_data[change_cols] = \
+            foundations_data[change_cols].apply(pd.to_numeric, errors='coerce')
         
         name_map = {'type [-]': 'Type',
                     'subtype [-]': 'Sub-Type',
@@ -1199,9 +1209,9 @@ class MooringsInterface(ModuleInterface):
         layers_dict = {"Layer Number": layer_numbers,
                        "Soil Type": soil_types,
                        "Depth": soil_depths}
-                       
+                               
         foundations_layers = pd.DataFrame(layers_dict)
-        foundations_layers["Marker"] = foundations_data['marker [-]']
+        foundations_layers["Marker"] = foundations_data['marker [-]'].values
             
         # Convert soil types to long codes
         inv_soil_map = {'cm' : 'cemented',
@@ -1233,12 +1243,13 @@ class MooringsInterface(ModuleInterface):
             dev_list.append(dev_id)
             footprint_list.append(env_dict[
                                         'Configuration footprint area [m2]'])
-            volume_list.append(env_dict["Configuration volume [m3]"])
+            volume_list.append(env_dict["Configuration volume [m3]"][0])
             
         raw_env = {"System Identifier": dev_list,
                    "Footprint Area": footprint_list,
                    "Volume": volume_list}
         env_df = pd.DataFrame(raw_env)
+        env_df = env_df.sort_values(["System Identifier"])
         
         self.data.dimensions_data = env_df
         
