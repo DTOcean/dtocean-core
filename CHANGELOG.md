@@ -52,6 +52,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   Note, datastate corruption may still occur and new data may need to be added.
 - Added capacity factor as an output of the hydrodynamics interface.
 - Added plots for electrical cable layout.
+- Added plot for foundations layout.
 
 ### Changed
 
@@ -113,6 +114,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed power histogram calculation which was not ordering the powers
   correctly.
 - Fixed file I/O and plots for NumpyLineDict and HistogramDict structures.
+- Fix issue with None values in the sediments layers being incorrectly passed
+  to the moorings module.
+- Fix issues with formatting of some tabulated outputs of the moorings module.
    
 ### Removed
 
