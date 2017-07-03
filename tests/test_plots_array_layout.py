@@ -4,6 +4,7 @@ import pytest
 import os
 from copy import deepcopy
 
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from shapely.geometry import Polygon
@@ -217,6 +218,198 @@ def test_ArrayCablesPlot(core, project, tree):
                                             project,
                                             "project.cable_routes")
     cables.plot(core, project, "Array Cable Layout")
+
+    assert len(plt.get_fignums()) == 1
+
+    plt.close("all")
+    
+
+def test_ArrayFoundationsPlot_available(core, project, tree):
+    
+    project = deepcopy(project)
+    module_menu = ModuleMenu()
+    project_menu = ProjectMenu()
+
+    mod_name = "Mooring and Foundations"
+    module_menu.activate(core, project, mod_name)
+    project_menu.initiate_dataflow(core, project)
+    
+    # Need to provide these inputs:
+    #   "site.lease_boundary",
+    #   "project.layout",
+    #   "project.substation_layout"
+    #   "project.foundations_component_data"
+    
+    lease_area = Polygon([(0, 0), (20, 0), (20, 50), (0, 50)])
+    layout = {"device001": (10, 40)}
+    substation = {"array": [10, 20]}
+    
+    foundations_dict = {u'Depth': {0: -38.520000000000003,
+                                   1: -40.299999999999997,
+                                   2: -36.780000000000001,
+                                   8: -37.850000000000001},
+                        u'Dry Mass': {0: 107506.9289256667,
+                                      1: 53351.541402463197,
+                                      2: 126780.5181144721,
+                                      8: 6435.3313852360807},
+                        u'Grout Type': {0: u'n/a',
+                                        1: u'n/a',
+                                        2: u'n/a',
+                                        8: u'grout'},
+                        u'Grout Volume': {0: 0.0,
+                                          1: 0.0,
+                                          2: 0.0,
+                                          8: 1.065569984623332},
+                        u'Height': {0: 1.409402628668293,
+                                    1: 0.92718879062712711,
+                                    2: 1.4890425199298569,
+                                    8: 19.0},
+                        u'Installation Depth': {0: np.nan,
+                                                1: np.nan,
+                                                2: np.nan,
+                                                8: 19.0},
+                        u'Length': {0: 5.637610514673173,
+                                    1: 3.708755162508508,
+                                    2: 5.9561700797194286,
+                                    8: 0.81299999999999994},
+                        u'Marker': {0: 0,
+                                    1: 1,
+                                    2: 2,
+                                    8: 8},
+                        u'Sub-Type': {0: u'concrete/steel composite structure',
+                                      1: u'concrete/steel composite structure',
+                                      2: u'concrete/steel composite structure',
+                                      8: u'pipe pile'},
+                       u'Type': {0: u'gravity',
+                                 1: u'gravity',
+                                 2: u'gravity',
+                                 8: u'pile'},
+                       u'UTM X': {0: 5,
+                                  1: 10,
+                                  2: 15,
+                                  8: 10},
+                       u'UTM Y': {0: 40,
+                                  1: 45,
+                                  2: 40,
+                                  8: 20},
+                     u'Width': {0: 5.637610514673173,
+                                1: 3.708755162508508,
+                                2: 5.9561700797194286,
+                                8: 0.81299999999999994}}
+                       
+    foundations_df = pd.DataFrame(foundations_dict)
+    
+    core.add_datastate(project,
+                       identifiers=["site.lease_boundary",
+                                    "project.layout",
+                                    "project.substation_layout",
+                                    "project.foundations_component_data"],
+                       values=[lease_area,
+                               layout,
+                               substation,
+                               foundations_df])
+
+    mod_branch = tree.get_branch(core, project, mod_name)
+    foundations = mod_branch.get_output_variable(
+                                        core,
+                                        project,
+                                        "project.foundations_component_data")
+    result = foundations.get_available_plots(core, project)
+
+    assert "Array Foundations Layout" in result
+
+
+def test_ArrayFoundationsPlot(core, project, tree):
+    
+    project = deepcopy(project)
+    module_menu = ModuleMenu()
+    project_menu = ProjectMenu()
+
+    mod_name = "Mooring and Foundations"
+    module_menu.activate(core, project, mod_name)
+    project_menu.initiate_dataflow(core, project)
+    
+    # Need to provide these inputs:
+    #   "site.lease_boundary",
+    #   "project.layout",
+    #   "project.substation_layout"
+    #   "project.foundations_component_data"
+    
+    lease_area = Polygon([(0, 0), (20, 0), (20, 50), (0, 50)])
+    layout = {"device001": (10, 40)}
+    substation = {"array": [10, 20]}
+    
+    foundations_dict = {u'Depth': {0: -38.520000000000003,
+                                   1: -40.299999999999997,
+                                   2: -36.780000000000001,
+                                   8: -37.850000000000001},
+                        u'Dry Mass': {0: 107506.9289256667,
+                                      1: 53351.541402463197,
+                                      2: 126780.5181144721,
+                                      8: 6435.3313852360807},
+                        u'Grout Type': {0: u'n/a',
+                                        1: u'n/a',
+                                        2: u'n/a',
+                                        8: u'grout'},
+                        u'Grout Volume': {0: 0.0,
+                                          1: 0.0,
+                                          2: 0.0,
+                                          8: 1.065569984623332},
+                        u'Height': {0: 1.409402628668293,
+                                    1: 0.92718879062712711,
+                                    2: 1.4890425199298569,
+                                    8: 19.0},
+                        u'Installation Depth': {0: np.nan,
+                                                1: np.nan,
+                                                2: np.nan,
+                                                8: 19.0},
+                        u'Length': {0: 5.637610514673173,
+                                    1: 3.708755162508508,
+                                    2: 5.9561700797194286,
+                                    8: 0.81299999999999994},
+                        u'Marker': {0: 0,
+                                    1: 1,
+                                    2: 2,
+                                    8: 8},
+                        u'Sub-Type': {0: u'concrete/steel composite structure',
+                                      1: u'concrete/steel composite structure',
+                                      2: u'concrete/steel composite structure',
+                                      8: u'pipe pile'},
+                       u'Type': {0: u'gravity',
+                                 1: u'gravity',
+                                 2: u'gravity',
+                                 8: u'pile'},
+                       u'UTM X': {0: 5,
+                                  1: 10,
+                                  2: 15,
+                                  8: 10},
+                       u'UTM Y': {0: 40,
+                                  1: 45,
+                                  2: 40,
+                                  8: 20},
+                     u'Width': {0: 5.637610514673173,
+                                1: 3.708755162508508,
+                                2: 5.9561700797194286,
+                                8: 0.81299999999999994}}
+                       
+    foundations_df = pd.DataFrame(foundations_dict)
+    
+    core.add_datastate(project,
+                       identifiers=["site.lease_boundary",
+                                    "project.layout",
+                                    "project.substation_layout",
+                                    "project.foundations_component_data"],
+                       values=[lease_area,
+                               layout,
+                               substation,
+                               foundations_df])
+
+    mod_branch = tree.get_branch(core, project, mod_name)
+    foundations = mod_branch.get_output_variable(
+                                        core,
+                                        project,
+                                        "project.foundations_component_data")
+    foundations.plot(core, project, "Array Foundations Layout")
 
     assert len(plt.get_fignums()) == 1
 
