@@ -203,11 +203,11 @@ class MooringsInterface(ModuleInterface):
                  "project.substation_props",
                  'project.substation_layout',
                  'project.substation_cog',
-                 'project.substation_foundation_location',  
+                 'project.substation_foundation_location',
                  
                  MaskVariable("project.umbilical_seabed_connection",
                               'device.system_type',
-                              ['Tidal Floating', 'Wave Floating']),                 
+                              ['Tidal Floating', 'Wave Floating']),
                  
                  'project.foundation_safety_factor',
                  'project.grout_strength_safety_factor',
@@ -237,7 +237,7 @@ class MooringsInterface(ModuleInterface):
                  'constants.cylinder_wake_amplificiation',
                  'constants.rectangular_current_drag',
                  'constants.rectangular_drift',
-                 'constants.rectangular_wind_drag',                             
+                 'constants.rectangular_wind_drag',
                  'constants.rectangular_wave_inertia',
                  'constants.gravity',
                  'constants.sea_water_density',

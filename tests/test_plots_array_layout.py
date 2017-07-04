@@ -320,13 +320,13 @@ def test_ArrayFoundationsPlot_available(core, project, tree):
 
 
 @pytest.mark.parametrize("soiltype", [
-        'shallowfoundation',
-        'gravity',
-        'pile',
-        'suctioncaisson',
-        'directembedment',
-        'drag'
-        ])
+    'shallowfoundation',
+    'gravity',
+    'pile',
+    'suctioncaisson',
+    'directembedment',
+    'drag'
+])
 def test_ArrayFoundationsPlot(core, project, tree, soiltype):
     
     project = deepcopy(project)
