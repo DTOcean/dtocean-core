@@ -347,7 +347,7 @@ class ArrayFoundationsPlot(PlotInterface):
                              'pile': "co",
                              'suctioncaisson': "mp",
                              'directembedment': "y|",
-                             'drag': "0.75v"}
+                             'drag': "kv"}
         
         foundation_name = {'shallowfoundation': "Shallow",
                            'gravity': "Gravity",
