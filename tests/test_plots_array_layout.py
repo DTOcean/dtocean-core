@@ -319,7 +319,15 @@ def test_ArrayFoundationsPlot_available(core, project, tree):
     assert "Array Foundations Layout" in result
 
 
-def test_ArrayFoundationsPlot(core, project, tree):
+@pytest.mark.parametrize("soiltype", [
+        'shallowfoundation',
+        'gravity',
+        'pile',
+        'suctioncaisson',
+        'directembedment',
+        'drag'
+        ])
+def test_ArrayFoundationsPlot(core, project, tree, soiltype):
     
     project = deepcopy(project)
     module_menu = ModuleMenu()
@@ -374,11 +382,11 @@ def test_ArrayFoundationsPlot(core, project, tree):
                         u'Sub-Type': {0: u'concrete/steel composite structure',
                                       1: u'concrete/steel composite structure',
                                       2: u'concrete/steel composite structure',
-                                      8: u'pipe pile'},
+                                      8: u'something'},
                         u'Type': {0: u'gravity',
                                   1: u'gravity',
                                   2: u'gravity',
-                                  8: u'pile'},
+                                  8: soiltype},
                         u'UTM X': {0: 5,
                                    1: 10,
                                    2: 15,
