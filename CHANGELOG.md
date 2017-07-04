@@ -90,6 +90,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Reordered electrical module inputs and outputs.
 - Switched timed rotating file logger for a standard rotating file logger which
   is rolled over at each invocation of start_logging.
+- Modified order of moorings and foundations module inputs.
 
 ### Fixed
 
