@@ -235,7 +235,7 @@ class ElectricalInterface(ModuleInterface):
                     'project.onshore_infrastructure_cost',
                     'project.target_burial_depth',
                     'options.boundary_padding',
-                    'options.user_installation_tool'                    
+                    'options.user_installation_tool'
                     ]
                     
         return optional
