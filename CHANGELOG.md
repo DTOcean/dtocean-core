@@ -53,6 +53,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added capacity factor as an output of the hydrodynamics interface.
 - Added plots for electrical cable layout.
 - Added plot for foundations layout.
+- Added optional boundary padding input to the electrical module so that the
+  substation can be moved away from the lease area edge.
 
 ### Changed
 

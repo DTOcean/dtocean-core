@@ -153,6 +153,7 @@ class ElectricalInterface(ModuleInterface):
                                     'device.system_type',
                                     ['Tidal Floating', 'Wave Floating']),
                       
+                      'options.boundary_padding',
                       'options.user_installation_tool',
                       
                       'constants.gravity'
@@ -219,21 +220,22 @@ class ElectricalInterface(ModuleInterface):
                          ]
         '''
                 
-        optional = [ 'component.installation_soil_compatibility',
-                     'corridor.nogo_areas',
-                     'project.export_target_burial_depth',
-                     'project.export_voltage',
-                     'device.constant_power_factor',
-                     'device.footprint_coords',
-                     'device.power_factor',
-                     'device.prescribed_footprint_radius',
-                     'device.umbilical_type',
-                     'project.devices_per_string',
-                     'project.main_direction',
-                     'farm.nogo_areas',
-                     'project.onshore_infrastructure_cost',
-                     'project.target_burial_depth',
-                     'options.user_installation_tool'                    
+        optional = ['component.installation_soil_compatibility',
+                    'corridor.nogo_areas',
+                    'project.export_target_burial_depth',
+                    'project.export_voltage',
+                    'device.constant_power_factor',
+                    'device.footprint_coords',
+                    'device.power_factor',
+                    'device.prescribed_footprint_radius',
+                    'device.umbilical_type',
+                    'project.devices_per_string',
+                    'project.main_direction',
+                    'farm.nogo_areas',
+                    'project.onshore_infrastructure_cost',
+                    'project.target_burial_depth',
+                    'options.boundary_padding',
+                    'options.user_installation_tool'                    
                     ]
                     
         return optional
@@ -319,7 +321,9 @@ class ElectricalInterface(ModuleInterface):
                   "users_tool": "options.user_installation_tool",
                   "selected_tool": "project.selected_installation_tool",
                   "gravity": "constants.gravity",
-                  'network_efficiency': 'project.electrical_network_efficiency'
+                  'network_efficiency':
+                      'project.electrical_network_efficiency',
+                  "boundary_padding": 'options.boundary_padding'
                   }
                   
         return id_map
@@ -898,6 +902,7 @@ class ElectricalInterface(ModuleInterface):
                                     safety_factor,
                                     data.gravity,
                                     data.umbilical_type,
+                                    data.boundary_padding
                                     )
         
         database = cls.get_component_database(
