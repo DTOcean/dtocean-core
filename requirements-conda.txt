@@ -4,7 +4,7 @@
 aneris =0.10.dev1
 basemap
 dtocean-hydrodynamics >=1.0
-dtocean-electrical >=1.0
+dtocean-electrical =1.1.dev0
 dtocean-moorings >=1.0
 dtocean-installation >=1.0
 dtocean-maintenance >=1.0
