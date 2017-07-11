@@ -59,6 +59,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   in the installation interface.
 - Added "passive hub" as a valid collection point type in the installation
   interface.
+- Added dump_datastate and load_datastate methods to Core object to allow
+  the active datastate to be serialised and reloaded without storing the
+  project information.
 
 ### Changed
 

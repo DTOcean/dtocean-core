@@ -15,19 +15,16 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Set up logging
-import logging
-import warnings
 
-module_logger = logging.getLogger(__name__)
 
 import os
+import json
 import shutil
 import pickle
+import logging
 import zipfile
 import tempfile
 from copy import deepcopy
-from collections import OrderedDict
 
 import matplotlib.pyplot as plt
 
@@ -53,6 +50,9 @@ from .interfaces import (FileInputInterface,
                          FileOutputInterface,
                          PlotInterface)
 from .utils.files import package_dir
+
+# Set up logging
+module_logger = logging.getLogger(__name__)
 
 
 class AutoRaw(AutoInterface, RawInterface):
@@ -684,7 +684,7 @@ class Core(object):
             
         else:
             
-            errStr = ("Argument dumo_path must either be an existing "
+            errStr = ("Argument dump_path must either be an existing "
                       "directory or a file path with .prj extension")
             raise ValueError(errStr)
         
@@ -914,6 +914,7 @@ class Core(object):
                             identifiers=None,
                             values=None,
                             update_status=True,
+                            use_objects=False,
                             log_exceptions=False):
                                         
         pool = project.get_pool()
@@ -925,6 +926,7 @@ class Core(object):
                                    self.data_catalog,
                                    identifiers,
                                    values,
+                                   use_objects=use_objects,
                                    log_exceptions=log_exceptions)
                                   
         if not update_status: return
@@ -969,6 +971,137 @@ class Core(object):
                                                     
         self.set_interface_status(project)
         
+        return
+    
+    def dump_datastate(self, project, simulation=None, dump_path=None):
+        
+        data_store = DataStorage(core_data)
+        
+        def get_subsets(simulation):
+            
+            pool = project.get_pool()
+            if simulation is None: simulation = project.get_simulation()
+            
+            merged_state = self.loader.create_merged_state(simulation)
+            save_pool, save_state = data_store.create_pool_subset(pool,
+                                                                  merged_state)
+            
+            return save_pool, save_state
+        
+        # Get the pool and datastate subsets
+        save_pool, save_state = get_subsets(simulation)
+            
+        # Serialise the pool
+        dts_dir_path = tempfile.mkdtemp()
+        pool_dir = os.path.join(dts_dir_path, "pool")
+        
+        if os.path.exists(pool_dir): shutil.rmtree(pool_dir)
+        os.makedirs(pool_dir)        
+        
+        data_store.serialise_pool(save_pool, pool_dir, root_dir=dts_dir_path)
+        
+        # Now pickle the pool
+        pool_file_path = os.path.join(dts_dir_path, "pool.pkl")
+        
+        with open(pool_file_path, "wb") as fstream:
+            pickle.dump(save_pool, fstream, -1)
+        
+        # Serialise the datastate
+        file_path = os.path.join(dts_dir_path, "datastate_dump.json")
+        state_dict = save_state.dump()
+        
+        with open(file_path, 'wb') as json_file:
+            json.dump(state_dict, json_file)
+            
+        # OK need to consider if we want a file or a directory first.
+        errStr = ("Argument dump_path must either be an existing "
+                  "directory or a file path with .dts extension")
+        
+        if dump_path is None:
+            raise ValueError(errStr)
+        elif os.path.splitext(dump_path)[1] == ".dts":
+            archive = True
+        elif os.path.isdir(dump_path):
+            archive = False
+        else:
+            raise ValueError(errStr)
+        
+        # Package the directory
+        package_dir(dts_dir_path, dump_path, archive)
+        
+        return
+    
+    def load_datastate(self, project, load_path):
+        
+        # A data store is required
+        data_store = DataStorage(core_data)
+        
+        # Flag to remove datastate directory
+        remove_dts_dir = False
+        
+        # OK need to consider if we have a prj file or a directory first.
+        # If its a prj file them unzip it.
+        if os.path.isfile(load_path) and ".dts" in load_path:
+            
+            # Unzip the file to a temporary directory
+            dts_dir_path = tempfile.mkdtemp()
+            
+            zf = zipfile.ZipFile(load_path, 'r')
+            zf.extractall(dts_dir_path)
+            zf.close()
+            
+            remove_dts_dir = True
+            
+        elif os.path.isdir(load_path):
+            
+            dts_dir_path = load_path
+            
+        else:
+            
+            errStr = ("Argument load_path must either be a directory or a file"
+                      "with .dts extension")
+            raise ValueError(errStr)
+        
+        # Load datastate json
+        load_path = os.path.join(dts_dir_path, "datastate_dump.json")
+        
+        with open(load_path, 'rb') as json_file:
+            dump_dict = json.load(json_file)
+
+        state_data = dump_dict["data"]
+        
+        # Now unpickle the pool
+        pool_file_path = os.path.join(dts_dir_path, "pool.pkl")
+        
+        with open(pool_file_path, "rb") as fstream:
+            temp_pool = pickle.load(fstream)
+        
+        # Deserialise the pool
+        data_store.deserialise_pool(self.data_catalog,
+                                    temp_pool,
+                                    root_dir=dts_dir_path,
+                                    warn_missing=True,
+                                    warn_unpickle=True)
+        
+        # Remove the project directory if necessary
+        if remove_dts_dir: shutil.rmtree(dts_dir_path)
+        
+        # Create a new datastate in the existing pool with the loaded data
+        var_ids = []
+        var_objs = []
+
+        for var_id, data_index in state_data.iteritems():
+            
+            data_obj = temp_pool.get(data_index)
+            
+            var_ids.append(var_id)
+            var_objs.append(data_obj)
+            
+        self.add_datastate(project,
+                           identifiers=var_ids,
+                           values=var_objs,
+                           use_objects=True)
+
         return
         
     def get_levels(self, project,
