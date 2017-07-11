@@ -25,4 +25,3 @@ def test_get_tool(manager):
         manager.get_tool(tool_name)
         
     assert True
-    
