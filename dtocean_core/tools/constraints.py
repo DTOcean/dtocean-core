@@ -167,7 +167,8 @@ class ConstraintsTool(Tool):
          'umbilical_type': 'device.umbilical_type',
          'users_tool': 'options.user_installation_tool',
          'voltage': 'device.voltage',
-         'wet_mate_connectors': 'component.wet_mate_connectors'
+         'wet_mate_connectors': 'component.wet_mate_connectors',
+         "boundary_padding": 'options.boundary_padding'
          }
 
         return id_map
