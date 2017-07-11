@@ -120,7 +120,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fix issue with None values in the sediments layers being incorrectly passed
   to the moorings module.
 - Fix issues with formatting of some tabulated outputs of the moorings module.
-   
+- Fixed missing variable mapping in constraints plot tool interface. It uses
+  the input declaration of the electrical module interface, but its own id_map
+  and so they went out of sync following changes to the electrical interface.
+
 ### Removed
 
 - Schema is no longer set in database configuration.
