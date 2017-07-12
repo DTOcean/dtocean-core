@@ -373,3 +373,66 @@ def test_load_datastate_archive(core, project, var_tree, tmpdir):
 
     assert temp_project.check_integrity()
     assert core.has_data(temp_project, "device.turbine_interdistance")
+    
+
+def test_load_datastate_archive_exclude(core, project, var_tree, tmpdir):
+    
+    temp_project = deepcopy(project) 
+
+    project_menu = ProjectMenu()
+    module_menu = ModuleMenu()
+    theme_menu = ThemeMenu()
+
+    module_menu.activate(core, temp_project, "Hydrodynamics")
+    theme_menu.activate(core, temp_project,  "Economics")
+    
+    project_menu.initiate_dataflow(core, temp_project)
+                                   
+    hydro_branch = var_tree.get_branch(core, temp_project, "Hydrodynamics")
+    hydro_branch.read_test_data(core,
+                                temp_project,
+                                os.path.join(dir_path,
+                                             "inputs_wp2_tidal.pkl"))
+                                             
+    eco_branch = var_tree.get_branch(core, temp_project, "Economics")
+    eco_branch.read_test_data(core,
+                              temp_project,
+                              os.path.join(dir_path,
+                                           "inputs_economics.pkl"))
+
+
+    datastate_file_name = "my_datastate.dts"
+    datastate_file_path = os.path.join(str(tmpdir), datastate_file_name)
+    
+    core.dump_datastate(temp_project, datastate_file_path)
+    
+    del(temp_project)
+    
+    assert os.path.isfile(datastate_file_path)
+    
+    new_root = os.path.join(str(tmpdir), "test")
+    os.makedirs(new_root)
+    
+    move_file_path = os.path.join(str(tmpdir), "test", datastate_file_name)
+    shutil.copy2(datastate_file_path, move_file_path)
+    
+    temp_project = deepcopy(project) 
+
+    project_menu = ProjectMenu()
+    module_menu = ModuleMenu()
+    theme_menu = ThemeMenu()
+
+    module_menu.activate(core, temp_project, "Hydrodynamics")
+    
+    project_menu.initiate_dataflow(core, temp_project)
+    
+    assert not core.has_data(temp_project, "device.turbine_interdistance")
+    assert not core.has_data(temp_project, 'device.power_rating')
+        
+    core.load_datastate(temp_project,
+                        move_file_path,
+                        exclude="turbine_interdistance")
+
+    assert temp_project.check_integrity()
+    assert not core.has_data(temp_project, "device.turbine_interdistance")
+    assert core.has_data(temp_project, 'device.power_rating')

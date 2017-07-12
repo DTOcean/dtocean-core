@@ -62,6 +62,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added dump_datastate and load_datastate methods to Core object to allow
   the active datastate to be serialised and reloaded without storing the
   project information.
+- Added exclude option to load_datastate which will exclude loading any
+  variables which contain the passed string.
 
 ### Changed
 

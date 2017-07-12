@@ -1029,7 +1029,7 @@ class Core(object):
         
         return
     
-    def load_datastate(self, project, load_path):
+    def load_datastate(self, project, load_path, exclude=None):
         
         # A data store is required
         data_store = DataStorage(core_data)
@@ -1089,6 +1089,8 @@ class Core(object):
         var_objs = []
 
         for var_id, data_index in state_data.iteritems():
+            
+            if exclude is not None and exclude in var_id: continue
             
             data_obj = temp_pool.get(data_index)
             
