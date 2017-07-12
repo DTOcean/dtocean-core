@@ -257,7 +257,7 @@ def test_dump_datastate(core, project, var_tree, tmpdir):
                               project,
                               os.path.join(dir_path,
                                            "inputs_economics.pkl"))
-    core.dump_datastate(project, dump_path=str(tmpdir))
+    core.dump_datastate(project, str(tmpdir))
     
     datastate_file_path = os.path.join(str(tmpdir), "datastate_dump.json")
     pool_file_path = os.path.join(str(tmpdir), "pool.pkl")
@@ -294,7 +294,7 @@ def test_dump_datastate_archive(core, project, var_tree, tmpdir):
     datastate_file_name = "my_datastate.dts"
     datastate_file_path = os.path.join(str(tmpdir), datastate_file_name)
     
-    core.dump_datastate(project, dump_path=datastate_file_path)
+    core.dump_datastate(project, datastate_file_path)
     
     assert os.path.isfile(datastate_file_path)
     
@@ -313,24 +313,7 @@ def test_dump_datastate_nodir(core, project, var_tree):
     project_menu.initiate_dataflow(core, project)
 
     with pytest.raises(ValueError):
-        core.dump_datastate(project, dump_path="some_path")
-        
-
-def test_dump_datastate_nonepath(core, project, var_tree):
-    
-    project = deepcopy(project) 
-
-    project_menu = ProjectMenu()
-    module_menu = ModuleMenu()
-    theme_menu = ThemeMenu()
-
-    module_menu.activate(core, project, "Hydrodynamics")
-    theme_menu.activate(core, project,  "Economics")
-    
-    project_menu.initiate_dataflow(core, project)
-
-    with pytest.raises(ValueError):
-        core.dump_datastate(project)
+        core.dump_datastate(project, "some_path")
 
 
 def test_load_datastate_archive(core, project, var_tree, tmpdir):
@@ -362,7 +345,7 @@ def test_load_datastate_archive(core, project, var_tree, tmpdir):
     datastate_file_name = "my_datastate.dts"
     datastate_file_path = os.path.join(str(tmpdir), datastate_file_name)
     
-    core.dump_datastate(temp_project, dump_path=datastate_file_path)
+    core.dump_datastate(temp_project, datastate_file_path)
     
     del(temp_project)
     

@@ -973,14 +973,14 @@ class Core(object):
         
         return
     
-    def dump_datastate(self, project, simulation=None, dump_path=None):
+    def dump_datastate(self, project, dump_path):
         
         data_store = DataStorage(core_data)
         
-        def get_subsets(simulation):
+        def get_subsets():
             
             pool = project.get_pool()
-            if simulation is None: simulation = project.get_simulation()
+            simulation = project.get_simulation()
             
             merged_state = self.loader.create_merged_state(simulation)
             save_pool, save_state = data_store.create_pool_subset(pool,
@@ -989,7 +989,7 @@ class Core(object):
             return save_pool, save_state
         
         # Get the pool and datastate subsets
-        save_pool, save_state = get_subsets(simulation)
+        save_pool, save_state = get_subsets()
             
         # Serialise the pool
         dts_dir_path = tempfile.mkdtemp()
@@ -1017,9 +1017,7 @@ class Core(object):
         errStr = ("Argument dump_path must either be an existing "
                   "directory or a file path with .dts extension")
         
-        if dump_path is None:
-            raise ValueError(errStr)
-        elif os.path.splitext(dump_path)[1] == ".dts":
+        if os.path.splitext(dump_path)[1] == ".dts":
             archive = True
         elif os.path.isdir(dump_path):
             archive = False
