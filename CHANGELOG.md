@@ -127,6 +127,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed missing variable mapping in constraints plot tool interface. It uses
   the input declaration of the electrical module interface, but its own id_map
   and so they went out of sync following changes to the electrical interface.
+- Fixed installation module gantt chart plot.
 
 ### Removed
 

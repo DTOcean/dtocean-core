@@ -570,10 +570,10 @@ def installation_gantt_chart(
 
 
 def installation_gantt_dates(dates, prep_time):
-    
-    gantt_dict = {'Start date': dates.index[0].to_datetime(),
-                  'Depart date': dates.index[1].to_datetime(),
-                  'End date': dates.index[2].to_datetime(),
+        
+    gantt_dict = {'Start date': dates["Start"],
+                  'Depart date': dates["Depart"],
+                  'End date': dates["End"],
                   'Prep time': prep_time}
     
     return gantt_dict
