@@ -67,8 +67,13 @@ class SeriesData(Structure):
         return series
 
     def get_value(self, data):
-
-        return data.copy()
+        
+        result = None
+        
+        if data is not None:
+            result = data.copy()
+            
+        return result
         
     @staticmethod
     def auto_file_input(self):
@@ -332,8 +337,13 @@ class TableData(Structure):
         return dataframe
 
     def get_value(self, data):
-
-        return data.copy()
+        
+        result = None
+        
+        if data is not None:
+            result = data.copy()
+            
+        return result
         
     @staticmethod
     def auto_file_input(self):
@@ -779,7 +789,12 @@ class Numpy2D(NumpyND):
 
     def get_value(self, data):
 
-        return data.copy()
+        result = None
+        
+        if data is not None:
+            result = data.copy()
+            
+        return result
 
 
 class Numpy2DColumn(Numpy2D):
@@ -840,7 +855,12 @@ class Numpy3D(NumpyND):
 
     def get_value(self, data):
 
-        return data.copy()
+        result = None
+        
+        if data is not None:
+            result = data.copy()
+            
+        return result
 
 
 class Numpy3DColumn(Numpy3D):
@@ -905,7 +925,12 @@ class NumpyLine(NumpyND):
 
     def get_value(self, data):
 
-        return data.copy()
+        result = None
+        
+        if data is not None:
+            result = data.copy()
+            
+        return result
     
     @staticmethod
     def auto_file_input(self):
@@ -1546,7 +1571,12 @@ class CartesianData(NumpyND):
 
     def get_value(self, data):
 
-        return data.copy()
+        result = None
+        
+        if data is not None:
+            result = data.copy()
+            
+        return result
     
     @staticmethod
     def auto_file_input(self):
@@ -1658,7 +1688,12 @@ class CartesianList(Numpy2D):
 
     def get_value(self, data):
 
-        return data.copy()
+        result = None
+        
+        if data is not None:
+            result = data.copy()
+            
+        return result
         
     @staticmethod
     def auto_plot(self):
@@ -2625,7 +2660,7 @@ class DateTimeData(Structure):
 
             errStr = ("DateTimeData requires a datetime.datetime object as "
                       "raw data.")
-            raise ValueError(errStr)
+            raise TypeError(errStr)
 
         return raw
 
@@ -3606,8 +3641,13 @@ class XGridND(Structure):
         return coord_tuples, attrs
 
     def get_value(self, data):
-
-        return data.copy(deep=True)
+        
+        result = None
+        
+        if data is not None:
+            result = data.copy(deep=True)
+            
+        return result
 
     @staticmethod
     def auto_file_input(self):
