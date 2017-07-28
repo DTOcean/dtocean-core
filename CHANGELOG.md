@@ -55,6 +55,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added plot for foundations layout.
 - Added optional boundary padding input to the electrical module so that the
   substation can be moved away from the lease area edge.
+- Added operational limit conditions to data catalogue to allow modification
+  in the installation interface.
+- Added "passive hub" as a valid collection point type in the installation
+  interface.
 
 ### Changed
 
