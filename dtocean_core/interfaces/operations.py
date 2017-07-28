@@ -303,7 +303,12 @@ class OperationsInterface(ModuleInterface):
                         "options.optim_corrective",
                         "options.optim_condition",
                         "options.optim_calendar",
-                        "options.curtail_devices"
+                        "options.curtail_devices",
+                        
+                        "component.operations_limit_hs",
+                        "component.operations_limit_tp",
+                        "component.operations_limit_ws",
+                        "component.operations_limit_cs"
 
                  ]
                  
@@ -415,6 +420,7 @@ class OperationsInterface(ModuleInterface):
                         "component.moorings_rope_CFR",
                         "component.moorings_shackle_CFR",
                         "component.moorings_swivel_CFR",
+
                           
                         'component.collection_points',
                         'component.dry_mate_connectors',
@@ -438,7 +444,13 @@ class OperationsInterface(ModuleInterface):
                         "project.substation_layout",
                         "device.two_stage_assembly",
                         
-                        "options.curtail_devices"
+                        "options.curtail_devices",
+                        
+                        "component.operations_limit_hs",
+                        "component.operations_limit_tp",
+                        "component.operations_limit_ws",
+                        "component.operations_limit_cs"
+                        
                         ]
                 
         return options_list
@@ -710,7 +722,12 @@ class OperationsInterface(ModuleInterface):
                 "project.condition_maintenance_events",
             "corrective_maintenance_events":
                 "project.corrective_maintenance_events",
-            "journeys": "project.operation_journeys"
+            "journeys": "project.operation_journeys",
+            
+            "limit_hs": "component.operations_limit_hs",
+            "limit_tp": "component.operations_limit_tp",
+            "limit_ws": "component.operations_limit_ws",
+            "limit_cs": "component.operations_limit_cs"
             }
                   
         return id_map

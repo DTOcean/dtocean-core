@@ -196,6 +196,10 @@ class InstallationInterface(ModuleInterface):
                         "component.static_cable",
                         "component.wet_mate_connectors",
                         "component.transformers",
+                        "component.operations_limit_hs",
+                        "component.operations_limit_tp",
+                        "component.operations_limit_ws",
+                        "component.operations_limit_cs",
                         "device.control_subsystem_installation",
                         "device.two_stage_assembly",
                         "project.selected_installation_tool",
@@ -326,6 +330,10 @@ class InstallationInterface(ModuleInterface):
                     "component.static_cable",
                     "component.wet_mate_connectors",
                     "component.transformers",
+                    "component.operations_limit_hs",
+                    "component.operations_limit_tp",
+                    "component.operations_limit_ws",
+                    "component.operations_limit_cs",
                     "corridor.layers",
                     "project.landfall_contruction_technique",
                     "device.bollard_pull",
@@ -565,8 +573,12 @@ class InstallationInterface(ModuleInterface):
                   "install_suction_embedment_prep_time":
                       "project.install_suction_embedment_prep_time",
                   "two_stage_assembly": "device.two_stage_assembly",
-                  "plan": "project.installation_plan"
-                  } 
+                  "plan": "project.installation_plan",
+                  "limit_hs": "component.operations_limit_hs",
+                  "limit_tp": "component.operations_limit_tp",
+                  "limit_ws": "component.operations_limit_ws",
+                  "limit_cs": "component.operations_limit_cs"
+                  }
 
         return id_map
 
@@ -2028,15 +2040,34 @@ class InstallationInterface(ModuleInterface):
         
         tidal_series_df = tidal_series.to_frame(name="Cs")
         wind_series_df = wind_series.to_frame(name="Ws")
-
+        
+        # Allow dates to differ by resetting to a default
+        new_start = pd.to_datetime("01/01/1900", infer_datetime_format=True)
+        
+        start_offet = new_start - wave_series_df.index[0]
+        wave_series_df = wave_series_df.shift(freq=start_offet)
+        
+        start_offet = new_start - tidal_series_df.index[0]
+        tidal_series_df = tidal_series_df.shift(freq=start_offet)
+        
+        start_offet = new_start - wind_series_df.index[0]
+        wind_series_df = wind_series_df.shift(freq=start_offet)
+        
         # merge these on datetime index
-        metocean_df = pd.merge(
-            wave_series_df, tidal_series_df, how ='left', left_index=True, 
-            right_index=True)
+        metocean_df = pd.merge(wave_series_df,
+                               tidal_series_df,
+                               how='left',
+                               left_index=True, 
+                               right_index=True)
 
-        metocean_df = pd.merge(
-            metocean_df, wind_series_df, how = 'left', left_index=True,
-            right_index=True)
+        metocean_df = pd.merge(metocean_df,
+                               wind_series_df,
+                               how='left',
+                               left_index=True,
+                               right_index=True)
+        
+        # Ensure the index of the merged dataframe has a name
+        metocean_df.index.name = 'DateTime'
             
         year = metocean_df.index.year
         month = metocean_df.index.month
@@ -2047,9 +2078,9 @@ class InstallationInterface(ModuleInterface):
         metocean_df.loc[:, 'month'] = month
         metocean_df.loc[:, 'day'] = day
         metocean_df.loc[:, 'hour'] = hour
-        
-        metocean_df.reset_index(inplace = True)
-        metocean_df.drop('DateTime', axis = 1, inplace = True)
+                
+        metocean_df.reset_index(inplace=True)
+        metocean_df.drop('DateTime', axis=1, inplace=True)
 
         name_map = {
             "year": "year [-]",
@@ -2269,6 +2300,12 @@ class InstallationInterface(ModuleInterface):
 
         port_safety_factor_df = data.port_safety_factors.reset_index()
         port_safety_factor_df = port_safety_factor_df.rename(columns=name_map)
+        port_safety_factor_df = port_safety_factor_df.apply(pd.to_numeric,
+                                                            errors='ignore')
+        
+        # Correct safety factors
+        port_safety_factor_df["Safety factor (in %) [-]"] += -1
+
         
         # vessel
         name_map = {
@@ -2279,6 +2316,12 @@ class InstallationInterface(ModuleInterface):
         vessel_safety_factor_df = data.vessel_safety_factors.reset_index()
         vessel_safety_factor_df = vessel_safety_factor_df.rename(
             columns=name_map)
+        vessel_safety_factor_df = vessel_safety_factor_df.apply(
+                                                            pd.to_numeric,
+                                                            errors='ignore')
+        
+        # Correct safety factors
+        vessel_safety_factor_df["Safety factor (in %) [-]"] += -1
 
         # equipment
         equipment_tables = [data.rov_safety_factors,
@@ -2306,10 +2349,17 @@ class InstallationInterface(ModuleInterface):
             equipment_table = equipment_table.reset_index()
             equipment_table = equipment_table.rename(columns=column_map)
             equipment_table["Equipment type id [-]"] = type_id
+
             mapped_tables.append(equipment_table)
         
         equipment_safety_factor_df = pd.concat(mapped_tables,
                                                ignore_index=True)
+        equipment_safety_factor_df = equipment_safety_factor_df.apply(
+                                                            pd.to_numeric,
+                                                            errors='ignore')
+        
+        # Correct safety factors
+        equipment_safety_factor_df["Safety factor (in %) [-]"] += -1
         
         ### Configuration options
         # Installation order
@@ -2403,10 +2453,86 @@ class InstallationInterface(ModuleInterface):
 
         entry_point_df = pd.DataFrame(entry_point_data, index = [0])
 
-#        entry_point_df.reset_index(inplace = True )
-
-        # schedule OLC
+        # Operational limit conditions and algorithm control
         schedule_OLC = get_operations_template()
+        start_shape = schedule_OLC.shape
+        
+        # Update default limits if provided
+        if data.limit_hs is not None:
+            
+            limit_hs_series = pd.Series(data.limit_hs)
+            limit_hs_series.name = "OLC: Hs [m]"
+            limit_hs_series.index.name = "Logitic operation [-]"
+            limit_hs_df = limit_hs_series.reset_index()
+            
+            merged = pd.merge(schedule_OLC,
+                              limit_hs_df,
+                              on="Logitic operation [-]",
+                              how="left")
+            olc_updated = merged["OLC: Hs [m]_x"]
+            olc_updated.update(merged["OLC: Hs [m]_y"])
+            
+            schedule_OLC["OLC: Hs [m]"] = olc_updated
+            
+            # Check that the shape hasn't changed
+            assert schedule_OLC.shape == start_shape
+        
+        if data.limit_tp is not None:
+
+            limit_tp_series = pd.Series(data.limit_tp)
+            limit_tp_series.name = "OLC: Tp [s]"
+            limit_tp_series.index.name = "Logitic operation [-]"
+            limit_tp_df = limit_tp_series.reset_index()
+            
+            merged = pd.merge(schedule_OLC,
+                              limit_tp_df,
+                              on="Logitic operation [-]",
+                              how="left")
+            olc_updated = merged["OLC: Tp [s]_x"]
+            olc_updated.update(merged["OLC: Tp [s]_y"])
+            
+            schedule_OLC["OLC: Tp [s]"] = olc_updated
+            
+            # Check that the shape hasn't changed
+            assert schedule_OLC.shape == start_shape
+
+        if data.limit_ws is not None:
+
+            limit_ws_series = pd.Series(data.limit_ws)
+            limit_ws_series.name = "OLC: Ws [m/s]"
+            limit_ws_series.index.name = "Logitic operation [-]"
+            limit_ws_df = limit_ws_series.reset_index()
+            
+            merged = pd.merge(schedule_OLC,
+                              limit_ws_df,
+                              on="Logitic operation [-]",
+                              how="left")
+            olc_updated = merged["OLC: Ws [m/s]_x"]
+            olc_updated.update(merged["OLC: Ws [m/s]_y"])
+            
+            schedule_OLC["OLC: Ws [m/s]"] = olc_updated
+            
+            # Check that the shape hasn't changed
+            assert schedule_OLC.shape == start_shape
+
+        if data.limit_cs is not None:
+
+            limit_cs_series = pd.Series(data.limit_cs)
+            limit_cs_series.name = "OLC: Cs [m/s]"
+            limit_cs_series.index.name = "Logitic operation [-]"
+            limit_cs_df = limit_cs_series.reset_index()
+            
+            merged = pd.merge(schedule_OLC,
+                              limit_cs_df,
+                              on="Logitic operation [-]",
+                              how="left")
+            olc_updated = merged["OLC: Cs [m/s]_x"]
+            olc_updated.update(merged["OLC: Cs [m/s]_y"])
+            
+            schedule_OLC["OLC: Cs [m/s]"] = olc_updated
+            
+            # Check that the shape hasn't changed
+            assert schedule_OLC.shape == start_shape
                 
         ### Hydrodynamics                            
         device, x, y  = zip(*[(key.lower(), item.x, item.y)
@@ -2667,12 +2793,14 @@ class InstallationInterface(ModuleInterface):
                         }
 
             cable_route_df = data.cable_routes.rename(columns=name_map)
-
+            
             cable_zone = [zone]*len(data.cable_routes)
             cable_route_df['zone [-]'] = cable_zone
             cable_route_df['bathymetry [m]'] = \
                                             - cable_route_df['bathymetry [m]']
-
+            cable_route_df = cable_route_df.replace(
+                                            {"split pipe [-]": yes_no_map})
+            
             connector_db = elec_dry_mate_df.append(elec_wet_mate_df)
 
             connectors_df = \

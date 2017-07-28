@@ -33,6 +33,58 @@ equipment_hammer = xls_file.parse("hammer")
 equipment_drilling_rigs = xls_file.parse("drilling_rigs")
 equipment_vibro_driver = xls_file.parse("vibro_driver")
 
+# OLC updates
+
+hs_olc_names = [
+             "Vessel Positioning + Connection to cable pull-head + Cable float-out + Cable lay into pre-excavated trench",
+             "Vessel positioning + Connection to cable pull-head + Cable float-out + Cable pull-in through HDD conduit",
+             "Deploy of Cable Burial Tool",
+             "Recover cable burial tool",
+             "Cable lay and burial through cable route",
+             "Cable lay through cable route",
+             "Cable lay through open trench",
+             "Cable lay with split pipes",
+             "Cable lay with buoyancy modules",
+             "Conduct dry-mate connection on deck",
+             "Conduct splice connection on deck",
+             "Connect to guide wire + Lower cable and connection equip + Perform wet-mate connect + Recover connection equip",
+             "J-tube entrance inspection + Guide wire connection + Cable lay + Cable pull + Cable connection",
+             "Lower cable-end to the seabed",
+             "Lift cable-end from seabed",
+             "Lower collection point to the seabed",
+             "Lift top-side platform",
+             "Connect top-side platform to the support structure",
+             "Lift and overboard concrete mattress + Lower concrete mattress to seabed + Position and release concrete mattress + Recover installation frame",
+             "Lift and overboard rock filter bag + Lower rock filter bag to seabed + Position and release concrete mattress"]
+    
+hs_olc_values = [0.75,
+                 0.75,
+                 1.75,
+                 1.75,
+                 1.75,
+                 1.75,
+                 1.75,
+                 1.75,
+                 1.75,
+                 2,
+                 2,
+                 2.25,
+                 2,
+                 2,
+                 1.5,
+                 2,
+                 2,
+                 2,
+                 2,
+                 2]
+
+hs_olc_dict = {k: v for k, v in zip(hs_olc_names, hs_olc_values)}
+    
+tp_olc_dict = {"Seafloor & equipment preparation": 15}
+ws_olc_dict = {"Seafloor & equipment preparation": 15}
+cs_olc_dict = {"Seafloor & equipment preparation": 1.5}
+
+
 ### Ports
 file_path = os.path.join(installation_dir, 'logisticsDB_ports_python.xlsx')
 xls_file = pd.ExcelFile(file_path, encoding = 'utf-8')
@@ -1953,6 +2005,11 @@ test_data = {"component.rov" : equipment_rov,
              "component.collection_points" : collection_point,
              "component.transformers" : transformer,
              
+             "component.operations_limit_hs": hs_olc_dict,
+             "component.operations_limit_tp": tp_olc_dict,
+             "component.operations_limit_ws": ws_olc_dict,
+             "component.operations_limit_cs": cs_olc_dict,
+
              "project.selected_installation_tool": tool,
              "options.skip_phase": True
 
