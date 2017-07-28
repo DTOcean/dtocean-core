@@ -133,7 +133,7 @@ def set_collection_points(component_data_df,
     
     '''
 
-    cp_types = ['substation']
+    cp_types = ['substation', 'passive hub']
 
     collection_points = component_data_df[
             component_data_df['Installation Type'].isin(cp_types)]
