@@ -55,6 +55,14 @@ def test_Strata():
     assert (b['sediment'].values == "rock").all()
 
 
+def test_get_None():
+    
+    test = Strata()
+    result = test.get_value(None)
+    
+    assert result is None
+
+
 @pytest.mark.parametrize("fext", [".nc"])
 def test_Strata_auto_file(tmpdir, fext):
     

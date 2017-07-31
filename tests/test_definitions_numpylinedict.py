@@ -46,6 +46,14 @@ def test_NumpyLineDict():
     assert max(b["Sin(x)"][:,1]) == 1
     assert b["Cos(x)"][0,1] == b["Cos(x)"][-1,1]
     
+    
+def test_get_None():
+    
+    test = NumpyLineDict()
+    result = test.get_value(None)
+    
+    assert result is None
+    
 
 @pytest.mark.parametrize("fext", [".xls", ".xlsx"])
 def test_NumpyLine_auto_file(tmpdir, fext):

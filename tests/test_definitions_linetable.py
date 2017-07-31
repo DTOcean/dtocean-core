@@ -45,6 +45,14 @@ def test_LineTable():
     assert "Thrust" in b
     assert len(b) == len(velocity)
     assert b.index.name == "Velocity"
+    
+    
+def test_get_None():
+    
+    test = LineTable()
+    result = test.get_value(None)
+    
+    assert result is None
 
 
 @pytest.mark.parametrize("fext", [".csv", ".xls", ".xlsx"])

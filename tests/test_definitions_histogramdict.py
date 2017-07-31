@@ -42,6 +42,14 @@ def test_HistogramDict():
     assert len(b["test_one"]["values"]) == len(values_one)
     assert len(b["test_two"]["bins"]) == len(b["test_two"]["values"]) + 1
     
+    
+def test_get_None():
+    
+    test = HistogramDict()
+    result = test.get_value(None)
+    
+    assert result is None
+    
 
 @pytest.mark.parametrize("fext", [".xls", ".xlsx"])
 def test_HistogramDict_auto_file(tmpdir, fext):

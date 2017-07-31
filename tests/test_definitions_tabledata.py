@@ -42,6 +42,15 @@ def test_TableData():
     assert "a" in b
     assert len(b) == len(idx)
 
+
+def test_get_None():
+    
+    test = TableData()
+    result = test.get_value(None)
+    
+    assert result is None
+
+
 @pytest.mark.parametrize("fext", [".csv", ".xls", ".xlsx"])
 def test_TableData_auto_file(tmpdir, fext):
     

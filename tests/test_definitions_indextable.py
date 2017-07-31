@@ -45,6 +45,14 @@ def test_IndexTable():
     assert "Data" in b
     assert len(b) == len(data)
     assert b.index.name == "Label"
+    
+    
+def test_get_None():
+    
+    test = IndexTable()
+    result = test.get_value(None)
+    
+    assert result is None
 
 
 @pytest.mark.parametrize("fext", [".csv", ".xls", ".xlsx"])

@@ -39,6 +39,14 @@ def test_NumpyLine():
     
     assert max(b[:,1]) == 1
     
+    
+def test_get_None():
+    
+    test = NumpyLine()
+    result = test.get_value(None)
+    
+    assert result is None
+    
 
 @pytest.mark.parametrize("fext", [".csv", ".xls", ".xlsx"])
 def test_NumpyLine_auto_file(tmpdir, fext):

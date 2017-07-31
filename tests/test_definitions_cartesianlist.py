@@ -44,6 +44,14 @@ def test_CartesianList():
     
     with pytest.raises(ValueError):
         test.get_data(raw, meta)
+        
+        
+def test_get_None():
+    
+    test = CartesianList()
+    result = test.get_value(None)
+    
+    assert result is None
     
 
 @pytest.mark.parametrize("fext", [".csv", ".xls", ".xlsx"])

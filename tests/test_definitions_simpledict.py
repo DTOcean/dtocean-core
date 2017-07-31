@@ -36,6 +36,14 @@ def test_SimpleDict():
     assert b["a"] == 0
     assert b["b"] == 1
     
+    
+def test_get_None():
+    
+    test = SimpleDict()
+    result = test.get_value(None)
+    
+    assert result is None
+    
 
 @pytest.mark.parametrize("fext", [".csv", ".xls", ".xlsx"])
 def test_SimpleDict_auto_file(tmpdir, fext):

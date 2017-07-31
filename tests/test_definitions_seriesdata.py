@@ -30,6 +30,14 @@ def test_SeriesData():
     b = test.get_value(a)
 
     assert len(b) == len(raw)
+    
+    
+def test_get_None():
+    
+    test = SeriesData()
+    result = test.get_value(None)
+    
+    assert result is None
 
 
 def test_SeriesData_auto_file(tmpdir):

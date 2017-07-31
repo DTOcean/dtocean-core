@@ -43,3 +43,11 @@ def test_DateTimeData_invalid():
     
     with pytest.raises(TypeError):
         test.get_data(raw, meta)
+        
+
+def test_get_None():
+    
+    test = DateTimeData()
+    result = test.get_value(None)
+    
+    assert result is None

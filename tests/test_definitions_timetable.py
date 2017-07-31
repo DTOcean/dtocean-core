@@ -53,6 +53,14 @@ def test_TimeTable():
     assert "a" in b
     assert len(b) == len(dates)
     assert len(b.resample('D').mean()) == 2
+    
+    
+def test_get_None():
+    
+    test = TimeTable()
+    result = test.get_value(None)
+    
+    assert result is None
 
 
 @pytest.mark.parametrize("fext", [".csv", ".xls", ".xlsx"])
