@@ -1,12 +1,14 @@
 
 import datetime
 
+import pytest
+
 from dtocean_core.core import Core
 from dtocean_core.data import CoreMetaData
 from dtocean_core.data.definitions import DateTimeData
 
 
-def test_CartesianData_available():
+def test_DateTimeData_available():
     
     new_core = Core()
     all_objs = new_core.control._store._structures
@@ -14,7 +16,7 @@ def test_CartesianData_available():
     assert "DateTimeData" in all_objs.keys()
 
 
-def test_CartesianData():
+def test_DateTimeData():
 
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
@@ -27,3 +29,17 @@ def test_CartesianData():
     b = test.get_value(a)
     
     assert isinstance(b, datetime.datetime)
+    
+
+def test_DateTimeData_invalid():
+
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test"})
+    
+    test = DateTimeData()
+    
+    raw = 1.
+    
+    with pytest.raises(TypeError):
+        test.get_data(raw, meta)
