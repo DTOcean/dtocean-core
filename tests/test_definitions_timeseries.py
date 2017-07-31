@@ -52,6 +52,14 @@ def test_TimeSeries():
     assert len(b.resample('D').mean()) == 2
 
 
+def test_get_None():
+    
+    test = TimeSeries()
+    result = test.get_value(None)
+    
+    assert result is None
+
+
 def test_TimeSeries_auto_file(tmpdir):
         
     dates = []

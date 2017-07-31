@@ -1095,8 +1095,11 @@ class NumpyLineDict(NumpyLine):
         return valid_dict
 
     def get_value(self, data):
-
-        copy_dict = {k: super(NumpyLineDict, self).get_value(v) for
+        
+        copy_dict = None
+        
+        if data is not None:
+            copy_dict = {k: super(NumpyLineDict, self).get_value(v) for
                                                         k, v in data.items()}
 
         return copy_dict
@@ -1837,9 +1840,12 @@ class CartesianDict(CartesianData):
         return safe_data
 
     def get_value(self, data):
-
-        new_dict = {k: super(CartesianDict, self).get_value(v)
-                                                for k, v in data.items()}
+        
+        new_dict = None
+        
+        if data is not None:
+            new_dict = {k: super(CartesianDict, self).get_value(v)
+                                                    for k, v in data.items()}
 
         return new_dict
     
@@ -2005,9 +2011,12 @@ class CartesianListDict(CartesianList):
         return safe_data
 
     def get_value(self, data):
-
-        new_dict = {k: super(CartesianListDict, self).get_value(v)
-                                                for k, v in data.items()}
+        
+        new_dict = None
+        
+        if data is not None:
+            new_dict = {k: super(CartesianListDict, self).get_value(v)
+                                                    for k, v in data.items()}
 
         return new_dict
     
@@ -2767,8 +2776,13 @@ class PointData(Structure):
         return point
 
     def get_value(self, data):
+        
+        result = None
+        
+        if data is not None:
+            result = Point(data)
 
-        return Point(data)
+        return result
     
     @staticmethod
     def auto_file_input(self):
@@ -2894,8 +2908,12 @@ class PointList(PointData):
         return point_list
 
     def get_value(self, data):
+        
+        new_point_list = None
 
-        new_point_list = [super(PointList, self).get_value(p) for p in data]
+        if data is not None:
+            new_point_list = [
+                            super(PointList, self).get_value(p) for p in data]
 
         return new_point_list
     
@@ -2949,8 +2967,11 @@ class PointDict(PointData):
         return points_dict
 
     def get_value(self, data):
+        
+        new_points_dict = None
 
-        new_points_dict = {k: super(PointDict, self).get_value(v)
+        if data is not None:
+            new_points_dict = {k: super(PointDict, self).get_value(v)
                                                 for k, v in data.items()}
 
         return new_points_dict
@@ -3163,8 +3184,13 @@ class PolygonData(Structure):
         return ring
 
     def get_value(self, data):
+        
+        result = None
+        
+        if data is not None:
+            result = Polygon(data)
 
-        return Polygon(data)
+        return result
         
     @staticmethod
     def auto_plot(self):
@@ -3318,8 +3344,11 @@ class PolygonList(PolygonData):
         return ring_list
 
     def get_value(self, data):
-
-        ring_list = [super(PolygonList, self).get_value(x) for x in data]
+        
+        ring_list = None
+        
+        if data is not None:
+            ring_list = [super(PolygonList, self).get_value(x) for x in data]
 
         return ring_list
         

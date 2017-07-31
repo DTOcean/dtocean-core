@@ -38,6 +38,14 @@ def test_XGrid2D():
     assert b.values.shape == (2,3)
     assert b.units == 'POWER!'
     assert b.y.units == 'm'
+    
+
+def test_get_None():
+    
+    test = XGrid2D()
+    result = test.get_value(None)
+    
+    assert result is None
 
 
 @pytest.mark.parametrize("fext", [".nc"])

@@ -32,6 +32,14 @@ def test_Numpy3D():
     
     assert b.shape == (10, 8, 6)
     assert np.isclose(b, raw).all()
+    
+    
+def test_get_None():
+    
+    test = Numpy3D()
+    result = test.get_value(None)
+    
+    assert result is None
 
 
 def test_Numpy3DColumn_available():

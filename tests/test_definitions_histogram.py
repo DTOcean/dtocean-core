@@ -39,6 +39,14 @@ def test_Histogram():
     assert max(b["values"]) == 5
     assert max(b["bins"]) == 10
     
+    
+def test_get_None():
+    
+    test = Histogram()
+    result = test.get_value(None)
+    
+    assert result is None    
+
 
 @pytest.mark.parametrize("fext", [".csv", ".xls", ".xlsx"])
 def test_Histogram_auto_file(tmpdir, fext):

@@ -58,6 +58,14 @@ def test_PolygonData():
     
     with pytest.raises(ValueError):
         test.get_data(raw, meta)
+
+
+def test_get_None():
+    
+    test = PolygonData()
+    result = test.get_value(None)
+    
+    assert result is None
     
 
 @pytest.mark.parametrize("fext", [".csv", ".xls", ".xlsx"])
