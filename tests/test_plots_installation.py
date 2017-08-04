@@ -70,16 +70,31 @@ def test_InstallationGanttChartPlot_available(core, project, tree):
 
     mod_branch = tree.get_branch(core, project, mod_name)
     
-    plan = ['Installation of driven piles anchors/foundations',
+    plan = ['Installation of support structure',
+            'Installation of driven piles anchors/foundations',
+            'Installation of direct-embedment anchors/foundations',
+            'Installation of gravity based anchors/foundations',
+            'Installation of pile anchor anchors/foundations',
+            'Installation of drag-embedment anchors/foundations',
+            'Installation of suction-embedment anchors/foundations',
             'Installation of collection point (surface piercing)',
+            'Installation of collection point (seabed)',
+            'Installation of dynamic cables',
             'Installation of static export cables',
-            'Installation of static array cables', 
+            'Installation of static array cables',
+            'Installation of cable protection',
             'Installation of devices']
-    install_support_structure_dates = None
+    install_support_structure_dates = {
+                             'Start': dt.datetime(2000, 6, 25, 4, 55, 31,), 
+                             'End': dt.datetime(2000, 7, 29, 3, 24, 19),
+                             'Depart': dt.datetime(2000, 7, 25, 7, 55, 31)}
     install_devices_dates = {'Start': dt.datetime(2000, 6, 25, 4, 55, 31,), 
                              'End': dt.datetime(2000, 7, 29, 3, 24, 19),
                              'Depart': dt.datetime(2000, 7, 25, 7, 55, 31)}
-    install_dynamic_cable_dates = None
+    install_dynamic_cable_dates = {
+                            'Start': dt.datetime(2000, 5, 2, 19, 11, 47), 
+                            'End': dt.datetime(2000, 6, 18, 19, 12, 9),
+                            'Depart': dt.datetime(2000, 6, 14, 15, 11, 47)}
     install_export_cable_dates = {
                             'Start': dt.datetime(2000, 5, 2, 19, 11, 47), 
                             'End': dt.datetime(2000, 6, 18, 19, 12, 9),
@@ -92,43 +107,105 @@ def test_InstallationGanttChartPlot_available(core, project, tree):
                             'Start': dt.datetime(2000, 1, 5, 1, 0),
                             'End': dt.datetime(2000, 4, 30, 17, 42, 6),
                             'Depart': dt.datetime(2000, 4, 26, 7, 0)}
-    install_subsea_collection_point_dates = None
-    install_cable_protection_dates = None
+    install_subsea_collection_point_dates = {
+                            'Start': dt.datetime(2000, 1, 5, 1, 0),
+                            'End': dt.datetime(2000, 4, 30, 17, 42, 6),
+                            'Depart': dt.datetime(2000, 4, 26, 7, 0)}
+    install_cable_protection_dates = {
+                            'Start': dt.datetime(2000, 1, 5, 1, 0),
+                            'End': dt.datetime(2000, 4, 30, 17, 42, 6),
+                            'Depart': dt.datetime(2000, 4, 26, 7, 0)}
     install_driven_piles_dates = {
                             'Start': dt.datetime(2000, 1, 3, 5, 0),
                             'End': dt.datetime(2000, 2, 11, 5, 4, 21),
                             'Depart': dt.datetime(2000, 2, 4, 15, 0)}
-    install_direct_embedment_dates = None
-    install_gravity_based_dates = None
-    install_pile_anchor_dates = None
-    install_drag_embedment_dates = None
-    install_suction_embedment_dates = None
-    install_device_times = pd.DataFrame({'Preparation': {0: 148.0},
-                                         'Operations': {0: 32.0},
-                                         'Transit': {0: 59.480022782839399},
-                                         'Component': {0: 'Device'},
-                                         'Waiting': {0: 0}})    
+    install_direct_embedment_dates = {
+                            'Start': dt.datetime(2000, 1, 3, 5, 0),
+                            'End': dt.datetime(2000, 2, 11, 5, 4, 21),
+                            'Depart': dt.datetime(2000, 2, 4, 15, 0)}
+    install_gravity_based_dates = {
+                            'Start': dt.datetime(2000, 1, 3, 5, 0),
+                            'End': dt.datetime(2000, 2, 11, 5, 4, 21),
+                            'Depart': dt.datetime(2000, 2, 4, 15, 0)}
+    install_pile_anchor_dates = {
+                            'Start': dt.datetime(2000, 1, 3, 5, 0),
+                            'End': dt.datetime(2000, 2, 11, 5, 4, 21),
+                            'Depart': dt.datetime(2000, 2, 4, 15, 0)}
+    install_drag_embedment_dates = {
+                            'Start': dt.datetime(2000, 1, 3, 5, 0),
+                            'End': dt.datetime(2000, 2, 11, 5, 4, 21),
+                            'Depart': dt.datetime(2000, 2, 4, 15, 0)}
+    install_suction_embedment_dates = {
+                            'Start': dt.datetime(2000, 1, 3, 5, 0),
+                            'End': dt.datetime(2000, 2, 11, 5, 4, 21),
+                            'Depart': dt.datetime(2000, 2, 4, 15, 0)}
+    install_device_times = pd.DataFrame({'Preparation': {0: 148.0,
+                                                         1: 100},
+                                         'Operations': {0: 32.0,
+                                                        1: 30},
+                                         'Transit': {0: 59.480022782839399,
+                                                     1: 60},
+                                         'Component': {0: 'Device',
+                                                       1: 'Support Structure'},
+                                         'Waiting': {0: 0,
+                                                     1: 0}})    
     install_electrical_times = pd.DataFrame(
-                                    {'Preparation': {0: 49.49,
-                                                     1: 52.11,
-                                                     2: 97.0},
-                                     'Operations': {0: 7.48,
-                                                    1: 12.72,
-                                                    2: 21.0},
-                                     'Transit': {0: 92.51,
-                                                 1: 92.38,
-                                                 2: 85.70},
-                                     'Component': {0: 'Export Cables',
-                                                   1: 'Inter-Array Cables',
-                                                   2: 'Collection Points'},
-                                     'Waiting': {0: 0,
-                                                 1: 0,
-                                                 2: 0}})
-    install_mooring_times = pd.DataFrame({'Preparation': {0: 53.0},
-                                          'Operations': {0: 83.00},
-                                          'Transit': {0: 75.06},
-                                          'Component': {0: 'Driven Piles'},
-                                          'Waiting': {0: 0}})
+                                {'Preparation': {0: 49.49,
+                                                 1: 52.11,
+                                                 2: 97.0,
+                                                 3: 90,
+                                                 4: 10},
+                                 'Operations': {0: 7.48,
+                                                1: 12.72,
+                                                2: 21.0,
+                                                3: 20,
+                                                4: 50},
+                                 'Transit': {0: 92.51,
+                                             1: 92.38,
+                                             2: 85.70,
+                                             3: 80,
+                                             4: 90},
+                                 'Component': {0: 'Export Cables',
+                                               1: 'Inter-Array Cables',
+                                               2: 'Collection Points',
+                                               3: 'Dynamic Cables',
+                                               4: 'External Cable Protection'},
+                                 'Waiting': {0: 0,
+                                             1: 0,
+                                             2: 0,
+                                             3: 0,
+                                             4: 0}})
+    install_mooring_times = pd.DataFrame(
+                                {'Preparation': {0: 53.0,
+                                                 1: 53.0,
+                                                 2: 53.0,
+                                                 3: 53.0,
+                                                 4: 53.0,
+                                                 5: 53.0},
+                                 'Operations': {0: 83.00,
+                                                1: 83.00,
+                                                2: 83.00,
+                                                3: 83.00,
+                                                4: 83.00,
+                                                5: 83.00},
+                                 'Transit': {0: 75.06,
+                                             1: 75.06,
+                                             2: 75.06,
+                                             3: 75.06,
+                                             4: 75.06,
+                                             5: 75.06},
+                                 'Component': {0: 'Driven Piles',
+                                               1: "Direct-Embedment Anchors",
+                                               2: "Gravity Based Foundations",
+                                               3: "Pile Anchors",
+                                               4: "Drag-Embedment Anchors",
+                                               5: "Suction-Caisson Anchors"},
+                                 'Waiting': {0: 0,
+                                             1: 0,
+                                             2: 0,
+                                             3: 0,
+                                             4: 0,
+                                             5: 0}})
     
     identifiers = ["project.installation_plan",
                    "project.install_support_structure_dates",
