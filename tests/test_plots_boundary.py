@@ -7,7 +7,7 @@ from copy import deepcopy
 import matplotlib.pyplot as plt
 
 from dtocean_core.core import Core
-from dtocean_core.menu import ProjectMenu 
+from dtocean_core.menu import ModuleMenu, ProjectMenu 
 from dtocean_core.pipeline import Tree
 
 dir_path = os.path.dirname(__file__)
@@ -146,34 +146,57 @@ def test_AllBoundaryPlot(core, project, tree):
     
 def test_DesignBoundaryPlot_available(core, project, tree):
     
-    project = deepcopy(project) 
+    project = deepcopy(project)
     
-    boundaries_branch = tree.get_branch(core,
-                                        project,
-                                        "Site Boundary Selection")
-                                                       
-    lease_boundary = boundaries_branch.get_output_variable(
-                                                    core,
-                                                    project,
-                                                    "site.lease_boundary")
-    result = lease_boundary.get_available_plots(core, project)
+    module_menu = ModuleMenu()
+    module_menu.activate(core, project, "Installation")
+    
+    project_menu = ProjectMenu()
+    project_menu.initiate_dataflow(core, project)
+    
+    installation_branch = tree.get_branch(core,
+                                          project,
+                                          "Installation")
+    installation_branch.read_test_data(core,
+                                     project,
+                                     os.path.join(dir_path,
+                                                  "inputs_boundary.pkl"))
+    installation_branch.read_auto(core, project)
+
+    lease_entry = installation_branch.get_input_variable(
+                                            core,
+                                            project,
+                                            "project.lease_area_entry_point")
+    
+    result = lease_entry.get_available_plots(core, project)
     
     assert "Design Boundaries" in result
 
 
 def test_DesignBoundaryPlot(core, project, tree):
     
-    project = deepcopy(project) 
+    project = deepcopy(project)
     
-    boundaries_branch = tree.get_branch(core,
-                                        project,
-                                        "Site Boundary Selection")
-                                                       
-    lease_boundary = boundaries_branch.get_output_variable(
-                                                    core,
-                                                    project,
-                                                    "site.lease_boundary")
-    lease_boundary.plot(core, project, "Design Boundaries")
+    module_menu = ModuleMenu()
+    module_menu.activate(core, project, "Installation")
+    
+    project_menu = ProjectMenu()
+    project_menu.initiate_dataflow(core, project)
+    
+    installation_branch = tree.get_branch(core,
+                                          project,
+                                          "Installation")
+    installation_branch.read_test_data(core,
+                                     project,
+                                     os.path.join(dir_path,
+                                                  "inputs_boundary.pkl"))
+    installation_branch.read_auto(core, project)
+
+    lease_entry = installation_branch.get_input_variable(
+                                            core,
+                                            project,
+                                            "project.lease_area_entry_point")
+    lease_entry.plot(core, project, "Design Boundaries")
     
     assert len(plt.get_fignums()) == 1
     
