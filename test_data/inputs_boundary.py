@@ -35,6 +35,7 @@ cable_boundaries = {"site one": np.copy(cable_boundary),
                     "site_two": np.copy(cable_boundary)}
 landing_points = {"site one": (0, 0),
                   "site_two": (0, 0)}
+entry_point = (100.,   0.)
 
 sites_dict = {"id": [1, 2],
               "site_name": ["site one", "site_two"],
@@ -47,6 +48,7 @@ test_data = {"hidden.available_sites": sites_df,
              "hidden.corridor_boundaries": cable_boundaries,
              "hidden.lease_boundaries": lease_boundaries,
              "hidden.landing_points": landing_points,
+             "project.lease_area_entry_point": entry_point,
              "site.selected_name": selected_site,
              "hidden.site_boundaries": site_boundaries}
              
