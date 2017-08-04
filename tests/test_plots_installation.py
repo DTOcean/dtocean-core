@@ -270,17 +270,17 @@ def test_InstallationGanttChartPlot(core, project, tree):
     
     plan = ['Installation of support structure',
             'Installation of driven piles anchors/foundations',
-            'Installation of direct-embedment anchors/foundations',
-            'Installation of gravity based anchors/foundations',
-            'Installation of pile anchor anchors/foundations',
-            'Installation of drag-embedment anchors/foundations',
-            'Installation of suction-embedment anchors/foundations',
+            'Installation of mooring systems with direct-embedment anchors',
+            'Installation of gravity based foundations',
+            'Installation of mooring systems with pile anchors',
+            'Installation of mooring systems with drag-embedment anchors',
+            'Installation of mooring systems with suction-embedment anchors',
             'Installation of collection point (surface piercing)',
             'Installation of collection point (seabed)',
             'Installation of dynamic cables',
             'Installation of static export cables',
             'Installation of static array cables',
-            'Installation of cable protection',
+            'Installation of external cable protection',
             'Installation of devices']
     install_support_structure_dates = {
                              'Start': dt.datetime(2000, 6, 25, 4, 55, 31,), 
