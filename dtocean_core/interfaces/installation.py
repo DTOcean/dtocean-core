@@ -103,7 +103,34 @@ class InstallationInterface(ModuleInterface):
                        ]
         '''
 
-        input_list  =  ["component.rov",
+        input_list  =  ["site.projection",
+                        "bathymetry.layers",
+                        "corridor.layers",
+                        "farm.wave_series_installation",
+                        "farm.tidal_series_installation",
+                        "farm.wind_series_installation",
+                        
+                        "device.system_type",
+                        "device.system_length",
+                        "device.system_width",
+                        "device.system_height",
+                        "device.system_mass",
+                        "device.subsystem_installation",
+                        "device.control_subsystem_installation",
+                        "device.assembly_duration",
+                        "device.load_out_method",
+                        "device.transportation_method",
+                        "device.bollard_pull",
+                        "device.connect_duration",
+                        "device.disconnect_duration",
+                        "device.two_stage_assembly",
+                        
+                        "component.dry_mate_connectors",
+                        "component.dynamic_cable",
+                        "component.static_cable",
+                        "component.wet_mate_connectors",
+                        "component.transformers",
+                        "component.rov",
                         "component.divers",
                         "component.cable_burial",
                         "component.excavating",
@@ -128,8 +155,19 @@ class InstallationInterface(ModuleInterface):
                         "component.vehicle_vessel_tugboat",
                         "component.ports",
                         "component.port_locations",
-                        "bathymetry.layers",
-                        "corridor.layers",
+                        "component.equipment_penetration_rates",
+                        "component.installation_soil_compatibility",
+                        "component.operations_limit_hs",
+                        "component.operations_limit_tp",
+                        "component.operations_limit_ws",
+                        "component.operations_limit_cs",
+                        
+                        "project.start_date",
+                        "project.commissioning_time",
+                        
+                        "project.layout",
+                        "project.lease_area_entry_point",
+
                         "project.electrical_network",
                         "project.electrical_component_data",
                         "project.cable_routes",
@@ -153,18 +191,15 @@ class InstallationInterface(ModuleInterface):
                                       'device.system_type',
                                       ['Tidal Floating', 'Wave Floating']),
                                      
-                        "project.layout",
-                        "component.equipment_penetration_rates",
-                        "component.installation_soil_compatibility",
                         "project.surface_laying_rate",
                         "project.split_pipe_laying_rate",
                         "project.loading_rate",
                         "project.grout_rate",
                         "project.fuel_cost_rate",
+                        
                         "project.port_percentage_cost",
-                        "project.commissioning_time",
                         "project.cost_contingency",
-                        "project.lease_area_entry_point",
+
                         "project.port_safety_factors",
                         "project.vessel_safety_factors",
                         "project.rov_safety_factors",
@@ -173,36 +208,10 @@ class InstallationInterface(ModuleInterface):
                         "project.vibro_driver_safety_factors",
                         "project.cable_burial_safety_factors",
                         "project.split_pipe_safety_factors",
-                        "device.system_type",
-                        "device.system_length",
-                        "device.system_width",
-                        "device.system_height",
-                        "device.system_mass",
-                        "device.subsystem_installation",
-                        "device.assembly_duration",
-                        "device.load_out_method",
-                        "device.transportation_method",
-                        "device.bollard_pull",
-                        "device.connect_duration",
-                        "device.disconnect_duration",
-                        "project.start_date",
-                        "farm.wave_series_installation",
-                        "farm.tidal_series_installation",
-                        "farm.wind_series_installation",
+
                         "project.landfall_contruction_technique",
-                        "site.projection",
-                        "component.dry_mate_connectors",
-                        "component.dynamic_cable",
-                        "component.static_cable",
-                        "component.wet_mate_connectors",
-                        "component.transformers",
-                        "component.operations_limit_hs",
-                        "component.operations_limit_tp",
-                        "component.operations_limit_ws",
-                        "component.operations_limit_cs",
-                        "device.control_subsystem_installation",
-                        "device.two_stage_assembly",
                         "project.selected_installation_tool",
+                        
                         "options.skip_phase"
                         ]
 
@@ -229,10 +238,12 @@ class InstallationInterface(ModuleInterface):
         
         output_list = ["project.installation_completion_date",
                        "project.commissioning_date",
+                       "project.total_installation_cost",
                        "project.port",
                        "project.port_distance",
                        "project.installation_journeys",
                        "project.installation_vessel_average_size",
+                       "project.installation_plan",
                        "project.device_phase_installation_costs",
                        "project.device_phase_installation_cost_breakdown",
                        "project.device_phase_cost_class_breakdown",
@@ -253,7 +264,6 @@ class InstallationInterface(ModuleInterface):
                        "project.mooring_phase_time_class_breakdown",
                        "project.installation_phase_cost_breakdown",
                        "project.installation_cost_class_breakdown",
-                       "project.total_installation_cost",
                        "project.installation_phase_time_breakdown",
                        "project.installation_time_class_breakdown",
                        "project.total_installation_time",
@@ -271,22 +281,7 @@ class InstallationInterface(ModuleInterface):
                        "project.install_gravity_based_dates",
                        "project.install_pile_anchor_dates",
                        "project.install_drag_embedment_dates",
-                       "project.install_suction_embedment_dates",
-                       "project.install_support_structure_prep_time",
-                       "project.install_devices_prep_time",
-                       "project.install_dynamic_cable_prep_time",
-                       "project.install_export_cable_prep_time",
-                       "project.install_array_cable_prep_time",
-                       "project.install_surface_piercing_substation_prep_time",
-                       "project.install_subsea_collection_point_prep_time",
-                       "project.install_cable_protection_prep_time",
-                       "project.install_driven_piles_prep_time",
-                       "project.install_direct_embedment_prep_time",
-                       "project.install_gravity_based_prep_time",
-                       "project.install_pile_anchor_prep_time",
-                       "project.install_drag_embedment_prep_time",
-                       "project.install_suction_embedment_prep_time",
-                       "project.installation_plan"
+                       "project.install_suction_embedment_dates"
                        ]
                        
         return output_list
@@ -544,34 +539,6 @@ class InstallationInterface(ModuleInterface):
                       "project.install_drag_embedment_dates",
                   "install_suction_embedment_dates":
                       "project.install_suction_embedment_dates",
-                  "install_support_structure_prep_time":
-                      "project.install_support_structure_prep_time",
-                  "install_devices_prep_time": 
-                      "project.install_devices_prep_time",
-                  "install_dynamic_cable_prep_time":
-                      "project.install_dynamic_cable_prep_time",
-                  "install_export_cable_prep_time":
-                      "project.install_export_cable_prep_time",
-                  "install_array_cable_prep_time":
-                      "project.install_array_cable_prep_time",
-                  "install_surface_piercing_substation_prep_time":
-                      "project.install_surface_piercing_substation_prep_time",
-                  "install_subsea_collection_point_prep_time":
-                      "project.install_subsea_collection_point_prep_time",
-                  "install_cable_protection_prep_time":
-                      "project.install_cable_protection_prep_time",
-                  "install_driven_piles_prep_time":
-                      "project.install_driven_piles_prep_time",
-                  "install_direct_embedment_prep_time":
-                      "project.install_direct_embedment_prep_time",
-                  "install_gravity_based_prep_time":
-                      "project.install_gravity_based_prep_time",
-                  "install_pile_anchor_prep_time":
-                      "project.install_pile_anchor_prep_time",
-                  "install_drag_embedment_prep_time":
-                      "project.install_drag_embedment_prep_time",
-                  "install_suction_embedment_prep_time":
-                      "project.install_suction_embedment_prep_time",
                   "two_stage_assembly": "device.two_stage_assembly",
                   "plan": "project.installation_plan",
                   "limit_hs": "component.operations_limit_hs",
@@ -877,9 +844,6 @@ class InstallationInterface(ModuleInterface):
 
             phase_cost_dict = installation_phase_cost_output(values)
             phase_time_dict = installation_phase_time_result(values)
-            
-            self.data.install_support_structure_prep_time = \
-                values['TIME']['Preparation Time [h]']
 
             self.data.install_support_structure_dates = \
                 installation_phase_date_result(values)
@@ -897,9 +861,6 @@ class InstallationInterface(ModuleInterface):
                 
             phase_cost_dict = installation_phase_cost_output(values)
             phase_time_dict = installation_phase_time_result(values)
-            
-            self.data.install_devices_prep_time = \
-                values['TIME']['Preparation Time [h]']
             
             self.data.install_devices_dates = \
                 installation_phase_date_result(values)
@@ -969,9 +930,6 @@ class InstallationInterface(ModuleInterface):
             phase_cost_dict = installation_phase_cost_output(values)
             phase_time_dict = installation_phase_time_result(values)
             
-            self.data.install_dynamic_cable_prep_time = \
-                values['TIME']['Preparation Time [h]']
-            
             self.data.install_dynamic_cable_dates = \
                 installation_phase_date_result(values)
             
@@ -989,9 +947,6 @@ class InstallationInterface(ModuleInterface):
             phase_cost_dict = installation_phase_cost_output(values)
             phase_time_dict = installation_phase_time_result(values)
             
-            self.data.install_export_cable_prep_time = \
-                values['TIME']['Preparation Time [h]']
-            
             self.data.install_export_cable_dates = \
                 installation_phase_date_result(values)
             
@@ -1008,10 +963,7 @@ class InstallationInterface(ModuleInterface):
 
             phase_cost_dict = installation_phase_cost_output(values)
             phase_time_dict = installation_phase_time_result(values)
-            
-            self.data.install_array_cable_prep_time = \
-                values['TIME']['Preparation Time [h]']
-            
+
             self.data.install_array_cable_dates = \
                 installation_phase_date_result(values)
             
@@ -1028,9 +980,6 @@ class InstallationInterface(ModuleInterface):
 
             phase_cost_dict = installation_phase_cost_output(values)
             phase_time_dict = installation_phase_time_result(values)
-
-            self.data.install_surface_piercing_substation_prep_time = \
-                values['TIME']['Preparation Time [h]']
             
             self.data.install_surface_piercing_substation_dates = \
                 installation_phase_date_result(values)
@@ -1051,9 +1000,6 @@ class InstallationInterface(ModuleInterface):
             phase_cost_dict = installation_phase_cost_output(values)
             phase_time_dict = installation_phase_time_result(values)
             
-            self.data.install_subsea_collection_point_prep_time = \
-                values['TIME']['Preparation Time [h]']
-            
             self.data.install_subsea_collection_point_dates = \
                 installation_phase_date_result(values)
             
@@ -1070,9 +1016,6 @@ class InstallationInterface(ModuleInterface):
 
             phase_cost_dict = installation_phase_cost_output(values)
             phase_time_dict = installation_phase_time_result(values)
-            
-            self.data.install_cable_protection_prep_time = \
-                values['TIME']['Preparation Time [h]']
             
             self.data.install_cable_protection_dates = \
                 installation_phase_date_result(values)
@@ -1143,10 +1086,7 @@ class InstallationInterface(ModuleInterface):
 
             phase_cost_dict = installation_phase_cost_output(values)
             phase_time_dict = installation_phase_time_result(values)
-            
-            self.data.install_driven_piles_prep_time = \
-                values['TIME']['Preparation Time [h]']
-            
+
             self.data.install_driven_piles_dates = \
                 installation_phase_date_result(values)
             
@@ -1163,9 +1103,6 @@ class InstallationInterface(ModuleInterface):
 
             phase_cost_dict = installation_phase_cost_output(values)
             phase_time_dict = installation_phase_time_result(values)
-            
-            self.data.install_direct_embedment_prep_time = \
-                values['TIME']['Preparation Time [h]']
             
             self.data.install_direct_embedment_dates = \
                 installation_phase_date_result(values)
@@ -1184,9 +1121,6 @@ class InstallationInterface(ModuleInterface):
             phase_cost_dict = installation_phase_cost_output(values)
             phase_time_dict = installation_phase_time_result(values)
             
-            self.data.install_gravity_based_prep_time = \
-                values['TIME']['Preparation Time [h]']
-            
             self.data.install_gravity_based_dates = \
                 installation_phase_date_result(values)
             
@@ -1204,9 +1138,6 @@ class InstallationInterface(ModuleInterface):
             phase_cost_dict = installation_phase_cost_output(values)
             phase_time_dict = installation_phase_time_result(values)
             
-            self.data.install_pile_anchor_prep_time = \
-                values['TIME']['Preparation Time [h]']
-            
             self.data.install_pile_anchor_dates = \
                 installation_phase_date_result(values)
             
@@ -1220,9 +1151,6 @@ class InstallationInterface(ModuleInterface):
 
             values = installation_output['OPERATION'][
                 'Installation of mooring systems with drag-embedment anchors']
-                
-            self.data.install_drag_embedment_prep_time = \
-                values['TIME']['Preparation Time [h]']
             
             self.data.install_drag_embedment_dates = \
                 installation_phase_date_result(values)
@@ -1237,9 +1165,6 @@ class InstallationInterface(ModuleInterface):
 
             values = installation_output['OPERATION'][
               'Installation of mooring systems with suction-embedment anchors']
-              
-            self.data.install_suction_embedment_prep_time = \
-                 values['TIME']['Preparation Time [h]']
               
             self.data.install_suction_embedment_dates = \
                 installation_phase_date_result(values)
