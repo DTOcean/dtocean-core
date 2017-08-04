@@ -278,20 +278,22 @@ class DesignBoundaryPlot(PlotInterface):
                        ]
         '''
 
-        input_list  =  ["site.lease_boundary",
-                        "site.corridor_boundary",
-                        "corridor.landing_point",
-                        ]
+        input_list = ["site.lease_boundary",
+                      "site.corridor_boundary",
+                      "corridor.landing_point",
+                      "project.lease_area_entry_point"
+                      ]
                                                 
         return input_list
         
     @classmethod
     def declare_optional(cls):
         
-        option_list  =  ["site.lease_boundary",
-                         "site.corridor_boundary",
-                         "corridor.landing_point"
-                         ]
+        option_list = ["site.lease_boundary",
+                       "site.corridor_boundary",
+                       "corridor.landing_point",
+                       "project.lease_area_entry_point"
+                       ]
 
         return option_list
         
@@ -320,6 +322,7 @@ class DesignBoundaryPlot(PlotInterface):
         id_map = {"lease_poly": "site.lease_boundary",
                   "corridor_poly": "site.corridor_boundary",
                   "landing_point": "corridor.landing_point",
+                  "lease_entry_point": "project.lease_area_entry_point"
                   }
 
         return id_map
@@ -327,9 +330,10 @@ class DesignBoundaryPlot(PlotInterface):
     def connect(self):
         
         self.fig_handle = boundaries_plot(
-                                      lease_poly=self.data.lease_poly,
-                                      corridor_poly=self.data.corridor_poly,
-                                      landing_point=self.data.landing_point)
+                              lease_poly=self.data.lease_poly,
+                              corridor_poly=self.data.corridor_poly,
+                              landing_point=self.data.landing_point,
+                              lease_entry_point=self.data.lease_entry_point)
         
         return
 
@@ -338,7 +342,8 @@ def boundaries_plot(site_poly=None,
                     projection=None,
                     lease_poly=None,
                     corridor_poly=None,
-                    landing_point=None):
+                    landing_point=None,
+                    lease_entry_point=None):
     
     if (site_poly is None and
         lease_poly is None and
@@ -410,6 +415,20 @@ def boundaries_plot(site_poly=None,
         label_xy = (xy[0] + 50, xy[1])
         
         ax1.annotate("Export Cable Landing",
+                     xy=label_xy,
+                     horizontalalignment='left',
+                     verticalalignment='center',
+                     weight="bold",
+                     size='large')
+        
+    if lease_entry_point is not None:
+        
+        xy = list(lease_entry_point.coords)[0]
+        ax1.plot(xy[0], xy[1], 'sb')
+        
+        label_xy = (xy[0] + 50, xy[1])
+        
+        ax1.annotate("Lease Area Entry Point",
                      xy=label_xy,
                      horizontalalignment='left',
                      verticalalignment='center',

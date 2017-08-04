@@ -13,7 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   tools.
 - Increased the number of spectrum types available to the hydrodynamics wave
   submodule.
-- Allowed filtering of the database when only sites or only devices are defined.
+- Allowed filtering of the database when only sites or only devices are
+  defined.
 - Added tests for "System Type Selection" and "Site and System Options"
   interfaces.
 - Added new parameter for recording JONSWAP spectrum gamma value in extreme
@@ -64,6 +65,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   project information.
 - Added exclude option to load_datastate which will exclude loading any
   variables which contain the passed string.
+- Added lease area entry point variable to design boundaries plot.
 
 ### Changed
 
@@ -102,6 +104,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Switched timed rotating file logger for a standard rotating file logger which
   is rolled over at each invocation of start_logging.
 - Modified order of moorings and foundations module inputs.
+- Changed inputs to installation gantt plot in order to remove repeated
+  variables.
+- Changed order and titles of installation module inputs and outputs.
 
 ### Fixed
 
@@ -132,7 +137,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed missing variable mapping in constraints plot tool interface. It uses
   the input declaration of the electrical module interface, but its own id_map
   and so they went out of sync following changes to the electrical interface.
-- Fixed installation module gantt chart plot.
+- Fixed installation module gantt chart plot and changed "Waiting time" label
+  to "Start delay".
+- Fixed bug in lease area entry point definition which was breaking the auto
+  plot.
 
 ### Removed
 
@@ -153,6 +161,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   in any way.
 - Remove adjust_outliers options from make_power_histograms as was always set
   to True.
+- Removed repeated output variables from installation interface and DDS.
 
 ## [1.0.0] - 2017-02-23
 
