@@ -29,14 +29,12 @@ Note:
 .. moduleauthor:: Mathew Topper <mathew.topper@tecnalia.com>
 """
 
-
 import pandas as pd
 
-from dtocean_economics.main import (get_discounted_cost,
-                                    get_discounted_energy,
-                                    lcoe)
+from dtocean_economics.main import main
 
 from . import ThemeInterface
+
 
 class EconomicInterface(ThemeInterface):
     
@@ -207,7 +205,7 @@ class EconomicInterface(ThemeInterface):
         id_map = {
                   'device_cost': 'device.system_cost',
                   "power_rating": "device.power_rating",
-                  'year_energy': 'project.annual_energy',
+                  'annual_energy': 'project.annual_energy',
                   'n_devices': 'project.number_of_devices',
                   "cost_breakdown": "project.cost_breakdown",
                   'capex_breakdown': 'project.capex_breakdown',
@@ -216,9 +214,9 @@ class EconomicInterface(ThemeInterface):
                   'discount_rate': 'project.discount_rate',
                   'discounted_energy': 'project.discounted_energy',
                   'LCOE': 'project.lcoe',
-                  'electrical_costs': 'project.electrical_economics_data',
-                  'moorings_costs': "project.moorings_foundations_economics_data",
-                  "installation_costs": "project.installation_economics_data",
+                  'electrical_bom': 'project.electrical_economics_data',
+                  'moorings_bom': "project.moorings_foundations_economics_data",
+                  "installation_bom": "project.installation_economics_data",
                   'discounted_capex': "project.discounted_capex",
                   'discounted_opex': "project.discounted_opex",
                   'LCOE_OPEX': "project.opex_lcoe",
@@ -252,175 +250,44 @@ class EconomicInterface(ThemeInterface):
           self.data.my_output_variable = value
         
         '''
-
-        # Discount rate (default to zero)
-        if self.data.discount_rate is None:
-            discount_rate = 0.0
-        else:
-            discount_rate = self.data.discount_rate
-            
-        # Total rated power
-        total_rated_power = None
         
-        if (self.data.n_devices is not None and
-            self.data.power_rating is not None):
+        electrical_bom = None
+        moorings_bom = None
+        installation_bom = None
+        opex_bom = None
+        energy_bom = None
             
-            total_rated_power = self.data.n_devices * self.data.power_rating
-        
-        ## COSTS
-        
-        # Collect extra capex costs
-        capex_unit_cost = []
-        capex_quantity = []
-        capex_year = []     
-        cap_costs_breakdown = {}
-        
-        if (self.data.device_cost is not None and
-            self.data.n_devices is not None):
+        # Prepare costs if available
+        if self.data.electrical_bom is not None:
             
-            capex_unit_cost.append(self.data.device_cost)
-            capex_quantity.append(self.data.n_devices)
-            capex_year.append(0)
+            electrical_bom = electrical_bom.drop("Key Identifier", axis=1)
             
-            cap_costs_breakdown["Devices"] = self.data.device_cost * \
-                                                        self.data.n_devices
+            name_map = {"Quantity": 'quantity',
+                        "Cost": 'unitary_cost',
+                        "Year": 'project_year'}
+                    
+            electrical_bom = electrical_bom.rename(columns=name_map)
             
-        # Build capex cost dataframe
-        capex_cost_raw = {'unitary_cost': capex_unit_cost,
-                          'quantity': capex_quantity,
-                          'project_year': capex_year}
+        if self.data.moorings_bom is not None:
             
-        capex_costs = pd.DataFrame(capex_cost_raw)
-        
-        # Add electrical costs if available
-        if self.data.electrical_costs is not None:
-            
-            electrical_costs = self.data.electrical_costs
-            electrical_costs = electrical_costs.drop("Key Identifier", axis=1)
+            moorings_bom = moorings_bom.drop("Key Identifier", axis=1)
             
             name_map = {"Quantity": 'quantity',
                         "Cost": 'unitary_cost',
                         "Year": 'project_year'}
                         
-            electrical_costs = electrical_costs.rename(columns=name_map)
+            moorings_bom = moorings_bom.rename(columns=name_map)
             
-            cap_costs_breakdown["Electrical Sub-Systems"] = (
-                                    electrical_costs['unitary_cost'] * 
-                                        electrical_costs['quantity']).sum()
-                                
-            capex_costs = pd.concat([capex_costs, electrical_costs])
-            
-        elif (total_rated_power is not None and
-              self.data.electrical_estimate is not None):
-            
-            cost = total_rated_power * self.data.electrical_estimate
-            
-            raw_costs = {'quantity': [1],
-                         'unitary_cost': [cost],
-                         'project_year': [0]}
-                         
-            electrical_costs = pd.DataFrame(raw_costs)
-            
-            cap_costs_breakdown["Electrical Sub-Systems"] = cost
-                                
-            capex_costs = pd.concat([capex_costs, electrical_costs])
-            
-        # Add moorings costs if available
-        if self.data.moorings_costs is not None:
-            
-            moorings_costs = self.data.moorings_costs
-            moorings_costs = moorings_costs.drop("Key Identifier", axis=1)
+        if self.data.installation_bom is not None:
+                    
+            installation_bom = installation_bom.drop("Key Identifier", axis=1)
             
             name_map = {"Quantity": 'quantity',
                         "Cost": 'unitary_cost',
                         "Year": 'project_year'}
                         
-            moorings_costs = moorings_costs.rename(columns=name_map)
-
-            cap_costs_breakdown["Mooring and Foundations"] = (
-                                        moorings_costs['unitary_cost'] *
-                                            moorings_costs['quantity']).sum()
-                                
-            capex_costs = pd.concat([capex_costs, moorings_costs])
+            installation_bom = installation_bom.rename(columns=name_map)
             
-        elif (total_rated_power is not None and
-              self.data.moorings_estimate is not None):
-            
-            cost = total_rated_power * self.data.moorings_estimate
-            
-            raw_costs = {'quantity': [1],
-                         'unitary_cost': [cost],
-                         'project_year': [0]}
-                         
-            moorings_costs = pd.DataFrame(raw_costs)
-            
-            cap_costs_breakdown["Mooring and Foundations"] = cost
-                                
-            capex_costs = pd.concat([capex_costs, moorings_costs])
-            
-        # Add installation costs if available
-        if self.data.installation_costs is not None:
-            
-            install_costs = self.data.installation_costs
-            install_costs = install_costs.drop("Key Identifier", axis=1)
-            
-            name_map = {"Quantity": 'quantity',
-                        "Cost": 'unitary_cost',
-                        "Year": 'project_year'}
-                        
-            install_costs = install_costs.rename(columns=name_map)
-
-            cap_costs_breakdown["Installation"] = (
-                                        install_costs['unitary_cost'] *
-                                            install_costs['quantity']).sum()
-                                
-            capex_costs = pd.concat([capex_costs, install_costs])
-            
-        elif (total_rated_power is not None and
-              self.data.install_estimate is not None):
-            
-            cost = total_rated_power * self.data.install_estimate
-            
-            raw_costs = {'quantity': [1],
-                         'unitary_cost': [cost],
-                         'project_year': [0]}
-                         
-            install_costs = pd.DataFrame(raw_costs)
-            
-            cap_costs_breakdown["Installation"] = cost
-                                
-            capex_costs = pd.concat([capex_costs, install_costs])
-            
-        # And O&M Condition Monitering Capex
-        if self.data.capex_oandm is not None:
-            
-            cost = self.data.capex_oandm
-                        
-            raw_costs = {'quantity': [1],
-                         'unitary_cost': [cost],
-                         'project_year': [0]}
-                         
-            oandm_costs = pd.DataFrame(raw_costs)
-            
-            cap_costs_breakdown["Condition Monitering"] = cost
-                                
-            capex_costs = pd.concat([capex_costs, oandm_costs]) 
-            
-        # Capex results
-        if not capex_costs.empty:
-            
-            self.data.capex_total = (capex_costs['unitary_cost'] *
-                                                capex_costs['quantity']).sum()
-            
-            self.data.discounted_capex = get_discounted_cost(capex_costs,
-                                                             discount_rate)
-                                                             
-            # Record cost breakdown
-            self.data.capex_breakdown = cap_costs_breakdown
-            
-        # Collect opex costs
-        opex_costs = None
-
         if self.data.opex_per_year is not None:
             
             n_years = len(self.data.opex_per_year)
@@ -430,126 +297,64 @@ class EconomicInterface(ThemeInterface):
                              'quantity': [1.] * n_years,
                              'project_year': range(n_years)}
                              
-            opex_costs = pd.DataFrame(opex_cost_raw)
+            opex_bom = pd.DataFrame(opex_cost_raw)
+            
+        # Prepare energy
+        if self.data.network_efficiency is not None:
+            net_coeff = self.data.network_efficiency  * 1e3
+        else:
+            net_coeff = 1e3
         
-        # Build up estimates        
-        elif self.data.lifetime is not None:
-            
-            annual_costs = 0.
-            
-            if (total_rated_power is not None and
-                self.data.opex_estimate is not None):
-                
-                annual_costs += total_rated_power * self.data.opex_estimate
-                
-            if (self.data.annual_repair_cost_estimate is not None and
-                self.data.annual_array_mttf_estimate is not None):
-                
-                year_mttf = self.data.annual_array_mttf_estimate / \
-                                                                24. / 365.25
-                failure_cost = self.data.annual_repair_cost_estimate / \
-                                                                year_mttf
-                
-                annual_costs += failure_cost
-                
-            opex_unit_cost = [0.] + [annual_costs] * self.data.lifetime
-            opex_quantity = [1] * (self.data.lifetime + 1)
-            opex_year = range(self.data.lifetime + 1)
-            
-            opex_cost_raw = {'unitary_cost': opex_unit_cost,
-                             'quantity': opex_quantity,
-                             'project_year': opex_year}
-                             
-            opex_costs = pd.DataFrame(opex_cost_raw)
-        
-        # Opex results
-        if opex_costs is not None:
-            
-            self.data.opex_total = (opex_costs['unitary_cost'] *
-                                                opex_costs['quantity']).sum()
-            
-            self.data.discounted_opex = get_discounted_cost(opex_costs,
-                                                            discount_rate)
-            
-        # CAPEX vs OPEX Breakdown
-        if (self.data.capex_total is not None and 
-            self.data.opex_total is not None):
-            
-            self.data.cost_breakdown = {"CAPEX": self.data.capex_total,
-                                        "OPEX": self.data.opex_total}
-                              
-                              
-
-        ## ENERGY
-        
-        # Create energy table
-        energy_data = None
-
-        # If no O&M results are given then use the basic design energy
-        if (self.data.energy_per_year is not None and
-            self.data.opex_per_year is not None):
-            
-            if self.data.network_efficiency is not None:
-                net_coeff = self.data.network_efficiency * 1e3
-            else:
-                net_coeff = 1e3
+        if self.data.energy_per_year is not None:
             
             n_years = len(self.data.energy_per_year)
-            energy_kws = self.data.energy_per_year["Energy"].values * net_coeff
+            energy_kws = self.data.energy_per_year["Energy"].values * \
+                                                                    net_coeff
             
             energy_raw = {'project_year': range(n_years),
                           'energy': energy_kws}
-            energy_data = pd.DataFrame(energy_raw)
+            energy_bom = pd.DataFrame(energy_raw)
             
-        elif (self.data.year_energy is not None and
-              (self.data.opex_per_year is not None or
-               self.data.lifetime is not None)):
-                
-            if self.data.opex_per_year is not None:
-                n_years = len(self.data.opex_per_year)
-            elif self.data.lifetime is not None:
-                n_years = self.data.lifetime
-            
-            if self.data.network_efficiency is not None:
-                net_coeff = self.data.network_efficiency
-            else:
-                net_coeff = 1.
-                
-            energy_kw = [0] + [self.data.year_energy * 1e3 * net_coeff] * \
-                                                self.data.lifetime
-            energy_year = range(self.data.lifetime + 1)
+        if debug_entry: return
         
-            energy_raw = {'project_year': energy_year,
-                          'energy': energy_kw}
-            energy_data = pd.DataFrame(energy_raw)
-        
-        # Calculate the discounted energy
-        if energy_data is not None:        
-        
-            self.data.discounted_energy = get_discounted_energy(energy_data,
-                                                                discount_rate)
-                                                            
-        if (self.data.discounted_capex is not None and
-            self.data.discounted_energy is not None):
+        result = main(self.data.discount_rate,
+                      self.data.device_cost,
+                      electrical_bom,
+                      moorings_bom,
+                      installation_bom,
+                      self.data.capex_oandm,
+                      opex_bom,
+                      energy_bom,
+                      self.data.lifetime,
+                      self.data.n_devices,
+                      self.data.power_rating,
+                      self.data.electrical_estimate,
+                      self.data.moorings_estimate,
+                      self.data.install_estimate,
+                      self.data.opex_estimate,
+                      self.data.annual_repair_cost_estimate,
+                      self.data.annual_array_mttf_estimate,
+                      self.data.network_efficiency,
+                      self.data.annual_energy)
+
+        # CAPEX
+        self.data.capex_total = result["CAPEX"]
+        self.data.discounted_capex = result["Discounted CAPEX"]
+        self.data.capex_breakdown = result["CAPEX breakdown"]
             
-            self.data.LCOE_CAPEX = lcoe(self.data.discounted_capex,
-                                        self.data.discounted_energy)
-                                               
-        if (self.data.discounted_opex is not None and
-            self.data.discounted_energy is not None):
+        # OPEX
+        self.data.opex_total = result["OPEX"]
+        self.data.discounted_opex = result["Discounted OPEX"]
             
-            self.data.LCOE_OPEX = lcoe(self.data.discounted_opex,
-                                       self.data.discounted_energy)
+        # CAPEX vs OPEX Breakdown
+        self.data.cost_breakdown = result["Total cost breakdown"]
+                              
+        # Energy
+        self.data.discounted_energy = result["Discounted Energy"]
         
-        # Calculate final lcoe
-        total_lcoe = 0.        
-        
-        if self.data.LCOE_CAPEX is not None:
-            total_lcoe += self.data.LCOE_CAPEX
-            
-        if self.data.LCOE_OPEX is not None:
-            total_lcoe += self.data.LCOE_OPEX
-            
-        if total_lcoe > 0: self.data.LCOE = total_lcoe
+        # LCOE
+        self.data.LCOE_CAPEX = result["LCOE CAPEX"]
+        self.data.LCOE_OPEX = result["LCOE OPEX"]
+        self.data.LCOE = result["LCOE"]
 
         return
