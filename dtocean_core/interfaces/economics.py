@@ -31,7 +31,11 @@ Note:
 
 import pandas as pd
 
-from dtocean_economics.main import main
+from dtocean_economics import main
+from dtocean_economics.preprocessing import (estimate_cost_per_power,
+                                             estimate_energy,
+                                             estimate_opex,
+                                             make_phase_bom)
 
 from . import ThemeInterface
 
@@ -80,7 +84,8 @@ class EconomicInterface(ThemeInterface):
         '''
 
         input_list  =  ["project.discount_rate",
-                        'project.lifetime',
+                        "device.system_cost",
+                        "project.number_of_devices",
                         "project.electrical_economics_data",
                         "project.moorings_foundations_economics_data",
                         "project.installation_economics_data",
@@ -88,9 +93,7 @@ class EconomicInterface(ThemeInterface):
                         "project.opex_per_year",
                         "project.energy_per_year",
                         'project.electrical_network_efficiency',
-                        "project.annual_energy",
-                        "project.number_of_devices",
-                        "device.system_cost",
+                        'project.lifetime',
                         "device.power_rating",
                         'project.electrical_cost_estimate',
                         'project.moorings_cost_estimate',
@@ -236,7 +239,8 @@ class EconomicInterface(ThemeInterface):
                   'network_efficiency': 'project.electrical_network_efficiency',
                   "opex_per_year": "project.opex_per_year",
                   "energy_per_year": "project.energy_per_year",
-                  "capex_oandm": "project.capex_oandm"
+                  "capex_oandm": "project.capex_oandm",
+                  "estimate_energy_record": 'project.estimate_energy_record'
                   }
                   
         return id_map
@@ -254,53 +258,141 @@ class EconomicInterface(ThemeInterface):
         
         '''
         
-        electrical_bom = None
-        moorings_bom = None
-        installation_bom = None
-        opex_bom = None
-        energy_bom = None
+        bom_cols = ['phase', 'quantity', 'unitary_cost', 'project_year']
+        
+        device_bom = pd.DataFrame(columns=bom_cols)
+        electrical_bom = pd.DataFrame(columns=bom_cols)
+        moorings_bom = pd.DataFrame(columns=bom_cols)
+        installation_bom = pd.DataFrame(columns=bom_cols)
+        capex_oandm_bom = pd.DataFrame(columns=bom_cols)
+        
+        opex_bom = pd.DataFrame(columns=bom_cols)
+        energy_record = pd.DataFrame(columns=["energy", 'project_year'])
+        
+        # Shortcut for total power
+        total_rated_power = None
+        
+        if (self.data.n_devices is not None and
+            self.data.power_rating is not None):
             
-        # Prepare costs if available
+            total_rated_power = self.data.n_devices * self.data.power_rating
+                    
+        # Prepare costs
+        if (self.data.n_devices is not None and
+            self.data.device_cost is not None):
+            
+            quantities = [self.data.n_devices]
+            costs = [self.data.device_cost]
+            years = [0]
+            
+            device_bom = make_phase_bom(quantities,
+                                        costs,
+                                        years,
+                                        "Devices")
+        
         if self.data.electrical_bom is not None:
             
-            electrical_bom = electrical_bom.drop("Key Identifier", axis=1)
+            electrical_bom = self.data.electrical_bom.drop("Key Identifier",
+                                                           axis=1)
             
             name_map = {"Quantity": 'quantity',
                         "Cost": 'unitary_cost',
                         "Year": 'project_year'}
                     
             electrical_bom = electrical_bom.rename(columns=name_map)
+            electrical_bom["phase"] = "Electrical Sub-Systems"
+            
+        elif (total_rated_power is not None and
+              self.data.electrical_estimate is not None):
+                        
+            electrical_bom = estimate_cost_per_power(
+                                            total_rated_power,
+                                            self.data.electrical_estimate,
+                                            "Electrical Sub-Systems")
             
         if self.data.moorings_bom is not None:
             
-            moorings_bom = moorings_bom.drop("Key Identifier", axis=1)
+            moorings_bom = self.data.moorings_bom.drop("Key Identifier",
+                                                       axis=1)
             
             name_map = {"Quantity": 'quantity',
                         "Cost": 'unitary_cost',
                         "Year": 'project_year'}
                         
             moorings_bom = moorings_bom.rename(columns=name_map)
+            moorings_bom["phase"] = "Mooring and Foundations"
+            
+        elif (total_rated_power is not None and
+              self.data.moorings_estimate is not None):
+                        
+            moorings_bom = estimate_cost_per_power(
+                                            total_rated_power,
+                                            self.data.moorings_estimate,
+                                            "Mooring and Foundations")         
             
         if self.data.installation_bom is not None:
                     
-            installation_bom = installation_bom.drop("Key Identifier", axis=1)
+            installation_bom = self.data.installation_bom.drop(
+                                                            "Key Identifier",
+                                                            axis=1)
             
             name_map = {"Quantity": 'quantity',
                         "Cost": 'unitary_cost',
                         "Year": 'project_year'}
                         
             installation_bom = installation_bom.rename(columns=name_map)
+            installation_bom["phase"] = "Installation"
+            
+        elif (total_rated_power is not None and
+              self.data.install_estimate is not None):
+                        
+            installation_bom = estimate_cost_per_power(
+                                            total_rated_power,
+                                            self.data.install_estimate,
+                                            "Installation")
+        
+        if self.data.capex_oandm is not None:
+            
+            quantities = [1]
+            costs = [self.data.capex_oandm]
+            years = [0]
+            
+            capex_oandm_bom = make_phase_bom(quantities,
+                                             costs,
+                                             years,
+                                             "Condition Monitoring")
+            
+        # Combine the capex dataframes
+        capex_bom = pd.concat([device_bom,
+                               electrical_bom,
+                               moorings_bom,
+                               installation_bom,
+                               capex_oandm_bom],
+                              ignore_index=True)
             
         if self.data.opex_per_year is not None:
             
             n_years = len(self.data.opex_per_year)
             costs = self.data.opex_per_year["Cost"].values
+            years = self.data.opex_per_year.index.values
             
             opex_cost_raw = {'unitary_cost': costs,
                              'quantity': [1.] * n_years,
-                             'project_year': range(n_years)}
+                             'project_year': years}
                              
             opex_bom = pd.DataFrame(opex_cost_raw)
+            
+        elif (self.data.lifetime is not None and
+              ((total_rated_power is not None and 
+                self.data.opex_estimate is not None) or
+               (self.data.annual_repair_cost_estimate is not None and
+                self.data.annual_array_mttf_estimate is not None))):
+            
+            opex_bom = estimate_opex(self.data.lifetime,
+                                     total_rated_power,
+                                     self.data.opex_estimate,
+                                     self.data.annual_repair_cost_estimate,
+                                     self.data.annual_array_mttf_estimate)
             
         # Prepare energy
         if self.data.network_efficiency is not None:
@@ -310,35 +402,28 @@ class EconomicInterface(ThemeInterface):
         
         if self.data.energy_per_year is not None:
             
-            n_years = len(self.data.energy_per_year)
             energy_kws = self.data.energy_per_year["Energy"].values * \
                                                                     net_coeff
+            years = self.data.energy_per_year.index.values
             
-            energy_raw = {'project_year': range(n_years),
+            energy_raw = {'project_year': years,
                           'energy': energy_kws}
-            energy_bom = pd.DataFrame(energy_raw)
+            energy_record = pd.DataFrame(energy_raw)
+            
+        elif (self.data.estimate_energy_record and 
+              self.data.lifetime is not None and
+              self.data.annual_energy is not None):
+            
+            energy_record = estimate_energy(self.data.lifetime,
+                                            self.data.annual_energy,
+                                            net_coeff)
             
         if debug_entry: return
         
-        result = main(self.data.discount_rate,
-                      self.data.device_cost,
-                      electrical_bom,
-                      moorings_bom,
-                      installation_bom,
-                      self.data.capex_oandm,
+        result = main(capex_bom,
                       opex_bom,
-                      energy_bom,
-                      self.data.lifetime,
-                      self.data.n_devices,
-                      self.data.power_rating,
-                      self.data.electrical_estimate,
-                      self.data.moorings_estimate,
-                      self.data.install_estimate,
-                      self.data.opex_estimate,
-                      self.data.annual_repair_cost_estimate,
-                      self.data.annual_array_mttf_estimate,
-                      self.data.network_efficiency,
-                      self.data.annual_energy)
+                      energy_record,
+                      self.data.discount_rate)
 
         # CAPEX
         self.data.capex_total = result["CAPEX"]
