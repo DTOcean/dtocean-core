@@ -66,6 +66,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added exclude option to load_datastate which will exclude loading any
   variables which contain the passed string.
 - Added lease area entry point variable to design boundaries plot.
+- Added variable 'project.estimate_energy_record' as a flag for indicating that
+  the energy record should be estimated from the annual energy.
 
 ### Changed
 
@@ -107,6 +109,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Changed inputs to installation gantt plot in order to remove repeated
   variables.
 - Changed order and titles of installation module inputs and outputs.
+- Changed economics interface to work with updated dtocean-economics API.
 
 ### Fixed
 
@@ -141,6 +144,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   to "Start delay".
 - Fixed bug in lease area entry point definition which was breaking the auto
   plot.
+- Ensure that installation operation end dates are costed in the correct
+  project year.
 
 ### Removed
 
