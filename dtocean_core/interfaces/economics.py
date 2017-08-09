@@ -98,7 +98,9 @@ class EconomicInterface(ThemeInterface):
                         'project.opex_estimate',
                         'project.annual_repair_cost_estimate',
                         'project.annual_array_mttf_estimate',
-                        'project.electrical_network_efficiency'
+                        'project.electrical_network_efficiency',
+                        "project.annual_energy",
+                        'project.estimate_energy_record'
                         ]
                                                 
         return input_list
@@ -175,7 +177,8 @@ class EconomicInterface(ThemeInterface):
                     'project.installation_cost_estimate',
                     'project.opex_estimate',
                     'project.annual_repair_cost_estimate',
-                    'project.annual_array_mttf_estimate'
+                    'project.annual_array_mttf_estimate',
+                    'project.estimate_energy_record'
                     ]
                
         return optional
