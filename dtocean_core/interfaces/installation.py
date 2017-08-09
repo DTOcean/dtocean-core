@@ -239,6 +239,7 @@ class InstallationInterface(ModuleInterface):
         output_list = ["project.installation_completion_date",
                        "project.commissioning_date",
                        "project.total_installation_cost",
+                       "project.installation_economics_data",
                        "project.port",
                        "project.port_distance",
                        "project.installation_journeys",
@@ -267,7 +268,6 @@ class InstallationInterface(ModuleInterface):
                        "project.installation_phase_time_breakdown",
                        "project.installation_time_class_breakdown",
                        "project.total_installation_time",
-                       "project.installation_economics_data",
                        "project.install_support_structure_dates",
                        "project.install_devices_dates",
                        "project.install_dynamic_cable_dates",
@@ -834,7 +834,7 @@ class InstallationInterface(ModuleInterface):
         installed_phases = installation_output['OPERATION'].keys()
 
         # Collect data per phase
-        cost_dict, time_dict = self._init_phase_dicts()
+        cost_dict, time_dict, date_dict = self._init_phase_dicts()
         
         ### Device phase
         if any('support structure' in phase for phase in installed_phases):
@@ -844,15 +844,17 @@ class InstallationInterface(ModuleInterface):
 
             phase_cost_dict = installation_phase_cost_output(values)
             phase_time_dict = installation_phase_time_result(values)
+            phase_date_dict = installation_phase_date_result(values)
 
-            self.data.install_support_structure_dates = \
-                installation_phase_date_result(values)
-
+            self.data.install_support_structure_dates = phase_date_dict
+                
             self._compile_phase(cost_dict,
                                 time_dict,
+                                date_dict,
                                 'Support Structure',
                                 phase_cost_dict,
-                                phase_time_dict)
+                                phase_time_dict,
+                                phase_date_dict)
 
         if any('devices' in phase for phase in installed_phases):
             
@@ -861,15 +863,17 @@ class InstallationInterface(ModuleInterface):
                 
             phase_cost_dict = installation_phase_cost_output(values)
             phase_time_dict = installation_phase_time_result(values)
-            
-            self.data.install_devices_dates = \
-                installation_phase_date_result(values)
+            phase_date_dict = installation_phase_date_result(values)
+
+            self.data.install_devices_dates = phase_date_dict
             
             self._compile_phase(cost_dict,
                                 time_dict,
+                                date_dict,
                                 'Device',
                                 phase_cost_dict,
-                                phase_time_dict)
+                                phase_time_dict,
+                                phase_date_dict)
                                       
         device_component_costs = pd.DataFrame(cost_dict)
         
@@ -919,8 +923,17 @@ class InstallationInterface(ModuleInterface):
         self.data.device_time_class_breakdown = \
                                         device_time_class_breakdown
                                         
+        # Dates
+        device_component_dates = pd.DataFrame(date_dict)
+        
+        if device_component_dates.empty:
+            device_install_finish = None
+        else:
+            device_install_finish = device_component_dates["End"].max()
+        
+                                        
         ### Electrical phase
-        cost_dict, time_dict = self._init_phase_dicts()
+        cost_dict, time_dict, date_dict = self._init_phase_dicts()
         
         if any('dynamic' in phase for phase in installed_phases):
 
@@ -929,15 +942,17 @@ class InstallationInterface(ModuleInterface):
 
             phase_cost_dict = installation_phase_cost_output(values)
             phase_time_dict = installation_phase_time_result(values)
+            phase_date_dict = installation_phase_date_result(values)
             
-            self.data.install_dynamic_cable_dates = \
-                installation_phase_date_result(values)
+            self.data.install_dynamic_cable_dates = phase_date_dict
             
             self._compile_phase(cost_dict,
                                 time_dict,
+                                date_dict,
                                 'Dynamic Cables',
                                 phase_cost_dict,
-                                phase_time_dict)
+                                phase_time_dict,
+                                phase_date_dict)
 
         if any('export' in phase for phase in installed_phases):
 
@@ -946,15 +961,17 @@ class InstallationInterface(ModuleInterface):
 
             phase_cost_dict = installation_phase_cost_output(values)
             phase_time_dict = installation_phase_time_result(values)
+            phase_date_dict = installation_phase_date_result(values)
             
-            self.data.install_export_cable_dates = \
-                installation_phase_date_result(values)
+            self.data.install_export_cable_dates = phase_date_dict
             
             self._compile_phase(cost_dict,
                                 time_dict,
+                                date_dict,
                                 'Export Cables',
                                 phase_cost_dict,
-                                phase_time_dict)
+                                phase_time_dict,
+                                phase_date_dict)
 
         if any('array' in phase for phase in installed_phases):
 
@@ -963,15 +980,17 @@ class InstallationInterface(ModuleInterface):
 
             phase_cost_dict = installation_phase_cost_output(values)
             phase_time_dict = installation_phase_time_result(values)
+            phase_date_dict = installation_phase_date_result(values)
 
-            self.data.install_array_cable_dates = \
-                installation_phase_date_result(values)
+            self.data.install_array_cable_dates = phase_date_dict
             
             self._compile_phase(cost_dict,
                                 time_dict,
+                                date_dict,
                                 'Inter-Array Cables',
                                 phase_cost_dict,
-                                phase_time_dict)
+                                phase_time_dict,
+                                phase_date_dict)
 
         if any('surface piercing' in phase for phase in installed_phases):
 
@@ -980,15 +999,18 @@ class InstallationInterface(ModuleInterface):
 
             phase_cost_dict = installation_phase_cost_output(values)
             phase_time_dict = installation_phase_time_result(values)
+            phase_date_dict = installation_phase_date_result(values)
             
             self.data.install_surface_piercing_substation_dates = \
-                installation_phase_date_result(values)
+                                                                phase_date_dict
             
             self._compile_phase(cost_dict,
                                 time_dict,
+                                date_dict,
                                 'Collection Points',
                                 phase_cost_dict,
-                                phase_time_dict)
+                                phase_time_dict,
+                                phase_date_dict)
         
         ### TODO: UPDATE
         # Mat - you may wish to combine with the above
@@ -999,15 +1021,17 @@ class InstallationInterface(ModuleInterface):
 
             phase_cost_dict = installation_phase_cost_output(values)
             phase_time_dict = installation_phase_time_result(values)
+            phase_date_dict = installation_phase_date_result(values)
             
-            self.data.install_subsea_collection_point_dates = \
-                installation_phase_date_result(values)
+            self.data.install_subsea_collection_point_dates = phase_date_dict
             
             self._compile_phase(cost_dict,
                                 time_dict,
+                                date_dict,
                                 'Collection Points',
                                 phase_cost_dict,
-                                phase_time_dict)
+                                phase_time_dict,
+                                phase_date_dict)
 
         if any('cable protection' in phase for phase in installed_phases):
 
@@ -1016,15 +1040,17 @@ class InstallationInterface(ModuleInterface):
 
             phase_cost_dict = installation_phase_cost_output(values)
             phase_time_dict = installation_phase_time_result(values)
+            phase_date_dict = installation_phase_date_result(values)
             
-            self.data.install_cable_protection_dates = \
-                installation_phase_date_result(values)
+            self.data.install_cable_protection_dates = phase_date_dict
             
             self._compile_phase(cost_dict,
                                 time_dict,
+                                date_dict,
                                 'External Cable Protection',
                                 phase_cost_dict,
-                                phase_time_dict)
+                                phase_time_dict,
+                                phase_date_dict)
             
         electrical_component_costs = pd.DataFrame(cost_dict)
         
@@ -1076,8 +1102,17 @@ class InstallationInterface(ModuleInterface):
         self.data.electrical_time_class_breakdown = \
                                         electrical_time_class_breakdown
                                         
+        # Dates
+        electrical_component_dates = pd.DataFrame(date_dict)
+        
+        if electrical_component_dates.empty:
+            electrical_install_finish = None
+        else:
+            electrical_install_finish = electrical_component_dates["End"].max()
+        
+        
         ### M&F phase
-        cost_dict, time_dict = self._init_phase_dicts()
+        cost_dict, time_dict, date_dict = self._init_phase_dicts()
                                         
         if any('driven piles' in phase for phase in installed_phases):
 
@@ -1086,15 +1121,17 @@ class InstallationInterface(ModuleInterface):
 
             phase_cost_dict = installation_phase_cost_output(values)
             phase_time_dict = installation_phase_time_result(values)
+            phase_date_dict = installation_phase_date_result(values)
 
-            self.data.install_driven_piles_dates = \
-                installation_phase_date_result(values)
+            self.data.install_driven_piles_dates = phase_date_dict
             
             self._compile_phase(cost_dict,
                                 time_dict,
+                                date_dict,
                                 'Driven Piles',
                                 phase_cost_dict,
-                                phase_time_dict)
+                                phase_time_dict,
+                                phase_date_dict)
 
         if any('direct-embedment' in phase for phase in installed_phases):
 
@@ -1103,15 +1140,17 @@ class InstallationInterface(ModuleInterface):
 
             phase_cost_dict = installation_phase_cost_output(values)
             phase_time_dict = installation_phase_time_result(values)
+            phase_date_dict = installation_phase_date_result(values)
             
-            self.data.install_direct_embedment_dates = \
-                installation_phase_date_result(values)
+            self.data.install_direct_embedment_dates = phase_date_dict
             
             self._compile_phase(cost_dict,
                                 time_dict,
+                                date_dict,
                                 "Direct-Embedment Anchors",
                                 phase_cost_dict,
-                                phase_time_dict)
+                                phase_time_dict,
+                                phase_date_dict)
             
         if any('gravity based' in phase for phase in installed_phases):
             
@@ -1120,15 +1159,17 @@ class InstallationInterface(ModuleInterface):
 
             phase_cost_dict = installation_phase_cost_output(values)
             phase_time_dict = installation_phase_time_result(values)
+            phase_date_dict = installation_phase_date_result(values)
             
-            self.data.install_gravity_based_dates = \
-                installation_phase_date_result(values)
+            self.data.install_gravity_based_dates = phase_date_dict
             
             self._compile_phase(cost_dict,
                                 time_dict,
+                                date_dict,
                                 "Gravity Based Foundations",
                                 phase_cost_dict,
-                                phase_time_dict)
+                                phase_time_dict,
+                                phase_date_dict)
                 
         if any('pile anchor' in phase for phase in installed_phases):
 
@@ -1137,43 +1178,55 @@ class InstallationInterface(ModuleInterface):
                 
             phase_cost_dict = installation_phase_cost_output(values)
             phase_time_dict = installation_phase_time_result(values)
+            phase_date_dict = installation_phase_date_result(values)
             
-            self.data.install_pile_anchor_dates = \
-                installation_phase_date_result(values)
+            self.data.install_pile_anchor_dates = phase_date_dict
             
             self._compile_phase(cost_dict,
                                 time_dict,
+                                date_dict,
                                 "Pile Anchors",
                                 phase_cost_dict,
-                                phase_time_dict)
+                                phase_time_dict,
+                                phase_date_dict)
 
         if any('drag-embedment' in phase for phase in installed_phases):
 
             values = installation_output['OPERATION'][
                 'Installation of mooring systems with drag-embedment anchors']
             
-            self.data.install_drag_embedment_dates = \
-                installation_phase_date_result(values)
+            phase_cost_dict = installation_phase_cost_output(values)
+            phase_time_dict = installation_phase_time_result(values)
+            phase_date_dict = installation_phase_date_result(values)
+
+            self.data.install_drag_embedment_dates = phase_date_dict
 
             self._compile_phase(cost_dict,
                                 time_dict,
+                                date_dict,
                                 "Drag-Embedment Anchors",
                                 phase_cost_dict,
-                                phase_time_dict)
+                                phase_time_dict,
+                                phase_date_dict)
 
         if any('suction-embedment' in phase for phase in installed_phases):
 
             values = installation_output['OPERATION'][
               'Installation of mooring systems with suction-embedment anchors']
               
-            self.data.install_suction_embedment_dates = \
-                installation_phase_date_result(values)
+            phase_cost_dict = installation_phase_cost_output(values)
+            phase_time_dict = installation_phase_time_result(values)
+            phase_date_dict = installation_phase_date_result(values)
+
+            self.data.install_suction_embedment_dates = phase_date_dict
 
             self._compile_phase(cost_dict,
                                 time_dict,
+                                date_dict,
                                 "Suction-Caisson Anchors",
                                 phase_cost_dict,
-                                phase_time_dict)
+                                phase_time_dict,
+                                phase_date_dict)
 
         mooring_component_costs = pd.DataFrame(cost_dict)
         
@@ -1225,21 +1278,46 @@ class InstallationInterface(ModuleInterface):
         self.data.mooring_time_class_breakdown = \
                                         mooring_time_class_breakdown
                                         
-                                        
-        ### Cost agregation
+        # Dates
+        mooring_component_dates = pd.DataFrame(date_dict)
+        
+        if mooring_component_dates.empty:
+            mooring_install_finish = None
+        else:
+            mooring_install_finish = mooring_component_dates["End"].max()
+
+            
+        ### Cost & year agregation
         phase_costs = {}
+        phase_years = {}
 
         if device_component_cost_breakdown is not None:
-            phase_costs["Devices"] = \
-                            sum(device_component_cost_breakdown.values())
+                            
+            cost = sum(device_component_cost_breakdown.values())
+            year = device_install_finish.year - \
+                            self.data.project_start_date.year + 1
+            
+            phase_costs["Devices"] = cost
+            phase_years["Devices"] = year
             
         if electrical_component_cost_breakdown is not None:
-            phase_costs["Electrical Sub-Systems"] = \
-                            sum(electrical_component_cost_breakdown.values())
+            
+            cost = sum(electrical_component_cost_breakdown.values())
+            year = electrical_install_finish.year - \
+                            self.data.project_start_date.year + 1
+            
+            phase_costs["Electrical Sub-Systems"] = cost
+            phase_years["Electrical Sub-Systems"] = year
             
         if mooring_component_cost_breakdown is not None:
-            phase_costs["Mooring and Foundations"] = \
-                            sum(mooring_component_cost_breakdown.values())
+            
+            cost = sum(mooring_component_cost_breakdown.values())
+            year = mooring_install_finish.year - \
+                            self.data.project_start_date.year + 1
+            
+            phase_costs["Mooring and Foundations"] = cost
+            phase_years["Mooring and Foundations"] = year
+        
                                     
         if not phase_costs: phase_costs = None
         
@@ -1315,7 +1393,7 @@ class InstallationInterface(ModuleInterface):
         contingency = installation_output['COST'][
                                             'Total Contingency Costs [EUR]']
 
-        if contingency:
+        if contingency > 0.:
             
             phase_costs['Contingency'] = contingency
             cost_classes['Contingency'] = contingency
@@ -1324,6 +1402,10 @@ class InstallationInterface(ModuleInterface):
                 total_costs = contingency
             else:
                 total_costs += contingency
+                
+            # Get latest date
+            max_date = max(phase_years.values())
+            phase_years['Contingency'] = max_date
                 
         self.data.total_phase_costs = phase_costs
         self.data.total_class_costs = cost_classes
@@ -1425,19 +1507,25 @@ class InstallationInterface(ModuleInterface):
         self.data.total_times = total_times
         
         ### BOM
-        bom_dict = {"Key Identifier": phase_costs.keys(),
-                    "Cost": phase_costs.values(),
+        key_ids = []
+        costs = []
+        years = []
+        
+        for key_id in phase_costs.keys():
+            
+            key_ids.append(key_id)
+            costs.append(phase_costs[key_id])
+            years.append(phase_years[key_id])
+        
+        bom_dict = {"Key Identifier": key_ids,
+                    "Cost": costs,
                     "Quantity": [1] * len(phase_costs),
-                    "Year": [0] * len(phase_costs)}
+                    "Year": years}
 
         bom_df = pd.DataFrame(bom_dict)
         
         self.data.installation_bom = bom_df
         
-        ### outputs for Gantt chart - needs dates for each phase
-        
-        
-
         return
     
     @classmethod    
@@ -2901,14 +2989,21 @@ class InstallationInterface(ModuleInterface):
                      "Operations": [],
                      "Transit": [],
                      "Waiting": []}
+        
+        date_dict = {"Component": [],
+                     "Start": [],
+                     "Depart": [],
+                     "End": []}
 
-        return cost_dict, time_dict
+        return cost_dict, time_dict, date_dict
         
     def _compile_phase(self, cost_dict,
                              time_dict,
+                             date_dict,
                              phase_name,
                              phase_cost_dict,
-                             phase_time_dict):
+                             phase_time_dict,
+                             phase_date_dict):
         
         cost_dict["Component"].append(phase_name)
         cost_dict["Equipment"].append(phase_cost_dict['Equipment'])
@@ -2920,6 +3015,11 @@ class InstallationInterface(ModuleInterface):
         time_dict["Operations"].append(phase_time_dict['Sea'])
         time_dict["Transit"].append(phase_time_dict['Transit'])
         time_dict["Waiting"].append(phase_time_dict['Wait'])
+        
+        date_dict["Component"].append(phase_name)
+        date_dict["Start"].append(phase_date_dict["Start"])
+        date_dict["Depart"].append(phase_date_dict["Depart"])
+        date_dict["End"].append(phase_date_dict["End"])
         
         return
         
