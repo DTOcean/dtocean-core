@@ -53,11 +53,11 @@ from . import ModuleInterface
 from .electrical import ElectricalInterface
 from .installation import InstallationInterface
 from .reliability import ReliabilityInterface
-from ..utils.operations import (get_input_tables,
-                                get_user_network,
-                                get_user_compdict,
-                                get_point_depth,
-                                get_events_table)
+from ..utils.maintenance import (get_input_tables,
+                                 get_user_network,
+                                 get_user_compdict,
+                                 get_point_depth,
+                                 get_events_table)
 
 # Set up logging
 module_logger = logging.getLogger(__name__)
