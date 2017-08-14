@@ -716,7 +716,7 @@ def test_operations_interface_entry(module_menu,
     config_tmpdir = tmpdir.mkdir("config")
     mock_dir = Directory(str(config_tmpdir))
         
-    mocker.patch('dtocean_core.interfaces.operations.UserDataDirectory',
+    mocker.patch('dtocean_core.interfaces.maintenance.UserDataDirectory',
                  return_value=mock_dir)
         
     mod_name = 'Operations and Maintenance'
