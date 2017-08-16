@@ -536,11 +536,6 @@ devices_per_string = 10
 network_configuration = "Star"
 min_voltage = 0.9
 max_voltage = 1.0
-
-electrical_failure_rates = {'Umbilical Cable': 0.15,
-                            'Inter-Array Cables': 0.1,
-                            'Substations': 0.066,
-                            'Export Cable': 0.033}
                             
 book_path = os.path.join(op_dir, "electrical_requirements.xlsx")
 electrical_onsite_requirements = pd.read_excel(book_path, sheetname="On-Site")
@@ -563,9 +558,6 @@ corridor_voltage = 33000.
 found_safety = 1.5 #foundation safety factor
 grout_safety  = 6.0 #grout safety factor
 fab_cost = None # 1.0 #optional fabrication cost factor
-
-moorings_failure_rates = {"Foundations": 0.1,
-                          "Mooring Lines": 0.15}
                           
 book_path = os.path.join(op_dir, "moorings_requirements.xlsx")
 moorings_onsite_requirements = pd.read_excel(book_path, sheetname="On-Site")
@@ -1306,9 +1298,6 @@ test_data = {
         'project.moorings_operations_weighting': full_weightings,
         
         'device.subsystem_failure_rates': device_failure_rates,
-        'project.electrical_subsystem_failure_rates':
-            electrical_failure_rates,
-        'project.moorings_subsystem_failure_rates': moorings_failure_rates,
         
         'options.condition_maintenance_soh': condition_maintenance_soh,
         'options.calendar_maintenance_interval':
