@@ -176,7 +176,6 @@ class MaintenanceInterface(ModuleInterface):
                         'project.electrical_replacement_parts',
                         'project.moorings_replacement_parts',
                         
-                        'project.moorings_subsystem_costs',
                         'options.subsystem_monitering_costs',
                         'options.transit_cost_multiplier',
                         'options.loading_cost_multiplier',
@@ -385,7 +384,6 @@ class MaintenanceInterface(ModuleInterface):
                         'project.moorings_inspections_requirements',
                         'project.electrical_replacement_parts',
                         'project.moorings_replacement_parts',
-                        'project.moorings_subsystem_costs',
                         'options.transit_cost_multiplier',
                         'options.loading_cost_multiplier',
                         
@@ -569,7 +567,6 @@ class MaintenanceInterface(ModuleInterface):
                 'project.electrical_replacement_parts',
             'moorings_replacement_parts': 'project.moorings_replacement_parts',
 
-            'moorings_subsystem_costs': 'project.moorings_subsystem_costs',
             'subsystem_monitering_costs': 'options.subsystem_monitering_costs',
             'transit_cost_multiplier': 'options.transit_cost_multiplier',
             'loading_cost_multiplier': 'options.loading_cost_multiplier',
