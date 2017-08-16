@@ -63,9 +63,9 @@ from ..utils.maintenance import (get_input_tables,
 module_logger = logging.getLogger(__name__)
 
 
-class OperationsInterface(ModuleInterface):
+class MaintenanceInterface(ModuleInterface):
     
-    '''Interface to the O&M module.
+    '''Interface to the dtocean-maintenance module.
 
     '''
         
@@ -158,9 +158,6 @@ class OperationsInterface(ModuleInterface):
                         'device.control_subsystem_maintenance_parts',
                         'device.control_subsystem_operation_weightings',
                         'device.control_subsystem_replacement',
-
-                        'project.electrical_subsystem_failure_rates',
-                        'project.moorings_subsystem_failure_rates',
                         
                         'options.condition_maintenance_soh',
                         'options.calendar_maintenance_interval',
@@ -520,11 +517,7 @@ class OperationsInterface(ModuleInterface):
                 'project.foundations_operations_weighting',
             'moorings_operations_weighting':
                 'project.moorings_operations_weighting',
-            
-            "electrical_failure_rates":
-                'project.electrical_subsystem_failure_rates',
-            "moorings_failure_rates": 'project.moorings_subsystem_failure_rates',
-            
+                        
             'condition_maintenance_soh': 'options.condition_maintenance_soh',
             'calendar_maintenance_interval':
                 'options.calendar_maintenance_interval',
@@ -979,8 +972,6 @@ class OperationsInterface(ModuleInterface):
                             self.data.export_cable_operations_weighting,
                             self.data.foundations_operations_weighting,
                             self.data.moorings_operations_weighting,
-                            self.data.electrical_failure_rates,
-                            self.data.moorings_failure_rates,
                             self.data.calendar_maintenance_interval,
                             self.data.condition_maintenance_soh,
                             self.data.electrical_onsite_requirements,

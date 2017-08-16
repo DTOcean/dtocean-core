@@ -76,8 +76,6 @@ def get_input_tables(system_type,
                      export_cable_operations_weighting,
                      foundations_operations_weighting,
                      moorings_operations_weighting,
-                     electrical_failure_rates,
-                     moorings_failure_rates,
                      calendar_maintenance_interval,
                      condition_maintenance_soh,
                      electrical_onsite_requirements,
@@ -380,16 +378,6 @@ def get_input_tables(system_type,
             
             temp_comp["failure_rate"] = subsystem_failure_rates[subsystem]
 
-        elif subsystem in elec_subsystems:
-            
-            temp_comp["failure_rate"] = electrical_failure_rates[subsystem]
-
-        elif subsystem in moor_subsystems:
-            
-            if moor_bom is None:
-                temp_comp["failure_rate"] = np.nan
-            else:
-                temp_comp["failure_rate"] = moorings_failure_rates[subsystem]
     
         # Calendar maintenance interval
         temp_comp["interval_calendar_based_maintenance"] = \

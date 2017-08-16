@@ -220,11 +220,6 @@ elec_bom =  {'Cost': {0: 800.0,
                           4: 443.16388122792671,
                           5: 1.0},
              'Year': {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0}}
-
-electrical_failure_rates = {'Umbilical Cable': 0.15,
-                            'Inter-Array Cables': 0.1,
-                            'Substations': 0.066,
-                            'Export Cable': 0.033}
                             
 book_path = os.path.join(op_dir, "electrical_requirements.xlsx")
 electrical_onsite_requirements = pd.read_excel(book_path, sheetname="On-Site")
@@ -402,9 +397,6 @@ moor_bom =  {'Cost': {0: 46595.722315912215,
                       37: 0.0,
                       38: 0.0,
                       39: 0.0}}
-                      
-moorings_failure_rates = {"Foundations": 0.1,
-                          "Mooring Lines": 0.15}
                           
 book_path = os.path.join(op_dir, "moorings_requirements.xlsx")
 moorings_onsite_requirements = pd.read_excel(book_path, sheetname="On-Site")
@@ -712,11 +704,7 @@ test_data = {
              'project.export_cable_operations_weighting': site_weightings,
              'project.foundations_operations_weighting': site_weightings,
              'project.moorings_operations_weighting': full_weightings,
-             
-             'project.electrical_subsystem_failure_rates':
-                 electrical_failure_rates,
-             'project.moorings_subsystem_failure_rates': moorings_failure_rates,
-             
+                          
              'options.condition_maintenance_soh': condition_maintenance_soh,
              'options.calendar_maintenance_interval':
                  calendar_maintenance_interval,
