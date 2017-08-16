@@ -752,7 +752,6 @@ test_data = {
              'project.electrical_replacement_parts': None,
              'project.moorings_replacement_parts': None,
             
-             'project.moorings_subsystem_costs': None,
              'options.subsystem_monitering_costs': condition_maintenance_cost,
              'options.transit_cost_multiplier': transit_cost_multiplier,
              'options.loading_cost_multiplier': loading_cost_multiplier,

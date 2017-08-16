@@ -1334,8 +1334,6 @@ test_data = {
         'project.moorings_subsystem_lead_times': moorings_lead_times,
            
         'device.subsystem_costs': device_costs,
-        'project.electrical_subsystem_costs': None,
-        'project.moorings_subsystem_costs': None,
         'options.subsystem_monitering_costs': condition_maintenance_cost,
         'options.transit_cost_multiplier': transit_cost_multiplier,
         'options.loading_cost_multiplier': loading_cost_multiplier,
@@ -1386,7 +1384,7 @@ test_data = {
         
         'options.optim_corrective': optim_corrective,
         'options.optim_condition': optim_condition,
-        'options.optim_calendar': optim_calendar            
+        'options.optim_calendar': optim_calendar
         }
              
 if __name__ == "__main__":
@@ -1397,4 +1395,3 @@ if __name__ == "__main__":
     pkl_path = pickle_test_data(file_path, test_data)
     
     print "generate test data: {}".format(pkl_path)
-
