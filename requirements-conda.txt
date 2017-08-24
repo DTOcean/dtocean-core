@@ -7,9 +7,9 @@ dtocean-hydrodynamics >=1.0
 dtocean-electrical =1.1.dev0
 dtocean-moorings >=1.0
 dtocean-installation >=1.0
-dtocean-maintenance >=1.0
+dtocean-maintenance =1.1.dev0
 dtocean-economics =1.1.dev0
-dtocean-reliability >=1.0
+dtocean-reliability =1.1.dev0
 dtocean-environment >=1.0
 geoalchemy2
 matplotlib
