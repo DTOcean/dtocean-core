@@ -68,6 +68,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added lease area entry point variable to design boundaries plot.
 - Added variable 'project.estimate_energy_record' as a flag for indicating that
   the energy record should be estimated from the annual energy.
+- Added spares cost multiplier for maintenance interface to allow portion of
+  full part cost to be used.
+- Added automated moorings subsystem cost estimation to maintenance interface
+  utilities.
 
 ### Changed
 
@@ -110,6 +114,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   variables.
 - Changed order and titles of installation module inputs and outputs.
 - Changed economics interface to work with updated dtocean-economics API.
+- Replaced corrective maintenance activation flag with alternative optional
+  flag to suppress it. It is therefore active by default.
+- Maintenance module test data now shares more inputs with installation
+  module test data.
+- Compilation of the moorings component database is now a separate method in
+  the moorings interface to allow reuse by the maintenance interface.
+- Changed the order of inputs to the maintenance module interface.
+- Made compilation of electrical and moorings databases dependent on which
+  networks have been provided.
 
 ### Fixed
 
@@ -146,6 +159,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   plot.
 - Ensure that installation operation end dates are costed in the correct
   project year.
+- Fixed typo "devide" in hydrodynamics interface error regarding power
+  histogram bin width.
+- Fixed bug where the phase name was missing from the OPEX data input to the
+  economics module.
+- Fixed bugs with conversion of maintenance module events tables.
+- Fixed bugs with missing components in electrical subsystem cost estimation.
+- Fixed bugs with energy and OPEX post-processing from the maintenance module
+  including using project years rather than the date years in outputs to the
+  economics module.
 
 ### Removed
 
@@ -167,6 +189,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Remove adjust_outliers options from make_power_histograms as was always set
   to True.
 - Removed repeated output variables from installation interface and DDS.
+- Removed network failure rate inputs to maintenance interface.
+- Removed moorings subsystem cost inputs to maintenance interface.
+- Removed unused maintenance optimisation options.
+- Removed depreciated control options for maintenance module.
+
 
 ## [1.0.0] - 2017-02-23
 
