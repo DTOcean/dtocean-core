@@ -12,6 +12,7 @@ from dtocean_core.pipeline import Tree, _get_connector
 
 dir_path = os.path.dirname(__file__)
 
+
 @pytest.fixture(scope="module")
 def core():
     '''Share a Core object'''
@@ -20,10 +21,12 @@ def core():
     
     return new_core
 
+
 @pytest.fixture(scope="module")
 def var_tree():
 
     return Tree()
+
 
 @pytest.fixture(scope="module")
 def module_menu(core):
@@ -31,11 +34,13 @@ def module_menu(core):
        
     return ModuleMenu()
 
+
 @pytest.fixture(scope="module")
 def theme_menu(core):
     '''Share a ModuleMenu object'''  
     
     return ThemeMenu()
+
 
 # Using a py.test fixture to reduce boilerplate and test times.
 @pytest.fixture(scope="module")
@@ -80,6 +85,7 @@ def tidal_project(core, var_tree):
 
     return new_project
 
+
 @pytest.fixture(scope="module") 
 def wave_project(core, var_tree):
     '''Share a Project object'''
@@ -123,7 +129,8 @@ def wave_project(core, var_tree):
     project_menu.initiate_options(core, new_project)
 
     return new_project
-    
+
+
 def test_wave_not_inputs(module_menu, core, wave_project, var_tree):
         
     mod_name = "Hydrodynamics"
@@ -138,7 +145,8 @@ def test_wave_not_inputs(module_menu, core, wave_project, var_tree):
                                                        project)
                                                        
     assert "device.cut_in_velocity" not in hydro_input_status
-    
+
+
 def test_get_wave_interface(module_menu, core, wave_project, var_tree):
 
     mod_name = "Hydrodynamics"
@@ -230,6 +238,7 @@ def test_tidal_inputs(module_menu, core, tidal_project, var_tree):
                                                        project)
                                                     
     assert "device.cut_in_velocity" in hydro_input_status
+
 
 def test_get_tidal_interface(module_menu, core, tidal_project, var_tree):
         
@@ -370,7 +379,8 @@ def test_electrical_inputs(module_menu, core, tidal_project, var_tree):
                                                                  project)
                                                     
     assert "component.transformers" in electrical_input_status
-    
+
+
 def test_get_electrical_interface(module_menu, core, tidal_project, var_tree):
     
     mod_name = "Electrical Sub-Systems"
@@ -471,7 +481,8 @@ def test_moorings_inputs(module_menu, core, tidal_project, var_tree):
                                                                project)
                                                     
     assert "device.dry_beam_area" in moorings_input_status
-    
+
+
 def test_get_moorings_interface(module_menu, core, tidal_project, var_tree):
     
     mod_name = "Mooring and Foundations"
@@ -573,6 +584,7 @@ def test_installation_inputs(module_menu, core, tidal_project, var_tree):
                                                     
     assert "component.ports" in installation_input_status
 
+
 def test_get_installation_interface(module_menu, core, tidal_project,
                                     var_tree):
     
@@ -673,12 +685,13 @@ def test_maintenance_inputs(module_menu, core, wave_project, var_tree):
                                                     
     assert "options.operations_inspections" in operations_input_status
 
+
 def test_get_maintenance_interface(module_menu, core, wave_project, var_tree):
     
     mod_name = 'Operations and Maintenance'
     
     project_menu = ProjectMenu()
-    project = deepcopy(wave_project) 
+    project = deepcopy(wave_project)
     module_menu.activate(core, project, mod_name)
     project_menu.initiate_dataflow(core, project)
     
@@ -722,7 +735,7 @@ def test_maintenance_interface_entry(module_menu,
     mod_name = 'Operations and Maintenance'
     
     project_menu = ProjectMenu()
-    project = deepcopy(wave_project) 
+    project = deepcopy(wave_project)
     module_menu.activate(core, project, mod_name)
     project_menu.initiate_dataflow(core, project)
     
@@ -1038,8 +1051,9 @@ def test_reliability_inputs(theme_menu, core, tidal_project, var_tree):
     reliability_input_status = reliability_branch.get_input_status(core,
                                                                project)
                                                     
-#    assert "device.dry_beam_area" in moorings_input_status
-    
+    assert reliability_input_status is not None
+
+
 def test_get_reliability_interface(theme_menu, core, tidal_project, var_tree):
     
     theme_name = "Reliability"
