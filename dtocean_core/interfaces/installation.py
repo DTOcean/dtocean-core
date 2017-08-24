@@ -182,7 +182,6 @@ class InstallationInterface(ModuleInterface):
                         
                         "project.moorings_foundations_network",
                         "project.foundations_component_data",
-                        "project.foundations_soil_data",
                         
                         MaskVariable("project.moorings_line_data",
                                       'device.system_type',
@@ -317,7 +316,6 @@ class InstallationInterface(ModuleInterface):
                     "project.moorings_foundations_network",
                     "project.moorings_foundations_network",
                     "project.foundations_component_data",
-                    "project.foundations_soil_data",     
                     "project.moorings_line_data",
                     "project.moorings_component_data",
                     "component.dry_mate_connectors",
@@ -404,7 +402,6 @@ class InstallationInterface(ModuleInterface):
                   "landfall": "project.landfall_contruction_technique",
                   "mf_network": "project.moorings_foundations_network",
                   "foundations_data": "project.foundations_component_data",
-                  "foundation_soil_layers": "project.foundations_soil_data",
                   "line_summary_data": "project.moorings_line_data",
                   "line_component_data": "project.moorings_component_data",
                   "penetration_rates":
