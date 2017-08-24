@@ -765,7 +765,8 @@ def get_input_tables(system_type,
                                                 all_inspection.shape[1]
                 
     return all_comp, all_modes, all_repair, all_inspection
-    
+
+
 def update_comp_table(subsystem,
                       subsystem_root,
                       array_layout,
@@ -816,6 +817,7 @@ def update_comp_table(subsystem,
             all_comp = pd.concat([all_comp, temp_comp], axis=1)
                 
     return all_comp
+
     
 def update_onsite_tables(subsystem,
                          subsystem_root,
@@ -936,7 +938,8 @@ def update_onsite_tables(subsystem,
             all_modes = pd.concat([all_modes, temp_modes], axis=1)
                 
     return all_modes, all_repair
-    
+
+
 def update_replacement_tables(subsystem,
                               subsystem_root,
                               system_type,
@@ -991,7 +994,8 @@ def update_replacement_tables(subsystem,
             all_modes = pd.concat([all_modes, temp_modes], axis=1)
                 
     return all_modes, all_repair
-    
+
+
 def update_inspections_tables(subsystem,
                               subsystem_root,
                               system_type,
@@ -1113,7 +1117,8 @@ def update_inspections_tables(subsystem,
             all_modes = pd.concat([all_modes, temp_modes], axis=1)
                 
     return all_modes, all_inspection
-    
+
+
 def get_user_network(subsytem_comps, array_layout):
     
     """Manufacture the user network for the device subsytems"""
@@ -1140,7 +1145,8 @@ def get_user_network(subsytem_comps, array_layout):
         user_bom[device_id] = device_subsytem_bom
 
     return user_hierarchy, user_bom
-    
+
+
 def get_user_compdict(subsytem_comps,
                       subsystem_failure_rates):
     
@@ -1162,8 +1168,9 @@ def get_user_compdict(subsytem_comps,
     comp_db = get_component_dict('user-defined',
                                  rates_df,
                                  rates_df)
-        
+    
     return comp_db
+
 
 def get_point_depth(bathyset, position):
     
@@ -1177,7 +1184,8 @@ def get_point_depth(bathyset, position):
     depth = bathy_interp_function(position.coords[0][0:2])
     
     return depth
-    
+
+
 def get_events_table(raw_df):
     
     raw_df = raw_df.dropna()
