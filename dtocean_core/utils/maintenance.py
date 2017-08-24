@@ -1199,6 +1199,8 @@ def get_events_table(raw_df):
                       u'costOM_Labor [Euro]',
                       u'costOM_Spare [Euro]']]
 
+    data_df["repairActionDate [-]"] = pd.to_datetime(
+                            data_df["repairActionDate [-]"])
     data_df["repairActionRequestDate [-]"] = pd.to_datetime(
                             data_df["repairActionRequestDate [-]"])
     data_df = data_df.sort_values(by="repairActionDate [-]")
@@ -1253,7 +1255,7 @@ def get_electrical_system_cost(component_data, system_names, db):
         component_data (pd.DataFrame) [-]: Table of components used in
             the electrical network.
         system_names (list) [-]: List of subsystems in the given network.
-        db (Object) [-]: Component database object. 
+        db (Object) [-]: Component database object.
 
     Attributes:
         cost_dict (dict) [E]: Cost of each subsystem;
@@ -1305,10 +1307,10 @@ def get_mandf_system_cost(mandf_bom, system_names, db):
     '''Get cost of each moorings or foundations subsystem in system_names.
 
     Args:
-        mandf_bom (pd.DataFrame) [-]: Table of costs used in the moorings 
+        mandf_bom (pd.DataFrame) [-]: Table of costs used in the moorings
             and foundations networks.
         system_names (list) [-]: List of subsystems in the given network.
-        db (Object) [-]: Component database object. 
+        db (Object) [-]: Component database object.
 
     Attributes:
         cost_dict (dict) [E]: Cost of each subsystem;
@@ -1339,31 +1341,30 @@ def get_mandf_system_cost(mandf_bom, system_names, db):
         if component_id == "n/a":
             
             subsytem_type = "Foundations"
-            cost_dict[subsytem_type] += component['Cost']
+            cost = component['Cost']
             
-            continue
-
-        # Get the component dictionary
-        component_dict = db[component_id]
-        
-        # Pick up the component type
-        component_type = component_dict['item2']
-
-        if component_type not in subsytem_map.keys():
+        else:
             
-            errStr = ("Component type '{}' is not "
-                      "recognised").format(component_type)
-            raise ValueError(errStr)
+            # Get the component dictionary
+            component_dict = db[component_id]
+            
+            # Pick up the component type
+            component_type = component_dict['item2']
     
-        subsytem_type = subsytem_map[component_type]
+            if component_type not in subsytem_map.keys():
+                
+                errStr = ("Component type '{}' is not "
+                          "recognised").format(component_type)
+                raise ValueError(errStr)
+        
+            subsytem_type = subsytem_map[component_type]
+            cost = component_dict['item11'] * component['Quantity']
         
         if subsytem_type not in system_names:
             
             errStr = "I would like to have seen Montana..."
             raise RuntimeError(errStr)
             
-        # Pick up the cost and store it
-        cost = component_dict['item11'] * component['Quantity']
         cost_dict[subsytem_type] += cost
         
     return cost_dict
