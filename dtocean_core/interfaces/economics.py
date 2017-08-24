@@ -368,7 +368,7 @@ class EconomicInterface(ThemeInterface):
                                moorings_bom,
                                installation_bom,
                                capex_oandm_bom],
-                              ignore_index=True)
+                               ignore_index=True)
             
         if self.data.opex_per_year is not None:
             
@@ -381,6 +381,7 @@ class EconomicInterface(ThemeInterface):
                              'project_year': years}
                              
             opex_bom = pd.DataFrame(opex_cost_raw)
+            opex_bom["phase"] = "Maintenance"
             
         elif (self.data.lifetime is not None and
               ((total_rated_power is not None and 
