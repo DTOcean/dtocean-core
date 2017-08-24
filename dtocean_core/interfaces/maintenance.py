@@ -944,15 +944,79 @@ class MaintenanceInterface(ModuleInterface):
 #                requires_lifiting	 (bool) [-]       : Is lifting required?
 #                requires_divers (bool) [-]          : Are divers required?
 
-        elec_database = ElectricalInterface.get_component_database(
-                                    self.data.elec_db_static_cable,
-                                    self.data.elec_db_dynamic_cable,
-                                    self.data.elec_db_wet_mate,
-                                    self.data.elec_db_dry_mate,
-                                    self.data.elec_db_transformers,
-                                    self.data.elec_db_cp,
-                                    self.data.collection_point_cog,
-                                    self.data.collection_point_foundations)
+        if self.data.electrical_network is not None:
+            
+            none_check = [x is None for x in 
+                                      [self.data.elec_db_static_cable,
+                                       self.data.elec_db_wet_mate,
+                                       self.data.elec_db_dry_mate,
+                                       self.data.elec_db_transformers,
+                                       self.data.elec_db_cp,
+                                       self.data.collection_point_cog,
+                                       self.data.collection_point_foundations]]
+            
+            if "floating" in self.data.system_type.lower():
+                
+                none_check += [self.data.elec_db_dynamic_cable is None]
+                
+            if any(none_check):
+                
+                errMsg = ("Electrical component databases must be defined if "
+                          "providing an electrical network to analyse")
+                raise ValueError(errMsg)
+
+            elec_database = ElectricalInterface.get_component_database(
+                                        self.data.system_type,
+                                        self.data.elec_db_static_cable,
+                                        self.data.elec_db_dynamic_cable,
+                                        self.data.elec_db_wet_mate,
+                                        self.data.elec_db_dry_mate,
+                                        self.data.elec_db_transformers,
+                                        self.data.elec_db_cp,
+                                        self.data.collection_point_cog,
+                                        self.data.collection_point_foundations)
+            
+        if self.data.moor_found_network is not None:
+            
+            none_check = [x is None for x in 
+                                          [self.data.foundations_anchor,
+                                           self.data.foundations_anchor_sand,
+                                           self.data.foundations_anchor_soft,
+                                           self.data.foundations_pile]]
+            
+            if "floating" in self.data.system_type.lower():
+                
+                float_check = [x is None for x in 
+                                           [self.data.moorings_chain,
+                                            self.data.moorings_forerunner,
+                                            self.data.moorings_rope,
+                                            self.data.rope_stiffness,
+                                            self.data.moorings_shackle,
+                                            self.data.moorings_swivel,
+                                            self.data.elec_db_dynamic_cable]]
+                
+                none_check += float_check
+                
+            if any(none_check):
+                
+                errMsg = ("Moorings and foundations component databases must "
+                          "be defined if providing a moorings and foundations "
+                          "network to analyse")
+                raise ValueError(errMsg)
+        
+            mandf_database = MooringsInterface.get_all_components(
+                                            self.data.system_type,
+                                            self.data.foundations_anchor,
+                                            self.data.foundations_anchor_sand,
+                                            self.data.foundations_anchor_soft,
+                                            self.data.foundations_pile,
+                                            self.data.moorings_chain,
+                                            self.data.moorings_forerunner,
+                                            self.data.moorings_rope,
+                                            self.data.rope_stiffness,
+                                            self.data.moorings_shackle,
+                                            self.data.moorings_swivel,
+                                            self.data.elec_db_dynamic_cable)
         
         # Modify the replacement and replacement parts table
         limits_cols = ['Max Hs',
