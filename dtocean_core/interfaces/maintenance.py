@@ -1523,13 +1523,21 @@ class MaintenanceInterface(ModuleInterface):
         self.data.capex_oandm = outputWP6["CapexOfArray [Euro]"]
         
         # Calculate operations costs per year
+        start_year = self.data.project_start_date.year
         commisioning_year = self.data.commissioning_date.year
+        end_year = commisioning_year + self.data.mission_time
         
-        years = range(commisioning_year,
-                      commisioning_year + self.data.mission_time)
+        years = range(start_year, end_year + 1)
+        n_years = len(years)
+        year_idxs = range(n_years)
+        year_map = {year: idx for year, idx in zip(years, year_idxs)}
         
-        eco_df = None
-        
+        eco_dict = {"Year": year_idxs,
+                    "Cost": [0] * n_years}
+                
+        eco_df = pd.DataFrame(eco_dict)
+        eco_df = eco_df.set_index("Year")
+                
         for event_df in outputWP6['eventTables [-]'].itervalues():
             
             if event_df.isnull().values.all(): continue
@@ -1577,17 +1585,14 @@ class MaintenanceInterface(ModuleInterface):
                                       
                 year_costs.append(year_cost)
                 
-            year_dict = {"Year": years,
+            year_dict = {"Year": year_idxs,
                          "Cost": year_costs}
     
             year_df = pd.DataFrame(year_dict)
             year_df = year_df.set_index("Year")
             
-            if eco_df is None:
-                eco_df = year_df
-            else:
-                eco_df = eco_df.add(year_df)
-                        
+            eco_df = eco_df.add(year_df)
+            
         self.data.opex_per_year = eco_df.reset_index()
         self.data.lifetime_opex = eco_df.sum()[0]
         
@@ -1606,44 +1611,47 @@ class MaintenanceInterface(ModuleInterface):
         max_uptime = len(uptime_df)
         
         for event_df in outputWP6['eventTables [-]'].itervalues():
-            
+                        
             repair_df = event_df[["repairActionRequestDate [-]",
                                   "repairActionDate [-]",
-                                  "ComponentType [-]"]]
+                                  "downtimeDuration [Hour]",
+                                  'downtimeDeviceList [-]']]
             repair_df["repairActionRequestDate [-]"] = pd.to_datetime(
                                     repair_df["repairActionRequestDate [-]"])
-            repair_df["repairActionDate [-]"] =  pd.to_datetime(
+            repair_df["repairActionDate [-]"] = pd.to_datetime(
                                     repair_df["repairActionDate [-]"])
             
-            grouped = repair_df.groupby("ComponentType [-]")
-        
-            for name, comp_df in grouped:
-        
-                for _, row in comp_df.iterrows():
-        
-                    action_dict = {"Date": [row["repairActionRequestDate [-]"],
-                                            row["repairActionDate [-]"]]}
-        
-                    if "device" in name:
-        
-                        action_dict[name] = [0, 0]
-        
-                    else:
-        
-                        for device_id in dev_ids:
-                            action_dict[device_id] = [0, 0]
+            for _, row in repair_df.iterrows():
+                
+                isnull = pd.isnull(row).all()
+                
+                if isnull: continue
+                                            
+                for device_id in row['downtimeDeviceList [-]']:
+                
+                    downtime_start = row["repairActionDate [-]"]
+                    downtime = row["downtimeDuration [Hour]"]
+                    downtime_end = downtime_start + \
+                                         datetime.timedelta(hours=downtime)
+                                         
+                    # Avoid zero downtime events
+                    if downtime_start == downtime_end: continue
+                    
+                    action_dict = {"Date": [downtime_start,
+                                            downtime_end]}
+                    action_dict[device_id] = [0, 0]
         
                     action_df = pd.DataFrame(action_dict)
                     action_df = action_df.set_index("Date")
+                                                            
                     action_df = action_df.resample("H").pad()
-        
                     uptime_df.update(action_df)
-                
+                                    
         array_uptime_series = uptime_df.max(1)
         array_uptime = array_uptime_series.sum()
         
         array_downtime = max_uptime - array_uptime
-        array_availability = array_downtime / max_uptime
+        array_availability = 1 - array_downtime / max_uptime
         
         device_downtime_series = max_uptime - uptime_df.sum()
         device_downtime_dict = {device_id: device_downtime_series[device_id]
@@ -1656,7 +1664,7 @@ class MaintenanceInterface(ModuleInterface):
         
         uptime_df = uptime_df.resample("A").sum()
         uptime_df.index = uptime_df.index.map(lambda x: x.year)
-
+        
         # Energy calculation
         dev_energy_dict = {device_id: [] for device_id in dev_ids}
         
@@ -1665,22 +1673,38 @@ class MaintenanceInterface(ModuleInterface):
             for device_id in dev_ids:
         
                 year_energy = row[device_id] * \
-                                self.data.mean_power_per_device[device_id]
+                                self.data.mean_power_per_device[device_id]                                
                 dev_energy_dict[device_id].append(year_energy)
                 
         dev_energy_dict["Year"] = list(uptime_df.index.values)
         dev_energy_df = pd.DataFrame(dev_energy_dict)
-        
+        dev_energy_df = dev_energy_df.set_index("Year")
+                        
         dev_energy_df["Energy"] = dev_energy_df.sum(1)
-        array_energy_df = dev_energy_df[["Year", "Energy"]]
-        
         dev_energy_series = dev_energy_df.sum()
+        dev_energy_df = dev_energy_df.reset_index()
+        
         dev_energy_dict = {device_id: dev_energy_series[device_id] for
                                                         device_id in dev_ids}
         
+        array_energy_df = dev_energy_df[["Year", "Energy"]]        
+        array_energy_df["Year"] = array_energy_df["Year"].replace(year_map)
+        array_energy_df = array_energy_df.set_index("Year")
+        
+        base_energy_dict = {"Year": year_map.values(),
+                            "Energy": [0] * len(year_map)}
+        base_energy_df = pd.DataFrame(base_energy_dict)
+        base_energy_df = base_energy_df.set_index("Year")
+        
+        base_energy_df.update(array_energy_df)
+        base_energy_df = base_energy_df.reset_index()
+                
+        base_energy_df["Year"] = base_energy_df["Year"].astype(int)
+        base_energy_df = base_energy_df.sort_values("Year")
+        
         self.data.lifetime_energy = dev_energy_series["Energy"]
         self.data.energy_per_device = dev_energy_dict
-        self.data.energy_per_year = array_energy_df
+        self.data.energy_per_year = base_energy_df
         
         # Build events tables
         all_strategies = outputWP6['eventTables [-]']
