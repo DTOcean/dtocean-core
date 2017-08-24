@@ -654,13 +654,13 @@ def test_installation_interface_entry(module_menu,
     assert len(debugdir.listdir()) == 1
 
 
-def test_operations_inputs(module_menu, core, tidal_project, var_tree):
+def test_maintenance_inputs(module_menu, core, wave_project, var_tree):
         
     mod_name = 'Operations and Maintenance'
     data_menu = DataMenu()
     project_menu = ProjectMenu()
     
-    project = deepcopy(tidal_project) 
+    project = deepcopy(wave_project) 
     module_menu.activate(core, project, mod_name)
     project_menu.initiate_dataflow(core, project)
     data_menu.load_data(core, project)
@@ -673,12 +673,12 @@ def test_operations_inputs(module_menu, core, tidal_project, var_tree):
                                                     
     assert "options.operations_inspections" in operations_input_status
 
-def test_get_operations_interface(module_menu, core, tidal_project, var_tree):
+def test_get_maintenance_interface(module_menu, core, wave_project, var_tree):
     
     mod_name = 'Operations and Maintenance'
     
     project_menu = ProjectMenu()
-    project = deepcopy(tidal_project) 
+    project = deepcopy(wave_project) 
     module_menu.activate(core, project, mod_name)
     project_menu.initiate_dataflow(core, project)
     
@@ -705,12 +705,12 @@ def test_get_operations_interface(module_menu, core, tidal_project, var_tree):
     assert interface.data.system_type is not None
 
 
-def test_operations_interface_entry(module_menu,
-                                    core,
-                                    tidal_project,
-                                    var_tree,
-                                    mocker,
-                                    tmpdir):
+def test_maintenance_interface_entry(module_menu,
+                                     core,
+                                     wave_project,
+                                     var_tree,
+                                     mocker,
+                                     tmpdir):
     
     # Make a source directory with some files
     config_tmpdir = tmpdir.mkdir("config")
@@ -722,7 +722,7 @@ def test_operations_interface_entry(module_menu,
     mod_name = 'Operations and Maintenance'
     
     project_menu = ProjectMenu()
-    project = deepcopy(tidal_project) 
+    project = deepcopy(wave_project) 
     module_menu.activate(core, project, mod_name)
     project_menu.initiate_dataflow(core, project)
     

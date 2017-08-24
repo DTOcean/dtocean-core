@@ -639,7 +639,6 @@ project_start_date = project_start_date.to_datetime()
 
 calendar_based_maintenance = True
 condition_based_maintenance = False
-corrective_maintenance = False
                              
 calendar_maintenance_interval = {'Prime Mover': 5.,
                                  'PTO': 1.,
@@ -705,10 +704,6 @@ operations_inspections = {'Prime Mover': True,
                           'Export Cable': True,
                           'Foundations': True,
                           'Mooring Lines': True}
-                          
-optim_corrective = False # 'options.optim_corrective',
-optim_condition = False # 'options.optim_condition',
-optim_calendar = False # 'options.optim_calendar'
                           
 ### OPERATION WEIGHTINGS
 
@@ -1263,7 +1258,6 @@ test_data = {
         
         "project.calendar_based_maintenance": calendar_based_maintenance,
         "project.condition_based_maintenance": condition_based_maintenance,
-        "project.corrective_maintenance": corrective_maintenance,
         "project.duration_shift": duration_shift,
         "farm.helideck": helideck,
         "project.number_crews_available": number_crews_available,
@@ -1380,11 +1374,8 @@ test_data = {
         "component.collection_points_NCFR":
             comp_tables_rel["collection_point NCFR"],
         "component.collection_points_CFR": 
-            comp_tables_rel["collection_point CFR"],
-        
-        'options.optim_corrective': optim_corrective,
-        'options.optim_condition': optim_condition,
-        'options.optim_calendar': optim_calendar
+            comp_tables_rel["collection_point CFR"]
+    
         }
              
 if __name__ == "__main__":
