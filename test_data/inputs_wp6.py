@@ -15,6 +15,7 @@ import pandas as pd
 from dtocean_core.utils.reliability import (get_reliability_tables,
                                             compdict_from_mock)
 
+from inputs_wp4 import comp_tables
 from inputs_wp5 import (equipment_cable_burial,
                         cable_burial_sf,
                         collection_point,
@@ -92,50 +93,20 @@ from inputs_wp5 import (equipment_cable_burial,
                         cost_contingency,
                         port_percentage_cost,
                         project_start_date,
-                        lease_utm_zone)
+                        lease_utm_zone,
+                        electrical_network,
+                        mf_network,
+                        strata)
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 elec_dir = os.path.join(this_dir, "electrical")
 moor_dir = os.path.join(this_dir, "moorings")
 op_dir = os.path.join(this_dir, "operations")
 
-### LEASE AREA
-
-startx = 101000.
-endx = 102000.
-dx = 10.
-numx = int(float(endx - startx) / dx) + 1
-
-starty = 6120000.
-endy = 6122500.
-dy = 10.
-numy = int(float(endy - starty) / dy) + 1
-
-x = np.linspace(startx, endx, numx)
-y = np.linspace(starty, endy, numy)
-nx = len(x)
-ny = len(y)
-
-# Bathymetry
-X, Y = np.meshgrid(x,y)
-Z = np.zeros(X.shape) - 50.
-depths = Z.T[:,:, np.newaxis]
-
-sediments = np.chararray((nx,ny,1), itemsize=20)
-sediments[:] = "loose sand"
-   
-strata = {"values": {'depth': depths,
-                     'sediment': sediments},
-          "coords": [x, y, ["layer 1"]]}
-
 ### ARRAY LAYOUT
 
-array_layout = {'device001': (101250., 6120500.),
-                'device002': (101750., 6120500.),
-                'device003': (101500., 6121250.),
-                'device004': (101250., 6122000.),
-                'device005': (101750,  6122000.)
-                }
+array_layout = {'device001': [587850.,6650550.],
+                'device002': [587850.,6650700.]}
 
 ### MACHINE
 device_failure_rates = {'Prime Mover': 0.5,
@@ -233,7 +204,7 @@ electrical_lead_times = {'Inter-Array Cables': 48.,
                          'Substations': 120.,
                          'Export Cable': 240.}
                          
-substation_layout = {"array": [101400.0, 6121250.0]}
+substation_layout = {"array": [587850., 6651000]}
 
 ### MOORINGS AND FOUNDATIONS
 
@@ -413,7 +384,6 @@ moorings_lead_times = {"Foundations": 48.}
 
 calendar_based_maintenance = True
 condition_based_maintenance = True
-corrective_maintenance = True
                              
 calendar_maintenance_interval = {'Prime Mover': 5.,
                                  'PTO': 1.,
@@ -466,8 +436,8 @@ operations_replacements = {'Prime Mover': True,
                            'PTO': True,
                            'Control': True,
                            'Support Structure': True,
-                           'Umbilical Cable': True,
-                           'Mooring Lines': True}
+                           'Umbilical Cable': False,
+                           'Mooring Lines': False}
 
 operations_inspections = {'Prime Mover': True,
                           'PTO': True,
@@ -479,10 +449,6 @@ operations_inspections = {'Prime Mover': True,
                           'Export Cable': True,
                           'Foundations': True,
                           'Mooring Lines': True}
-                          
-optim_corrective = False # 'options.optim_corrective',
-optim_condition = False # 'options.optim_condition',
-optim_calendar = True # 'options.optim_calendar'
                           
 ### OPERATION WEIGHTINGS
 
@@ -521,116 +487,13 @@ wage_technician_night = 150.
 workdays_summer = 7
 workdays_winter = 7
 
-#### NETWORKS
-
-electrical_network = {
- 'nodes': {'array': {'Export cable': {'marker': [[0, 1]],
-                                      'quantity': {6: 1, 17: 1}},
-                     'Substation': {'marker': [[2]], 'quantity': {12: 1}}},
-           'device001': {'marker': [[3, 4, 5]],
-                         'quantity': Counter({6: 2, 2: 1})},
-           'device002': {'marker': [[6, 7]],
-                         'quantity': Counter({2: 1, 6: 1})},
-           'device003': {'marker': [[8, 9, 10]],
-                         'quantity': Counter({6: 2, 2: 1})},
-           'device004': {'marker': [[11, 12, 13]],
-                         'quantity': Counter({6: 2, 2: 1})},
-           'device005': {'marker': [[14, 15]],
-                         'quantity': Counter({2: 1, 6: 1})}},
- 'topology': {'array': {'Export cable': [[17, 6]],
-                        'Substation': [[12]],
-                        'layout': [['device001', 'device002'],
-                                   ['device003'],
-                                   ['device004', 'device005']]},
-              'device001': {'Elec sub-system': [[6, 2, 6]]},
-              'device002': {'Elec sub-system': [[2, 6]]},
-              'device003': {'Elec sub-system': [[6, 2, 6]]},
-              'device004': {'Elec sub-system': [[6, 2, 6]]},
-              'device005': {'Elec sub-system': [[2, 6]]}}}
-
-moorings_foundations_network = {
- 'nodes': {'array': {'Substation foundation': {'marker': [[30]],
-                                               'quantity': Counter({'id723': 1})}},
-           'device001': {'Foundation': {'marker': [[0],
-                                                   [1, 2],
-                                                   [3, 4],
-                                                   [5]],
-                                        'quantity': Counter({'id723': 2, 'shallowfoundation': 2})},
-                         'Mooring system': [],
-                         'Umbilical': []},
-           'device002': {'Foundation': {'marker': [[6],
-                                                   [7, 8],
-                                                   [9, 10],
-                                                   [11]],
-                                        'quantity': Counter({'id723': 2, 'shallowfoundation': 2})},
-                         'Mooring system': [],
-                         'Umbilical': []},
-           'device003': {'Foundation': {'marker': [[12],
-                                                   [13, 14],
-                                                   [15, 16],
-                                                   [17]],
-                                        'quantity': Counter({'id723': 2, 'shallowfoundation': 2})},
-                         'Mooring system': [],
-                         'Umbilical': []},
-           'device004': {'Foundation': {'marker': [[18],
-                                                   [19, 20],
-                                                   [21, 22],
-                                                   [23]],
-                                        'quantity': Counter({'id723': 2, 'shallowfoundation': 2})},
-                         'Mooring system': [],
-                         'Umbilical': []},
-           'device005': {'Foundation': {'marker': [[24],
-                                                   [25, 26],
-                                                   [27, 28],
-                                                   [29]],
-                                        'quantity': Counter({'id723': 2, 'shallowfoundation': 2})},
-                         'Mooring system': [],
-                         'Umbilical': []}},
- 'topology': {'array': {'Substation foundation': ['id723']},
-              'device001': {'Foundation': [['shallowfoundation'],
-                                           ['id723'],
-                                           ['id723'],
-                                           ['shallowfoundation']],
-                            'Mooring system': [],
-                            'Umbilical': []},
-              'device002': {'Foundation': [['shallowfoundation'],
-                                           ['id723'],
-                                           ['id723'],
-                                           ['shallowfoundation']],
-                            'Mooring system': [],
-                            'Umbilical': []},
-              'device003': {'Foundation': [['shallowfoundation'],
-                                           ['id723'],
-                                           ['id723'],
-                                           ['shallowfoundation']],
-                            'Mooring system': [],
-                            'Umbilical': []},
-              'device004': {'Foundation': [['shallowfoundation'],
-                                           ['id723'],
-                                           ['id723'],
-                                           ['shallowfoundation']],
-                            'Mooring system': [],
-                            'Umbilical': []},
-              'device005': {'Foundation': [['shallowfoundation'],
-                                           ['id723'],
-                                           ['id723'],
-                                           ['shallowfoundation']],
-                            'Mooring system': [],
-                            'Umbilical': []}}}
-
 #### POWER
 
 mean_power_per_device = {'device001': 1.2698047018309357, # 'project.mean_power_per_device'
-                         'device002': 1.2698047018309357,
-                         'device003': 1.2698047029109705,
-                         'device004': 1.2698047018309357,
-                         'device005': 1.2698047018309357}
+                         'device002': 1.2698047018309357}
                          
 annual_energy_per_device = {'device001': 11123.489188038995, # 'project.annual_energy_per_device'
-                            'device002': 11123.489188038995,
-                            'device003': 11123.489197500101,
-                            'device004': 11123.489188038995,
-                            'device005': 11123.489188038995}
+                            'device002': 11123.489188038995}
 
                             
 #### COMPONENTS
@@ -670,7 +533,6 @@ comp_tables_rel = get_reliability_tables(compdict)
 test_data = {
              "project.calendar_based_maintenance": calendar_based_maintenance,
              "project.condition_based_maintenance": condition_based_maintenance,
-             "project.corrective_maintenance": corrective_maintenance,
              "project.duration_shift": duration_shift,
              "farm.helideck": helideck,
              "project.number_crews_available": number_crews_available,
@@ -757,7 +619,7 @@ test_data = {
              'options.loading_cost_multiplier': loading_cost_multiplier,
              
              "project.electrical_network": electrical_network,
-             "project.moorings_foundations_network": moorings_foundations_network,
+             "project.moorings_foundations_network": mf_network,
              "component.moorings_chain_NCFR": comp_tables_rel["chain NCFR"],
              "component.moorings_chain_CFR": comp_tables_rel["chain CFR"],
              "component.moorings_forerunner_NCFR":
@@ -811,7 +673,6 @@ test_data = {
             'project.divers_safety_factors': divers_sf,
             'component.drilling_rigs': equipment_drilling_rigs,
             'component.dry_mate_connectors': dry_mate,
-            'component.dynamic_cable': dynamic_cables,
             'component.equipment_penetration_rates':
                 equipment_penetration_rates,
             'component.excavating': equipment_excavating,
@@ -890,9 +751,21 @@ test_data = {
             'project.annual_energy_per_device': annual_energy_per_device,
             "project.substation_layout": substation_layout,
             
-            'options.optim_corrective': optim_corrective,
-            'options.optim_condition': optim_condition,
-            'options.optim_calendar': optim_calendar
+            'component.foundations_anchor': comp_tables["drag anchor"],
+            'component.foundations_pile': comp_tables["pile"],
+            'component.moorings_chain': comp_tables["chain"],
+            'component.moorings_forerunner':
+                                        comp_tables["forerunner assembly"],
+            'component.moorings_rope': comp_tables["rope"],
+            'component.moorings_rope_stiffness':
+                                        comp_tables["rope axial stiffness"],
+            'component.moorings_shackle': comp_tables["shackle"],
+            'component.moorings_swivel': comp_tables["swivel"],
+            "component.dynamic_cable" : dynamic_cables,
+            'component.foundations_anchor_sand':
+                                            comp_tables["drag anchor sand"],
+            'component.foundations_anchor_soft':
+                                            comp_tables["drag anchor soft"]
 
              }
              
