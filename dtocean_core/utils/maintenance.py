@@ -1399,35 +1399,3 @@ def _get_elec_db_cost(component_key, quantity, db, type_):
     val = quantity * cost
 
     return val
-
-def _electrical_system_quantity(component_data, electrical_sys):
-
-    '''Count number of instances of electrical systems.
-    
-    Args:
-        component_data (pd.DataFrame) [-]: Table of components used in
-            the electrical network.
-        electrical_sys (list) [-]: List of electrical subsystems in the
-            electrical network.
-
-    Attributes:
-        counts (dict) [-]: Number of occurrences of each electrical
-            subsystem.
-
-    Returns:
-        counts
-
-    Note:
-        Can be used to normalise the total cost.
-
-    '''
-
-    counts = {}
-
-    for system in electrical_sys:
-
-        counts[system] = \
-            component_data.install_type.value_counts()[system]
-
-    return counts
-
