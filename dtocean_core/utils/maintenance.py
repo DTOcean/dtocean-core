@@ -1193,9 +1193,9 @@ def get_events_table(raw_df):
 
     data_df["repairActionRequestDate [-]"] = pd.to_datetime(
                             data_df["repairActionRequestDate [-]"])
-    data_df = data_df.sort_values(by="repairActionRequestDate [-]")
+    data_df = data_df.sort_values(by="repairActionDate [-]")
     data_df = data_df.reset_index(drop=True)
-    
+        
     def mode_match(x):
         
         if "Insp" in x:
@@ -1204,14 +1204,14 @@ def get_events_table(raw_df):
         if "MoS" in x:
             return "On-Site Maintenance"
         
-        if "Rtp" in x:
+        if "RtP" in x:
             return "Replacement"
     
     data_df["FM_ID [-]"] = data_df["FM_ID [-]"].apply(mode_match)
     
     name_map = {
             "repairActionRequestDate [-]": "Operation Request Date",
-            "repairActionDate [-]": "Operation Completion Date",
+            "repairActionDate [-]": "Operation Action Date",
             "downtimeDuration [Hour]": "Downtime",
             "ComponentSubType [-]": "Sub-System",
             "FM_ID [-]": "Operation Type",
