@@ -1236,16 +1236,16 @@ def get_events_table(raw_df):
     
     return data_df
 
-def get_electrical_system_cost(component_data, electrical_sys, db):
+
+def get_electrical_system_cost(component_data, system_names, db):
     
-    '''Get cost of each electrical subsystem in electrical_sys.
+    '''Get cost of each electrical subsystem in system_names.
 
     Args:
         component_data (pd.DataFrame) [-]: Table of components used in
             the electrical network.
-        electrical_sys (list) [-]: List of electrical subsystems in the
-            electrical network.
-        db (Object) [-]: Electrical component database object. 
+        system_names (list) [-]: List of subsystems in the given network.
+        db (Object) [-]: Component database object. 
 
     Attributes:
         cost_dict (dict) [E]: Cost of each subsystem;
@@ -1257,47 +1257,41 @@ def get_electrical_system_cost(component_data, electrical_sys, db):
     '''
     
     subsytem_map = {'array': 'Inter-Array Cables',
+                    'dry-mate': 'Inter-Array Cables',
+                    'wet-mate': 'Inter-Array Cables',
                     'export': 'Export Cable',
+                    'passive hub': 'Substations',
                     'substation': 'Substations',
                     'umbilical': 'Umbilical Cable'}
     
-    cost_dict = {key: 0 for key in electrical_sys}
+    cost_dict = {key: 0 for key in system_names}
 
     for _, component in component_data.iterrows():
                         
         install_type = component['Installation Type']
 
-        if install_type not in subsytem_map.keys(): continue
+        if install_type not in subsytem_map.keys():
+            
+            errStr = ("Installation type '{}' is not "
+                      "recognised").format(install_type)
+            raise ValueError(errStr)
     
         subsytem_type = subsytem_map[install_type]
         
-        if subsytem_type not in electrical_sys: continue
+        if subsytem_type not in system_names:
+            
+            errStr = "Where's the bloody air force?"
+            raise RuntimeError(errStr)
     
-        cost_dict[subsytem_type] += _get_db_cost(component['Key Identifier'],
-                                                 component.Quantity,
-                                                 db,
-                                                 install_type)
+        cost_dict[subsytem_type] += _get_elec_db_cost(
+                                                component['Key Identifier'],
+                                                component.Quantity,
+                                                db,
+                                                install_type)
 
     return cost_dict
-    
-def _convert_labels(label):
-    
-    '''Convert labels from subsystems to db compatible names.
-    
-    Args:
-        label (str) [-]: Component type.
-        
-    Attribute:
-        converted_label (str) [-]: DB compatible name.
-        
-    Returns:
-        converted_label
- 
-    '''
 
-    if any(label in s for s in ['export', 'array']):
 
-        converted_label = 'static_cable'
 def get_mandf_system_cost(mandf_bom, system_names, db):
     
     '''Get cost of each moorings or foundations subsystem in system_names.
@@ -1366,9 +1360,8 @@ def get_mandf_system_cost(mandf_bom, system_names, db):
         
     return cost_dict
 
-    return converted_label
 
-def _get_db_cost(component_key, quantity, db, type_):
+def _get_elec_db_cost(component_key, quantity, db, type_):
         
     '''Use component key and quantity to calculate total cost.
 
@@ -1376,22 +1369,32 @@ def _get_db_cost(component_key, quantity, db, type_):
         component_key (int) [-]: Database key.
         quantity (float) [-]: Quantity of component used.
         db (Object) [-]: Electrical component database object.
-    
-    Attributes:
-        val (float) [E]: Total cost of component.
 
     Returns:
-        val
+        float: total cost of quantity components
 
     '''
-
-    converted_type = _convert_labels(type_)
+    
+    convert_map = {'export': 'static_cable',
+                   'array': 'static_cable',
+                   'umbilical': 'dynamic_cable',
+                   'passive hub': 'collection_points',
+                   'substation': 'collection_points',
+                   'subhub': 'collection_points',
+                   'dry-mate': 'dry_mate_connectors',
+                   'wet-mate': 'wet_mate_connectors'}
+    
+    if type_ not in convert_map:
+        
+        errMsg = ("Electrical system type '{}' is not "
+                  "recognised").format(type_)
+        raise ValueError(errMsg)
+    
+    converted_type = convert_map[type_]
 
     component_db = getattr(db, converted_type)
     
-    cost = \
-        component_db[
-            component_db.id == component_key].cost.values[0]
+    cost = component_db[component_db.id == component_key].cost.values[0]
 
     val = quantity * cost
 
