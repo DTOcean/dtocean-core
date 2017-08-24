@@ -518,11 +518,11 @@ def check_bin_widths(rated_power, bin_width):
     
     if bin_width is None: bin_width = 0.1
     
-    # Check whether the bin width devides the RP perfectly
+    # Check whether the bin width divides the RP perfectly
     if Decimal(str(rated_power)) % Decimal(str(bin_width)) != 0:
         
-        errStr = ("Bin width '{}' does not devide rated power perfectly. "
-                  "Please provide another bin width").format(bin_width)
+        errStr = ("Power histogram bin width '{}' does not divide the rated "
+                  "power perfectly").format(bin_width)
         raise ValueError(errStr)
         
     return

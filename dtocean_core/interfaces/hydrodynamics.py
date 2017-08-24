@@ -402,7 +402,7 @@ class HydroInterface(ModuleInterface):
     #        boundary_padding (float, optional) [m]: Padding added to inside of the lease area in which devices may not be placed 
         
         
-        # Check whether the bin width devides the RP perfectly
+        # Check whether the bin width divides the RP perfectly
         check_bin_widths(self.data.rated_power_device,
                          self.data.pow_bins)
 
