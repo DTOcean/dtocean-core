@@ -820,13 +820,19 @@ class MaintenanceInterface(ModuleInterface):
 #                Wage for technicians at night time                
 #            workdays_summer (int) [-]: Working Days per Week during summer
 #            workdays_winter (int) [-]: Working Days per Week during winter
+
+        # Suppress corrective maintenance
+        corrective_maintenance = True
+        
+        if self.data.suppress_corrective is not None:
+            corrective_maintenance = not self.data.suppress_corrective
         
         farm_OM = {
             "calendar_based_maintenance":
                 self.data.calendar_based_maintenance,
             "condition_based_maintenance":
                 self.data.condition_based_maintenance,
-            "corrective_maintenance": self.data.corrective_maintenance,
+            "corrective_maintenance": corrective_maintenance,
             "duration_shift": self.data.duration_shift,
             "helideck": self.data.helideck,
             "number_crews_available": self.data.number_crews_available,
