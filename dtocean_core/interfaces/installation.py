@@ -2466,7 +2466,7 @@ class InstallationInterface(ModuleInterface):
         # Operational limit conditions and algorithm control
         schedule_OLC = get_operations_template()
         start_shape = schedule_OLC.shape
-        
+                
         # Update default limits if provided
         if data.limit_hs is not None:
             
@@ -2479,11 +2479,16 @@ class InstallationInterface(ModuleInterface):
                               limit_hs_df,
                               on="Logitic operation [-]",
                               how="left")
+            
+            has_value = pd.notnull(merged["OLC: Hs [m]_y"])
+            to_update = merged["OLC: Hs [m]_y"][has_value]
+            
             olc_updated = merged["OLC: Hs [m]_x"]
-            olc_updated.update(merged["OLC: Hs [m]_y"])
-            
+            olc_updated.update(to_update)
+            olc_updated.index = schedule_OLC.index
+                        
             schedule_OLC["OLC: Hs [m]"] = olc_updated
-            
+
             # Check that the shape hasn't changed
             assert schedule_OLC.shape == start_shape
         
@@ -2498,8 +2503,13 @@ class InstallationInterface(ModuleInterface):
                               limit_tp_df,
                               on="Logitic operation [-]",
                               how="left")
+            
+            has_value = pd.notnull(merged["OLC: Tp [s]_y"])
+            to_update = merged["OLC: Tp [s]_y"][has_value]
+            
             olc_updated = merged["OLC: Tp [s]_x"]
-            olc_updated.update(merged["OLC: Tp [s]_y"])
+            olc_updated.update(to_update)
+            olc_updated.index = schedule_OLC.index
             
             schedule_OLC["OLC: Tp [s]"] = olc_updated
             
@@ -2517,8 +2527,13 @@ class InstallationInterface(ModuleInterface):
                               limit_ws_df,
                               on="Logitic operation [-]",
                               how="left")
+            
+            has_value = pd.notnull(merged["OLC: Ws [m/s]_y"])
+            to_update = merged["OLC: Ws [m/s]_y"][has_value]
+            
             olc_updated = merged["OLC: Ws [m/s]_x"]
-            olc_updated.update(merged["OLC: Ws [m/s]_y"])
+            olc_updated.update(to_update)
+            olc_updated.index = schedule_OLC.index
             
             schedule_OLC["OLC: Ws [m/s]"] = olc_updated
             
@@ -2536,8 +2551,13 @@ class InstallationInterface(ModuleInterface):
                               limit_cs_df,
                               on="Logitic operation [-]",
                               how="left")
+            
+            has_value = pd.notnull(merged["OLC: Cs [m/s]_y"])
+            to_update = merged["OLC: Cs [m/s]_y"][has_value]
+            
             olc_updated = merged["OLC: Cs [m/s]_x"]
-            olc_updated.update(merged["OLC: Cs [m/s]_y"])
+            olc_updated.update(to_update)
+            olc_updated.index = schedule_OLC.index
             
             schedule_OLC["OLC: Cs [m/s]"] = olc_updated
             
