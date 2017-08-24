@@ -906,6 +906,7 @@ class ElectricalInterface(ModuleInterface):
                                     )
         
         database = cls.get_component_database(
+                                       data.device_type,
                                        data.static_cable,
                                        data.dynamic_cable,
                                        data.wet_mate_connectors,
@@ -925,7 +926,8 @@ class ElectricalInterface(ModuleInterface):
         return input_dict
     
     @classmethod
-    def get_component_database(cls, static_cable,
+    def get_component_database(cls, system_type,
+                                    static_cable,
                                     dynamic_cable,
                                     wet_mate_connectors,
                                     dry_mate_connectors,
@@ -961,16 +963,21 @@ class ElectricalInterface(ModuleInterface):
         # Units to kg/km
         static_cable_df["dry_mass"] = static_cable_df["dry_mass"] * 1000.
         static_cable_df["wet_mass"] = static_cable_df["wet_mass"] * 1000.
+                
+        # Umbilical
+        dynamic_cable_df = None
+                
+        if "floating" in system_type.lower():
         
-        dynamic_cable_df = dynamic_cable
-        dynamic_cable_df.drop(["Environmental Impact"],
-                              1)
-        dynamic_cable_df = dynamic_cable_df.rename(columns=name_map)
-        dynamic_cable_df["colour"] = None
-
-        # Units to kg/km
-        dynamic_cable_df["dry_mass"] = dynamic_cable_df["dry_mass"] * 1000.
-        dynamic_cable_df["wet_mass"] = dynamic_cable_df["wet_mass"] * 1000.
+            dynamic_cable_df = dynamic_cable
+            dynamic_cable_df.drop(["Environmental Impact"],
+                                  1)
+            dynamic_cable_df = dynamic_cable_df.rename(columns=name_map)
+            dynamic_cable_df["colour"] = None
+    
+            # Units to kg/km
+            dynamic_cable_df["dry_mass"] = dynamic_cable_df["dry_mass"] * 1000.
+            dynamic_cable_df["wet_mass"] = dynamic_cable_df["wet_mass"] * 1000.
         
         name_map = { "Key Identifier": "id",
                      "Number Of Contacts": "n",
