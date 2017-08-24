@@ -677,57 +677,23 @@ class MooringsInterface(ModuleInterface):
                 
 
         ## COMPONENTS
-        compdict = {}
-        
-        # Foundations
-        anchor_dict = get_component_dict(
-                                "drag anchor",
-                                self.data.foundations_anchor,
-                                sand_data=self.data.foundations_anchor_sand,
-                                soft_data=self.data.foundations_anchor_soft)
-        compdict.update(anchor_dict)
+        compdict = self.get_all_components(self.data.system_type,
+                                           self.data.foundations_anchor,
+                                           self.data.foundations_anchor_sand,
+                                           self.data.foundations_anchor_soft,
+                                           self.data.foundations_pile,
+                                           self.data.moorings_chain,
+                                           self.data.moorings_forerunner,
+                                           self.data.moorings_rope,
+                                           self.data.rope_stiffness,
+                                           self.data.moorings_shackle,
+                                           self.data.moorings_swivel,
+                                           self.data.moorings_umbilical)
             
-        pile_dict = get_component_dict("pile",
-                                       self.data.foundations_pile,
-                                       check_keys=compdict.keys())
-        compdict.update(pile_dict)
-        
         # No umbilical unlesss floating
         preumb = None
             
-        # Moorings
         if "floating" in self.data.system_type.lower():
-            
-            chain_dict = get_component_dict("chain",
-                                            self.data.moorings_chain,
-                                            check_keys=compdict.keys())
-            compdict.update(chain_dict)
-                
-            forerunner_dict = get_component_dict("forerunner assembly",
-                                                 self.data.moorings_forerunner,
-                                                 check_keys=compdict.keys())
-            compdict.update(forerunner_dict)
-                
-            rope_dict = get_component_dict("rope",
-                                           self.data.moorings_rope,
-                                           rope_data=self.data.rope_stiffness,
-                                           check_keys=compdict.keys())
-            compdict.update(rope_dict)
-                
-            shackle_dict = get_component_dict("shackle",
-                                              self.data.moorings_shackle,
-                                              check_keys=compdict.keys())
-            compdict.update(shackle_dict)
-                
-            swivel_dict = get_component_dict("swivel",
-                                             self.data.moorings_swivel,
-                                             check_keys=compdict.keys())
-            compdict.update(swivel_dict)
-            
-            umbilical_dict = get_component_dict("cable",
-                                                self.data.moorings_umbilical,
-                                                check_keys=compdict.keys())
-            compdict.update(umbilical_dict)
             
             # Check umbilical definition
             if self.data.preumb in compdict:
@@ -738,9 +704,10 @@ class MooringsInterface(ModuleInterface):
                 preumb = long(self.data.preumb) 
             else:
                 errStr = ("Selected umbilical component '{}' not found in "
-                          "component dictionary").format(self._variables.preumb)
+                          "component dictionary").format(
+                                                      self._variables.preumb)
                 raise KeyError(errStr)
-        
+                
         # Data tweaks
         if self.data.hs == 0.0:
             hs_max= []
@@ -1330,3 +1297,68 @@ class MooringsInterface(ModuleInterface):
             self.data.umbilical_data = umbilical_data.rename(columns=name_map)
 
         return
+    
+    @classmethod
+    def get_all_components(cls, system_type,
+                                foundations_anchor,
+                                foundations_anchor_sand,
+                                foundations_anchor_soft,
+                                foundations_pile,
+                                moorings_chain,
+                                moorings_forerunner,
+                                moorings_rope,
+                                rope_stiffness,
+                                moorings_shackle,
+                                moorings_swivel,
+                                moorings_umbilical):
+        
+        compdict = {}
+        
+        # Foundations
+        anchor_dict = get_component_dict(
+                                "drag anchor",
+                                foundations_anchor,
+                                sand_data=foundations_anchor_sand,
+                                soft_data=foundations_anchor_soft)
+        compdict.update(anchor_dict)
+            
+        pile_dict = get_component_dict("pile",
+                                       foundations_pile,
+                                       check_keys=compdict.keys())
+        compdict.update(pile_dict)
+        
+        # Moorings
+        if "floating" in system_type.lower():
+            
+            chain_dict = get_component_dict("chain",
+                                            moorings_chain,
+                                            check_keys=compdict.keys())
+            compdict.update(chain_dict)
+                
+            forerunner_dict = get_component_dict("forerunner assembly",
+                                                 moorings_forerunner,
+                                                 check_keys=compdict.keys())
+            compdict.update(forerunner_dict)
+                
+            rope_dict = get_component_dict("rope",
+                                           moorings_rope,
+                                           rope_data=rope_stiffness,
+                                           check_keys=compdict.keys())
+            compdict.update(rope_dict)
+                
+            shackle_dict = get_component_dict("shackle",
+                                              moorings_shackle,
+                                              check_keys=compdict.keys())
+            compdict.update(shackle_dict)
+                
+            swivel_dict = get_component_dict("swivel",
+                                             moorings_swivel,
+                                             check_keys=compdict.keys())
+            compdict.update(swivel_dict)
+            
+            umbilical_dict = get_component_dict("cable",
+                                                moorings_umbilical,
+                                                check_keys=compdict.keys())
+            compdict.update(umbilical_dict)
+            
+        return compdict
