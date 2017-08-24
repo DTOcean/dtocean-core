@@ -145,13 +145,13 @@ class MaintenanceInterface(ModuleInterface):
                         'device.control_subsystem_maintenance',
                         'device.control_subsystem_maintenance_parts',
                         'device.control_subsystem_operation_weightings',
-                        'device.control_subsystem_replacement', 
+                        'device.control_subsystem_replacement',
                         
                         'component.static_cable',
                         
                         MaskVariable("component.dynamic_cable",
                                      'device.system_type',
-                                     ['Tidal Floating', 'Wave Floating']), 
+                                     ['Tidal Floating', 'Wave Floating']),
                         
                         'component.dry_mate_connectors',
                         'component.wet_mate_connectors',
@@ -167,22 +167,22 @@ class MaintenanceInterface(ModuleInterface):
                  
                         MaskVariable("component.moorings_chain",
                                      'device.system_type',
-                                     ['Tidal Floating', 'Wave Floating']), 
+                                     ['Tidal Floating', 'Wave Floating']),
                         MaskVariable("component.moorings_forerunner",
                                      'device.system_type',
-                                     ['Tidal Floating', 'Wave Floating']), 
+                                     ['Tidal Floating', 'Wave Floating']),
                         MaskVariable("component.moorings_rope",
                                      'device.system_type',
-                                     ['Tidal Floating', 'Wave Floating']),                  
+                                     ['Tidal Floating', 'Wave Floating']),
                         MaskVariable("component.moorings_shackle",
                                      'device.system_type',
-                                     ['Tidal Floating', 'Wave Floating']),                    
+                                     ['Tidal Floating', 'Wave Floating']),
                         MaskVariable("component.moorings_swivel",
                                      'device.system_type',
-                                     ['Tidal Floating', 'Wave Floating']),                  
+                                     ['Tidal Floating', 'Wave Floating']),
                         MaskVariable("component.moorings_rope_stiffness",
                                      'device.system_type',
-                                     ['Tidal Floating', 'Wave Floating']),                  
+                                     ['Tidal Floating', 'Wave Floating']),
 
                         "component.collection_points_NCFR",
                         "component.dry_mate_connectors_NCFR",
@@ -236,7 +236,7 @@ class MaintenanceInterface(ModuleInterface):
                         "component.vehicle_vessel_clv",
                         "component.vehicle_vessel_jackup_barge",
                         "component.vehicle_vessel_jackup_vessel",
-                        "component.vehicle_vessel_tugboat", 
+                        "component.vehicle_vessel_tugboat",
                         
                         'component.ports',
                         'component.port_locations',
@@ -347,7 +347,7 @@ class MaintenanceInterface(ModuleInterface):
                         
                         "options.curtail_devices",
                         "options.suppress_corrective_maintenance"
-                        ]
+                       ]
                  
         return input_list
 
@@ -472,10 +472,10 @@ class MaintenanceInterface(ModuleInterface):
                  
                         "component.moorings_chain",
                         "component.moorings_forerunner",
-                        "component.moorings_rope",                 
+                        "component.moorings_rope",
                         "component.moorings_shackle",                  
-                        "component.moorings_swivel",                 
-                        "component.moorings_rope_stiffness",   
+                        "component.moorings_swivel",
+                        "component.moorings_rope_stiffness",
                         
                         "component.operations_limit_hs",
                         "component.operations_limit_tp",
@@ -946,7 +946,7 @@ class MaintenanceInterface(ModuleInterface):
 
         if self.data.electrical_network is not None:
             
-            none_check = [x is None for x in 
+            none_check = [x is None for x in
                                       [self.data.elec_db_static_cable,
                                        self.data.elec_db_wet_mate,
                                        self.data.elec_db_dry_mate,
@@ -978,7 +978,7 @@ class MaintenanceInterface(ModuleInterface):
             
         if self.data.moor_found_network is not None:
             
-            none_check = [x is None for x in 
+            none_check = [x is None for x in
                                           [self.data.foundations_anchor,
                                            self.data.foundations_anchor_sand,
                                            self.data.foundations_anchor_soft,
@@ -986,7 +986,7 @@ class MaintenanceInterface(ModuleInterface):
             
             if "floating" in self.data.system_type.lower():
                 
-                float_check = [x is None for x in 
+                float_check = [x is None for x in
                                            [self.data.moorings_chain,
                                             self.data.moorings_forerunner,
                                             self.data.moorings_rope,
@@ -1673,7 +1673,7 @@ class MaintenanceInterface(ModuleInterface):
             for device_id in dev_ids:
         
                 year_energy = row[device_id] * \
-                                self.data.mean_power_per_device[device_id]                                
+                                self.data.mean_power_per_device[device_id]
                 dev_energy_dict[device_id].append(year_energy)
                 
         dev_energy_dict["Year"] = list(uptime_df.index.values)
@@ -1687,7 +1687,7 @@ class MaintenanceInterface(ModuleInterface):
         dev_energy_dict = {device_id: dev_energy_series[device_id] for
                                                         device_id in dev_ids}
         
-        array_energy_df = dev_energy_df[["Year", "Energy"]]        
+        array_energy_df = dev_energy_df[["Year", "Energy"]]
         array_energy_df["Year"] = array_energy_df["Year"].replace(year_map)
         array_energy_df = array_energy_df.set_index("Year")
         

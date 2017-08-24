@@ -401,7 +401,6 @@ class HydroInterface(ModuleInterface):
     #		electrical_connection_point (numpy.ndarray) [m]: UTM coordinates of the electrical connection point at the shore line
     #        boundary_padding (float, optional) [m]: Padding added to inside of the lease area in which devices may not be placed 
         
-        
         # Check whether the bin width divides the RP perfectly
         check_bin_widths(self.data.rated_power_device,
                          self.data.pow_bins)
