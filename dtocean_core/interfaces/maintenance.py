@@ -1440,23 +1440,15 @@ class MaintenanceInterface(ModuleInterface):
 #                ###############################################################################
 #                ###############################################################################
 #                ###############################################################################   
-                     
-        
-        optimisation_selection = [self.data.optim_corrective,
-                                  self.data.optim_condition,
-                                  self.data.optim_calendar]
                                   
         if self.data.curtail_devices is not None:
             ignoreWeatherWindow = not self.data.curtail_devices
         else:
             ignoreWeatherWindow = False
             
-        control_param = {"whichOptim": optimisation_selection,
+        control_param = {"whichOptim": None,
                          "ignoreWeatherWindow": ignoreWeatherWindow,
-                         "integrateSelectPort": False,
                          "checkNoSolution" : True,
-                         "checkNoSolutionWP6Files": True,
-                         "readFailureRateFromRAM": True,
                          'dtocean_logistics_PRINT_FLAG': False,
                          'dtocean_maintenance_PRINT_FLAG': False,
                          'dtocean_maintenance_TEST_FLAG': False
