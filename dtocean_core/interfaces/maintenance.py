@@ -1068,9 +1068,10 @@ class MaintenanceInterface(ModuleInterface):
                             self.data.annual_maintenance_end,
                             self.data.electrical_network,
                             self.data.moor_found_network,
-                            self.data.moor_bom,
+                            self.data.mandf_bom,
                             self.data.electrical_components,
                             elec_database,
+                            mandf_database,
                             self.data.operations_onsite_maintenance,
                             self.data.operations_replacements,
                             self.data.operations_inspections,
@@ -1110,8 +1111,8 @@ class MaintenanceInterface(ModuleInterface):
                             self.data.moorings_onsite_parts,
                             self.data.electrical_replacement_parts,
                             self.data.moorings_replacement_parts,
-                            self.data.moorings_subsystem_costs,
                             self.data.subsystem_monitering_costs,
+                            self.data.spare_cost_multiplier,
                             self.data.transit_cost_multiplier,
                             self.data.loading_cost_multiplier)
         
