@@ -45,10 +45,11 @@ def get_input_tables(system_type,
                      annual_maintenance_start,
                      annual_maintenance_end,
                      elec_network,
-                     moor_network,
-                     moor_bom,
+                     mandf_network,
+                     mandf_bom,
                      electrical_components,
                      elec_database,
+                     mandf_database,
                      operations_onsite_maintenance,
                      operations_replacements,
                      operations_inspections,
@@ -88,23 +89,21 @@ def get_input_tables(system_type,
                      moorings_onsite_parts,
                      electrical_replacement_parts,
                      moorings_replacement_parts,
-                     moorings_subsystem_costs,
                      subsystem_monitering_costs,
-                     transit_cost_multiplier=0.,
-                     loading_cost_multiplier=0.
+                     spare_cost_multiplier=None,
+                     transit_cost_multiplier=None,
+                     loading_cost_multiplier=None
                      ):
     
     """Dynamically generate the Component, Failure_Mode, Repair_Action & 
-    Inspection tables for the operations and maintenance module"""
+    Inspection tables for the operations and maintenance module
     
-    if "floating" in system_type.lower():
-                               
-        moor_subsystem_share = {'Foundations': 0.5,
-                                'Mooring Lines': 0.5}
-                               
-    else:
-                               
-        moor_subsystem_share = {'Foundations': 1.0}
+    """
+    
+    # Set defaults
+    if spare_cost_multiplier is None: spare_cost_multiplier = 1.
+    if transit_cost_multiplier is None: transit_cost_multiplier = 0.
+    if loading_cost_multiplier is None: loading_cost_multiplier = 0.
     
     # Define required subsystems
 
@@ -155,19 +154,23 @@ def get_input_tables(system_type,
             subhubs = ["subhub{:0>3}".format(x + 1) for x in xrange(n_subhubs)]
 
         electrical_subsystem_costs = get_electrical_system_cost(
-                                                        electrical_components,
-                                                        elec_subsystems,
-                                                        elec_database)
+                                                     electrical_components,
+                                                     elec_subsystems,
+                                                     elec_database)
         
     # Moorings and Foundations
-    if moor_network is not None:
+    if mandf_network is not None:
     
-        moor_subsystems = ['Foundations']
+        mandf_subsystems = ['Foundations']
                            
         if "floating" in system_type.lower():
-            moor_subsystems.append('Mooring Lines')
+            mandf_subsystems.append('Mooring Lines')
             
-        all_subsystems.extend(moor_subsystems)
+        mandf_subsystem_costs = get_mandf_system_cost(mandf_bom,
+                                                      mandf_subsystems,
+                                                      mandf_database)
+            
+        all_subsystems.extend(mandf_subsystems)
     
     array_subsystems = ['Substations',
                         'Export Cable']
@@ -403,24 +406,9 @@ def get_input_tables(system_type,
             
             base_cost = electrical_subsystem_costs[subsystem]
 
-        elif subsystem in moor_subsystems:
+        elif subsystem in mandf_subsystems:
             
-            if moor_bom is not None:
-            
-                base_cost = (moor_bom["Cost"] * 
-                             moor_bom["Quantity"]).sum() * \
-                                            moor_subsystem_share[subsystem]
-                
-            else:
-            
-                if moorings_subsystem_costs is None:
-                    
-                    errStr = shortErr.format("Moorings and Foundations",
-                                             "costs",
-                                             subsystem)
-                    raise RuntimeError(errStr)
-                                
-                base_cost = moorings_subsystem_costs[subsystem]
+            base_cost = mandf_subsystem_costs[subsystem]
 
         # Conditioning monitering costs
         if subsystem_monitering_costs is None:
@@ -497,7 +485,7 @@ def get_input_tables(system_type,
                 
                 temp_repair = temp_repair.rename(repair_map)
 
-            elif subsystem in moor_subsystems:
+            elif subsystem in mandf_subsystems:
                 
                 if moorings_onsite_requirements is None:
                     
@@ -524,10 +512,14 @@ def get_input_tables(system_type,
             onsite_modes = onsite_modes.rename(modes_map)
             
             # Costs
-            onsite_modes["cost_spare"] = base_cost
-            onsite_modes["cost_spare_transit"] = \
+            onsite_modes["cost_spare"] = base_cost * spare_cost_multiplier
+            
+            if transit_cost_multiplier is not None:
+                onsite_modes["cost_spare_transit"] = \
                                         base_cost * transit_cost_multiplier
-            onsite_modes["cost_spare_loading"] = \
+                                        
+            if loading_cost_multiplier is not None:
+                onsite_modes["cost_spare_loading"] = \
                                         base_cost * loading_cost_multiplier
                                         
             onsite_modes["CAPEX_condition_based_maintenance"] = monitering_cost
@@ -612,7 +604,7 @@ def get_input_tables(system_type,
                 
                 temp_repair = temp_repair.rename(repair_map)
 
-            elif subsystem in moor_subsystems:
+            elif subsystem in mandf_subsystems:
                 
                 if moorings_replacement_requirements is None:
                     
@@ -640,9 +632,13 @@ def get_input_tables(system_type,
             
             # Costs
             replacement_modes["cost_spare"] = base_cost
-            replacement_modes["cost_spare_transit"] = \
+            
+            if transit_cost_multiplier is not None:
+                replacement_modes["cost_spare_transit"] = \
                                         base_cost * transit_cost_multiplier
-            replacement_modes["cost_spare_loading"] = \
+                                        
+            if loading_cost_multiplier is not None:
+                replacement_modes["cost_spare_loading"] = \
                                         base_cost * loading_cost_multiplier
                                         
             replacement_modes["CAPEX_condition_based_maintenance"] = \
@@ -720,7 +716,7 @@ def get_input_tables(system_type,
                             
                 temp_inspection = temp_inspection.rename(inspections_map)
 
-            elif subsystem in moor_subsystems:
+            elif subsystem in mandf_subsystems:
                 
                 if moorings_inspections_requirements is None:
                     
@@ -1302,18 +1298,73 @@ def _convert_labels(label):
     if any(label in s for s in ['export', 'array']):
 
         converted_label = 'static_cable'
+def get_mandf_system_cost(mandf_bom, system_names, db):
+    
+    '''Get cost of each moorings or foundations subsystem in system_names.
 
-    elif any(label in s for s in ['substation', 'subhub']):
+    Args:
+        mandf_bom (pd.DataFrame) [-]: Table of costs used in the moorings 
+            and foundations networks.
+        system_names (list) [-]: List of subsystems in the given network.
+        db (Object) [-]: Component database object. 
 
-        converted_label = 'collection_points'
+    Attributes:
+        cost_dict (dict) [E]: Cost of each subsystem;
+            key = subsystem, val = total cost.
 
-    elif label == 'umbilical':
+    Returns:
+        cost_dict
 
-        converted_label = 'dynamic_cable'
+    '''
+    
+    subsytem_map = {'drag': 'Foundations',
+                    'pile': 'Foundations',
+                    'suctioncaisson': 'Foundations',
+                    "cable": 'Mooring Lines',
+                    "chain": 'Mooring Lines',
+                    "forerunner assembly": 'Mooring Lines',
+                    "rope": 'Mooring Lines',
+                    "shackle": 'Mooring Lines',
+                    "swivel": 'Mooring Lines'}
+    
+    cost_dict = {key: 0 for key in system_names}
 
-    else:
+    for _, component in mandf_bom.iterrows():
+        
+        component_id = component['Key Identifier']
+        
+        # Catch 'n/a'
+        if component_id == "n/a":
+            
+            subsytem_type = "Foundations"
+            cost_dict[subsytem_type] += component['Cost']
+            
+            continue
 
-        converted_label = label
+        # Get the component dictionary
+        component_dict = db[component_id]
+        
+        # Pick up the component type
+        component_type = component_dict['item2']
+
+        if component_type not in subsytem_map.keys():
+            
+            errStr = ("Component type '{}' is not "
+                      "recognised").format(component_type)
+            raise ValueError(errStr)
+    
+        subsytem_type = subsytem_map[component_type]
+        
+        if subsytem_type not in system_names:
+            
+            errStr = "I would like to have seen Montana..."
+            raise RuntimeError(errStr)
+            
+        # Pick up the cost and store it
+        cost = component_dict['item11'] * component['Quantity']
+        cost_dict[subsytem_type] += cost
+        
+    return cost_dict
 
     return converted_label
 
