@@ -672,7 +672,7 @@ def test_maintenance_inputs(module_menu, core, wave_project, var_tree):
     data_menu = DataMenu()
     project_menu = ProjectMenu()
     
-    project = deepcopy(wave_project) 
+    project = deepcopy(wave_project)
     module_menu.activate(core, project, mod_name)
     project_menu.initiate_dataflow(core, project)
     data_menu.load_data(core, project)
