@@ -17,15 +17,13 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-This module contains the package interface to the dtocean mooring and
-foundations module.
+This module contains the package interface to the dtocean-maintenance module.
 
 Note:
   The function decorators (such as '@classmethod', etc) must not be removed.
 
 .. module:: operations
    :platform: Windows
-   :synopsis: Aneris interface for dtocean_core package
    
 .. moduleauthor:: Mathew Topper <mathew.topper@tecnalia.com>
                   Vincenzo Nava <vincenzo.nava@tecnalia.com>
@@ -35,6 +33,7 @@ Note:
 import os
 import pickle
 import logging
+import datetime
 
 # External 3rd party libraries
 import numpy as np
@@ -45,12 +44,13 @@ from dateutil.relativedelta import relativedelta
 from polite.paths import Directory, ObjDirectory, UserDataDirectory
 from polite.configuration import ReadINI
 from aneris.boundary.interface import MaskVariable
-from dtocean_maintenance.mainOptim import LCOE_Optimiser
-from dtocean_maintenance.inputOM import inputOM
+from dtocean_maintenance.main import LCOE_Optimiser
+from dtocean_maintenance.input import inputOM
 
 # DTOcean Core modules
 from . import ModuleInterface
 from .electrical import ElectricalInterface
+from .moorings import MooringsInterface
 from .installation import InstallationInterface
 from .reliability import ReliabilityInterface
 from ..utils.maintenance import (get_input_tables,
@@ -104,52 +104,40 @@ class MaintenanceInterface(ModuleInterface):
         '''
 
         input_list  =  [
-                        "project.calendar_based_maintenance",
-                        "project.condition_based_maintenance",
-                        "project.corrective_maintenance",
-                        "project.duration_shift",
-                        "farm.helideck",
-                        "project.number_crews_available",
-                        "project.number_crews_per_shift",
-                        "project.number_shifts_per_day",
-                        "project.wage_specialist_day",
-                        "project.wage_specialist_night",
-                        "project.wage_technician_day",
-                        "project.wage_technician_night",
-                        "project.workdays_summer",
-                        "project.workdays_winter",
-                        "project.energy_selling_price",
-                        
-                        "device.system_type",
-                        "project.network_configuration",
-                        "project.layout",
+                        'site.projection',
                         "bathymetry.layers",
-                        "project.commissioning_date",
-                        'options.annual_maintenance_start',
-                        'options.annual_maintenance_end',
+                        'corridor.layers',
+                        
+                        "farm.helideck",
+                        'farm.tidal_series_installation',
+                        'farm.wave_series_installation',
+                        'farm.wind_series_installation',
 
-                        "project.moorings_foundations_economics_data",
-                        
-                        "options.operations_inspections",
-                        "options.operations_onsite_maintenance",
-                        "options.operations_replacements",
-                        
-                        'project.umbilical_operations_weighting',
-                        'project.array_cables_operations_weighting',
-                        'project.substations_operations_weighting',
-                        'project.export_cable_operations_weighting',
-                        'project.foundations_operations_weighting',
-                        'project.moorings_operations_weighting',
-                        
+                        "device.system_type",
+                        'device.system_length',
+                        'device.system_width',
+                        'device.system_height',
+                        'device.system_mass',
+
+                        'device.assembly_duration',
+                        'device.bollard_pull',
+                        'device.connect_duration',
+                        'device.control_subsystem_installation',
+                        'device.disconnect_duration',
+                        'device.load_out_method',
+                        'device.transportation_method',
+                        "device.two_stage_assembly",
+                      
                         'device.subsystem_access',
                         'device.subsystem_costs',
+                        'device.subsystem_installation',
                         'device.subsystem_failure_rates',
                         'device.subsystem_inspections',
                         'device.subsystem_maintenance',
                         'device.subsystem_maintenance_parts',
                         'device.subsystem_operation_weightings',
                         'device.subsystem_replacement',
-                        
+
                         'device.control_subsystem_access',
                         'device.control_subsystem_costs',
                         'device.control_subsystem_failure_rates',
@@ -157,31 +145,45 @@ class MaintenanceInterface(ModuleInterface):
                         'device.control_subsystem_maintenance',
                         'device.control_subsystem_maintenance_parts',
                         'device.control_subsystem_operation_weightings',
-                        'device.control_subsystem_replacement',
+                        'device.control_subsystem_replacement', 
                         
-                        'options.condition_maintenance_soh',
-                        'options.calendar_maintenance_interval',
+                        'component.static_cable',
                         
-                        'project.electrical_onsite_maintenance_requirements',
-                        'project.moorings_onsite_maintenance_requirements',
-                        'project.electrical_replacement_requirements',
-                        'project.moorings_replacement_requirements',
+                        MaskVariable("component.dynamic_cable",
+                                     'device.system_type',
+                                     ['Tidal Floating', 'Wave Floating']), 
                         
-                        'project.electrical_inspections_requirements',
-                        'project.moorings_inspections_requirements',
+                        'component.dry_mate_connectors',
+                        'component.wet_mate_connectors',
+                        'component.transformers',
+                        'component.collection_points',
+                        'component.collection_point_cog',
+                        'component.collection_point_foundations',
                         
-                        'project.electrical_onsite_maintenance_parts',
-                        'project.moorings_onsite_maintenance_parts',
-                        'device.subsystem_installation',
-                        'project.electrical_replacement_parts',
-                        'project.moorings_replacement_parts',
-                        
-                        'options.subsystem_monitering_costs',
-                        'options.transit_cost_multiplier',
-                        'options.loading_cost_multiplier',
+                        "component.foundations_anchor",
+                        'component.foundations_anchor_sand',
+                        'component.foundations_anchor_soft',
+                        "component.foundations_pile",
+                 
+                        MaskVariable("component.moorings_chain",
+                                     'device.system_type',
+                                     ['Tidal Floating', 'Wave Floating']), 
+                        MaskVariable("component.moorings_forerunner",
+                                     'device.system_type',
+                                     ['Tidal Floating', 'Wave Floating']), 
+                        MaskVariable("component.moorings_rope",
+                                     'device.system_type',
+                                     ['Tidal Floating', 'Wave Floating']),                  
+                        MaskVariable("component.moorings_shackle",
+                                     'device.system_type',
+                                     ['Tidal Floating', 'Wave Floating']),                    
+                        MaskVariable("component.moorings_swivel",
+                                     'device.system_type',
+                                     ['Tidal Floating', 'Wave Floating']),                  
+                        MaskVariable("component.moorings_rope_stiffness",
+                                     'device.system_type',
+                                     ['Tidal Floating', 'Wave Floating']),                  
 
-                        "project.moorings_foundations_network",
-                        "project.electrical_network",
                         "component.collection_points_NCFR",
                         "component.dry_mate_connectors_NCFR",
                         "component.dynamic_cable_NCFR",
@@ -208,39 +210,20 @@ class MaintenanceInterface(ModuleInterface):
                         "component.moorings_rope_CFR",
                         "component.moorings_shackle_CFR",
                         "component.moorings_swivel_CFR",
-                                                
+                        
                         'component.cable_burial',
-                        'project.cable_burial_safety_factors',
-                        'component.collection_points',
-                        'component.collection_point_cog',
-                        'component.collection_point_foundations',
-                        'component.divers',
-                        'project.divers_safety_factors',
-                        'component.drilling_rigs',
-                        'component.dry_mate_connectors',
-                        'component.dynamic_cable',
-                        'component.equipment_penetration_rates',
                         'component.excavating',
-                        'project.fuel_cost_rate',
-                        'project.grout_rate',
+                        'component.divers',
+                        'component.drilling_rigs',
                         'component.hammer',
-                        'project.hammer_safety_factors',
-                        'component.installation_soil_compatibility',
-                        'project.loading_rate',
-                        'component.mattress_installation',
-                        'component.port_locations',
-                        'project.port_safety_factors',
-                        'component.ports',
-                        'component.rock_bags_installation',
+                        'component.vibro_driver',
                         'component.rov',
-                        'project.rov_safety_factors',
-                        'project.split_pipe_laying_rate',
-                        'project.split_pipe_safety_factors',
+                        'component.mattress_installation',
+                        'component.rock_bags_installation',
                         'component.split_pipes_installation',
-                        'component.static_cable',
-                        'project.surface_laying_rate',
-                        'component.transformers',
-                        'project.vessel_safety_factors',
+                        'component.installation_soil_compatibility',
+                        'component.equipment_penetration_rates',
+                        
                         "component.vehicle_helicopter",
                         "component.vehicle_vessel_ahts",
                         "component.vehicle_vessel_multicat",
@@ -253,60 +236,118 @@ class MaintenanceInterface(ModuleInterface):
                         "component.vehicle_vessel_clv",
                         "component.vehicle_vessel_jackup_barge",
                         "component.vehicle_vessel_jackup_vessel",
-                        "component.vehicle_vessel_tugboat",                        'component.vibro_driver',
-                        'project.vibro_driver_safety_factors',
-                        'component.wet_mate_connectors',
-                        'project.landfall_contruction_technique',
-                        'corridor.layers',
-                        'device.assembly_duration',
-                        'device.bollard_pull',
-                        'device.connect_duration',
-                        'device.control_subsystem_installation',
-                        'device.disconnect_duration',
-                        'device.load_out_method',
-                        'device.subsystem_installation',
-                        'device.system_height',
-                        'device.system_length',
-                        'device.system_mass',
-                        'device.system_width',
-                        'device.transportation_method',
-                        'project.cable_routes',
-                        'project.electrical_component_data',
-                        'project.lease_area_entry_point',
-                        'project.foundations_component_data',
-                        'project.foundations_soil_data',
-                        'project.moorings_line_data',
-                        'project.moorings_component_data',
-                        'project.selected_installation_tool',
-                        'project.substation_props',
-                        'farm.tidal_series_installation',
-                        'project.umbilical_cable_data',
-                        'project.umbilical_seabed_connection',
-                        'farm.wave_series_installation',
-                        'farm.wind_series_installation',
-                        'project.commissioning_time',
-                        'project.cost_contingency',
-                        'project.port_percentage_cost',
-                        'project.start_date',
-                        'site.projection',
-                        "device.two_stage_assembly",
-
-                        "project.annual_energy_per_device",
-                        "project.mean_power_per_device",
-                        "project.substation_layout",
-                        "project.lifetime",
-
-                        "options.optim_corrective",
-                        "options.optim_condition",
-                        "options.optim_calendar",
-                        "options.curtail_devices",
+                        "component.vehicle_vessel_tugboat", 
+                        
+                        'component.ports',
+                        'component.port_locations',
                         
                         "component.operations_limit_hs",
                         "component.operations_limit_tp",
                         "component.operations_limit_ws",
-                        "component.operations_limit_cs"
+                        "component.operations_limit_cs",
 
-                 ]
+                        "project.layout",
+                        "project.substation_layout",
+                        "project.annual_energy_per_device",
+                        "project.mean_power_per_device",
+                        
+                        "project.network_configuration",
+                        'project.landfall_contruction_technique',
+                        "project.electrical_network",
+                        'project.cable_routes',
+                        'project.electrical_component_data',
+                        'project.substation_props',
+                        
+                        MaskVariable('project.umbilical_cable_data',
+                                     'device.system_type',
+                                     ['Tidal Floating', 'Wave Floating']),
+                        MaskVariable('project.umbilical_seabed_connection',
+                                     'device.system_type',
+                                     ['Tidal Floating', 'Wave Floating']),
+                        
+                        "project.moorings_foundations_network",
+                        "project.moorings_foundations_economics_data",
+                        
+                        'project.start_date',
+                        "project.commissioning_date",
+                        'project.commissioning_time',
+                        "project.lifetime",
+                        'project.cost_contingency',
+                        'project.port_percentage_cost',
+                        'project.lease_area_entry_point',
+                        'project.selected_installation_tool',
+                        
+                        'project.cable_burial_safety_factors',
+                        'project.divers_safety_factors',
+                        'project.hammer_safety_factors',
+                        'project.port_safety_factors',
+                        'project.rov_safety_factors',
+                        'project.split_pipe_safety_factors',
+                        'project.vessel_safety_factors',
+
+                        'project.fuel_cost_rate',
+                        'project.grout_rate',
+                        'project.loading_rate',
+                        'project.split_pipe_laying_rate',
+                        'project.surface_laying_rate',
+                        'project.vibro_driver_safety_factors',
+                        
+                        "project.calendar_based_maintenance",
+                        "project.condition_based_maintenance",
+                        
+                        "project.duration_shift",
+                        "project.number_crews_available",
+                        "project.number_crews_per_shift",
+                        "project.number_shifts_per_day",
+                        "project.wage_specialist_day",
+                        "project.wage_specialist_night",
+                        "project.wage_technician_day",
+                        "project.wage_technician_night",
+                        "project.workdays_summer",
+                        "project.workdays_winter",
+                        "project.energy_selling_price",
+
+                        'project.array_cables_operations_weighting',
+                        'project.export_cable_operations_weighting',
+                        'project.substations_operations_weighting',
+                        'project.foundations_operations_weighting',
+                        'project.moorings_operations_weighting',
+                        
+                        MaskVariable('project.umbilical_operations_weighting',
+                                     'device.system_type',
+                                     ['Tidal Floating', 'Wave Floating']),
+                        
+                        'project.electrical_onsite_maintenance_requirements',
+                        'project.moorings_onsite_maintenance_requirements',
+                        'project.electrical_replacement_requirements',
+                        'project.moorings_replacement_requirements',
+                        
+                        'project.electrical_inspections_requirements',
+                        'project.moorings_inspections_requirements',
+                        
+                        'project.electrical_onsite_maintenance_parts',
+                        'project.moorings_onsite_maintenance_parts',
+                        'project.electrical_replacement_parts',
+                        'project.moorings_replacement_parts',
+
+                        "options.operations_inspections",
+                        "options.operations_onsite_maintenance",
+                        "options.operations_replacements",
+
+                        'options.condition_maintenance_soh',
+                        'options.calendar_maintenance_interval',
+                        'options.annual_maintenance_start',
+                        'options.annual_maintenance_end',
+                        
+                        'options.subsystem_monitering_costs',
+
+                        'options.spare_cost_multiplier',
+                        'options.transit_cost_multiplier',
+                        'options.loading_cost_multiplier',
+                        
+                        "options.curtail_devices",
+                        "options.suppress_corrective_maintenance"
+                        ]
                  
         return input_list
 
@@ -386,6 +427,7 @@ class MaintenanceInterface(ModuleInterface):
                         'project.moorings_replacement_parts',
                         'options.transit_cost_multiplier',
                         'options.loading_cost_multiplier',
+                        'options.spare_cost_multiplier',
                         
                         "project.electrical_network",
                         "project.moorings_foundations_network",
@@ -415,24 +457,37 @@ class MaintenanceInterface(ModuleInterface):
                         "component.moorings_rope_CFR",
                         "component.moorings_shackle_CFR",
                         "component.moorings_swivel_CFR",
-
                           
                         'component.collection_points',
-                        'component.dry_mate_connectors',
-                        'component.dynamic_cable',
-                        'component.static_cable',
-                        'component.transformers',
                         'component.wet_mate_connectors',
+                        'component.dry_mate_connectors',
+                        'component.static_cable',
+                        'component.dynamic_cable',
+                        'component.transformers',
+                        
+                        "component.foundations_anchor",
+                        'component.foundations_anchor_sand',
+                        'component.foundations_anchor_soft',
+                        "component.foundations_pile",
+                 
+                        "component.moorings_chain",
+                        "component.moorings_forerunner",
+                        "component.moorings_rope",                 
+                        "component.moorings_shackle",                  
+                        "component.moorings_swivel",                 
+                        "component.moorings_rope_stiffness",   
+                        
+                        "component.operations_limit_hs",
+                        "component.operations_limit_tp",
+                        "component.operations_limit_ws",
+                        "component.operations_limit_cs",
+                        
                         'project.landfall_contruction_technique',
                         'corridor.layers',
                         'device.bollard_pull',
                         'device.control_subsystem_installation',
                         'project.cable_routes',
                         'project.electrical_component_data',
-                        'project.foundations_component_data',
-                        'project.foundations_soil_data',
-                        'project.moorings_line_data',
-                        'project.moorings_component_data',
                         'project.substation_props',
                         'project.umbilical_cable_data',
                         'project.umbilical_seabed_connection',
@@ -440,12 +495,8 @@ class MaintenanceInterface(ModuleInterface):
                         "device.two_stage_assembly",
                         
                         "options.curtail_devices",
-                        
-                        "component.operations_limit_hs",
-                        "component.operations_limit_tp",
-                        "component.operations_limit_ws",
-                        "component.operations_limit_cs"
-                        
+                        "options.suppress_corrective_maintenance"
+
                         ]
                 
         return options_list
@@ -474,8 +525,9 @@ class MaintenanceInterface(ModuleInterface):
                   
         id_map = {  
             "calendar_based_maintenance": "project.calendar_based_maintenance",
-            "condition_based_maintenance": "project.condition_based_maintenance",
-            "corrective_maintenance": "project.corrective_maintenance",
+            "condition_based_maintenance":
+                "project.condition_based_maintenance",
+            "suppress_corrective": "options.suppress_corrective_maintenance",
             "duration_shift": "project.duration_shift",
             "helideck": "farm.helideck",
             "number_crews_available": "project.number_crews_available",
@@ -496,7 +548,7 @@ class MaintenanceInterface(ModuleInterface):
             "commissioning_date": "project.commissioning_date",
             'annual_maintenance_start': 'options.annual_maintenance_start',
             'annual_maintenance_end': 'options.annual_maintenance_end',
-            "moor_bom": "project.moorings_foundations_economics_data",
+            "mandf_bom": "project.moorings_foundations_economics_data",
             
             "operations_onsite_maintenance":
                 "options.operations_onsite_maintenance",
@@ -570,6 +622,7 @@ class MaintenanceInterface(ModuleInterface):
             'subsystem_monitering_costs': 'options.subsystem_monitering_costs',
             'transit_cost_multiplier': 'options.transit_cost_multiplier',
             'loading_cost_multiplier': 'options.loading_cost_multiplier',
+            'spare_cost_multiplier': 'options.spare_cost_multiplier',
 
             "moor_found_network": "project.moorings_foundations_network",
             "electrical_network": "project.electrical_network",
@@ -628,8 +681,6 @@ class MaintenanceInterface(ModuleInterface):
             'entry_point': 'project.lease_area_entry_point',
             'excavating': 'component.excavating',
             'export': 'corridor.layers',
-            'foundation_soil_layers': 'project.foundations_soil_data',
-            'foundations_data': 'project.foundations_component_data',
             'fuel_cost_rate': 'project.fuel_cost_rate',
             'grout_rate': 'project.grout_rate',
             'hammer': 'component.hammer',
@@ -638,8 +689,6 @@ class MaintenanceInterface(ModuleInterface):
                 'component.installation_soil_compatibility',
             'landfall': 'project.landfall_contruction_technique',
             'lease_utm_zone': 'site.projection',
-            'line_component_data': 'project.moorings_component_data',
-            'line_summary_data': 'project.moorings_line_data',
             'load_out_method': 'device.load_out_method',
             'loading_rate': 'project.loading_rate',
             'mattresses': 'component.mattress_installation',
@@ -692,9 +741,6 @@ class MaintenanceInterface(ModuleInterface):
             "substation_layout": "project.substation_layout",
             "mission_time": "project.lifetime",
     
-            "optim_corrective": "options.optim_corrective",
-            "optim_condition": "options.optim_condition",
-            "optim_calendar": "options.optim_calendar",
             "curtail_devices": "options.curtail_devices",
             
             "capex_oandm": "project.capex_oandm",
@@ -707,7 +753,8 @@ class MaintenanceInterface(ModuleInterface):
             "uptime_series": "project.uptime_series",
             "opex_per_year": "project.opex_per_year",
             "energy_per_year": "project.energy_per_year",
-            "calendar_maintenance_events": "project.calendar_maintenance_events",
+            "calendar_maintenance_events":
+                "project.calendar_maintenance_events",
             "condition_maintenance_events":
                 "project.condition_maintenance_events",
             "corrective_maintenance_events":
@@ -717,7 +764,19 @@ class MaintenanceInterface(ModuleInterface):
             "limit_hs": "component.operations_limit_hs",
             "limit_tp": "component.operations_limit_tp",
             "limit_ws": "component.operations_limit_ws",
-            "limit_cs": "component.operations_limit_cs"
+            "limit_cs": "component.operations_limit_cs",
+            
+            "foundations_anchor": "component.foundations_anchor",
+            'foundations_anchor_sand': 'component.foundations_anchor_sand',
+            'foundations_anchor_soft': 'component.foundations_anchor_soft',
+            "foundations_pile": "component.foundations_pile",
+            "moorings_chain": "component.moorings_chain",
+            "moorings_forerunner": "component.moorings_forerunner",
+            "moorings_rope": "component.moorings_rope",
+            "moorings_shackle": "component.moorings_shackle",
+            "moorings_swivel": "component.moorings_swivel",
+            "rope_stiffness": "component.moorings_rope_stiffness",
+            
             }
                   
         return id_map
