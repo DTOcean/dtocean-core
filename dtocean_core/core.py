@@ -1091,6 +1091,15 @@ class Core(object):
         for var_id, data_index in state_data.iteritems():
             
             if exclude is not None and exclude in var_id: continue
+        
+            # Test that the variable is in the data catalog
+            if not data_store.is_valid(self.data_catalog, var_id):
+                
+                msgStr = ('Variable ID "{}" is not contained in the data '
+                          'catalog.').format(var_id)
+                module_logger.warning(msgStr)
+                
+                continue
             
             data_obj = temp_pool.get(data_index)
             
