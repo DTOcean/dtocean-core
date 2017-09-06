@@ -168,6 +168,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed bugs with energy and OPEX post-processing from the maintenance module
   including using project years rather than the date years in outputs to the
   economics module.
+- Fix bug loading datastates that contain variables no longer in the data
+  catalogue.
 
 ### Removed
 
