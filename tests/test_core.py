@@ -2,6 +2,7 @@
 import pytest
 
 import os
+import json
 import shutil
 from copy import deepcopy
 
@@ -436,3 +437,49 @@ def test_load_datastate_archive_exclude(core, project, var_tree, tmpdir):
     assert temp_project.check_integrity()
     assert not core.has_data(temp_project, "device.turbine_interdistance")
     assert core.has_data(temp_project, 'device.power_rating')
+
+
+def test_load_datastate_bad_id(core, project, var_tree, tmpdir):
+    
+    project = deepcopy(project) 
+
+    project_menu = ProjectMenu()
+    module_menu = ModuleMenu()
+    theme_menu = ThemeMenu()
+
+    module_menu.activate(core, project, "Hydrodynamics")
+    theme_menu.activate(core, project,  "Economics")
+    
+    project_menu.initiate_dataflow(core, project)
+                                   
+    hydro_branch = var_tree.get_branch(core, project, "Hydrodynamics")
+    hydro_branch.read_test_data(core,
+                                project,
+                                os.path.join(dir_path,
+                                             "inputs_wp2_tidal.pkl"))
+                                             
+    eco_branch = var_tree.get_branch(core, project, "Economics")
+    eco_branch.read_test_data(core,
+                              project,
+                              os.path.join(dir_path,
+                                           "inputs_economics.pkl"))
+    core.dump_datastate(project, str(tmpdir))
+    
+    # Modify the json file with an entry not in the catalogue
+    datastate_file_path = os.path.join(str(tmpdir), "datastate_dump.json")
+    
+    with open(datastate_file_path, 'r') as f:
+        data = json.load(f)
+        data["data"]["fake.entry"] = ""
+    
+    # Rewrite the file
+    os.remove(datastate_file_path)
+    
+    with open(datastate_file_path, 'w') as f:
+        json.dump(data, f)
+    
+    # Try to load the datastate
+    core.load_datastate(project, str(tmpdir))
+    
+    assert True
+    
