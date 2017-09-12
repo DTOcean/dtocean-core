@@ -44,7 +44,7 @@ from dateutil.relativedelta import relativedelta
 from polite.paths import Directory, ObjDirectory, UserDataDirectory
 from polite.configuration import ReadINI
 from aneris.boundary.interface import MaskVariable
-from dtocean_maintenance.main import LCOE_Optimiser
+from dtocean_maintenance.main import LCOE_Calculator, LCOE_Statistics
 from dtocean_maintenance.input import inputOM
 
 # DTOcean Core modules
@@ -306,6 +306,7 @@ class MaintenanceInterface(ModuleInterface):
                         "project.workdays_summer",
                         "project.workdays_winter",
                         "project.energy_selling_price",
+                        "project.discount_rate",
 
                         'project.array_cables_operations_weighting',
                         'project.export_cable_operations_weighting',
@@ -345,6 +346,8 @@ class MaintenanceInterface(ModuleInterface):
                         'options.transit_cost_multiplier',
                         'options.loading_cost_multiplier',
                         
+                        "options.maintenance_data_points",
+                        "options.parallel_operations",
                         "options.curtail_devices",
                         "options.suppress_corrective_maintenance"
                        ]
@@ -495,6 +498,7 @@ class MaintenanceInterface(ModuleInterface):
                         "device.two_stage_assembly",
                         
                         "options.curtail_devices",
+                        "options.parallel_operations",
                         "options.suppress_corrective_maintenance"
 
                         ]
@@ -527,7 +531,6 @@ class MaintenanceInterface(ModuleInterface):
             "calendar_based_maintenance": "project.calendar_based_maintenance",
             "condition_based_maintenance":
                 "project.condition_based_maintenance",
-            "suppress_corrective": "options.suppress_corrective_maintenance",
             "duration_shift": "project.duration_shift",
             "helideck": "farm.helideck",
             "number_crews_available": "project.number_crews_available",
@@ -540,6 +543,7 @@ class MaintenanceInterface(ModuleInterface):
             "workdays_summer": "project.workdays_summer",
             "workdays_winter": "project.workdays_winter",
             "energy_selling_price": "project.energy_selling_price",
+            "discount_rate": "project.discount_rate",
             
             "system_type": "device.system_type",
             "network_type": "project.network_configuration",
@@ -741,7 +745,10 @@ class MaintenanceInterface(ModuleInterface):
             "substation_layout": "project.substation_layout",
             "mission_time": "project.lifetime",
     
+            "data_points": "options.maintenance_data_points",
+            "parallel_operations": "options.parallel_operations",
             "curtail_devices": "options.curtail_devices",
+            "suppress_corrective": "options.suppress_corrective_maintenance",
             
             "capex_oandm": "project.capex_oandm",
             "lifetime_energy": "project.lifetime_energy",
@@ -1297,13 +1304,26 @@ class MaintenanceInterface(ModuleInterface):
 #        Simu_Param (dict): This parameter records the general information
 #                           concerning the simulation
 #            keys:          
-#                Nbodies (int) [-]                                  : Number of devices 
-#                annual_Energy_Production_perD (numpy.ndarray) [Wh] : Annual energy production of each device on the array. The dimension of the array is Nbodies x 1 (WP2)
-#                arrayInfoLogistic (DataFrame) [-]                   : Information about component_id, depth, x_coord, y_coord, zone, bathymetry, soil type
-#                missionTime (float) [year]                          : Simulation time             
-#                power_prod_perD (numpy.ndarray) [W]                 : Mean power production per device. The dimension of the array is Nbodies x 1 (WP2) 
-#                startOperationDate (datetime) [-]                   : Date of simulation start
-
+#                Nbodies (int) [-]:
+#                    Number of devices
+#                annual_Energy_Production_perD (numpy.ndarray) [Wh]:
+#                    Annual energy production of each device on the array.
+#                    The dimension of the array is Nbodies x 1
+#                arrayInfoLogistic (DataFrame) [-]:
+#                    Information about component_id, depth, x_coord, y_coord,
+#                    zone, bathymetry, soil type
+#                power_prod_perD (dict) [W]:
+#                    Mean power production per device.
+#                startProjectDate (datetime) [-]:
+#                    Date of project start
+#                startOperationDate (datetime) [-]:
+#                    Date of simulation start
+#                missionTime (float) [year]:
+#                    Simulation time
+#                discountRate (float) [-]:
+#                    Discount rate for LCOE calculations as a decimal between
+#                    0 and 1
+#
 #                 	Component1 	Component2 	Component3 	Component4 	Component5
 #        Component_ID 	device001 	device002 	device003 	Export Cable001 	Substation001
 #        depth 	19 	14 	20 	20 	20
@@ -1319,8 +1339,8 @@ class MaintenanceInterface(ModuleInterface):
         
         AEP_per_device = [self.data.annual_energy_per_device[x] * 1e6
                                                           for x in dev_ids]
-        mean_power_per_device = [self.data.mean_power_per_device[x] * 1e6
-                                                          for x in dev_ids]
+        mean_power_per_device = {x: self.data.mean_power_per_device[x] * 1e6
+                                                          for x in dev_ids}
                                                           
         # Build "arrayInfoLogistic" table
         array_df = pd.DataFrame()
@@ -1411,44 +1431,49 @@ class MaintenanceInterface(ModuleInterface):
         simu_param = {"Nbodies": len(dev_ids),
                       "annual_Energy_Production_perD": AEP_per_device,
                       "arrayInfoLogistic": array_df,
-                      "missionTime":  self.data.mission_time,
                       "power_prod_perD": mean_power_per_device,
-                      "startOperationDate": self.data.commissioning_date}
+                      "startProjectDate": self.data.project_start_date,
+                      "startOperationDate": self.data.commissioning_date,
+                      "missionTime":  self.data.mission_time,
+                      "discountRate": self.data.discount_rate}
                       
                       
-#        Control_Param (dict): This parameter records the O&M module control from GUI (to be extended in future)
-#            keys:          
-#                whichOptim (list) [bool]           : Which O&M should be optimised [Unplanned corrective maintenance, Condition based maintenance, Calendar based maintenance]
-#                checkNoSolution (bool) [-]         : see below
-#                checkNoSolutionWP6Files (bool) [-] : see below             
-#                integrateSelectPort (bool) [-]     : see below)                 
-#          
-#                ###############################################################################
-#                ###############################################################################
-#                ###############################################################################
-#                # Some of the function developed by logistic takes some times for running. 
-#                # With the following flags is possible to control the call of such functions.
+#        Control_Param (dict): This parameter records the O&M module control
+#                              from GUI (to be extended in future)
+#            keys:
+#                checkNoSolution (bool) [-]: see below
+#                curtailDevices (bool) [-]: shut down devices indefinitely
+#                numberOfSimulations (int) [-]: Statistical population size
+#                numberOfParallelActions (int) [-]:
+#                    Maximum number of operations that can be completed by one
+#                    vessel. Optional, defaults to 10
 #                
-#                # Control_Param['integrateSelectPort'] is True  -> call OM_PortSelection
-#                # Control_Param['integrateSelectPort'] is False -> do not call OM_PortSelection, set constant values for port parameters
-#                Control_Param['integrateSelectPort'] = False 
-#                
-#                # Control_Param['checkNoSolution'] is True  -> check the feasibility of logistic solution before the simulation 
-#                # Control_Param['checkNoSolution'] is False -> do not check the feasibility of logistic solution before the simulation
-#                Control_Param['checkNoSolution'] = False 
-#                 
-#                ###############################################################################
-#                ###############################################################################
-#                ###############################################################################   
-                                  
-        if self.data.curtail_devices is not None:
-            ignoreWeatherWindow = not self.data.curtail_devices
-        else:
-            ignoreWeatherWindow = False
+#            Note:
+#
+#                ##############################################################
+#                ##############################################################
+#                ##############################################################
+#                Some of the function developed by logistic takes some times
+#                for running.
+#
+#                With the following flags is possible to control the call of
+#                such functions.
+#
+#                # Control_Param['checkNoSolution'] is True  ->
+#                    check the feasibility of logistic solution before the
+#                    simulation
+#                # Control_Param['checkNoSolution'] is False -> do not check
+#                    the feasibility of logistic solution before the simulation
+#
+#                ##############################################################
+#                ##############################################################
+#                ##############################################################
             
-        control_param = {"whichOptim": None,
-                         "ignoreWeatherWindow": ignoreWeatherWindow,
-                         "checkNoSolution" : True,
+        control_param = {"checkNoSolution" : True,
+                         "curtailDevices": self.data.curtail_devices,
+                         "numberOfSimulations": self.data.data_points,
+                         "numberOfParallelActions":
+                             self.data.parallel_operations,
                          'dtocean_logistics_PRINT_FLAG': False,
                          'dtocean_maintenance_PRINT_FLAG': False,
                          'dtocean_maintenance_TEST_FLAG': False
@@ -1486,7 +1511,7 @@ class MaintenanceInterface(ModuleInterface):
             pickle.dump(inputOMPtr, open(pkl_path, "wb"))
             
         # Call WP6 optimiser
-        ptrOptim = LCOE_Optimiser(inputOMPtr)
+        ptrOptim = LCOE_Calculator(inputOMPtr)
         
         if debug_entry: return
         
@@ -1510,7 +1535,7 @@ class MaintenanceInterface(ModuleInterface):
         inputOMPtr._inputOM__Control_Param['checkNoSolution'] = False
 
         # Call WP6 optimiser
-        ptrOptim = LCOE_Optimiser(inputOMPtr)
+        ptrOptim = LCOE_Statistics(inputOMPtr)
                 
         # Run the module
         outputWP6 = ptrOptim()
