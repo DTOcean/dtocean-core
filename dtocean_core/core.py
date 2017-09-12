@@ -1928,16 +1928,16 @@ class Connector(object):
 
         # Execute the interface.
         interface = core.connect_interface(project, interface)
-        
-        # Mark hub completed
-        core.control.set_interface_completed(simulation,
-                                             self._hub,
-                                             interface_name)
 
         # Get outputs from the interface
         checked_vars, checked_values = self._get_outputs(core,
                                                          project,
                                                          interface)
+        
+        # Mark interface completed
+        core.control.set_interface_completed(simulation,
+                                             self._hub,
+                                             interface_name)
         
         # Set a level for the datastate including the output marker
         if set_output_level:
