@@ -16,6 +16,7 @@ class EstimatedDistribution(object):
         self._kde = stats.gaussian_kde(data, bw_method=bandwidth)
         self._cdf = None
         self._ppf = None
+        self._x0 = 0.
         
         return
     
@@ -30,10 +31,11 @@ class EstimatedDistribution(object):
             
         return self._cdf(values)
     
-    def ppf(self, probabilities):
+    def ppf(self, probabilities, x0=0.):
         
-        if self._ppf is None:
-            self._ppf = self._calc_ppf()
+        if self._ppf is None or self._x0 != x0:
+            self._ppf = self._calc_ppf(x0)
+            self._x0 = x0
             
         return self._ppf(probabilities)
 
@@ -52,10 +54,11 @@ class EstimatedDistribution(object):
         
         return most_likely
     
-    def confidence_interval(self, percent):
+    def confidence_interval(self, percent, x0=0.):
         
-        if self._ppf is None:
-            self._ppf = self._calc_ppf()
+        if self._ppf is None or self._x0 != x0:
+            self._ppf = self._calc_ppf(x0)
+            self._x0 = x0
             
         x = percent / 100.
         bottom = (1 - x) / 2
@@ -72,14 +75,14 @@ class EstimatedDistribution(object):
         
         return kde_cdf
     
-    def _calc_ppf(self):
+    def _calc_ppf(self, x0=0.):
         
         if self._cdf is None:
             self._cdf = self._calc_cdf()
         
         def _kde_ppf(q):
             return optimize.fsolve(lambda x, q: self._cdf(x) - q,
-                                   0.,
+                                   x0,
                                    args=(q,))[0]
                            
         kde_ppf = np.vectorize(_kde_ppf)
