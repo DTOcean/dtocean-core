@@ -82,6 +82,21 @@ def test_interval(gaussian):
     assert np.isclose(estimated, ideal,  rtol=0, atol=2e-1).all()
     
     
+def test_ppf_x0(gaussian):
+    
+    probs = np.linspace(0.01, 0.99, 200)
+    estimated = gaussian.ppf(probs)
+
+    assert estimated
+
+    
+def test_interval_x0(gaussian):
+    
+    estimated = gaussian.confidence_interval(90)
+    
+    assert estimated
+    
+    
 def test_ppf_fresh(gaussian_fresh):
     
     probs = np.linspace(0.01, 0.99, 200)
@@ -97,4 +112,3 @@ def test_interval_fresh(gaussian_fresh):
     ideal = norm.interval(0.9)
     
     assert np.isclose(estimated, ideal,  rtol=0, atol=2e-1).all()
-
