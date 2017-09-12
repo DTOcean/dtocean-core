@@ -112,7 +112,7 @@ class EnvironmentalInterface(ThemeInterface):
                         "project.moorings_dimensions",
                         "project.installation_journeys",
                         "project.installation_vessel_average_size",
-                        "project.operation_journeys",
+                        "project.operation_journeys_mode",
                         "project.operat_vessel_average_size",
                         "farm.direction_of_max_surface_current", 
                         "project.resource_reduction",
@@ -308,7 +308,7 @@ class EnvironmentalInterface(ThemeInterface):
                     "project.operat_underwater_noise_risk_weight",
                     "project.operat_measured_turbidity",
                     "project.operat_measured_noise",
-                    "project.operation_journeys",  
+                    "project.operation_journeys_mode",  
                     "project.operat_vessel_average_size",
                     "project.operat_import_chem_pollutant",                    
                     ]
@@ -473,7 +473,7 @@ class EnvironmentalInterface(ThemeInterface):
                    "operat_recommendation_dict":
                         "project.operat_recommendation_dict",
                    "operat_season": "project.operat_season",
-                   "operat_number_vessels": "project.operation_journeys",
+                   "operat_number_vessels": "project.operation_journeys_mode",
                    "operat_average_size_vessels":
                         "project.operat_vessel_average_size",
                    "protected_dict": "farm.protected_species",
