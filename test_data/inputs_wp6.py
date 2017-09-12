@@ -765,7 +765,10 @@ test_data = {
             'component.foundations_anchor_sand':
                                             comp_tables["drag anchor sand"],
             'component.foundations_anchor_soft':
-                                            comp_tables["drag anchor soft"]
+                                            comp_tables["drag anchor soft"],
+                                            
+            'options.maintenance_data_points': 3,
+            'project.discount_rate': 0.05
 
              }
              
