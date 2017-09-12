@@ -257,7 +257,8 @@ class TableData(Structure):
     def get_data(self, raw,
                        meta_data,
                        add_labels=None,
-                       add_labels_pos="back"):
+                       add_labels_pos="back",
+                       relax_cols=False):
         
         if meta_data.labels is None:
             
@@ -310,7 +311,7 @@ class TableData(Structure):
         req_set = set(req_cols)
         raw_set = set(raw_cols)
             
-        if raw_set != req_set:
+        if not relax_cols and raw_set != req_set:
             
             missing = req_set - raw_set
             extra = raw_set - req_set
@@ -331,8 +332,11 @@ class TableData(Structure):
 
         dataframe = pd.DataFrame(raw, columns=columns)
         
-        # Order the columns as described in the meta data
-        dataframe = dataframe[req_cols]
+        # Order the columns
+        if relax_cols:
+            dataframe = dataframe.sort_index(axis=1)
+        else:
+            dataframe = dataframe[req_cols]
 
         return dataframe
 
@@ -513,7 +517,7 @@ class LineTable(TableData):
     Each column of the table then represents a line using identical abscissae
     values.'''
 
-    def get_data(self, raw, meta_data):
+    def get_data(self, raw, meta_data, relax_cols=False):
 
         if meta_data.labels is None:
 
@@ -523,7 +527,9 @@ class LineTable(TableData):
 
         index_key = meta_data.labels[0]
 
-        dataframe = super(LineTable, self).get_data(raw, meta_data)
+        dataframe = super(LineTable, self).get_data(raw,
+                                                    meta_data,
+                                                    relax_cols=relax_cols)
         
         if index_key not in dataframe.columns:
 
