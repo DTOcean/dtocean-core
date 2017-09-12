@@ -58,6 +58,7 @@ from ..utils.maintenance import (get_input_tables,
                                  get_user_compdict,
                                  get_point_depth,
                                  get_events_table)
+from ..utils.stats import EstimatedDistribution
 
 # Set up logging
 module_logger = logging.getLogger(__name__)
@@ -372,21 +373,40 @@ class MaintenanceInterface(ModuleInterface):
                         ]
         '''
         
-        output_list = ["project.capex_oandm",
-                       "project.lifetime_energy",
-                       "project.lifetime_opex",
-                       "project.array_downtime",
-                       "project.array_availability",
-                       "project.downtime_per_device",
-                       "project.lifetime_energy_per_device",
-                       "project.uptime_series",
-                       "project.opex_per_year",
-                       "project.energy_per_year",
-                       "project.calendar_maintenance_events",
-                       "project.condition_maintenance_events",
-                       "project.corrective_maintenance_events",
-                       "project.operation_journeys"
-                       ]
+        output_list = ['project.capex_oandm',
+                       'project.maintenance_metrics',
+                       'project.lifetime_opex_mean',
+                       'project.lifetime_opex_mode',
+                       'project.lifetime_opex_interval_lower',
+                       'project.lifetime_opex_interval_upper',
+                       'project.lifetime_energy_mean',
+                       'project.lifetime_energy_mode',
+                       'project.lifetime_energy_interval_lower',
+                       'project.lifetime_energy_interval_upper',
+                       'project.array_availability_mean',
+                       'project.array_availability_mode',
+                       'project.array_availability_interval_lower',
+                       'project.array_availability_interval_upper',
+                       'project.array_downtime_mean',
+                       'project.array_downtime_mode',
+                       'project.array_downtime_interval_lower',
+                       'project.array_downtime_interval_upper',
+                       'project.operation_journeys_mean',
+                       'project.operation_journeys_mode',
+                       'project.operation_journeys_interval_lower',
+                       'project.operation_journeys_interval_upper',
+                       'project.opex_per_year',
+                       'project.energy_per_year',
+                       'project.lifetime_energy_per_device_best',
+                       'project.lifetime_energy_per_device_worst',
+                       'project.downtime_per_device_best',
+                       'project.downtime_per_device_worst',
+                       'project.calendar_maintenance_events_best',
+                       'project.condition_maintenance_events_best',
+                       'project.corrective_maintenance_events_best',
+                       'project.calendar_maintenance_events_worst',
+                       'project.condition_maintenance_events_worst',
+                       'project.corrective_maintenance_events_worst']
         
         return output_list
         
@@ -751,22 +771,50 @@ class MaintenanceInterface(ModuleInterface):
             "suppress_corrective": "options.suppress_corrective_maintenance",
             
             "capex_oandm": "project.capex_oandm",
-            "lifetime_energy": "project.lifetime_energy",
-            "lifetime_opex": "project.lifetime_opex",
-            "downtime_per_device": "project.downtime_per_device",
-            "energy_per_device": "project.lifetime_energy_per_device",
-            "array_downtime": "project.array_downtime",
-            "array_availability": "project.array_availability",
-            "uptime_series": "project.uptime_series",
+            "maintenance_metrics": 'project.maintenance_metrics',
             "opex_per_year": "project.opex_per_year",
             "energy_per_year": "project.energy_per_year",
-            "calendar_maintenance_events":
-                "project.calendar_maintenance_events",
-            "condition_maintenance_events":
-                "project.condition_maintenance_events",
-            "corrective_maintenance_events":
-                "project.corrective_maintenance_events",
-            "journeys": "project.operation_journeys",
+            "lifetime_opex_mean": 'project.lifetime_opex_mean',
+            "lifetime_opex_mode": 'project.lifetime_opex_mode',
+            "lifetime_opex_lower": 'project.lifetime_opex_interval_lower',
+            "lifetime_opex_upper": 'project.lifetime_opex_interval_upper',
+            "lifetime_energy_mean": 'project.lifetime_energy_mean',
+            "lifetime_energy_mode": 'project.lifetime_energy_mode',
+            "lifetime_energy_lower": 'project.lifetime_energy_interval_lower',
+            "lifetime_energy_upper": 'project.lifetime_energy_interval_upper',
+            "array_availability_mean": 'project.array_availability_mean',
+            "array_availability_mode": 'project.array_availability_mode',
+            "array_availability_lower":
+                'project.array_availability_interval_lower',
+            "array_availability_upper":
+                'project.array_availability_interval_upper',
+            "array_downtime_mean": 'project.array_downtime_mean',
+            "array_downtime_mode": 'project.array_downtime_mode',
+            "array_downtime_lower":
+                'project.array_downtime_interval_lower',
+            "array_downtime_upper":
+                'project.array_downtime_interval_upper',
+            "operation_journeys_mean": 'project.operation_journeys_mean',
+            "operation_journeys_mode": 'project.operation_journeys_mode',
+            "operation_journeys_lower":
+                'project.operation_journeys_interval_lower',
+            "operation_journeys_upper":
+                'project.operation_journeys_interval_upper',
+            "device_energy_best":'project.lifetime_energy_per_device_best',
+            "device_energy_worst":'project.lifetime_energy_per_device_worst',
+            "device_downtime_best": 'project.downtime_per_device_best',
+            "device_downtime_worst": 'project.downtime_per_device_worst',
+            "calendar_events_best": 'project.calendar_maintenance_events_best',
+            "condition_events_best":
+                'project.condition_maintenance_events_best',
+            "corrective_events_best":
+                'project.corrective_maintenance_events_best',
+            "calendar_events_worst":
+                'project.calendar_maintenance_events_worst',
+            "condition_events_worst":
+                'project.condition_maintenance_events_worst',
+            "corrective_events_worst":
+                'project.corrective_maintenance_events_worst',
             
             "limit_hs": "component.operations_limit_hs",
             "limit_tp": "component.operations_limit_tp",
@@ -1547,227 +1595,131 @@ class MaintenanceInterface(ModuleInterface):
         
         self.data.capex_oandm = outputWP6["CapexOfArray [Euro]"]
         
-        # Calculate operations costs per year
-        start_year = self.data.project_start_date.year
-        commisioning_year = self.data.commissioning_date.year
-        end_year = commisioning_year + self.data.mission_time
+        # Store the metrics table 
+        name_map = {"lifetimeOpex [Euro]": 'Lifetime OPEX',
+                    "lifetimeEnergy [Wh]": 'Lifetime Energy',
+                    "LCOEOpex [Euro/kWh]": 'OPEX LCOE',
+                    "arrayDowntime [hour]": 'Array Downtime',
+                    "arrayAvailability [-]": 'Array Availability',
+                    "numberOfJourneys [-]": 'Number of Journeys'}
         
-        years = range(start_year, end_year + 1)
-        n_years = len(years)
-        year_idxs = range(n_years)
-        year_map = {year: idx for year, idx in zip(years, year_idxs)}
+        metrics_table = outputWP6["MetricsTable [-]"].rename(columns=name_map)
+        metrics_table['Lifetime Energy'] = \
+                                        metrics_table['Lifetime Energy'] / 1e6
+                                        
+        self.data.maintenance_metrics = metrics_table
         
-        eco_dict = {"Year": year_idxs,
-                    "Cost": [0] * n_years}
-                
-        eco_df = pd.DataFrame(eco_dict)
-        eco_df = eco_df.set_index("Year")
-                
-        for event_df in outputWP6['eventTables [-]'].itervalues():
+        # Do stats on the metrics
+        args_table = {'Lifetime OPEX': "lifetime_opex",
+                      'Lifetime Energy': "lifetime_energy",
+                      'Array Downtime': "array_downtime",
+                      'Array Availability': "array_availability",
+                      'Number of Journeys': "operation_journeys"}
+        
+        for key, arg_root in args_table.iteritems():
             
-            if event_df.isnull().values.all(): continue
-        
-            event_df = event_df.dropna()
-            event_df = event_df.set_index("repairActionDate [-]")
-            event_df.index = pd.to_datetime(event_df.index)
+            data = metrics_table[key]
+            distribution = EstimatedDistribution(data)
             
-            event_df = event_df[["ComponentType [-]",
-                                 "costLogistic [Euro]",
-                                 "costOM_Labor [Euro]",
-                                 "costOM_Spare [Euro]"]]
+            arg_mean = "{}_mean".format(arg_root)
+            arg_mode = "{}_mode".format(arg_root)
+            arg_lower = "{}_lower".format(arg_root)
+            arg_upper = "{}_upper".format(arg_root)
+            
+            self.data[arg_mean] = distribution.mean()
+            self.data[arg_mode] = distribution.mode()
+            
+            intervals = distribution.confidence_interval(95, data.mean())
+                        
+            self.data[arg_lower] = intervals[0]
+            self.data[arg_upper] = intervals[1]
+        
+        # Store the per-year tables
+        opex_table = outputWP6["OpexPerYear [Euro]"]
+        opex_cols = opex_table.columns
+        new_cols = [x.replace(" [Euro]", "") for x in opex_cols]
+        opex_table.columns = new_cols
+        opex_table = opex_table.reset_index()
+        
+        energy_table = outputWP6["energyPerYear [Wh]"]
+        energy_cols = energy_table.columns
+        new_cols = [x.replace(" [Wh]", "") for x in energy_cols]
+        energy_table.columns = new_cols
+        energy_table = energy_table / 1e6
+        energy_table = energy_table.reset_index()
+        
+        self.data.opex_per_year = opex_table
+        self.data.energy_per_year = energy_table
+        
+        # Collect data from best and worst simulation
+        lcoe_sort = np.argsort(metrics_table['OPEX LCOE'].values)
+        lcoe_best_idx = lcoe_sort[0]
+        lcoe_worst_idx = lcoe_sort[-1]
+        
+        energy_table = outputWP6["energyPerDevice [Wh]"]
+        best_energy = energy_table.ix[:, lcoe_best_idx]
+        worst_energy = energy_table.ix[:, lcoe_worst_idx]
+        
+        # Change units to MWh
+        best_energy = best_energy / 1e6
+        worst_energy = worst_energy / 1e6
+        
+        self.data.device_energy_best = best_energy.to_dict()
+        self.data.device_energy_worst = worst_energy.to_dict()
 
-            # Prepare a dataframe for each component type
-            grouped = event_df.groupby("ComponentType [-]")
-            group_dict = {}
-            
-            for name, comp_df in grouped:
-                    
-                comp_df = comp_df.drop("ComponentType [-]", 1)
-                comp_df["Total Cost"] = \
-                                comp_df[["costLogistic [Euro]",
-                                         "costOM_Labor [Euro]",
-                                         "costOM_Spare [Euro]"]].sum(axis=1)
-                comp_df = comp_df.convert_objects(convert_numeric=True)
-                comp_df = comp_df.resample("A").sum()
-                comp_df.index = comp_df.index.map(lambda x: x.year)
-                comp_df = comp_df.dropna()
-                                
-                group_dict[name] = comp_df
+        downtime_table = outputWP6["downtimePerDevice [hour]"]
+        best_downtime = downtime_table.ix[:, lcoe_best_idx]
+        worst_downtime = downtime_table.ix[:, lcoe_worst_idx]
+        
+        self.data.device_downtime_best = best_downtime.to_dict()
+        self.data.device_downtime_worst = worst_downtime.to_dict()
 
-            # Record energy and costs for each year
-            year_costs = []
-            
-            for year in years:
-    
-                year_cost = 0.  
-            
-                for name, comp_df in group_dict.iteritems():
-                    
-                    if year not in comp_df.index: continue
-                        
-                    year_series = comp_df.loc[year]
-                    year_cost += year_series["Total Cost"]
-                                      
-                year_costs.append(year_cost)
-                
-            year_dict = {"Year": year_idxs,
-                         "Cost": year_costs}
-    
-            year_df = pd.DataFrame(year_dict)
-            year_df = year_df.set_index("Year")
-            
-            eco_df = eco_df.add(year_df)
-            
-        self.data.opex_per_year = eco_df.reset_index()
-        self.data.lifetime_opex = eco_df.sum()[0]
-        
-        # Calculate device uptime per year
-        end_date = self.data.commissioning_date + relativedelta(
-                                                years=+self.data.mission_time)
-        
-        uptime_dict = {"Date": [self.data.commissioning_date, end_date]}
-        
-        for device_id in dev_ids:
-            uptime_dict[device_id] = [1, 1]
-            
-        uptime_df = pd.DataFrame(uptime_dict)
-        uptime_df = uptime_df.set_index("Date")
-        uptime_df = uptime_df.resample("H").pad()
-        max_uptime = len(uptime_df)
-        
-        for event_df in outputWP6['eventTables [-]'].itervalues():
-                        
-            repair_df = event_df[["repairActionRequestDate [-]",
-                                  "repairActionDate [-]",
-                                  "downtimeDuration [Hour]",
-                                  'downtimeDeviceList [-]']]
-            repair_df["repairActionRequestDate [-]"] = pd.to_datetime(
-                                    repair_df["repairActionRequestDate [-]"])
-            repair_df["repairActionDate [-]"] = pd.to_datetime(
-                                    repair_df["repairActionDate [-]"])
-            
-            for _, row in repair_df.iterrows():
-                
-                isnull = pd.isnull(row).all()
-                
-                if isnull: continue
-                                            
-                for device_id in row['downtimeDeviceList [-]']:
-                
-                    downtime_start = row["repairActionDate [-]"]
-                    downtime = row["downtimeDuration [Hour]"]
-                    downtime_end = downtime_start + \
-                                         datetime.timedelta(hours=downtime)
-                                         
-                    # Avoid zero downtime events
-                    if downtime_start == downtime_end: continue
-                    
-                    action_dict = {"Date": [downtime_start,
-                                            downtime_end]}
-                    action_dict[device_id] = [0, 0]
-        
-                    action_df = pd.DataFrame(action_dict)
-                    action_df = action_df.set_index("Date")
-                                                            
-                    action_df = action_df.resample("H").pad()
-                    uptime_df.update(action_df)
-                                    
-        array_uptime_series = uptime_df.max(1)
-        array_uptime = array_uptime_series.sum()
-        
-        array_downtime = max_uptime - array_uptime
-        array_availability = 1 - array_downtime / max_uptime
-        
-        device_downtime_series = max_uptime - uptime_df.sum()
-        device_downtime_dict = {device_id: device_downtime_series[device_id]
-                                                    for device_id in dev_ids}        
-        
-        self.data.array_downtime = array_downtime
-        self.data.downtime_per_device = device_downtime_dict
-        self.data.array_availability = array_availability
-        self.data.uptime_series = array_uptime_series
-        
-        uptime_df = uptime_df.resample("A").sum()
-        uptime_df.index = uptime_df.index.map(lambda x: x.year)
-        
-        # Energy calculation
-        dev_energy_dict = {device_id: [] for device_id in dev_ids}
-        
-        for year, row in uptime_df.iterrows():
-            
-            for device_id in dev_ids:
-        
-                year_energy = row[device_id] * \
-                                self.data.mean_power_per_device[device_id]
-                dev_energy_dict[device_id].append(year_energy)
-                
-        dev_energy_dict["Year"] = list(uptime_df.index.values)
-        dev_energy_df = pd.DataFrame(dev_energy_dict)
-        dev_energy_df = dev_energy_df.set_index("Year")
-                        
-        dev_energy_df["Energy"] = dev_energy_df.sum(1)
-        dev_energy_series = dev_energy_df.sum()
-        dev_energy_df = dev_energy_df.reset_index()
-        
-        dev_energy_dict = {device_id: dev_energy_series[device_id] for
-                                                        device_id in dev_ids}
-        
-        array_energy_df = dev_energy_df[["Year", "Energy"]]
-        array_energy_df["Year"] = array_energy_df["Year"].replace(year_map)
-        array_energy_df = array_energy_df.set_index("Year")
-        
-        base_energy_dict = {"Year": year_map.values(),
-                            "Energy": [0] * len(year_map)}
-        base_energy_df = pd.DataFrame(base_energy_dict)
-        base_energy_df = base_energy_df.set_index("Year")
-        
-        base_energy_df.update(array_energy_df)
-        base_energy_df = base_energy_df.reset_index()
-                
-        base_energy_df["Year"] = base_energy_df["Year"].astype(int)
-        base_energy_df = base_energy_df.sort_values("Year")
-        
-        self.data.lifetime_energy = dev_energy_series["Energy"]
-        self.data.energy_per_device = dev_energy_dict
-        self.data.energy_per_year = base_energy_df
-        
         # Build events tables
-        all_strategies = outputWP6['eventTables [-]']
-        total_ops = 0
+        best_strategies = outputWP6['eventTables [-]'][lcoe_best_idx]
+        worst_strategies = outputWP6['eventTables [-]'][lcoe_worst_idx]
         
-        if all_strategies['CaBaMa_eventsTable'].isnull().values.all():
+        best_calendar_events_df = None
+        best_condition_events_df = None
+        best_corrective_events_df = None
+        worst_calendar_events_df = None
+        worst_condition_events_df = None
+        worst_corrective_events_df = None
+        
+        if not best_strategies['CaBaMa_eventsTable'].isnull().values.all():
             
-            calendar_events_df = None
+            raw_df = best_strategies['CaBaMa_eventsTable']
+            best_calendar_events_df = get_events_table(raw_df)
             
-        else:
+        if not best_strategies['CoBaMa_eventsTable'].isnull().values.all():
             
-            raw_df = all_strategies['CaBaMa_eventsTable']
-            calendar_events_df = get_events_table(raw_df)
-            total_ops += len(calendar_events_df)
-            
-        if all_strategies['CoBaMa_eventsTable'].isnull().values.all():
-            
-            condition_events_df = None
-            
-        else:
-            
-            raw_df = all_strategies['CoBaMa_eventsTable']
-            condition_events_df = get_events_table(raw_df)
-            total_ops += len(condition_events_df)
+            raw_df = best_strategies['CoBaMa_eventsTable']
+            best_condition_events_df = get_events_table(raw_df)
 
-        if all_strategies['UnCoMa_eventsTable'].isnull().values.all():
+        if not best_strategies['UnCoMa_eventsTable'].isnull().values.all():
             
-            corrective_events_df = None
+            raw_df = best_strategies['UnCoMa_eventsTable']
+            best_corrective_events_df = get_events_table(raw_df)
             
-        else:
+        if not worst_strategies['CaBaMa_eventsTable'].isnull().values.all():
             
-            raw_df = all_strategies['UnCoMa_eventsTable']
-            corrective_events_df = get_events_table(raw_df)    
-            total_ops += len(corrective_events_df)
-                
-        self.data.calendar_maintenance_events = calendar_events_df
-        self.data.condition_maintenance_events = condition_events_df
-        self.data.corrective_maintenance_events = corrective_events_df
-        self.data.journeys = total_ops
+            raw_df = worst_strategies['CaBaMa_eventsTable']
+            worst_calendar_events_df = get_events_table(raw_df)
+            
+        if not worst_strategies['CoBaMa_eventsTable'].isnull().values.all():
+            
+            raw_df = worst_strategies['CoBaMa_eventsTable']
+            worst_condition_events_df = get_events_table(raw_df)
+
+        if not worst_strategies['UnCoMa_eventsTable'].isnull().values.all():
+            
+            raw_df = worst_strategies['UnCoMa_eventsTable']
+            worst_corrective_events_df = get_events_table(raw_df)
+            
+        self.data.calendar_events_best = best_calendar_events_df
+        self.data.condition_events_best = best_condition_events_df
+        self.data.corrective_events_best = best_corrective_events_df
+        self.data.calendar_events_worst = worst_calendar_events_df
+        self.data.condition_events_worst = worst_condition_events_df
+        self.data.corrective_events_worst = worst_corrective_events_df
         
         return
