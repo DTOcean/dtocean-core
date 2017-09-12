@@ -548,11 +548,22 @@ class LineTable(TableData):
         self.data.result.plot(ax=fig.gca())
 
         xlabel = self.meta.result.labels[0]
+        ylabel = None
+        
+        if len(self.meta.result.labels) > 1:
+            ylabel = self.meta.result.labels[1]
 
         if self.meta.result.units is not None:
-            xlabel = "{} [${}$]".format(xlabel, self.meta.result.units[0])
+            
+            if self.meta.result.units[0] is not None:
+                xlabel = "{} [${}$]".format(xlabel, self.meta.result.units[0])
+                
+            if (len(self.meta.result.units) > 1 and 
+                self.meta.result.units[1] is not None):
+                ylabel = "{} [${}$]".format(ylabel, self.meta.result.units[1])
 
         plt.xlabel(xlabel)
+        if ylabel is not None: plt.ylabel(ylabel)
         
         plt.title(self.meta.result.title)
 
