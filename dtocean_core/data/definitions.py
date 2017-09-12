@@ -577,6 +577,24 @@ class LineTable(TableData):
         IndexTable.auto_file_output(self)
         
         return
+    
+    
+class LineTableExpand(LineTable):
+
+    '''Structure represented in a pandas dataframe with free variable data on
+    the index. The first label will identify which dictionary key to use as
+    the index. The input data keys/columns will be included in the final table.
+
+    Each column of the table then represents a line using identical abscissae
+    values.'''
+
+    def get_data(self, raw, meta_data):
+
+        dataframe = super(LineTableExpand, self).get_data(raw,
+                                                          meta_data,
+                                                          relax_cols=True)
+
+        return dataframe
 
 
 class LineTableColumn(LineTable):
