@@ -29,6 +29,7 @@ Note:
 .. moduleauthor:: Mathew Topper <mathew.topper@tecnalia.com>
 """
 
+import numpy as np
 import pandas as pd
 
 from dtocean_economics import main
@@ -38,6 +39,7 @@ from dtocean_economics.preprocessing import (estimate_cost_per_power,
                                              make_phase_bom)
 
 from . import ThemeInterface
+from ..utils.stats import EstimatedDistribution
 
 
 class EconomicInterface(ThemeInterface):
@@ -126,17 +128,40 @@ class EconomicInterface(ThemeInterface):
                         ]
         '''
         
-        output_list = ["project.lcoe",
-                       "project.capex_lcoe",
-                       "project.opex_lcoe",
-                       "project.cost_breakdown",
+        output_list = ["project.economics_metrics",
+                       "project.lcoe_mean",
+                       "project.lcoe_mode",
+                       "project.lcoe_interval_lower",
+                       "project.lcoe_interval_upper",
+                       "project.capex_lcoe_mean",
+                       "project.capex_lcoe_mode",
+                       "project.capex_lcoe_interval_lower",
+                       "project.capex_lcoe_interval_upper",
+                       "project.opex_lcoe_mean",
+                       "project.opex_lcoe_mode",
+                       "project.opex_lcoe_interval_lower",
+                       "project.opex_lcoe_interval_upper",
+                       "project.opex_mean",
+                       "project.opex_mode",
+                       "project.opex_interval_lower",
+                       "project.opex_interval_upper",
+                       "project.discounted_opex_mean",
+                       "project.discounted_opex_mode",
+                       "project.discounted_opex_interval_lower",
+                       "project.discounted_opex_interval_upper",
+                       "project.exported_energy_mean",
+                       "project.exported_energy_mode",
+                       "project.exported_energy_interval_lower",
+                       "project.exported_energy_interval_upper",
+                       "project.discounted_energy_mean",
+                       "project.discounted_energy_mode",
+                       "project.discounted_energy_interval_lower",
+                       "project.discounted_energy_interval_upper",
                        "project.capex_total",
                        "project.discounted_capex",
+                       "project.cost_breakdown",
                        "project.capex_breakdown",
-                       "project.opex_total",
-                       "project.discounted_opex",
-                       "project.discounted_energy"
-                       ]
+                       "project.lcoe_pdf"]
         
         return output_list
         
@@ -208,26 +233,22 @@ class EconomicInterface(ThemeInterface):
         
         '''
                   
-        id_map = {
-                  'device_cost': 'device.system_cost',
+        id_map = {'device_cost': 'device.system_cost',
                   "power_rating": "device.power_rating",
                   'annual_energy': 'project.annual_energy',
                   'n_devices': 'project.number_of_devices',
-                  "cost_breakdown": "project.cost_breakdown",
-                  'capex_breakdown': 'project.capex_breakdown',
-                  'LCOE_CAPEX': 'project.capex_lcoe',
-                  'capex_total': 'project.capex_total',
                   'discount_rate': 'project.discount_rate',
-                  'discounted_energy': 'project.discounted_energy',
-                  'LCOE': 'project.lcoe',
                   'electrical_bom': 'project.electrical_economics_data',
-                  'moorings_bom': "project.moorings_foundations_economics_data",
+                  'moorings_bom':
+                      "project.moorings_foundations_economics_data",
                   "installation_bom": "project.installation_economics_data",
-                  'discounted_capex': "project.discounted_capex",
-                  'discounted_opex': "project.discounted_opex",
-                  'LCOE_OPEX': "project.opex_lcoe",
-                  'opex_total': "project.opex_total",
+                  "capex_oandm": "project.capex_oandm",
+                  "opex_per_year": "project.opex_per_year",
+                  "energy_per_year": "project.energy_per_year",
+                  'network_efficiency':
+                      'project.electrical_network_efficiency',
                   "lifetime": 'project.lifetime',
+                  
                   "electrical_estimate": 'project.electrical_cost_estimate',
                   "moorings_estimate": 'project.moorings_cost_estimate',
                   "install_estimate": 'project.installation_cost_estimate',
@@ -236,11 +257,48 @@ class EconomicInterface(ThemeInterface):
                       'project.annual_repair_cost_estimate',
                   "annual_array_mttf_estimate":
                       'project.annual_array_mttf_estimate',
-                  'network_efficiency': 'project.electrical_network_efficiency',
-                  "opex_per_year": "project.opex_per_year",
-                  "energy_per_year": "project.energy_per_year",
-                  "capex_oandm": "project.capex_oandm",
-                  "estimate_energy_record": 'project.estimate_energy_record'
+                  "estimate_energy_record": 'project.estimate_energy_record',
+                  
+                  "economics_metrics": "project.economics_metrics",
+                  "lcoe_mean": "project.lcoe_mean",
+                  "lcoe_mode": "project.lcoe_mode",
+                  "lcoe_lower": "project.lcoe_interval_lower",
+                  "lcoe_upper": "project.lcoe_interval_upper",
+                  "capex_lcoe_mean": "project.capex_lcoe_mean",
+                  "capex_lcoe_mode": "project.capex_lcoe_mode",
+                  "capex_lcoe_lower": "project.capex_lcoe_interval_lower",
+                  "capex_lcoe_upper": "project.capex_lcoe_interval_upper",
+                  "opex_lcoe_mean": "project.opex_lcoe_mean",
+                  "opex_lcoe_mode": "project.opex_lcoe_mode",
+                  "opex_lcoe_lower": "project.opex_lcoe_interval_lower",
+                  "opex_lcoe_upper": "project.opex_lcoe_interval_upper",
+                  "opex_mean": "project.opex_mean",
+                  "opex_mode": "project.opex_mode",
+                  "opex_lower": "project.opex_interval_lower",
+                  "opex_upper": "project.opex_interval_upper",
+                  "discounted_opex_mean": "project.discounted_opex_mean",
+                  "discounted_opex_mode": "project.discounted_opex_mode",
+                  "discounted_opex_lower":
+                      "project.discounted_opex_interval_lower",
+                  "discounted_opex_upper":
+                      "project.discounted_opex_interval_upper",
+                  "exported_energy_mean": "project.exported_energy_mean",
+                  "exported_energy_mode": "project.exported_energy_mode",
+                  "exported_energy_lower":
+                      "project.exported_energy_interval_lower",
+                  "exported_energy_upper":
+                      "project.exported_energy_interval_upper",
+                  "discounted_energy_mean": "project.discounted_energy_mean",
+                  "discounted_energy_mode": "project.discounted_energy_mode",
+                  "discounted_energy_lower":
+                      "project.discounted_energy_interval_lower",
+                  "discounted_energy_upper":
+                      "project.discounted_energy_interval_upper",
+                  "capex_total": "project.capex_total",
+                  "discounted_capex": "project.discounted_capex",
+                  "cost_breakdown": "project.cost_breakdown",
+                  'capex_breakdown': "project.capex_breakdown",
+                  "lcoe_pdf": "project.lcoe_pdf"
                   }
                   
         return id_map
@@ -266,8 +324,8 @@ class EconomicInterface(ThemeInterface):
         installation_bom = pd.DataFrame(columns=bom_cols)
         capex_oandm_bom = pd.DataFrame(columns=bom_cols)
         
-        opex_bom = pd.DataFrame(columns=bom_cols)
-        energy_record = pd.DataFrame(columns=["energy", 'project_year'])
+        opex_bom = pd.DataFrame()
+        energy_record = pd.DataFrame()
         
         # Shortcut for total power
         total_rated_power = None
@@ -372,16 +430,9 @@ class EconomicInterface(ThemeInterface):
             
         if self.data.opex_per_year is not None:
             
-            n_years = len(self.data.opex_per_year)
-            costs = self.data.opex_per_year["Cost"].values
-            years = self.data.opex_per_year.index.values
-            
-            opex_cost_raw = {'unitary_cost': costs,
-                             'quantity': [1.] * n_years,
-                             'project_year': years}
-                             
-            opex_bom = pd.DataFrame(opex_cost_raw)
-            opex_bom["phase"] = "Maintenance"
+            opex_bom = self.data.opex_per_year.copy()
+            opex_bom.index.name = 'project_year'
+            opex_bom = opex_bom.reset_index()
             
         elif (self.data.lifetime is not None and
               ((total_rated_power is not None and 
@@ -402,15 +453,12 @@ class EconomicInterface(ThemeInterface):
             net_coeff = 1e3
         
         if self.data.energy_per_year is not None:
-            
-            energy_kws = self.data.energy_per_year["Energy"].values * \
-                                                                    net_coeff
-            years = self.data.energy_per_year.index.values
-            
-            energy_raw = {'project_year': years,
-                          'energy': energy_kws}
-            energy_record = pd.DataFrame(energy_raw)
-            
+
+            energy_record = self.data.energy_per_year.copy()
+            energy_record = energy_record * net_coeff
+            energy_record.index.name = 'project_year'
+            energy_record = energy_record.reset_index()
+                        
         elif (self.data.estimate_energy_record and 
               self.data.lifetime is not None and
               self.data.annual_energy is not None):
@@ -424,26 +472,125 @@ class EconomicInterface(ThemeInterface):
         result = main(capex_bom,
                       opex_bom,
                       energy_record,
-                      self.data.discount_rate)
+                      self.data.discount_rate)        
 
         # CAPEX
         self.data.capex_total = result["CAPEX"]
         self.data.discounted_capex = result["Discounted CAPEX"]
         self.data.capex_breakdown = result["CAPEX breakdown"]
+        
+        # Build metrics table if possible
+        n_rows = None
+        
+        if not opex_bom.empty:
+            n_rows = len(opex_bom.columns) - 1
+        elif not energy_record.empty:
+            n_rows = len(energy_record.columns) - 1
+        else:
+            return
+                    
+        table_cols = ["LCOE",
+                      "LCOE CAPEX",
+                      "LCOE OPEX",
+                      "OPEX",
+                      "Discounted OPEX",
+                      "Energy",
+                      "Discounted Energy"]
             
-        # OPEX
-        self.data.opex_total = result["OPEX"]
-        self.data.discounted_opex = result["Discounted OPEX"]
+        metrics_dict = {}
+            
+        for col_name in table_cols:
+                        
+            if result[col_name] is not None:
+                values = result[col_name].values
+                if "Energy" in col_name: values /= 1e3
+            else:
+                values = [None] * n_rows
+            
+            metrics_dict[col_name] = values
+
+        metrics_table = pd.DataFrame(metrics_dict)
+        
+        self.data.economics_metrics = metrics_table
+        
+        # Do stats on the metrics
+        args_table = {"LCOE": "lcoe",
+                      "LCOE CAPEX": "capex_lcoe",
+                      "LCOE OPEX": "opex_lcoe",
+                      "OPEX": "opex",
+                      "Discounted OPEX": "discounted_opex",
+                      "Energy": "exported_energy",
+                      "Discounted Energy": "discounted_energy"}
+        
+        for key, arg_root in args_table.iteritems():
+                        
+            if metrics_table[key].isnull().any(): continue
+        
+            data = metrics_table[key].values
+            
+            mean = None
+            mode = None
+            lower = None
+            upper = None
+            
+            # Catch one or two data points
+            if len(data) == 1:
+                
+                mean = data[0]
+                mode = data[0]
+                
+            elif len(data) == 2:
+                
+                mean = data.mean()
+                
+            else:
+            
+                distribution = EstimatedDistribution(data)
+                mean = distribution.mean()
+                mode = distribution.mode()
+                
+                intervals = distribution.confidence_interval(95)
+                lower = intervals[0]
+                upper = intervals[1]
+            
+            arg_mean = "{}_mean".format(arg_root)
+            arg_mode = "{}_mode".format(arg_root)
+            arg_lower = "{}_lower".format(arg_root)
+            arg_upper = "{}_upper".format(arg_root)
+            
+            self.data[arg_mean] = mean
+            self.data[arg_mode] = mode                        
+            self.data[arg_lower] = lower
+            self.data[arg_upper] = upper
             
         # CAPEX vs OPEX Breakdown
-        self.data.cost_breakdown = result["Total cost breakdown"]
-                              
-        # Energy
-        self.data.discounted_energy = result["Discounted Energy"]
+        if self.data.opex_mode is not None:
         
-        # LCOE
-        self.data.LCOE_CAPEX = result["LCOE CAPEX"]
-        self.data.LCOE_OPEX = result["LCOE OPEX"]
-        self.data.LCOE = result["LCOE"]
+            breakdown = {"CAPEX": result["CAPEX"],
+                         "OPEX": self.data.opex_mode}
+            
+            self.data.cost_breakdown = breakdown
+
+        # LCOE distribution
+        if (metrics_table["LCOE"].isnull().any() or
+            len(metrics_table["LCOE"])) < 3: return
+        
+        data = metrics_table["LCOE"].values
+        distribution = EstimatedDistribution(data)
+        
+        dist_min = data.min()
+        dist_max = data.max()
+        dist_stop = (dist_max - dist_min) / 2.
+        
+        while (distribution.pdf(dist_min)[0] > 1e-3 and
+               dist_min > data.min() - dist_stop): dist_min -= 0.01
+            
+        while (distribution.pdf(dist_max)[0] > 1e-3 and
+               dist_max < data.max() + dist_stop): dist_max += 0.01
+        
+        x = np.linspace(dist_min, dist_max, 500)
+        probabilities = distribution.pdf(x)
+        
+        self.data.lcoe_pdf = np.array((x, probabilities)).T
 
         return
