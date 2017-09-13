@@ -31,13 +31,17 @@ class EstimatedDistribution(object):
             
         return self._cdf(values)
     
-    def ppf(self, probabilities, x0=0.):
+    def ppf(self, probabilities, x0=None):
         
         if self._ppf is None or self._x0 != x0:
             self._ppf = self._calc_ppf(x0)
             self._x0 = x0
             
-        return self._ppf(probabilities)
+        result = self._ppf(probabilities)
+        
+        if np.isnan(result).any(): result = None
+
+        return result
 
     def mean(self):
         
@@ -54,17 +58,20 @@ class EstimatedDistribution(object):
         
         return most_likely
     
-    def confidence_interval(self, percent, x0=0.):
+    def confidence_interval(self, percent, x0=None):
         
-        if self._ppf is None or self._x0 != x0:
+        if self._ppf is None:
             self._ppf = self._calc_ppf(x0)
-            self._x0 = x0
             
         x = percent / 100.
         bottom = (1 - x) / 2
         top = (1 + x) / 2
         
-        return self._ppf([bottom, top])
+        result = self._ppf([bottom, top])
+        
+        if np.isnan(result).any(): result = None
+        
+        return result
         
     def _calc_cdf(self):
         
@@ -75,15 +82,30 @@ class EstimatedDistribution(object):
         
         return kde_cdf
     
-    def _calc_ppf(self, x0=0.):
+    def _calc_ppf(self, x0=None):
         
         if self._cdf is None:
             self._cdf = self._calc_cdf()
         
         def _kde_ppf(q):
-            return optimize.fsolve(lambda x, q: self._cdf(x) - q,
-                                   x0,
-                                   args=(q,))[0]
+            
+            x0_list = [self.mean(),
+                       0.,
+                       self._kde.dataset.min(),
+                       self._kde.dataset.max()]
+            
+            if x0 is not None: x0_list = [x0] + x0_list
+            
+            for x0_local in x0_list:
+            
+                result = optimize.fsolve(lambda x, q: self._cdf(x) - q,
+                                         x0_local,
+                                         args=(q,),
+                                         full_output=True)
+                
+                if result[2] == 1: return result[0]
+                            
+            return np.nan
                            
         kde_ppf = np.vectorize(_kde_ppf)
         
