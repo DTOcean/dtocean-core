@@ -87,14 +87,14 @@ def test_ppf_x0(gaussian):
     probs = np.linspace(0.01, 0.99, 200)
     estimated = gaussian.ppf(probs)
 
-    assert estimated
+    assert estimated.all()
 
     
 def test_interval_x0(gaussian):
     
     estimated = gaussian.confidence_interval(90)
     
-    assert estimated
+    assert estimated.all()
     
     
 def test_ppf_fresh(gaussian_fresh):
