@@ -1618,21 +1618,42 @@ class MaintenanceInterface(ModuleInterface):
         
         for key, arg_root in args_table.iteritems():
             
-            data = metrics_table[key]
-            distribution = EstimatedDistribution(data)
+            data = metrics_table[key].values
+            
+            mean = None
+            mode = None
+            lower = None
+            upper = None
+            
+            # Catch one or two data points
+            if len(data) == 1:
+                
+                mean = data[0]
+                mode = data[0]
+                
+            elif len(data) == 2:
+                
+                mean = data.mean()
+                
+            else:
+            
+                distribution = EstimatedDistribution(data)
+                mean = distribution.mean()
+                mode = distribution.mode()
+                
+                intervals = distribution.confidence_interval(95)
+                lower = intervals[0]
+                upper = intervals[1]
             
             arg_mean = "{}_mean".format(arg_root)
             arg_mode = "{}_mode".format(arg_root)
             arg_lower = "{}_lower".format(arg_root)
             arg_upper = "{}_upper".format(arg_root)
             
-            self.data[arg_mean] = distribution.mean()
-            self.data[arg_mode] = distribution.mode()
-            
-            intervals = distribution.confidence_interval(95, data.mean())
-                        
-            self.data[arg_lower] = intervals[0]
-            self.data[arg_upper] = intervals[1]
+            self.data[arg_mean] = mean
+            self.data[arg_mode] = mode                        
+            self.data[arg_lower] = lower
+            self.data[arg_upper] = upper
         
         # Store the per-year tables
         opex_table = outputWP6["OpexPerYear [Euro]"]
