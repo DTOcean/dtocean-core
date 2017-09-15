@@ -14,6 +14,7 @@ dtocean-environment >=1.0
 geoalchemy2
 matplotlib
 monotonic
+natsort
 netcdf4
 numpy
 openpyxl
