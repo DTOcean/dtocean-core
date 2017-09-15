@@ -27,6 +27,7 @@ import yaml
 import numpy as np
 import pandas as pd
 import xarray as xr
+from natsort import natsorted
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
@@ -334,7 +335,7 @@ class TableData(Structure):
         
         # Order the columns
         if relax_cols:
-            dataframe = dataframe.sort_index(axis=1)
+            dataframe = dataframe[natsorted(dataframe.columns)]
         else:
             dataframe = dataframe[req_cols]
 
