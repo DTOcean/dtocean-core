@@ -144,6 +144,7 @@ class ReliabilityInterface(ThemeInterface):
         '''
         
         output_list = ["project.mttf",
+                       "project.mttf_test",
                        "project.rsystime",
                        "project.export_cable_reliability",                        
                        "project.substation_reliability",
@@ -277,6 +278,7 @@ class ReliabilityInterface(ThemeInterface):
                   "moorings_swivel_CFR": "component.moorings_swivel_CFR",
                   
                   "mttf": "project.mttf",
+                  "mttf_test": "project.mttf_test",
                   "rsystime": "project.rsystime",
                   "export_cable_reliability":
                       "project.export_cable_reliability" ,
@@ -365,7 +367,9 @@ class ReliabilityInterface(ThemeInterface):
         year_hours = 24. * 365.25
             
         mttf, self.data.rsystime = main()
+        
         self.data.mttf = mttf / year_hours
+        self.data.mttf_test = main.mttfpass
         
         if self.data.network_configuration_user == "Radial":
             network_configuration = "radial"
