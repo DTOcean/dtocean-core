@@ -544,14 +544,20 @@ class EconomicInterface(ThemeInterface):
                 mean = data.mean()
                 
             else:
-            
-                distribution = EstimatedDistribution(data)
-                mean = distribution.mean()
-                mode = distribution.mode()
                 
-                intervals = distribution.confidence_interval(95)
-                lower = intervals[0]
-                upper = intervals[1]
+                try:
+            
+                    distribution = EstimatedDistribution(data)
+                    mean = distribution.mean()
+                    mode = distribution.mode()
+                    
+                    intervals = distribution.confidence_interval(95)
+                    lower = intervals[0]
+                    upper = intervals[1]
+                    
+                except np.linalg.LinAlgError:
+                    
+                    mean = data.mean()
             
             arg_mean = "{}_mean".format(arg_root)
             arg_mode = "{}_mode".format(arg_root)
@@ -576,7 +582,11 @@ class EconomicInterface(ThemeInterface):
             len(metrics_table["LCOE"])) < 3: return
         
         data = metrics_table["LCOE"].values
-        distribution = EstimatedDistribution(data)
+        
+        try:
+            distribution = EstimatedDistribution(data)
+        except np.linalg.LinAlgError:
+            return
         
         dist_min = data.min()
         dist_max = data.max()
