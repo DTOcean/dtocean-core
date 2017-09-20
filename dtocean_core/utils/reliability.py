@@ -16,8 +16,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from collections import OrderedDict
+
 import pandas as pd
-    
+
+
 def get_component_dict(component_type,
                        data_table_cfr,
                        data_table_ncfr,
@@ -385,3 +388,177 @@ def compdict_from_mock(xls_file,
         
     return compdict
 
+
+def read_RAM(mttf_network,
+             failure_rate_network,
+             electrical_layout=None):
+
+    '''read_RAM function: Read the reliability from RAM and return a pandas
+    dataframe.
+    '''
+    
+    # Get MTTF results
+    mttf_dict = get_reliability_dict(mttf_network,
+                                     electrical_layout)
+    mttf_dict["MTTF [hours]"] = mttf_dict.pop("reliability metric")
+    
+    mttf_df = pd.DataFrame(mttf_dict)
+    
+    # Get failure rate results
+    fr_dict = get_reliability_dict(failure_rate_network,
+                                   electrical_layout)
+    
+    fr_hours = fr_dict.pop("reliability metric")
+    fr_dict["failure rate [1/10^6 hours]"] = [rate * 1e6 for rate in fr_hours]
+
+    fr_df = pd.DataFrame(fr_dict)
+
+    # Merge the two frames
+    ram_df = pd.merge(mttf_df,
+                      fr_df,
+                      how='left',
+                      on=["system id [-]", "subsystem id [-]"])
+
+    return ram_df
+
+
+def get_reliability_dict(reliability_network,
+                         electrical_layout=None):
+    
+    """Borrows code / ideas from the dtocean-maintenance module, originally
+    authored by Bahram Panahandeh <bahram.panahandeh@iwes.fraunhofer.de>"""
+    
+    if electrical_layout is None: electrical_layout = 'radial'
+    
+    system_ids = []
+    subsystem_ids = []
+    reliability_metric = []
+
+    # read the failure rates from reliability_network
+    for system_group in reliability_network:
+        
+        if (system_group[0] not in ["PAR", "SER"] and
+            system_group[0][1] in ['Substation', 'Export Cable'] and
+            'array' in system_group[0][2]):
+
+            reliability_metric.append(system_group[0][-1])
+            system_ids.append("-")
+            subsystem_ids.append(system_group[0][1])
+
+            continue
+
+        if (electrical_layout == 'radial' or
+            electrical_layout == 'singlesidedstring' or
+            electrical_layout == 'doublesidedstring'):
+
+            # Groups of devices
+            for device_group in system_group:
+                
+                flagMFSubSystem = False
+
+                # Number of subsystems
+                for subsystem in device_group:
+                    
+                    device_name = subsystem[2]
+                    
+                    if not 'device' in device_name:
+        
+                        msgStr = ("Device number not detected in subsystem "
+                                  "data. Found '{}'").format(device_name)
+                        raise RuntimeError(msgStr)
+
+                    subsystem_name = subsystem[1]
+
+                    # E-Mail of Sam
+                    # The first one is for the mooring/Foundation
+                    # (mooring line/anchor)
+                    if ('M&F sub-system' in subsystem_name and
+                        not flagMFSubSystem):
+
+                        subsystem_name += ' mooring foundation'
+                        flagMFSubSystem = True
+
+                    #  The second one is for the the umbilical
+                    # cable
+                    elif ('M&F sub-system' in subsystem_name and
+                          flagMFSubSystem):
+
+                        subsystem_name += ' dynamic cable'
+
+                    system_ids.append(device_name)
+                    subsystem_ids.append(subsystem_name)
+
+                    # In case of 'singlesidedstring' or
+                    # 'doublesidedstring' failure rate is a list
+                    subsystem_fr = subsystem[-1]
+
+                    if (type(subsystem_fr) == list and
+                        'Array elec sub-system' in subsystem_name):
+                        reliability_metric.append(subsystem_fr[1])
+                    else:
+                        reliability_metric.append(subsystem_fr)
+
+        elif electrical_layout == 'multiplehubs':
+
+            if not 'subhub' in system_group[1][0][0][2]:
+
+                msgStr = ("Subhub not detected in system hierarchy. Found "
+                          "'{}'").format(system_group[1][0][0][2])
+                raise RuntimeError(msgStr)
+            
+            # loop over subhubs
+            for hub_group in system_group[1]:  
+
+                if ('Substation' in hub_group[0][1] or
+                    'Elec sub-system' in hub_group[0][1]):
+
+                    reliability_metric.append(hub_group[0][-1])
+                    subsystem_ids.append(hub_group[0][1])
+                    system_ids.append(hub_group[0][2])
+                    
+                    continue
+
+                # device_group
+                for device_group in hub_group:
+
+                    flagMFSubSystem = False
+                    
+                    # Number of subsystems
+                    for subsystem in device_group:
+
+                        device_name = subsystem[2]
+                        
+                        if not 'device' in device_name:
+            
+                            msgStr = ("Device number not detected in "
+                                      "subsystem data. Found '{}'").format(
+                                                                  device_name)
+                            raise RuntimeError(msgStr)
+    
+                        subsystem_name = subsystem[1]
+                        
+                        # E-Mail of Sam
+                        # The first one is for the mooring/Foundation
+                        # (mooring line/anchor)
+                        if ('M&F sub-system' in subsystem_name and
+                            not flagMFSubSystem):
+    
+                            subsystem_name += ' mooring foundation'
+                            flagMFSubSystem = True
+    
+                        #  The second one is for the the umbilical
+                        # cable
+                        elif ('M&F sub-system' in subsystem_name and
+                              flagMFSubSystem):
+
+                            subsystem_name += ' dynamic cable'
+
+                        subsystem_ids.append(subsystem_name)
+                        system_ids.append(device_name)
+                        reliability_metric.append(subsystem[-1])
+
+    ram_dict = OrderedDict([("system id [-]", system_ids),
+                            ("subsystem id [-]", subsystem_ids),
+                            ("reliability metric", reliability_metric)])
+    
+    return ram_dict
