@@ -172,8 +172,12 @@ def get_input_tables(system_type,
             
         all_subsystems.extend(mandf_subsystems)
     
-    array_subsystems = ['Substations',
-                        'Export Cable']
+    standalone_subsystems = ['Prime Mover',
+                             'PTO',
+                             'Control',
+                             'Support Structure',
+                             'Substations',
+                             'Export Cable']
                        
     subsystems_map = {'Prime Mover': 'Hydrodynamic',
                       'PTO': 'Pto',
@@ -284,7 +288,8 @@ def get_input_tables(system_type,
                                59,
                                59)
         
-        if end_date < maintenance_start:
+        if (end_date < maintenance_start or
+            end_date < start_date):
 
             last_day = calendar.monthrange(next_year,
                                            end_month_int)[1]
@@ -417,7 +422,7 @@ def get_input_tables(system_type,
             monitering_cost = subsystem_monitering_costs[subsystem]
 
         # Costs can be divided per device
-        if subsystem not in array_subsystems:
+        if subsystem not in standalone_subsystems:
             
             n_devices = len(array_layout)
             base_cost /= n_devices
