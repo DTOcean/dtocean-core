@@ -39,7 +39,7 @@ from polite.configuration import ReadINI
 from dtocean_reliability.main import Variables, Main
 
 from . import ThemeInterface
-from ..utils.reliability import get_component_dict
+from ..utils.reliability import get_component_dict, read_RAM
 
 # Set up logging
 module_logger = logging.getLogger(__name__)
@@ -145,20 +145,12 @@ class ReliabilityInterface(ThemeInterface):
         
         output_list = ["project.mttf",
                        "project.rsystime",
-                       "project.rarrayvalue2",
-
-                       "project.export_cable_reliability" ,
-                        "project.export_cable_mttf" ,
-                        
-                        "project.substation_reliability" ,
-                        "project.substation_mttf" ,
-                        
-                        "project.elec_subsystem_reliability" ,
-                        "project.elec_subsystem_mttf" ,
-                        
-                        "project.moor_found_reliability" ,
-                        "project.moor_found_mttf"
-                       ]
+                       "project.export_cable_reliability",                        
+                       "project.substation_reliability",
+                       "project.hub_reliability",
+                       "project.interarray_cable_reliability",
+                       "project.umbilical_cable_reliability",
+                       "project.moorings_reliability"]
         
         return output_list
         
@@ -241,50 +233,60 @@ class ReliabilityInterface(ThemeInterface):
         
         '''
                   
-        id_map = {
-                    "device_type_user" : "device.system_type" ,
-                    "network_configuration_user" : "project.network_configuration",
-                    "mission_time" : "project.lifetime",
-                    "expected_mttf_percent" : "project.mttfreq",
-                    "moor_found_network" : "project.moorings_foundations_network",
-                    "electrical_network" : "project.electrical_network",
-                    "mttf" : "project.mttf",
-                    "rsystime" : "project.rsystime",
-                    "rarrayvalue2" : "project.rarrayvalue2",
-                    "export_cable_reliability" : "project.export_cable_reliability" ,
-                    "export_cable_mttf" : "project.export_cable_mttf" ,
-                    "substation_reliability" : "project.substation_reliability" ,
-                    "substation_mttf" : "project.substation_mttf" ,
-                    "elec_subsystem_reliability" : "project.elec_subsystem_reliability" ,
-                    "elec_subsystem_mttf" : "project.elec_subsystem_mttf" ,
-                    "moor_found_reliability" : "project.moor_found_reliability" ,
-                    "moor_found_mttf" : "project.moor_found_mttf" ,
-                    "collection_points_NCFR" : "component.collection_points_NCFR",
-                    "dry_mate_connectors_NCFR" : "component.dry_mate_connectors_NCFR",
-                    "dynamic_cable_NCFR" : "component.dynamic_cable_NCFR",
-                    "static_cable_NCFR" : "component.static_cable_NCFR",
-                    "transformers_NCFR" : "component.transformers_NCFR",
-                    "wet_mate_connectors_NCFR" : "component.wet_mate_connectors_NCFR",
-                    "collection_points_CFR" : "component.collection_points_CFR",
-                    "dry_mate_connectors_CFR" : "component.dry_mate_connectors_CFR",
-                    "dynamic_cable_CFR" : "component.dynamic_cable_CFR",
-                    "static_cable_CFR" : "component.static_cable_CFR",
-                    "transformers_CFR" : "component.transformers_CFR",
-                    "wet_mate_connectors_CFR" : "component.wet_mate_connectors_CFR",
-                    "moorings_chain_NCFR" : "component.moorings_chain_NCFR",
-                    "foundations_anchor_NCFR" : "component.foundations_anchor_NCFR",
-                    "moorings_forerunner_NCFR" : "component.moorings_forerunner_NCFR",
-                    "foundations_pile_NCFR" : "component.foundations_pile_NCFR",
-                    "moorings_rope_NCFR" : "component.moorings_rope_NCFR",
-                    "moorings_shackle_NCFR" : "component.moorings_shackle_NCFR",
-                    "moorings_swivel_NCFR" : "component.moorings_swivel_NCFR",
-                    "moorings_chain_CFR" : "component.moorings_chain_CFR",
-                    "foundations_anchor_CFR" : "component.foundations_anchor_CFR",
-                    "moorings_forerunner_CFR" : "component.moorings_forerunner_CFR",
-                    "foundations_pile_CFR" : "component.foundations_pile_CFR",
-                    "moorings_rope_CFR" : "component.moorings_rope_CFR",
-                    "moorings_shackle_CFR" : "component.moorings_shackle_CFR",
-                    "moorings_swivel_CFR" : "component.moorings_swivel_CFR"
+        id_map = {"device_type_user": "device.system_type" ,
+                  "network_configuration_user":
+                      "project.network_configuration",
+                  "mission_time": "project.lifetime",
+                  "expected_mttf": "project.mttfreq",
+                  "moor_found_network":
+                      "project.moorings_foundations_network",
+                  "electrical_network": "project.electrical_network",
+                  "collection_points_NCFR":
+                      "component.collection_points_NCFR",
+                  "dry_mate_connectors_NCFR":
+                      "component.dry_mate_connectors_NCFR",
+                  "dynamic_cable_NCFR": "component.dynamic_cable_NCFR",
+                  "static_cable_NCFR": "component.static_cable_NCFR",
+                  "transformers_NCFR": "component.transformers_NCFR",
+                  "wet_mate_connectors_NCFR":
+                      "component.wet_mate_connectors_NCFR",
+                  "collection_points_CFR": "component.collection_points_CFR",
+                  "dry_mate_connectors_CFR":
+                      "component.dry_mate_connectors_CFR",
+                  "dynamic_cable_CFR": "component.dynamic_cable_CFR",
+                  "static_cable_CFR": "component.static_cable_CFR",
+                  "transformers_CFR": "component.transformers_CFR",
+                  "wet_mate_connectors_CFR":
+                      "component.wet_mate_connectors_CFR",
+                  "moorings_chain_NCFR": "component.moorings_chain_NCFR",
+                  "foundations_anchor_NCFR":
+                      "component.foundations_anchor_NCFR",
+                  "moorings_forerunner_NCFR":
+                      "component.moorings_forerunner_NCFR",
+                  "foundations_pile_NCFR": "component.foundations_pile_NCFR",
+                  "moorings_rope_NCFR": "component.moorings_rope_NCFR",
+                  "moorings_shackle_NCFR": "component.moorings_shackle_NCFR",
+                  "moorings_swivel_NCFR": "component.moorings_swivel_NCFR",
+                  "moorings_chain_CFR": "component.moorings_chain_CFR",
+                  "foundations_anchor_CFR": "component.foundations_anchor_CFR",
+                  "moorings_forerunner_CFR":
+                      "component.moorings_forerunner_CFR",
+                  "foundations_pile_CFR": "component.foundations_pile_CFR",
+                  "moorings_rope_CFR": "component.moorings_rope_CFR",
+                  "moorings_shackle_CFR": "component.moorings_shackle_CFR",
+                  "moorings_swivel_CFR": "component.moorings_swivel_CFR",
+                  
+                  "mttf": "project.mttf",
+                  "rsystime": "project.rsystime",
+                  "export_cable_reliability":
+                      "project.export_cable_reliability" ,
+                  "substation_reliability": "project.substation_reliability" ,
+                  "hub_reliability": "project.hub_reliability",
+                  "inter_cable_reliability":
+                      "project.interarray_cable_reliability",
+                  "umbilical_cable_reliability":
+                      "project.umbilical_cable_reliability",
+                  "moorings_reliability": "project.moorings_reliability"
                   }
                   
         return id_map
@@ -302,10 +304,10 @@ class ReliabilityInterface(ThemeInterface):
         
         '''
         
-        system_type_map = {"Tidal Floating" : "tidefloat",
-                           "Tidal Fixed" : "tidefixed",
-                           "Wave Floating" : "wavefloat",
-                           "Wave Fixed" : "wavefixed"
+        system_type_map = {"Tidal Floating": "tidefloat",
+                           "Tidal Fixed": "tidefixed",
+                           "Wave Floating": "wavefloat",
+                           "Wave Fixed": "wavefixed"
                            }
         system_type = system_type_map[self.data.device_type_user]
 
@@ -316,10 +318,10 @@ class ReliabilityInterface(ThemeInterface):
         
         mission_time_hours = self.data.mission_time * 365. * 24. 
                 
-        if self.data.expected_mttf_percent is None:
-            mttfreq_hours = mission_time_hours
+        if self.data.expected_mttf is None:
+            mttfreq_hours = None
         else:
-            mttfreq_hours = self.data.expected_mttf_percent * 365. * 24.
+            mttfreq_hours = self.data.expected_mttf * 365. * 24.
         
         input_dict["system_type"] = system_type
         input_dict["mission_time_hours"] = mission_time_hours
@@ -347,9 +349,9 @@ class ReliabilityInterface(ThemeInterface):
             pickle.dump(input_dict, open(pkl_path, "wb"))
                         
         input_variables = Variables(input_dict["mission_time_hours"], # mission time in hours
-                                    input_dict["mttfreq_hours"], # target mean time to failure in hours
                                     input_dict["system_type"], # user-defined bill of materials
                                     input_dict["compdict"], #Options: 'tidefloat', 'tidefixed', 'wavefloat', 'wavefixed'
+                                    input_dict["mttfreq_hours"], # target mean time to failure in hours
                                     input_dict["network_configuration"], #Options: 'radial', 'singlesidedstring', 'doublesidedstring', 'multiplehubs' 
                                     input_dict["electrical_network_hier"], # electrical system hierarchy
                                     input_dict["electrical_network_bom"], # database
@@ -359,92 +361,105 @@ class ReliabilityInterface(ThemeInterface):
         main = Main(input_variables)    
                        
         if debug_entry: return
+        
+        year_hours = 24. * 365.25
             
-        self.data.mttf, self.data.rsystime = main()
-    
-        self.data.rarrayvalue2 = main.rarrayvalue2[1]  
+        mttf, self.data.rsystime = main()
+        self.data.mttf = mttf / year_hours
         
-        export_cable_reliability = {}
-        export_cable_mttf = {}
+        if self.data.network_configuration_user == "Radial":
+            network_configuration = "radial"
+        elif self.data.network_configuration_user == "Star":
+            network_configuration = "multiplehubs"
+            
+        ram_df = read_RAM(main.rsubsysvalues2,
+                          main.rsubsysvalues3,
+                          network_configuration)
         
-        substation_reliability = {}
-        substation_mttf = {}
+        metrics_map = {"system id [-]": "System ID",
+                       "failure rate [1/10^6 hours]": "Failure Rate",
+                       "MTTF [hours]": "MTTF"}
+                        
+        if self.data.electrical_network is not None:
         
-        elec_subsystem_reliability = {}
-        elec_subsystem_mttf = {}
-        
-        moor_found_reliability = {}
-        moor_found_mttf = {} 
-        
-        for value in main.rsubsysvalues2:
-            for j,value2 in enumerate(value):
-                if isinstance(value2,list):
-                    for value3 in value2:
-                        if value3[1]=="Substation":
-                            substation_reliability["Substation "] = value3[3]
-                        if value3[1]=="Export Cable":
-                            export_cable_reliability["Export Cable "] = value3[3]
-                        if value3[1]=="Array elec sub-system":
-                            elec_subsystem_reliability[value3[2]] = value3[3]
-                        if value3[1]=="M&F sub-system":
-                            moor_found_reliability[value3[2]] = value3[3]
-                else:
-                    if value2[1]=="Substation":
-                        substation_reliability["Substation "+str(j+1)] = value2[3]
-                    if value2[1]=="Export Cable":
-                        export_cable_reliability["Export Cable "+str(j+1)] = value2[3]
-                    if value2[1]=="Array elec sub-system":
-                        elec_subsystem_reliability[value2[2]] = value2[3]
-                    if value2[1]=="M&F sub-system":
-                        moor_found_reliability[value2[2]] = value2[3]
-                    
-        for value in main.mttfsubsys:
-            for j,value2 in enumerate(value):
-                if isinstance(value2,list):
-                    for value3 in value2:
-                        if value3[1]=="Substation":
-                            substation_mttf['Substation{:0>3}'.format(j+1)] = value3[3]
-                        if value3[1]=="Export Cable":
-                            export_cable_mttf['Export cable{:0>3}'.format(j+1)] = value3[3]
-                        if value3[1]=="Array elec sub-system":
-                            elec_subsystem_mttf[value3[2]] = value3[3]
-                        if value3[1]=="M&F sub-system":
-                            moor_found_mttf[value3[2]] = value3[3]
-                else:
-                    if value2[1]=="Substation":
-                        substation_mttf['Substation{:0>3}'.format(j+1)] = value2[3]
-                    if value2[1]=="Export Cable":
-                        export_cable_mttf['Export cable{:0>3}'.format(j+1)] = value2[3]
-                    if value2[1]=="Array elec sub-system":
-                        elec_subsystem_mttf[value2[2]] = value2[3]
-                    if value2[1]=="M&F sub-system":
-                        moor_found_mttf[value2[2]] = value2[3]       
-                    
-        if export_cable_reliability:
-             self.data.export_cable_reliability = export_cable_reliability
-             
-        if export_cable_mttf:
-             self.data.export_cable_mttf = export_cable_mttf            
-        
-        if substation_reliability:
-             self.data.substation_reliability = substation_reliability
-             
-        if substation_mttf:
-             self.data.substation_mttf = substation_mttf  
-        
-        if elec_subsystem_reliability:
-             self.data.elec_subsystem_reliability = elec_subsystem_reliability
-             
-        if elec_subsystem_mttf:
-             self.data.elec_subsystem_mttf = elec_subsystem_mttf 
-             
-        if moor_found_reliability:
-             self.data.moor_found_reliability = moor_found_reliability
-             
-        if moor_found_mttf:
-             self.data.moor_found_mttf = moor_found_mttf 
+            metrics = ram_df[(ram_df["system id [-]"] == "-") &
+                             (ram_df["subsystem id [-]"] == "Substation")]
+            failure_rate = metrics["failure rate [1/10^6 hours]"].iloc[0]
+            mttf = metrics["MTTF [hours]"].iloc[0] / year_hours
+            
+            self.data.substation_reliability = {"Failure Rate": [failure_rate],
+                                                "MTTF": [mttf]}
+            
+            metrics = ram_df[(ram_df["system id [-]"] == "-") &
+                             (ram_df["subsystem id [-]"] == "Export Cable")]
+            
+            failure_rate = metrics["failure rate [1/10^6 hours]"].iloc[0]
+            mttf = metrics["MTTF [hours]"].iloc[0] / year_hours
+            
+            self.data.export_cable_reliability = {
+                                                "Failure Rate": [failure_rate],
+                                                "MTTF": [mttf]}
+            
+            metrics = ram_df[(ram_df["system id [-]"].str.contains("subhub")) &
+                             (ram_df["subsystem id [-]"] == "Substation")]
+            
+            if not metrics.empty:
+
+                metrics_df = metrics[["system id [-]",
+                                      "failure rate [1/10^6 hours]",
+                                      "MTTF [hours]" ]]
+                metrics_df.loc[:, "MTTF [hours]"] /= year_hours
+                
+                metrics_df = metrics_df.rename(columns=metrics_map)
+                
+                self.data.hub_reliability = metrics_df
+            
+            metrics = ram_df[ram_df["subsystem id [-]"
+                                ].str.lower().str.contains("elec sub-system")]
+            
+            if not metrics.empty:
+
+                metrics_df = metrics[["system id [-]",
+                                      "failure rate [1/10^6 hours]",
+                                      "MTTF [hours]" ]]
+                metrics_df.loc[:, "MTTF [hours]"] /= year_hours
+                
+                metrics_df = metrics_df.rename(columns=metrics_map)
+                
+                self.data.inter_cable_reliability = metrics_df
+                
+        if self.data.moor_found_network is not None:
+            
+            metrics = ram_df[ram_df["subsystem id [-]"
+                                        ].str.contains("mooring foundation")]
+            
+            if not metrics.empty:
+
+                metrics_df = metrics[["system id [-]",
+                                      "failure rate [1/10^6 hours]",
+                                      "MTTF [hours]" ]]
+                metrics_df.loc[:, "MTTF [hours]"] /= year_hours
+                
+                metrics_df = metrics_df.rename(columns=metrics_map)
+                
+                self.data.moorings_reliability = metrics_df
+                
+            metrics = ram_df[ram_df["subsystem id [-]"
+                                        ].str.contains("dynamic cable")]
+            
+            if not metrics.empty:
+
+                metrics_df = metrics[["system id [-]",
+                                      "failure rate [1/10^6 hours]",
+                                      "MTTF [hours]" ]]
+                metrics_df.loc[:, "MTTF [hours]"] /= year_hours
+                
+                metrics_df = metrics_df.rename(columns=metrics_map)
+                
+                self.data.umbilical_cable_reliability = metrics_df
 
         return
+
         
     @classmethod
     def get_input_dict(cls, data,
