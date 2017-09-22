@@ -126,7 +126,7 @@ class UnitSensitivity(Strategy):
             if sim_title is None:
                 sim_title = new_title
             elif new_title == sim_title:
-                new_title += "{} [repeat {}]".format(new_title, i)               
+                new_title = "{} [repeat {}]".format(new_title, i)               
             
             project.set_simulation_title(new_title)
             
