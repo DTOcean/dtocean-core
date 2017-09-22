@@ -113,13 +113,22 @@ class UnitSensitivity(Strategy):
             
             errStr = "Project has not been activated."
             raise RuntimeError(errStr)
+            
+        sim_title = None
                         
         # Iterate through the values up to last entry
-        for unit_value in variable_values[:-1]:
+        for i, unit_value in enumerate(variable_values[:-1]):
 
             # Set the variable
-            sim_title = self._get_title_str(unit_meta, unit_value)
-            project.set_simulation_title(sim_title)
+            new_title = self._get_title_str(unit_meta, unit_value)
+            
+            # Deal with identical titles
+            if sim_title is None:
+                sim_title = new_title
+            elif new_title == sim_title:
+                new_title += "{} [repeat {}]".format(new_title, i)               
+            
+            project.set_simulation_title(new_title)
             
             unit_var.set_raw_interface(core, unit_value)
             unit_var.read(core, project)
@@ -136,8 +145,13 @@ class UnitSensitivity(Strategy):
             mod_branch.reset(core, project)
             
         # Set the last variable
-        sim_title = self._get_title_str(unit_meta,  variable_values[-1])  
-        project.set_simulation_title(sim_title)
+        new_title = self._get_title_str(unit_meta,  variable_values[-1])
+        
+        # Deal with identical titles
+        if sim_title is not None and new_title == sim_title:
+            new_title = "{} [repeat {}]".format(new_title, i + 1)
+        
+        project.set_simulation_title(new_title)
             
         unit_var.set_raw_interface(core, variable_values[-1])
         unit_var.read(core, project)
