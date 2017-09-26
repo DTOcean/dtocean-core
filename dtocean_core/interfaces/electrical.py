@@ -626,7 +626,7 @@ class ElectricalInterface(ModuleInterface):
         bathymetry = bathymetry[bathymetry["layer 1 start"].notnull()]
                         
         site = ElectricalSiteData(bathymetry,
-                                  data.nogo_areas,
+                                  data.nogo_areas.values(),
                                   None,
                                   None,
                                   None,
@@ -700,7 +700,7 @@ class ElectricalInterface(ModuleInterface):
                                 export_bathymetry["layer 1 start"].notnull()]
 
         export = ElectricalExportData(export_bathymetry,
-                                      data.corridor_nogo_areas,
+                                      data.corridor_nogo_areas.values(),
                                       None,
                                       None,
                                       None,
