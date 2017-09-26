@@ -722,8 +722,8 @@ class Core(object):
             
         else:
             
-            errStr = ("Argument load_path must either be a directory or a file"
-                      "with .prj extension")
+            errStr = ("Argument load_path must either be a directory or a "
+                      "file with .prj extension")
             raise ValueError(errStr)
         
         # Now unpickle the project
