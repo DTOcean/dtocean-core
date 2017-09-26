@@ -3433,8 +3433,8 @@ class PolygonList(PolygonData):
         else:
             
             raise ValueError("The specified file structure is not supported, "
-                             "the columns' headers shuld be defined as: "
-                             "x, y, z(optional)")
+                             "the columns' headers should be defined as: "
+                             "ID, x, y, z(optional)")
                              
         self.data.result = data
         
@@ -3555,14 +3555,161 @@ class PolygonDict(PolygonData):
         return ring_dict
 
     def get_value(self, data):
+        
+        ring_dict = None
 
-        ring_dict = {k: super(PolygonDict, self).get_value(v)
+        if data is not None:
+            ring_dict = {k: super(PolygonDict, self).get_value(v)
                                                     for k, v in data.items()}
                                                         
         return ring_dict
+    
+    @staticmethod
+    def auto_file_input(self):
+        
+        self.check_path()
+        
+        if ".xls" in self._path:
+            df = pd.read_excel(self._path)
+        elif ".csv" in self._path:
+            df = pd.read_csv(self._path)
+        else:
+             raise TypeError("The specified file format is not supported. ",
+                             "Supported format are {},{},{}".format('.csv',
+                                                                    '.xls',
+                                                                    '.xlsx'))  
+        
+        data = {}
+
+        if ("ID" in df.columns and
+            "x" in df.columns and
+            "y" in df.columns and
+            "z" in df.columns):
+            
+            ks = np.unique(df.ID)
+
+            for k in ks:
+                
+                t = df[df["ID"] == k]
+                
+                if len(t.x) < 3:
+                    raise ValueError("PolygonError: A LinearRing must have ",
+                                     "at least 3 coordinate tuples")
+                                     
+                data[k] = Polygon(np.c_[t.x, t.y, t.z])
+
+        elif "ID" in df.columns and "x" in df.columns and "y" in df.columns:
+            
+            ks = np.unique(df.ID)
+            
+            for k in ks:
+                
+                t = df[df["ID"] == k]
+                
+                if len(t.x) < 3:
+                    raise ValueError("PolygonError: A LinearRing must have ",
+                                     "at least 3 coordinate tuples")
+                                     
+                data[k] = Polygon(np.c_[t.x, t.y])
+                
+        else:
+            
+            raise ValueError("The specified file structure is not supported, "
+                             "the columns' headers should be defined as: "
+                             "ID, x, y, z(optional)")
+                             
+        self.data.result = data
+        
+        return
+     
+    @staticmethod
+    def auto_file_output(self):
+        
+        self.check_path()
+        
+        polys = self.data.result
+        data = []
+        
+        for name, poly in polys.iteritems():
+            
+            if isinstance(poly, Polygon):
+                data.append((name, np.array(poly.exterior.coords[:])[:-1]))
+            else:
+                raise TypeError("The result list does not contain valid",
+                                " Polygon objects.")
+                                        
+        if data[0][1].shape[1] == 2:
+            columns = ["ID", "x", "y"]
+        elif data[0][1].shape[1] == 3:
+            columns = ["ID", "x", "y", "z"]
+        else:
+            errStr = "I'm a doctor, not a coal miner."
+            raise SystemError(errStr)
+        
+        df = pd.DataFrame(columns=columns)
+        
+        for k, v in data:
+            
+            df2 = pd.DataFrame(v, columns=columns[1:])
+            df2["ID"] = [k]*v.shape[0]
+            
+            df = df.append(df2, ignore_index=True)
+        
+        if ".xls" in self._path:
+            df.to_excel(self._path, index=False)
+        elif ".csv" in self._path:
+            df.to_csv(self._path, index=False)
+        else:
+            raise TypeError("The specified file format is not supported.",
+                            "Supported format are {},{},{}".format('.csv',
+                                                                   '.xls',
+                                                                   '.xlsx'))
+                
+        return
+    
+    @staticmethod        
+    def get_valid_extensions(cls):
+        
+        return [".csv", ".xls", ".xlsx"]
 
     @staticmethod
-    def _auto_plot(self):
+    def auto_plot(self):
+
+        fig = plt.figure()
+        ax1 = fig.add_subplot(1, 1, 1, aspect='equal')
+            
+        for key, polygon in self.data.result.iteritems():
+            
+            patch = PolygonPatch(polygon,
+                                 fc=BLUE,
+                                 ec=BLUE,
+                                 fill=False,
+                                 linewidth=2)
+            ax1.add_patch(patch)
+            
+            centroid = np.array(polygon.centroid)
+            ax1.annotate(str(key),
+                         xy=centroid[:2],
+                         xytext=(0, 0),
+                         xycoords='data',
+                         textcoords='offset pixels',
+                         horizontalalignment='center',
+                         weight="bold",
+                         size='large')
+
+        ax1.margins(0.1, 0.1)
+        ax1.autoscale_view()
+
+        xlabel = 'UTM x [$m$]'
+        ylabel = 'UTM y [$m$]'
+
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+        plt.ticklabel_format(useOffset=False)
+
+        plt.title(self.meta.result.title)
+
+        self.fig_handle = plt.gcf()
         
         return
 
@@ -3583,14 +3730,14 @@ class PolygonDictColumn(PolygonDict):
                                          schema,
                                          table,
                                          self.meta.result.tables[1:3])
-        
-        keys = col_lists[0]
-        values = col_lists[1]
 
-        polygons = [to_shape(wkb_poly) for wkb_poly in values]
-        poly_dict = {key: poly for key, poly in zip(keys, polygons)}
+        filter_dict = {k: v for k, v in zip(col_lists[0], col_lists[1])
+                                        if k is not None and v is not None}
         
-        self.data.result = poly_dict
+        poly_dict = {key: to_shape(wkb_poly)
+                                    for key, wkb_poly in filter_dict.items()}
+        
+        if poly_dict: self.data.result = poly_dict
 
         return
 
