@@ -462,6 +462,9 @@ class ModuleMenu(ConnectorMenu):
         # Unmask any states
         core.unmask_states(project)
         
+        logStr = "Executing module '{}'".format(module_name)
+        module_logger.info(logStr)
+        
         # Record the start time
         if log_execution_time:
             start_time = monotonic()
