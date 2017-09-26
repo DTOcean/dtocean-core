@@ -238,11 +238,12 @@ class AllBoundaryPlot(PlotInterface):
 
     def connect(self):
         
-        self.fig_handle = boundaries_plot(self.data.site_poly,
-                                          self.data.projection,
-                                          self.data.lease_poly,
-                                          self.data.corridor_poly,
-                                          self.data.landing_point)
+        self.fig_handle = boundaries_plot(
+                                        site_poly=self.data.site_poly,
+                                        projection=self.data.projection,
+                                        lease_poly=self.data.lease_poly,
+                                        corridor_poly=self.data.corridor_poly,
+                                        landing_point=self.data.landing_point)
         
         return
         
@@ -280,6 +281,8 @@ class DesignBoundaryPlot(PlotInterface):
 
         input_list = ["site.lease_boundary",
                       "site.corridor_boundary",
+                      "farm.nogo_areas",
+                      "corridor.nogo_areas",
                       "corridor.landing_point",
                       "project.lease_area_entry_point"
                       ]
@@ -291,6 +294,10 @@ class DesignBoundaryPlot(PlotInterface):
         
         option_list = ["site.lease_boundary",
                        "site.corridor_boundary",
+                       
+                       "farm.nogo_areas",
+                       "corridor.nogo_areas",
+                       
                        "corridor.landing_point",
                        "project.lease_area_entry_point"
                        ]
@@ -322,7 +329,9 @@ class DesignBoundaryPlot(PlotInterface):
         id_map = {"lease_poly": "site.lease_boundary",
                   "corridor_poly": "site.corridor_boundary",
                   "landing_point": "corridor.landing_point",
-                  "lease_entry_point": "project.lease_area_entry_point"
+                  "lease_entry_point": "project.lease_area_entry_point",
+                  "nogo_areas": "farm.nogo_areas",
+                  "corridor_nogo_areas": "corridor.nogo_areas"
                   }
 
         return id_map
@@ -330,10 +339,12 @@ class DesignBoundaryPlot(PlotInterface):
     def connect(self):
         
         self.fig_handle = boundaries_plot(
-                              lease_poly=self.data.lease_poly,
-                              corridor_poly=self.data.corridor_poly,
-                              landing_point=self.data.landing_point,
-                              lease_entry_point=self.data.lease_entry_point)
+                          lease_poly=self.data.lease_poly,
+                          corridor_poly=self.data.corridor_poly,
+                          nogo_polys=self.data.nogo_areas,
+                          corridor_nogo_polys=self.data.corridor_nogo_areas,
+                          landing_point=self.data.landing_point,
+                          lease_entry_point=self.data.lease_entry_point)
         
         return
 
@@ -342,6 +353,8 @@ def boundaries_plot(site_poly=None,
                     projection=None,
                     lease_poly=None,
                     corridor_poly=None,
+                    nogo_polys=None,
+                    corridor_nogo_polys=None,
                     landing_point=None,
                     lease_entry_point=None):
     
@@ -406,6 +419,50 @@ def boundaries_plot(site_poly=None,
                      verticalalignment='top',
                      weight="bold",
                      size='large')
+        
+    if nogo_polys is not None:
+        
+        for key, polygon in nogo_polys.iteritems():
+            
+            patch = PolygonPatch(polygon,
+                                 fc=RED,
+                                 ec=RED,
+                                 fill=True,
+                                 alpha=0.3,
+                                 linewidth=2)
+            ax1.add_patch(patch)
+            
+            centroid = np.array(polygon.centroid)
+            ax1.annotate(str(key),
+                         xy=centroid[:2],
+                         xytext=(0, 0),
+                         xycoords='data',
+                         textcoords='offset pixels',
+                         horizontalalignment='center',
+                         weight="bold",
+                         size='large')
+            
+    if corridor_nogo_polys is not None:
+        
+        for key, polygon in nogo_polys.iteritems():
+            
+            patch = PolygonPatch(polygon,
+                                 fc=RED,
+                                 ec=RED,
+                                 fill=True,
+                                 alpha=0.3,
+                                 linewidth=2)
+            ax1.add_patch(patch)
+            
+            centroid = np.array(polygon.centroid)
+            ax1.annotate(str(key),
+                         xy=centroid[:2],
+                         xytext=(0, 0),
+                         xycoords='data',
+                         textcoords='offset pixels',
+                         horizontalalignment='center',
+                         weight="bold",
+                         size='large')
         
     if landing_point is not None:
         
