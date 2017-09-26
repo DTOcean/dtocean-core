@@ -344,10 +344,8 @@ class Project(object):
         
         index = self._set_simulation(simulation)
 
-        if self._active_index is None:
-            self._active_index = 0
-        elif set_active:
-            self._active_index = index
+        if self._active_index is None or set_active:
+            self._set_active_index(index)
         
         return
     
