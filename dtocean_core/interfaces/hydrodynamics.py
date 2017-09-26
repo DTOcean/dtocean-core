@@ -513,7 +513,7 @@ class HydroInterface(ModuleInterface):
             numpy_nogo = None
         else:
             numpy_nogo = [np.array(x.exterior.coords[:-1])
-                                                for x in self.data.nogo_areas]
+                                    for x in self.data.nogo_areas.values()]
                                
         numpy_landing = np.array(self.data.export_landing_point.coords[0])
         
