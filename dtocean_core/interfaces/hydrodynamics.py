@@ -714,6 +714,7 @@ class HydroInterface(ModuleInterface):
            main = WP2(iWP2input,
                       pickup=True,
                       debug=False)
+           
            result = main.optimisationLoop()
            
            if result == -1:
