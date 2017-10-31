@@ -971,7 +971,7 @@ class Core(object):
         
         return
     
-    def dump_datastate(self, project, dump_path):
+    def dump_datastate(self, project, dump_path, mask=None):
         
         data_store = DataStorage(core_data)
         
@@ -986,8 +986,13 @@ class Core(object):
             
             return save_pool, save_state
         
+        # Allow a mask to applied before dumping
+        if mask is not None: self.mask_states(project, mask)
+        
         # Get the pool and datastate subsets
         save_pool, save_state = get_subsets()
+        
+        if mask is not None: self.unmask_states(project)
             
         # Serialise the pool
         dts_dir_path = tempfile.mkdtemp()
