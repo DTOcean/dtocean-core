@@ -1032,7 +1032,10 @@ class Core(object):
         
         return
     
-    def load_datastate(self, project, load_path, exclude=None):
+    def load_datastate(self, project,
+                             load_path,
+                             exclude=None,
+                             overwrite=True):
         
         # A data store is required
         data_store = DataStorage(core_data)
@@ -1093,7 +1096,11 @@ class Core(object):
 
         for var_id, data_index in state_data.iteritems():
             
+            if not self.is_valid_variable(var_id): continue
+            
             if exclude is not None and exclude in var_id: continue
+                
+            if not overwrite and self.has_data(project, var_id): continue
         
             # Test that the variable is in the data catalog
             if not data_store.is_valid(self.data_catalog, var_id):
