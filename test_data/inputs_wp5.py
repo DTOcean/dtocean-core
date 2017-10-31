@@ -6,7 +6,9 @@ Created on Wed Sep 21 11:49:00 2016
 """
 
 import os
+import datetime
 from collections import Counter
+from dateutil.parser import parse
 
 import utm
 import numpy as np
@@ -260,25 +262,26 @@ file_path = os.path.join(installation_dir, 'inputs_user.xlsx')
 xls_file = pd.ExcelFile(file_path, encoding = 'utf-8')
 metocean = xls_file.parse('metocean', index_col = 0)
 
-fmtStr = "%Y-%m-%d %H:%M:%S.%f"
-datetime_index_dict = {'year': metocean['year'],
-                       'month': metocean['month'],
-                       'day' : metocean['day'],
-                       'hour' : metocean['hour']}
+date_index = metocean[['year',
+                       'month',
+                       'day',
+                       'hour']].apply(lambda s: datetime.datetime(*s), axis=1)
+
 
 wave_series = metocean.loc[:, ['Hs', 'Tp']]
-wave_series['DateTime'] = pd.to_datetime(datetime_index_dict, format = fmtStr)
-#wave_series = wave_series.set_index(["DateTime"])
+wave_series['DateTime'] = date_index.copy()
 
 tidal_series = metocean.loc[:, ['Cs']]
-tidal_series['DateTime'] = pd.to_datetime(datetime_index_dict, format =fmtStr)
+tidal_series['DateTime'] = date_index.copy()
 tidal_series = tidal_series.set_index(["DateTime"])
 tidal_series = tidal_series.to_records()
+tidal_series = [(x, float(y)) for x, y in tidal_series]
 
 wind_series = metocean.loc[:, ['Ws']]
-wind_series['DateTime'] = pd.to_datetime(datetime_index_dict, format = fmtStr)
+wind_series['DateTime'] = date_index.copy()
 wind_series = wind_series.set_index(["DateTime"])
 wind_series = wind_series.to_records()
+wind_series = [(x, float(y)) for x, y in wind_series]
 
 ### Device
 device = xls_file.parse('device', index_col = 0)
@@ -294,8 +297,9 @@ transportation_method = device['transportation method'].values.item()
 bollard_pull = device['bollard pull'].values.item()
 connect_duration = device['connect duration'].values.item()
 disconnect_duration = device['disconnect duration'].values.item()
-project_start_date = pd.to_datetime(device['Project start date'].values.item())
-project_start_date = project_start_date.to_datetime()
+
+start_date_str = device['Project start date'].values.item()
+project_start_date = parse(start_date_str)
 #sub_systems = device['sub system list'].values.item()
 
 ### Subdevice
