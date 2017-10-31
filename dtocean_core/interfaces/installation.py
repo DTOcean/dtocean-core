@@ -1930,7 +1930,7 @@ class InstallationInterface(ModuleInterface):
             layer_type_remove = ['layer ' + str(layer) + ' type' 
                                     for layer in range(2, n_layers+1)]
             layer_remove = layer_start_remove + layer_type_remove
-            site_df.drop(layer_remove)
+            site_df.drop(layer_remove, axis=1)
 
         # Convert soil types to short codes
         soil_map = {'loose sand': 'ls',
@@ -2000,7 +2000,7 @@ class InstallationInterface(ModuleInterface):
                 layer_type_remove = ['layer ' + str(layer) + ' type' 
                                         for layer in range(2, n_layers+1)]
                 layer_remove = layer_start_remove + layer_type_remove
-                export_df.drop(layer_remove)
+                export_df.drop(layer_remove, axis=1)
     
             # Convert soil types to short codes
             soil_map = {'loose sand': 'ls',
@@ -2261,7 +2261,7 @@ class InstallationInterface(ModuleInterface):
             "Soft Clay": "sc",
             "Firm Clay": "fc",
             "Stiff Clay": "stc",
-            "Hard Glacial till": "hgt",
+            "Hard Glacial Till": "hgt",
             "Cemented": "cm",
             "Soft Rock Coral": "src",
             "Hard Rock": "hr",
@@ -2830,7 +2830,24 @@ class InstallationInterface(ModuleInterface):
                                             - cable_route_df['bathymetry [m]']
             cable_route_df = cable_route_df.replace(
                                             {"split pipe [-]": yes_no_map})
-            
+                                            
+            # Convert soil types to short codes
+            soil_map = {'loose sand': 'ls',
+                        'medium sand': 'ms',
+                        'dense sand': 'ds',
+                        'very soft clay': 'vsc',
+                        'soft clay': 'sc',
+                        'firm clay': 'fc',
+                        'stiff clay': 'stc',
+                        'hard glacial till': 'hgt',
+                        'cemented': 'cm',
+                        'soft rock coral': 'src',
+                        'hard rock': 'hr',
+                        'gravel cobble': 'gc'}
+    
+            cable_route_df['soil type [-]'] = \
+                cable_route_df['soil type [-]'].map(soil_map)
+                
             connector_db = elec_dry_mate_df.append(elec_wet_mate_df)
 
             connectors_df = \
