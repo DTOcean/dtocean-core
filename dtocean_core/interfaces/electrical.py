@@ -126,6 +126,10 @@ class ElectricalInterface(ModuleInterface):
                        MaskVariable('device.umbilical_connection_point',
                                     'device.system_type',
                                     ['Tidal Floating', 'Wave Floating']),
+                 
+                       MaskVariable('device.system_draft',
+                                    'device.system_type',
+                                    ['Tidal Floating', 'Wave Floating']),
                                     
                       'component.static_cable',
                       'component.dynamic_cable',
@@ -309,6 +313,7 @@ class ElectricalInterface(ModuleInterface):
                   "umbilical_cables": "project.umbilical_cable_data",
                   "dev_umbilical_point": "device.umbilical_connection_point",
                   "umbilical_sf": "project.umbilical_safety_factor",
+                  'sysdraft': 'device.system_draft',
                   "main_direction": "project.main_direction",
                   'substation_layout': 'project.substation_layout',
                   'substation_cog': 'project.substation_cog',
@@ -771,7 +776,7 @@ class ElectricalInterface(ModuleInterface):
                                     data.footprint_radius,
                                     data.footprint_coords, #implent either... or... 
                                     umbilical_connection,
-                                    None)
+                                    data.sysdraft)
 
 #    class ElectricalArrayData(object):
 #                                        

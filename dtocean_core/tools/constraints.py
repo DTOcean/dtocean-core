@@ -165,6 +165,7 @@ class ConstraintsTool(Tool):
          'transformers': 'component.transformers',
          'umbilical_sf': 'project.umbilical_safety_factor',
          'umbilical_type': 'device.umbilical_type',
+         'sysdraft': 'device.system_draft',
          'users_tool': 'options.user_installation_tool',
          'voltage': 'device.voltage',
          'wet_mate_connectors': 'component.wet_mate_connectors',
