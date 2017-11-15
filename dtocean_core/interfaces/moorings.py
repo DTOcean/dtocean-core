@@ -248,6 +248,8 @@ class MooringsInterface(ModuleInterface):
                  'constants.concrete_density',
                  'constants.grout_density',
                  'constants.grout_compressive_strength',
+                 
+                 'options.ignore_fex'
                  ]
                                                 
         return input_list
@@ -315,7 +317,8 @@ class MooringsInterface(ModuleInterface):
                        "project.substation_props",
                        'project.substation_layout',
                        'project.substation_cog',
-                       'project.substation_foundation_location'
+                       'project.substation_foundation_location',
+                       'options.ignore_fex'
                        ]
                 
         return option_list
@@ -453,7 +456,8 @@ class MooringsInterface(ModuleInterface):
                     "seabed_connection": "project.umbilical_seabed_connection",
                     "moorings_data": "project.moorings_component_data",
                     "line_data": "project.moorings_line_data",
-                    "dimensions_data": "project.moorings_dimensions"
+                    "dimensions_data": "project.moorings_dimensions",
+                    'ignore_fex': 'options.ignore_fex'
                     }
                   
         return id_map
@@ -611,10 +615,10 @@ class MooringsInterface(ModuleInterface):
             umbilical_connection = None
             seabed_connection_dict = None
             
-        # External forces
+        # Single device forces
         fex = self.data.fex
         
-        if fex is None:
+        if fex is None or self.data.ignore_fex:
             fex_list = None
         else:
             fex_list = [fex["Te"].values, 
