@@ -304,7 +304,6 @@ wave_data_directory = os.path.abspath(os.path.join(hydro_dir))
 
 
 # Device characterists           
-lCS = np.array([0, 0., 0.])
 min_install = -np.inf
 max_install = 0.
 min_dist_x = 200.
@@ -715,7 +714,6 @@ test_data = {
         "project.export_target_burial_depth": corridor_target_burial_depth,
         "device.wave_data_directory": wave_data_directory,
         "device.connector_type": connection,
-        "device.coordinate_system": lCS,
         "device.installation_depth_max": max_install,
         "device.installation_depth_min": min_install,
         "device.minimum_distance_x": min_dist_x,

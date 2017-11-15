@@ -76,7 +76,7 @@ FixedArrayLayout = np.array(pos)
 
 lease_area = np.array([[50., 50.],[950., 50.],[950., 250.],[50., 250.]],dtype=float)
 power_law_exponent = np.array([7.])
-nogo_areas = [np.array([[0, 0],[.1, 0],[.1, .1],[0, .1]])]
+nogo_areas = {"a": np.array([[0, 0],[.1, 0],[.1, .1],[0, .1]])}
 rated_array_power = 5
 main_direction = None
 blockage_ratio = 1.
@@ -84,7 +84,6 @@ spectrum_type_farm = 'JONSWAP'
 spectrum_gamma_farm = 3.3
 spectrum_dir_spreading_farm = 0.
 point_SSH = 0.
-lCS = np.array([0., 0., 0.])
 #user_array_option = 'rectangular'
 #user_array_layout = None
 user_array_option = 'User Defined Fixed'
@@ -103,7 +102,6 @@ landing_point = (0.,0.)
 
 test_data = {'bathymetry.layers': strata,
              'corridor.landing_point': landing_point,
-             'device.coordinate_system': lCS,
              'device.installation_depth_max': max_install,
              'device.installation_depth_min': min_install,
              'device.minimum_distance_x': min_dist_x,

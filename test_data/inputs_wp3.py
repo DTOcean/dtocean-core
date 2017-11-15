@@ -76,7 +76,7 @@ strata = {"values": {"depth": depth_array,
                      'sediment': sediment_array},
           "coords": [x, y, layer_names]}
                 
-nogo_areas = [[(40.,40.),(40.,110.),(110.,110.), (110.,40.)]]
+nogo_areas = {"a": [(40.,40.),(40.,110.),(110.,110.), (110.,40.)]}
 
 current_dir = 0.
 max_surf_current = 0.
@@ -135,7 +135,7 @@ network_configuration = "Radial"
 target_burial_depth = 10
 devices_per_string = 10
 corridor_current_dir = 0.
-corridor_nogo_areas = ([(40.,40.),(40.,110.),(110.,110.), (110.,40.)],)
+corridor_nogo_areas = {"a": [(40.,40.),(40.,110.),(110.,110.), (110.,40.)]}
                                 
 corridor_max_surf_current = 0.
 corridor_wave_dir = 0. 

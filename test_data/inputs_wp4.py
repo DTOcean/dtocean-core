@@ -133,7 +133,7 @@ strata = strata={"values": {"depth": depth_array,
                  "coords": [x, y, layer_names]}
        
        
-lCS = np.array([0, 0., 20.])
+turbine_hub_height = 20.
 
 gravity = 9.80665 #gravity
 seaden = 1025.0 #sea water density
@@ -423,7 +423,7 @@ test_data = {'constants.line_bearing_capacity_factor': linebcf,
              'constants.grout_density': groutden,
              'constants.sea_water_density': seaden,
              'constants.steel_density': steelden,
-             'device.coordinate_system': lCS,
+             'device.turbine_hub_height': turbine_hub_height,
              'constants.cylinder_drag': dragcoefcyl,
              'constants.cylinder_wake_amplificiation': wakeampfactorcyl,
              'device.depth_variation_permitted': depvar,
