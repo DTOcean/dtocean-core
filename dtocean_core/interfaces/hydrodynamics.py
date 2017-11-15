@@ -138,7 +138,6 @@ class HydroInterface(ModuleInterface):
                         
                         'device.system_type',
                         'device.power_rating',
-                        'device.coordinate_system',
                         'device.installation_depth_max',
                         'device.installation_depth_min',
                         'device.minimum_distance_x',
@@ -157,6 +156,10 @@ class HydroInterface(ModuleInterface):
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
 
+                        MaskVariable('device.turbine_hub_height',
+                                     "device.system_type",
+                                     ["Tidal Fixed", "Tidal Floating"]),
+                        
                         MaskVariable("device.turbine_diameter",
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
@@ -299,7 +302,7 @@ class HydroInterface(ModuleInterface):
                     "device_position": "project.layout",
                     "ext_forces": "device.external_forces",
                     "geophysics": "bathymetry.mannings",
-                    "lCS": "device.coordinate_system",
+                    "hub_height": "device.turbine_hub_height",
                     "lease_area": "site.lease_boundary",
                     "main_direction": "project.main_direction",
                     "max_install": "device.installation_depth_max",
@@ -593,7 +596,6 @@ class HydroInterface(ModuleInterface):
 #        tidal_bidirectional (bool, optional): bidirectional working principle of the turbine
 #        tidal_data_folder (string, optional): Path to tidal device CFD data files
 
-        lCS = self.data.lCS
         yaw_angle = self.data.yaw_angle
         min_install = self.data.min_install
         max_install = self.data.max_install
@@ -610,6 +612,7 @@ class HydroInterface(ModuleInterface):
             cut_out = self.data.cut_out
                              
             dev_type = "Tidal"
+            lCS = [0, 0, self.data.hub_height]
             clen = (self.data.rotor_diam, self.data.turbine_interdist)
             wave_data_folder = None
             tidal_power_curve = cp_curve
@@ -622,6 +625,7 @@ class HydroInterface(ModuleInterface):
         else:
                         
             dev_type = "Wave"
+            lCS = None
             clen = None
             wave_data_folder = self.data.wave_data_directory
             tidal_power_curve = None
