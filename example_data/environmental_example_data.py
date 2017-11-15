@@ -299,7 +299,7 @@ wave_data_directory = os.path.abspath(os.path.join(hydro_dir))
 
 
 # Device characterists           
-lCS = np.array([0, 0., 20.])
+turbine_hub_height = 20.
 min_install = -np.inf
 max_install = -40.
 min_dist_x = 40.
@@ -321,7 +321,7 @@ power_factor = {"Load": [0,1],
                 
 sys_prof = "Cylindrical"   #device profile options: "Cylindrical" "Rectangular"
 sys_mass = 300.0e3 #device mass
-sys_cog = [0.0, 0.0, 15.0] #device centre of gravity ##TODO: (same as lcs?)
+sys_cog = [0.0, 0.0, 15.0] #device centre of gravity
 sys_vol = 148.44 #device displaced volume
 sys_height = 21.0 #device height
 sys_width = 3.0 #device width
@@ -684,7 +684,7 @@ test_data = {
         "project.export_target_burial_depth": corridor_target_burial_depth,
         "device.wave_data_directory": wave_data_directory,
         "device.connector_type": connection,
-        "device.coordinate_system": lCS,
+        "device.turbine_hub_height": turbine_hub_height,
         "device.cut_in_velocity": cut_in,
         "device.cut_out_velocity": cut_out,
         "device.installation_depth_max": max_install,

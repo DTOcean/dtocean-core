@@ -160,13 +160,20 @@ FixedArrayLayout = np.array(pos)
 
 lease_area = np.array([[50., 50.],[950., 50.],[950., 250.],[50., 250.]],dtype=float)
 power_law_exponent = np.array([7.])
-nogo_areas = [np.array([[50., 50.],[60., 50.],[60., 60.],[50., 60.]]),
-              np.array([[70., 70.],[70., 80.],[80., 90.],[90., 90.],
-                        [90., 80.],[80., 70.]])]
+nogo_areas = {"a": np.array([[50., 50.],
+                             [60., 50.],
+                             [60., 60.],
+                             [50., 60.]]),
+              "b": np.array([[70., 70.],
+                             [70., 80.],
+                             [80., 90.],
+                             [90., 90.],
+                             [90., 80.],
+                             [80., 70.]])}
 rated_array_power = 5
 main_direction = None
 blockage_ratio = 1.
-lCS = np.array([0, 0., 20.])
+turbine_hub_height = 20.
 user_array_option = 'User Defined Fixed'
 user_array_layout = FixedArrayLayout
 rotor_diam = 8.
@@ -209,7 +216,7 @@ wave_series = {"Date": dates,
 test_data = {'bathymetry.layers': strata,
              'corridor.landing_point': landing_point,
              'device.bidirection': bidirection,
-             'device.coordinate_system': lCS,
+             'device.turbine_hub_height': turbine_hub_height,
              'device.cut_in_velocity': cut_in,
              'device.cut_out_velocity': cut_out,
              'device.installation_depth_max': max_install,
