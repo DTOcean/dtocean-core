@@ -111,8 +111,7 @@ class MooringsInterface(ModuleInterface):
                  'device.system_type',
                  'device.system_mass',
                  'device.system_roughness',
-                 'device.coordinate_system',
-                 
+
                  MaskVariable('device.depth_variation_permitted',
                               'device.system_type',
                               ['Tidal Floating', 'Wave Floating']),
@@ -150,6 +149,9 @@ class MooringsInterface(ModuleInterface):
                  'device.prescribed_footprint_radius',
 
                  MaskVariable('device.turbine_performance',
+                              'device.system_type',
+                              ['Tidal Fixed', 'Tidal Floating']),
+                 MaskVariable('device.turbine_hub_height',
                               'device.system_type',
                               ['Tidal Fixed', 'Tidal Floating']),
                  MaskVariable('device.turbine_diameter',
@@ -367,7 +369,7 @@ class MooringsInterface(ModuleInterface):
                         'constants.soil_drained_holding_capacity_factor',
                     'hs': 'farm.max_hs_100_year',
                     'k1coef': 'constants.soil_cohesive_reaction_coefficient',
-                    'LCS': 'device.coordinate_system',
+                    'hub_height': 'device.turbine_hub_height',
                     'linebcf': 'constants.line_bearing_capacity_factor',
                     'maxdisp': 'device.maximum_displacement',
                     'moorsfals': 'project.mooring_ALS_safety_factor',
@@ -558,7 +560,7 @@ class MooringsInterface(ModuleInterface):
         if 'Tidal' in self.data.system_type:
             
             Clen = (self.data.rotor_diam, self.data.turbine_interdist)
-            hubheight = self.data.LCS[2]
+            hubheight = self.data.hub_height
             thrustcurv = self.data.turbine_performance[
                             'Coefficient of Thrust'].reset_index().values
             
