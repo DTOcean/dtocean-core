@@ -54,8 +54,9 @@ def start_logging():
 
     # Pick up the configuration from the user directory if it exists
     userdir = UserDataDirectory("dtocean_core", "DTOcean", "config")
-            
-    if userdir.isfile("files.ini") and userdir.isfile("logging.yaml"):
+    
+    # Look for files.ini
+    if userdir.isfile("files.ini"):
         configdir = userdir
     else:
         configdir = ObjDirectory("dtocean_core", "config")
@@ -67,6 +68,12 @@ def start_logging():
     log_folder = files_config["logs"]["path"]
     log_path = os.path.join(appdir_path, log_folder)
     logdir = Directory(log_path)
+    
+    # Look for logging.yaml
+    if userdir.isfile("logging.yaml"):
+        configdir = userdir
+    else:
+        configdir = ObjDirectory("dtocean_core", "config")
     
     log = Logger(configdir)
     log_config_dict = log.read()
@@ -91,16 +98,20 @@ def start_logging():
     return
 
 
-def init_config(overwrite=False):
+def init_config(logging=False, database=False, files=False, overwrite=False):
     
     """Copy config files to user data directory"""
+    
+    if not any([logging, database, files]): return
     
     objdir = ObjDirectory(__name__, "config")
     datadir = UserDataDirectory("dtocean_core", "DTOcean", "config")
     dirmap = DirectoryMap(datadir, objdir)
     
-    dirmap.copy_all(overwrite=overwrite)
-    
+    if logging: dirmap.copy_file("logging.yaml", overwrite=overwrite)
+    if database: dirmap.copy_file("database.yaml", overwrite=overwrite)
+    if files: dirmap.copy_file("files.ini", overwrite=overwrite)
+            
     return datadir.get_path()
 
 
@@ -124,22 +135,44 @@ def init_config_parser(args):
     parser = argparse.ArgumentParser(description=desStr,
                                      epilog=epiStr)
     
+    parser.add_argument("--logging",
+                        help=("copy logging configuration"),
+                        action="store_true")
+    
+    parser.add_argument("--database",
+                        help=("copy database configuration"),
+                        action="store_true")
+    
+    parser.add_argument("--files",
+                        help=("copy log and debug files location "
+                              "configuration"),
+                        action="store_true")
+    
     parser.add_argument("--overwrite",
                         help=("overwrite any existing configuration files"),
                         action="store_true")
-                        
+    
     args = parser.parse_args(args)
+                        
+    logging = args.logging
+    database = args.database
+    files = args.files
     overwrite = args.overwrite
     
-    return overwrite
+    return logging, database, files, overwrite
 
 
 def init_config_interface():
     
     '''Command line interface for init_config.'''
     
-    overwrite = init_config_parser(sys.argv[1:])
-    dir_path = init_config(overwrite=overwrite)
-    print "Copying configuration files to {}".format(dir_path)
+    logging, database, files, overwrite = init_config_parser(sys.argv[1:])
+    dir_path = init_config(logging=logging,
+                           database=database,
+                           files=files,
+                           overwrite=overwrite)
+    
+    if dir_path is not None:
+        print "Copying configuration files to {}".format(dir_path)
 
     return
