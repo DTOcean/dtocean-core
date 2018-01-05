@@ -228,6 +228,7 @@ class HydroInterface(ModuleInterface):
                        'project.q_factor',
                        'project.q_factor_per_device',
                        'project.resource_reduction',
+                       'device.wave_power_matrix',
                        'farm.tidal_occurrence',
                        'farm.wave_occurrence'
                        ]
@@ -318,6 +319,7 @@ class HydroInterface(ModuleInterface):
                     "pow_pmf_per_device": "project.mean_power_pmf_per_device",
                     "pow_hist_per_device":
                         "project.mean_power_hist_per_device",
+                    'power_matrix': 'device.wave_power_matrix',
                     "q_factor_array": "project.q_factor",
                     "q_factor_per_device": "project.q_factor_per_device",
                     "rated_array_power": "project.rated_power",
@@ -836,11 +838,12 @@ class HydroInterface(ModuleInterface):
         # Device type specific outputs
         if 'Wave' in self.data.type:
             
+            # External forces
             fex_dict = result.Hydrodynamic_Parameters
             modes = np.array(fex_dict["mode_def"])
             freqs = np.array(fex_dict["wave_fr"])
 
-            # Convert directions to bearings ##TODO: remove if fixed by ff
+            # Convert directions to bearings
             bearings = [radians_to_bearing(x) for x in fex_dict["wave_dir"]]
             dirs = np.array(bearings)
             
@@ -856,5 +859,22 @@ class HydroInterface(ModuleInterface):
                          "coords": [modes, freqs, dirs]}
             
             self.data.ext_forces = fex_xgrid
+            
+            ## Power Matrix in kW
+            power_matrix = result.power_matrix_machine / 1000.
+            power_matrix_dims = result.power_matrix_dims
+            
+            # Convert directions to bearings 
+            bearings = [radians_to_bearing(x)
+                                        for x in power_matrix_dims["dirs"]]
+            
+            occurrence_matrix_coords = [power_matrix_dims['tp'],
+                                        power_matrix_dims['hm0'],
+                                        bearings]
+            
+            matrix_xgrid = {"values": power_matrix,
+                            "coords": occurrence_matrix_coords}
+            
+            self.data.power_matrix = matrix_xgrid
 
         return
