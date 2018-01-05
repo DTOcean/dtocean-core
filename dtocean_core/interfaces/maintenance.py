@@ -33,12 +33,10 @@ Note:
 import os
 import pickle
 import logging
-import datetime
 
 # External 3rd party libraries
 import numpy as np
 import pandas as pd
-from dateutil.relativedelta import relativedelta
 
 # External DTOcean libraries
 from polite.paths import Directory, ObjDirectory, UserDataDirectory
@@ -136,8 +134,8 @@ class MaintenanceInterface(ModuleInterface):
                         'device.subsystem_inspections',
                         'device.subsystem_maintenance',
                         'device.subsystem_maintenance_parts',
-                        'device.subsystem_operation_weightings',
                         'device.subsystem_replacement',
+                        'device.subsystem_operation_weightings',
 
                         'device.control_subsystem_access',
                         'device.control_subsystem_costs',
@@ -145,8 +143,8 @@ class MaintenanceInterface(ModuleInterface):
                         'device.control_subsystem_inspections',
                         'device.control_subsystem_maintenance',
                         'device.control_subsystem_maintenance_parts',
-                        'device.control_subsystem_operation_weightings',
                         'device.control_subsystem_replacement',
+                        'device.control_subsystem_operation_weightings',
                         
                         'component.static_cable',
                         
@@ -296,10 +294,6 @@ class MaintenanceInterface(ModuleInterface):
                         "project.calendar_based_maintenance",
                         "project.condition_based_maintenance",
                         
-                        "project.duration_shift",
-                        "project.number_crews_available",
-                        "project.number_crews_per_shift",
-                        "project.number_shifts_per_day",
                         "project.wage_specialist_day",
                         "project.wage_specialist_night",
                         "project.wage_technician_day",
@@ -319,14 +313,13 @@ class MaintenanceInterface(ModuleInterface):
                                      'device.system_type',
                                      ['Tidal Floating', 'Wave Floating']),
                         
+                        'project.electrical_inspections_requirements',
+                        'project.moorings_inspections_requirements',
                         'project.electrical_onsite_maintenance_requirements',
                         'project.moorings_onsite_maintenance_requirements',
                         'project.electrical_replacement_requirements',
                         'project.moorings_replacement_requirements',
-                        
-                        'project.electrical_inspections_requirements',
-                        'project.moorings_inspections_requirements',
-                        
+
                         'project.electrical_onsite_maintenance_parts',
                         'project.moorings_onsite_maintenance_parts',
                         'project.electrical_replacement_parts',
@@ -441,17 +434,19 @@ class MaintenanceInterface(ModuleInterface):
                         'device.control_subsystem_maintenance_parts',
                         'device.control_subsystem_operation_weightings',
                         'device.control_subsystem_replacement',
-        
+                        'project.electrical_onsite_maintenance_requirements',
+                        'project.moorings_onsite_maintenance_requirements',
                         'project.electrical_replacement_requirements',
                         'project.moorings_replacement_requirements',
                         'project.electrical_inspections_requirements',
                         'project.moorings_inspections_requirements',
+                        'project.electrical_onsite_maintenance_parts',
+                        'project.moorings_onsite_maintenance_parts',
                         'project.electrical_replacement_parts',
                         'project.moorings_replacement_parts',
                         'options.transit_cost_multiplier',
                         'options.loading_cost_multiplier',
                         'options.spare_cost_multiplier',
-                        
                         "project.electrical_network",
                         "project.moorings_foundations_network",
                         "component.collection_points_NCFR",
@@ -480,31 +475,26 @@ class MaintenanceInterface(ModuleInterface):
                         "component.moorings_rope_CFR",
                         "component.moorings_shackle_CFR",
                         "component.moorings_swivel_CFR",
-                          
                         'component.collection_points',
                         'component.wet_mate_connectors',
                         'component.dry_mate_connectors',
                         'component.static_cable',
                         'component.dynamic_cable',
                         'component.transformers',
-                        
                         "component.foundations_anchor",
                         'component.foundations_anchor_sand',
                         'component.foundations_anchor_soft',
                         "component.foundations_pile",
-                 
                         "component.moorings_chain",
                         "component.moorings_forerunner",
                         "component.moorings_rope",
                         "component.moorings_shackle",                  
                         "component.moorings_swivel",
                         "component.moorings_rope_stiffness",
-                        
                         "component.operations_limit_hs",
                         "component.operations_limit_tp",
                         "component.operations_limit_ws",
                         "component.operations_limit_cs",
-                        
                         'project.landfall_contruction_technique',
                         'corridor.layers',
                         'device.bollard_pull',
@@ -516,11 +506,9 @@ class MaintenanceInterface(ModuleInterface):
                         'project.umbilical_seabed_connection',
                         "project.substation_layout",
                         "device.two_stage_assembly",
-                        
                         "options.curtail_devices",
                         "options.parallel_operations",
                         "options.suppress_corrective_maintenance"
-
                         ]
                 
         return options_list
@@ -551,11 +539,7 @@ class MaintenanceInterface(ModuleInterface):
             "calendar_based_maintenance": "project.calendar_based_maintenance",
             "condition_based_maintenance":
                 "project.condition_based_maintenance",
-            "duration_shift": "project.duration_shift",
             "helideck": "farm.helideck",
-            "number_crews_available": "project.number_crews_available",
-            "number_crews_per_shift": "project.number_crews_per_shift",
-            "number_shifts_per_day": "project.number_shifts_per_day",
             "wage_specialist_day": "project.wage_specialist_day",
             "wage_specialist_night": "project.wage_specialist_night",
             "wage_technician_day": "project.wage_technician_day",
@@ -888,11 +872,11 @@ class MaintenanceInterface(ModuleInterface):
             "condition_based_maintenance":
                 self.data.condition_based_maintenance,
             "corrective_maintenance": corrective_maintenance,
-            "duration_shift": self.data.duration_shift,
+            "duration_shift": None,
             "helideck": self.data.helideck,
-            "number_crews_available": self.data.number_crews_available,
-            "number_crews_per_shift": self.data.number_crews_per_shift,
-            "number_shifts_per_day": self.data.number_shifts_per_day,
+            "number_crews_available": None,
+            "number_crews_per_shift": None,
+            "number_shifts_per_day": None,
             "wage_specialist_day": self.data.wage_specialist_day,
             "wage_specialist_night": self.data.wage_specialist_night,
             "wage_technician_day": self.data.wage_technician_day,
