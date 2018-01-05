@@ -53,6 +53,7 @@ def get_input_tables(system_type,
                      operations_onsite_maintenance,
                      operations_replacements,
                      operations_inspections,
+                     transportation_method,
                      subsystem_access,
                      subsystem_costs,
                      subsystem_failure_rates,
@@ -658,6 +659,7 @@ def get_input_tables(system_type,
              all_repair) = update_replacement_tables(subsystem,
                                                      subsystem_root,
                                                      system_type,
+                                                     transportation_method,
                                                      array_layout,
                                                      replacement_modes,
                                                      temp_repair,
@@ -948,6 +950,7 @@ def update_onsite_tables(subsystem,
 def update_replacement_tables(subsystem,
                               subsystem_root,
                               system_type,
+                              transportation_method,
                               array_layout,
                               temp_modes,
                               temp_repair,
@@ -957,13 +960,21 @@ def update_replacement_tables(subsystem,
     array_subsystems = ['Substations',
                         'Export Cable']
     
-    replacement_dict = {'Prime Mover': [2, 3],
-                        'PTO': [2, 1],
-                        'Control': [2, 1],
-                        'Support Structure': [2, 2],
+    if transportation_method == "Tow":
+        dev_actions = [4, 3]
+    elif transportation_method == "Deck":
+        dev_actions = [2, 1]
+    else:
+        errMsg = "Holy Astringent Plum-like Fruit, Batman!"
+        raise RuntimeError(errMsg)
+        
+    replacement_dict = {'Prime Mover': dev_actions,
+                        'PTO': dev_actions,
+                        'Control': dev_actions,
+                        'Support Structure': dev_actions,
                         'Umbilical Cable': [6, 6],
                         'Mooring Lines': [5, 5]}
-
+    
     replacement_df = pd.DataFrame(replacement_dict,
                                   index=['Fixed', 'Floating'])
 
