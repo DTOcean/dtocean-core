@@ -257,7 +257,19 @@ class OrderedSim(Simulation):
 
         self._hub_output_status = hub_output_status
         
-        return 
+        return
+    
+    def get_input_ids(self, hub_id=None, interface_name=None):
+        
+        result = self._get_ids(self._hub_input_status, hub_id, interface_name)
+                
+        return result
+        
+    def get_output_ids(self, hub_id=None, interface_name=None):
+        
+        result = self._get_ids(self._hub_output_status, hub_id, interface_name)
+                
+        return result
 
     def get_input_status(self, hub_id, interface_name):
 
@@ -283,6 +295,31 @@ class OrderedSim(Simulation):
         simulation._force_unvailable = deepcopy(self._force_unvailable)
         
         return simulation
+    
+    def _get_ids(self, sim_status, hub_id=None, interface_name=None):
+        
+        if hub_id is None:
+            hub_ids = sim_status.keys()
+        else:
+            hub_ids = [hub_id]
+            
+        all_ids = []
+            
+        for this_hub_id in hub_ids:
+            
+            hub_status = sim_status[this_hub_id]
+            
+            if interface_name is None:
+                interface_names = hub_status.keys()
+            else:
+                interface_names = [interface_name]
+                
+            for this_interface_name in interface_names:
+                
+                input_status = hub_status[this_interface_name]
+                all_ids += input_status.keys()
+                
+        return list(set(all_ids))
 
 
 class Project(object):
@@ -1040,6 +1077,10 @@ class Core(object):
         # A data store is required
         data_store = DataStorage(core_data)
         
+        # Get the input ids in the active simulation
+        simulation = project.get_simulation()
+        input_ids = simulation.get_input_ids()
+        
         # Flag to remove datastate directory
         remove_dts_dir = False
         
@@ -1096,21 +1137,26 @@ class Core(object):
 
         for var_id, data_index in state_data.iteritems():
             
-            if not self.is_valid_variable(var_id): continue
+            if not self.is_valid_variable(var_id):
+                
+                msgStr = ('Variable ID "{}" is not contained in the data '
+                          'catalog').format(var_id)
+                module_logger.warning(msgStr)
+                
+                continue
+        
+            if var_id not in input_ids:
+                
+                msgStr = ('Variable ID "{}" is not an input to the current '
+                          'simulation').format(var_id)
+                module_logger.info(msgStr)
+                
+                continue
             
             if exclude is not None and exclude in var_id: continue
                 
             if not overwrite and self.has_data(project, var_id): continue
-        
-            # Test that the variable is in the data catalog
-            if not data_store.is_valid(self.data_catalog, var_id):
-                
-                msgStr = ('Variable ID "{}" is not contained in the data '
-                          'catalog.').format(var_id)
-                module_logger.warning(msgStr)
-                
-                continue
-            
+    
             data_obj = temp_pool.get(data_index)
             
             var_ids.append(var_id)
