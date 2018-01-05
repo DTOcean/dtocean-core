@@ -763,8 +763,86 @@ def get_input_tables(system_type,
                                                          all_inspection,
                                                          subhubs)
             
+    # Give empty data frames an index
+    if all_comp.empty:
+        
+        index = [u'Component_ID',
+                 u'Component_subtype',
+                 u'Component_type',
+                 u'end_date_calendar_based_maintenance',
+                 u'end_date_condition_based_maintenance',
+                 u'failure_rate',
+                 u'interval_calendar_based_maintenance',
+                 u'number_failure_modes',
+                 u'soh_threshold',
+                 u'start_date_calendar_based_maintenance',
+                 u'start_date_condition_based_maintenance']
+        
+        all_comp = pd.DataFrame(index=index)
+    
+    if all_modes.empty:
+                
+        index = [u'CAPEX_condition_based_maintenance',
+                 u'Component_ID',
+                 u'FM_ID',
+                 u'cost_spare',
+                 u'cost_spare_loading',
+                 u'cost_spare_transit',
+                 u'mode_probability',
+                 u'spare_height',
+                 u'spare_length',
+                 u'spare_mass',
+                 u'spare_width']
+        
+        all_modes = pd.DataFrame(index=index)
+        
+    if all_repair.empty:
+    
+        index = [u'Component_ID',
+                 u'FM_ID',
+                 u'current_speed_max_acc',
+                 u'current_speed_max_om',
+                 u'delay_crew',
+                 u'delay_organisation',
+                 u'delay_spare',
+                 u'duration_accessibility',
+                 u'duration_maintenance',
+                 u'interruptable',
+                 u'number_specialists',
+                 u'number_technicians',
+                 u'wave_height_max_acc',
+                 u'wave_height_max_om',
+                 u'wave_periode_max_acc',
+                 u'wave_periode_max_om',
+                 u'wind_speed_max_acc',
+                 u'wind_speed_max_om']
+        
+        all_repair = pd.DataFrame(index=index)
+            
+    if all_inspection.empty:
+        
+        index = [u'Component_ID',
+                 u'FM_ID',
+                 u'current_speed_max_acc',
+                 u'current_speed_max_om',
+                 u'delay_crew',
+                 u'delay_organisation',
+                 u'duration_accessibility',
+                 u'duration_inspection',
+                 u'number_specialists',
+                 u'number_technicians',
+                 u'wave_height_max_acc',
+                 u'wave_height_max_om',
+                 u'wave_periode_max_acc',
+                 u'wave_periode_max_om',
+                 u'wind_speed_max_acc',
+                 u'wind_speed_max_om']
+        
+        all_inspection = pd.DataFrame(index=index)
+    
     assert all_comp.shape[0] == 11
     assert all_modes.shape[0] == 11
+        
     assert all_repair.shape[0] == 18
     assert all_inspection.shape[0] == 16
 
