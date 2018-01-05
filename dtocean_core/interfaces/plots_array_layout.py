@@ -245,7 +245,8 @@ class ArrayCablesPlot(PlotInterface):
         plt.legend(handles=[dplot, splot],
                    bbox_to_anchor=(1.05, 1),
                    loc=2,
-                   borderaxespad=0.)
+                   borderaxespad=0.,
+                   numpoints=1)
         
         plt.title("Electrical Cable Layout")
         
@@ -398,7 +399,8 @@ class ArrayFoundationsPlot(PlotInterface):
         plt.legend(handles=all_handles,
                    bbox_to_anchor=(1.05, 1),
                    loc=2,
-                   borderaxespad=0.)
+                   borderaxespad=0.,
+                   numpoints=1)
         
         plt.title("Foundations Layout")
         
