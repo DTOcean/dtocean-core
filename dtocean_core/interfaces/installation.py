@@ -643,18 +643,20 @@ class InstallationInterface(ModuleInterface):
 
             # Map wp4 to wp5 
             if "floating" in self.data.system_type.lower():
-                
                 append_this = ' anchor'
-                
             else:
-                
                 append_this = ' foundation'
                 
+            foundation_map = {'directembedment': 'direct-embedment anchor',
+                              'drag': 'drag-embedment anchor',
+                              'gravity': 'gravity' + append_this,
+                              'pile': 'pile' + append_this,
+                              'shallowfoundation': 'shallow' + append_this,
+                              'suctioncaisson': 'suction caisson anchor'}
+                
             foundations_df['type [-]'] = foundations_df['type [-]'].map(
-                    {'pile': 'pile' + append_this,
-                    'gravity': 'gravity' + append_this}
-                    )
-
+                                                                foundation_map)
+            
         else:
 
             # make empty data structures
