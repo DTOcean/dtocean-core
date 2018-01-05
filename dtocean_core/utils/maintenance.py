@@ -1415,7 +1415,7 @@ def get_mandf_system_cost(mandf_bom, system_names, db):
 
     '''
     
-    subsytem_map = {'drag': 'Foundations',
+    subsytem_map = {'drag anchor': 'Foundations',
                     'pile': 'Foundations',
                     'suctioncaisson': 'Foundations',
                     "cable": 'Mooring Lines',
