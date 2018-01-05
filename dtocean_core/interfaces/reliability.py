@@ -40,6 +40,8 @@ from dtocean_reliability.main import Variables, Main
 
 from . import ThemeInterface
 from ..utils.reliability import get_component_dict, read_RAM
+from ..utils.maintenance import (get_user_network,
+                                 get_user_compdict)
 
 # Set up logging
 module_logger = logging.getLogger(__name__)
@@ -89,12 +91,15 @@ class ReliabilityInterface(ThemeInterface):
                        ]
         '''
 
-        input_list  =  ["device.system_type" ,
+        input_list  =  ["device.system_type",
+                        'device.subsystem_failure_rates',
+                        'device.control_subsystem_failure_rates',
+                        "project.layout",
                         "project.network_configuration",
+                        "project.electrical_network",
+                        "project.moorings_foundations_network",
                         "project.lifetime",
                         "project.mttfreq",
-                        "project.moorings_foundations_network",
-                        "project.electrical_network",
                         "component.collection_points_NCFR",
                         "component.dry_mate_connectors_NCFR",
                         "component.dynamic_cable_NCFR",
@@ -178,6 +183,9 @@ class ReliabilityInterface(ThemeInterface):
                          ]
         '''
         optional = [
+                   'device.subsystem_failure_rates',
+                   'device.control_subsystem_failure_rates',
+                   "project.layout",
                    "project.network_configuration",                   
                    "project.mttfreq",
                    "project.moorings_foundations_network",
@@ -234,7 +242,11 @@ class ReliabilityInterface(ThemeInterface):
         
         '''
                   
-        id_map = {"device_type_user": "device.system_type" ,
+        id_map = {"array_layout": "project.layout",
+                  "device_type_user": "device.system_type",
+                  'subsystem_failure_rates': 'device.subsystem_failure_rates',
+                  'control_subsystem_failure_rates':
+                      'device.control_subsystem_failure_rates',
                   "network_configuration_user":
                       "project.network_configuration",
                   "mission_time": "project.lifetime",
@@ -350,15 +362,17 @@ class ReliabilityInterface(ThemeInterface):
             pkl_path = debugdir.get_path("reliability_inputs.pkl")
             pickle.dump(input_dict, open(pkl_path, "wb"))
                         
-        input_variables = Variables(input_dict["mission_time_hours"], # mission time in hours
-                                    input_dict["system_type"], # user-defined bill of materials
-                                    input_dict["compdict"], #Options: 'tidefloat', 'tidefixed', 'wavefloat', 'wavefixed'
-                                    input_dict["mttfreq_hours"], # target mean time to failure in hours
-                                    input_dict["network_configuration"], #Options: 'radial', 'singlesidedstring', 'doublesidedstring', 'multiplehubs' 
-                                    input_dict["electrical_network_hier"], # electrical system hierarchy
-                                    input_dict["electrical_network_bom"], # database
-                                    input_dict["moor_found_network_hier"], # mooring system hierarchy
-                                    input_dict["moor_found_network_bom"])# database
+        input_variables = Variables(input_dict["mission_time_hours"],
+                                    input_dict["system_type"],
+                                    input_dict["compdict"], 
+                                    input_dict["mttfreq_hours"], 
+                                    input_dict["network_configuration"],
+                                    input_dict["electrical_network_hier"], 
+                                    input_dict["electrical_network_bom"],
+                                    input_dict["moor_found_network_hier"], 
+                                    input_dict["moor_found_network_bom"],
+                                    input_dict["user_hier"],
+                                    input_dict["user_bom"])
                                 
         main = Main(input_variables)    
                        
@@ -721,12 +735,40 @@ class ReliabilityInterface(ThemeInterface):
                                             data.moorings_swivel_NCFR,
                                             check_keys=compdict.keys())
             compdict.update(moorings_swivel_dict)
-                        
+            
+        if (data.array_layout is None or
+            data.subsystem_failure_rates is None):
+            
+            user_hier = None
+            user_bom = None
+            
+        else:
+            
+            # Manufacture the user network for the device subsytems:
+            subsytem_comps = ['hydro001',
+                              'pto001',
+                              'support001']
+            
+            subsystem_rates = data.subsystem_failure_rates
+            
+            if data.control_subsystem_failure_rates is not None:
+                subsytem_comps.insert(2,'control001')
+                subsystem_rates.update(data.control_subsystem_failure_rates)
+                
+            user_hier, user_bom = get_user_network(subsytem_comps,
+                                                   data.array_layout)
+            
+            user_compdict = get_user_compdict(subsytem_comps,
+                                              subsystem_rates)
+            compdict.update(user_compdict)
+                                    
         result = {"compdict": compdict,
                   "network_configuration": network_configuration,
                   "electrical_network_hier": electrical_network_hier,
                   "electrical_network_bom": electrical_network_bom,
                   "moor_found_network_hier": moor_found_network_hier,
-                  "moor_found_network_bom": moor_found_network_bom}
+                  "moor_found_network_bom": moor_found_network_bom,
+                  'user_hier': user_hier,
+                  'user_bom': user_bom}
                   
         return result
