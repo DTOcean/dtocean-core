@@ -555,7 +555,7 @@ class EconomicInterface(ThemeInterface):
                     lower = intervals[0]
                     upper = intervals[1]
                     
-                except np.linalg.LinAlgError:
+                except (ValueError, np.linalg.LinAlgError):
                     
                     mean = data.mean()
             
