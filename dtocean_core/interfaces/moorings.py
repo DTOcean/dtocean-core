@@ -249,6 +249,7 @@ class MooringsInterface(ModuleInterface):
                  'constants.grout_density',
                  'constants.grout_compressive_strength',
                  
+                 'options.repeat_foundations',
                  'options.ignore_fex'
                  ]
                                                 
@@ -318,6 +319,7 @@ class MooringsInterface(ModuleInterface):
                        'project.substation_layout',
                        'project.substation_cog',
                        'project.substation_foundation_location',
+                       'options.repeat_foundations',
                        'options.ignore_fex'
                        ]
                 
@@ -457,6 +459,7 @@ class MooringsInterface(ModuleInterface):
                     "moorings_data": "project.moorings_component_data",
                     "line_data": "project.moorings_line_data",
                     "dimensions_data": "project.moorings_dimensions",
+                    'repeat_foundations': 'options.repeat_foundations',
                     'ignore_fex': 'options.ignore_fex'
                     }
                   
@@ -581,11 +584,16 @@ class MooringsInterface(ModuleInterface):
                      'Suction Caisson': 'suctioncaisson',
                      'Direct Embedment': 'directembedment',
                      'Drag': 'drag'}
-
-        if self.data.prefound is None:
-            prefound_low = None
+                
+        if self.data.repeat_foundations is None:
+            prefound = ''
         else:
-            prefound_low = translate[self.data.prefound]
+            prefound = 'uniary'
+
+        if self.data.prefound is not None:
+            prefound += translate[self.data.prefound]
+            
+        if not prefound: prefound = None
         
         # Floating Device characteristics
         if "floating" in self.data.system_type.lower():
@@ -1049,7 +1057,7 @@ class MooringsInterface(ModuleInterface):
                            fex_list,
                            premoor_low,
                            self.data.maxdisp,
-                           prefound_low,
+                           prefound,
                            self.data.coststeel,
                            self.data.costgrout,
                            self.data.costcon,
@@ -1134,7 +1142,7 @@ class MooringsInterface(ModuleInterface):
         economics_data["Quantity"] = \
             economics_data["Quantity"].convert_objects(convert_numeric=True)
         economics_data = economics_data.dropna()
-                    
+                            
         self.data.economics_data = economics_data
                         
         # Build network dictionary
