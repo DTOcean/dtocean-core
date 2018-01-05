@@ -113,8 +113,11 @@ class ArrayLeasePlot(PlotInterface):
         
         fig = plt.figure()
         ax1 = fig.add_subplot(1, 1, 1, aspect='equal')
+        
+        short_layout = {key.replace("device", ""): value
+                                    for key, value in self.data.layout.items()}
 
-        plot_point_dict(ax1, self.data.layout, "k+", annotate=True)
+        plot_point_dict(ax1, short_layout, "k+", annotate=True)
         plot_lease_boundary(ax1, self.data.lease_poly, self.data.padding)
 
         ax1.margins(0.1, 0.1)
@@ -217,10 +220,12 @@ class ArrayCablesPlot(PlotInterface):
         fig = plt.figure()
         ax1 = fig.add_subplot(1, 1, 1, aspect='equal')
         
+        short_layout = {key.replace("device", ""): value
+                                    for key, value in self.data.layout.items()}
         landing_dict = {"Export Cable Landing": self.data.landing_point}
         
         plot_point_dict(ax1, landing_dict, 'or', annotate=True)
-        dplot = plot_point_dict(ax1, self.data.layout, "k+", "Devices")
+        dplot = plot_point_dict(ax1, short_layout, "k+", "Devices")
         splot = plot_point_dict(ax1,
                                 self.data.substation_layout,
                                 "gs",
@@ -331,8 +336,11 @@ class ArrayFoundationsPlot(PlotInterface):
         fig = plt.figure()
         ax1 = fig.add_subplot(1, 1, 1, aspect='equal')
         
+        short_layout = {key.replace("device", ""): value
+                                    for key, value in self.data.layout.items()}
+        
         dplot = plot_point_dict(ax1,
-                                self.data.layout,
+                                short_layout,
                                 "k+",
                                 "Devices",
                                 markersize=15)
