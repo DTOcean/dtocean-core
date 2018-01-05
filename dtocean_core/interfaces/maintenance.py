@@ -1114,6 +1114,7 @@ class MaintenanceInterface(ModuleInterface):
                             self.data.operations_onsite_maintenance,
                             self.data.operations_replacements,
                             self.data.operations_inspections,
+                            self.data.transportation_method,
                             self.data.subsystem_access,
                             self.data.subsystem_costs,
                             self.data.subsystem_failure_rates,
@@ -1229,14 +1230,17 @@ class MaintenanceInterface(ModuleInterface):
                           'pto001',
                           'support001']
         
+        subsystem_rates = self.data.subsystem_failure_rates
+            
         if self.data.control_system is not None:
             subsytem_comps.insert(2,'control001')
+            subsystem_rates.update(self.data.control_subsystem_failure_rates)
             
         user_hierarchy, user_bom = get_user_network(subsytem_comps,
                                                     self.data.array_layout)
         
         user_compdict = get_user_compdict(subsytem_comps,
-                                          self.data.subsystem_failure_rates)
+                                          subsystem_rates)
         compdict.update(user_compdict)
         
         RAM_param['userhiereg'] = user_hierarchy
