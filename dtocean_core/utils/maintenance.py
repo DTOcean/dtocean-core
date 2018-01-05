@@ -382,11 +382,11 @@ def get_input_tables(system_type,
                                                              
         temp_comp["number_failure_modes"] = len(active_ops)
 
-        # Failure rates
+        # Failure rates (convert to annual)
         if subsystem in device_subsystems:
             
-            temp_comp["failure_rate"] = subsystem_failure_rates[subsystem]
-
+            temp_comp["failure_rate"] = subsystem_failure_rates[subsystem] * \
+                                                            24 * 365 / 1e6
     
         # Calendar maintenance interval
         temp_comp["interval_calendar_based_maintenance"] = \
