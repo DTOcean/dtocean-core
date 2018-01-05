@@ -15,16 +15,16 @@ def test_init_config(mocker, tmpdir):
     mocker.patch('dtocean_core.UserDataDirectory',
                  return_value=mock_dir)
                  
-    init_config()
+    init_config(logging=True, database=True, files=True)
         
     assert len(config_tmpdir.listdir()) == 3
               
               
 def test_init_config_parser():
     
-    overwrite = init_config_parser([])
+    args = init_config_parser([])
     
-    assert not overwrite
+    assert not any(args)
 
 
 def test_init_config_parser_overwrite():
@@ -43,7 +43,7 @@ def test_init_config_interface(mocker, tmpdir):
     mocker.patch('dtocean_core.UserDataDirectory',
                  return_value=mock_dir)
     mocker.patch('dtocean_core.init_config_parser',
-                 return_value=False)
+                 return_value=(True, True, True, False))
                  
     init_config_interface()
         
@@ -75,8 +75,9 @@ def test_start_logging_user(mocker, tmpdir):
     mocker.patch('dtocean_core.UserDataDirectory',
                  return_value=mock_dir)
                  
-    init_config()
+    init_config(logging=True, files=True)
     
+    # This will raise is the files are not found in the user config directory
     mocker.patch('dtocean_core.ObjDirectory',
                  return_value=None)
     
