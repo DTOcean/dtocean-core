@@ -1536,8 +1536,6 @@ class InstallationInterface(ModuleInterface):
                             moorings_foundations_network,
                             zone):
         
-        name_map = {"User/DDS": "dataframe"}
-
         ### Equipment
         name_map = {"Class": "ROV class [-]",
                     "Depth Rating": "Depth rating [m]",
@@ -1898,15 +1896,19 @@ class InstallationInterface(ModuleInterface):
         
         ### Site
         site_df_unsort = bathymetry.to_dataframe()
-        site_df = site_df_unsort.unstack(level = 'layer')
-        site_df = site_df.swaplevel(1, 1, axis = 1)
-        site_df = site_df.sortlevel(1, axis = 1)
-
+                
+        site_df = site_df_unsort.unstack(level='layer')
+        site_df = site_df.swaplevel(1, 1, axis=1)
+        site_df = site_df.sortlevel(1, axis=1)
         site_df = site_df.reset_index()
 
         site_df.columns = [' '.join(col).strip()
                                         for col in site_df.columns.values]
-
+        
+        # Remove NaN points
+        nullrows = pd.isnull(site_df).any(axis=1)
+        site_df = site_df[~nullrows]
+                
         mapping = {"x":"x","y":"y"}
 
         for i in range (3,(len(site_df.columns))):
@@ -1960,22 +1962,26 @@ class InstallationInterface(ModuleInterface):
             }
 
         site_df = site_df.rename(columns=name_map)
-
-        site_zone = [zone]*len(site_df)
-        site_df.loc[:, 'zone [-]'] = pd.Series(site_zone)
+        
+        site_zone = [zone] * len(site_df)
+        site_df.loc[:, 'zone [-]'] = site_zone
         
         ### Export
         if data.export is not None:
         
             export_df_unsort = data.export.to_dataframe()
+            
             export_df = export_df_unsort.unstack(level = 'layer')
             export_df = export_df.swaplevel(1, 1, axis = 1)
             export_df = export_df.sortlevel(1, axis = 1)
-    
             export_df = export_df.reset_index()
     
             export_df.columns = [' '.join(col).strip()
                                         for col in export_df.columns.values]
+            
+            # Remove NaN points
+            nullrows = pd.isnull(export_df).any(axis=1)
+            export_df = export_df[~nullrows]
     
             mapping = {"x":"x","y":"y"}
     
@@ -2031,16 +2037,22 @@ class InstallationInterface(ModuleInterface):
     
             export_df = export_df.rename(columns=name_map)
     
-            export_zone = [zone]*len(export_df)
-            export_df.loc[:, 'zone [-]'] = pd.Series(export_zone)
-    
+            export_zone = [zone] * len(export_df)
+            export_df.loc[:, 'zone [-]'] = export_zone
+                
             # merge export and site data
             whole_area = export_df.append(site_df)
-            whole_area = whole_area.reset_index(drop=True)
             
+            # Remove dupilcate points
+            whole_area = whole_area.drop_duplicates(subset=["x coord [m]",
+                                                            "y coord [m]"])
+
         else:
             
             whole_area = site_df
+            
+        # Ensure that the index is monotonic
+        whole_area = whole_area.reset_index(drop=True)
             
         # Switch sign on depths
         whole_area["bathymetry [m]"] = - whole_area["bathymetry [m]"]
