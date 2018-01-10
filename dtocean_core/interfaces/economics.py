@@ -85,8 +85,7 @@ class EconomicInterface(ThemeInterface):
                        ]
         '''
 
-        input_list  =  ["project.discount_rate",
-                        "device.system_cost",
+        input_list  =  ["device.system_cost",
                         "project.number_of_devices",
                         "project.electrical_economics_data",
                         "project.moorings_foundations_economics_data",
@@ -96,6 +95,9 @@ class EconomicInterface(ThemeInterface):
                         "project.energy_per_year",
                         'project.electrical_network_efficiency',
                         'project.lifetime',
+                        "project.discount_rate",
+                        "project.externalities_capex",
+                        "project.externalities_opex",
                         "device.power_rating",
                         'project.electrical_cost_estimate',
                         'project.moorings_cost_estimate',
@@ -161,6 +163,7 @@ class EconomicInterface(ThemeInterface):
                        "project.discounted_capex",
                        "project.cost_breakdown",
                        "project.capex_breakdown",
+                       "project.opex_breakdown",
                        "project.lcoe_pdf"]
         
         return output_list
@@ -187,10 +190,8 @@ class EconomicInterface(ThemeInterface):
                          ]
         '''
         
-        optional = ["device.power_rating",
-                    "device.system_cost",
+        optional = ["device.system_cost",
                     "project.number_of_devices",
-                    "project.annual_energy",
                     'project.electrical_network_efficiency',
                     "project.electrical_economics_data",
                     "project.moorings_foundations_economics_data",
@@ -198,14 +199,18 @@ class EconomicInterface(ThemeInterface):
                     "project.opex_per_year",
                     "project.energy_per_year",
                     "project.capex_oandm",
-                    "project.discount_rate",
                     'project.lifetime',
+                    "project.discount_rate",
+                    "device.power_rating",
+                    "project.externalities_capex",
+                    "project.externalities_opex",
                     'project.electrical_cost_estimate',
                     'project.moorings_cost_estimate',
                     'project.installation_cost_estimate',
                     'project.opex_estimate',
                     'project.annual_repair_cost_estimate',
                     'project.annual_array_mttf_estimate',
+                    "project.annual_energy",
                     'project.estimate_energy_record'
                     ]
                
@@ -298,7 +303,10 @@ class EconomicInterface(ThemeInterface):
                   "discounted_capex": "project.discounted_capex",
                   "cost_breakdown": "project.cost_breakdown",
                   'capex_breakdown': "project.capex_breakdown",
-                  "lcoe_pdf": "project.lcoe_pdf"
+                  'opex_breakdown': "project.opex_breakdown",
+                  "lcoe_pdf": "project.lcoe_pdf",
+                  "externalities_capex": "project.externalities_capex",
+                  "externalities_opex": "project.externalities_opex"
                   }
                   
         return id_map
@@ -318,11 +326,13 @@ class EconomicInterface(ThemeInterface):
         
         bom_cols = ['phase', 'quantity', 'unitary_cost', 'project_year']
         
+        # CAPEX Dataframes
         device_bom = pd.DataFrame(columns=bom_cols)
         electrical_bom = pd.DataFrame(columns=bom_cols)
         moorings_bom = pd.DataFrame(columns=bom_cols)
         installation_bom = pd.DataFrame(columns=bom_cols)
         capex_oandm_bom = pd.DataFrame(columns=bom_cols)
+        externalities_bom = pd.DataFrame(columns=bom_cols)
         
         opex_bom = pd.DataFrame()
         energy_record = pd.DataFrame()
@@ -420,12 +430,24 @@ class EconomicInterface(ThemeInterface):
                                              years,
                                              "Condition Monitoring")
             
+        if self.data.externalities_capex is not None:
+            
+            quantities = [1]
+            costs = [self.data.externalities_capex]
+            years = [0]
+            
+            capex_oandm_bom = make_phase_bom(quantities,
+                                             costs,
+                                             years,
+                                             "Externalities")
+            
         # Combine the capex dataframes
         capex_bom = pd.concat([device_bom,
                                electrical_bom,
                                moorings_bom,
                                installation_bom,
-                               capex_oandm_bom],
+                               capex_oandm_bom,
+                               externalities_bom],
                                ignore_index=True)
             
         if self.data.opex_per_year is not None:
@@ -472,9 +494,9 @@ class EconomicInterface(ThemeInterface):
         result = main(capex_bom,
                       opex_bom,
                       energy_record,
-                      self.data.discount_rate)        
+                      self.data.discount_rate,
+                      self.data.externalities_opex)        
 
-        # CAPEX
         self.data.capex_total = result["CAPEX"]
         self.data.discounted_capex = result["Discounted CAPEX"]
         self.data.capex_breakdown = result["CAPEX breakdown"]
@@ -555,7 +577,7 @@ class EconomicInterface(ThemeInterface):
                     lower = intervals[0]
                     upper = intervals[1]
                     
-                except (ValueError, np.linalg.LinAlgError):
+                except np.linalg.LinAlgError:
                     
                     mean = data.mean()
             
@@ -569,13 +591,21 @@ class EconomicInterface(ThemeInterface):
             self.data[arg_lower] = lower
             self.data[arg_upper] = upper
             
-        # CAPEX vs OPEX Breakdown
+        # CAPEX vs OPEX Breakdown and OPEX Breakdown if externalities
         if self.data.opex_mode is not None:
-        
+                        
             breakdown = {"CAPEX": result["CAPEX"],
                          "OPEX": self.data.opex_mode}
             
             self.data.cost_breakdown = breakdown
+                        
+            if self.data.externalities_opex is not None:
+                
+                total_external = self.data.externalities_opex * len(opex_bom)
+                total_maintenance = self.data.opex_mode - total_external
+                
+                self.data.opex_breakdown = {"Maintenance": total_maintenance,
+                                            "Externalities": total_external}
 
         # LCOE distribution
         if (metrics_table["LCOE"].isnull().any() or
