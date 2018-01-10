@@ -98,7 +98,6 @@ class EconomicInterface(ThemeInterface):
                         "project.discount_rate",
                         "project.externalities_capex",
                         "project.externalities_opex",
-                        "device.power_rating",
                         'project.electrical_cost_estimate',
                         'project.moorings_cost_estimate',
                         'project.installation_cost_estimate',
@@ -201,7 +200,6 @@ class EconomicInterface(ThemeInterface):
                     "project.capex_oandm",
                     'project.lifetime',
                     "project.discount_rate",
-                    "device.power_rating",
                     "project.externalities_capex",
                     "project.externalities_opex",
                     'project.electrical_cost_estimate',
@@ -239,7 +237,6 @@ class EconomicInterface(ThemeInterface):
         '''
                   
         id_map = {'device_cost': 'device.system_cost',
-                  "power_rating": "device.power_rating",
                   'annual_energy': 'project.annual_energy',
                   'n_devices': 'project.number_of_devices',
                   'discount_rate': 'project.discount_rate',
@@ -336,14 +333,6 @@ class EconomicInterface(ThemeInterface):
         
         opex_bom = pd.DataFrame()
         energy_record = pd.DataFrame()
-        
-        # Shortcut for total power
-        total_rated_power = None
-        
-        if (self.data.n_devices is not None and
-            self.data.power_rating is not None):
-            
-            total_rated_power = self.data.n_devices * self.data.power_rating
                     
         # Prepare costs
         if (self.data.n_devices is not None and
@@ -370,11 +359,10 @@ class EconomicInterface(ThemeInterface):
             electrical_bom = electrical_bom.rename(columns=name_map)
             electrical_bom["phase"] = "Electrical Sub-Systems"
             
-        elif (total_rated_power is not None and
-              self.data.electrical_estimate is not None):
+        elif self.data.electrical_estimate is not None:
                         
             electrical_bom = estimate_cost_per_power(
-                                            total_rated_power,
+                                            1,
                                             self.data.electrical_estimate,
                                             "Electrical Sub-Systems")
             
@@ -390,11 +378,10 @@ class EconomicInterface(ThemeInterface):
             moorings_bom = moorings_bom.rename(columns=name_map)
             moorings_bom["phase"] = "Mooring and Foundations"
             
-        elif (total_rated_power is not None and
-              self.data.moorings_estimate is not None):
+        elif self.data.moorings_estimate is not None:
                         
             moorings_bom = estimate_cost_per_power(
-                                            total_rated_power,
+                                            1,
                                             self.data.moorings_estimate,
                                             "Mooring and Foundations")         
             
@@ -411,11 +398,10 @@ class EconomicInterface(ThemeInterface):
             installation_bom = installation_bom.rename(columns=name_map)
             installation_bom["phase"] = "Installation"
             
-        elif (total_rated_power is not None and
-              self.data.install_estimate is not None):
+        elif self.data.install_estimate is not None:
                         
             installation_bom = estimate_cost_per_power(
-                                            total_rated_power,
+                                            1,
                                             self.data.install_estimate,
                                             "Installation")
         
@@ -457,13 +443,12 @@ class EconomicInterface(ThemeInterface):
             opex_bom = opex_bom.reset_index()
             
         elif (self.data.lifetime is not None and
-              ((total_rated_power is not None and 
-                self.data.opex_estimate is not None) or
+              (self.data.opex_estimate is not None or
                (self.data.annual_repair_cost_estimate is not None and
                 self.data.annual_array_mttf_estimate is not None))):
             
             opex_bom = estimate_opex(self.data.lifetime,
-                                     total_rated_power,
+                                     1,
                                      self.data.opex_estimate,
                                      self.data.annual_repair_cost_estimate,
                                      self.data.annual_array_mttf_estimate)
