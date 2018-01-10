@@ -468,6 +468,13 @@ class EconomicInterface(ThemeInterface):
                                      self.data.annual_repair_cost_estimate,
                                      self.data.annual_array_mttf_estimate)
             
+        # Add OPEX externalities
+        if not opex_bom.empty and self.data.externalities_opex is not None:
+        
+            opex_bom = opex_bom.set_index('project_year')
+            opex_bom += self.data.externalities_opex
+            opex_bom = opex_bom.reset_index()
+            
         # Prepare energy
         if self.data.network_efficiency is not None:
             net_coeff = self.data.network_efficiency  * 1e3
@@ -494,8 +501,7 @@ class EconomicInterface(ThemeInterface):
         result = main(capex_bom,
                       opex_bom,
                       energy_record,
-                      self.data.discount_rate,
-                      self.data.externalities_opex)        
+                      self.data.discount_rate)        
 
         self.data.capex_total = result["CAPEX"]
         self.data.discounted_capex = result["Discounted CAPEX"]
