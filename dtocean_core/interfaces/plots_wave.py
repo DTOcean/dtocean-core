@@ -201,7 +201,7 @@ class PowerMatrixPlot(PlotInterface):
 
     def connect(self):
 
-        occurrence_grid = self.data.occurrence_matrix
+        occurrence_grid = self.data.power_matrix
         occurrence_flat = occurrence_grid.sum("Dir")
         vals = occurrence_flat.values.T
     
