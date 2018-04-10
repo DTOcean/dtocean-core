@@ -60,7 +60,8 @@ class BasicStrategy(Strategy):
             
             self._module_menu.execute_current(core,
                                               project,
-                                              allow_unavailable=True)
+                                              allow_unavailable=True,
+                                              force_themes_completed=True)
             current_mod = self._module_menu.get_current(core, project)
             
         return

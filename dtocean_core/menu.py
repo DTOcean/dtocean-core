@@ -133,6 +133,13 @@ class ConnectorMenu(object):
                                                   interface_name)
 
         return result
+    
+    def get_force_completed(self, project):
+        
+        connector = self._get_connector(project)
+        result = connector.get_force_completed(project)
+        
+        return result
         
     def _get_connector(self, project, hub_name=None):
                 
@@ -427,6 +434,7 @@ class ModuleMenu(ConnectorMenu):
                               project,
                               execute_themes=True,
                               allow_unavailable=False,
+                              force_themes_completed=False,
                               log_execution_time=True):
         
         module_name = self.get_current(core, project)
@@ -521,8 +529,10 @@ class ModuleMenu(ConnectorMenu):
             
             # If the main hub has completed then force completed on the
             # themes            
-            if not self.get_scheduled(core, project):
-                theme_connector.force_completed(core, project)
+            if (force_themes_completed and
+                not self.get_scheduled(core, project)):
+                
+                theme_connector.set_force_completed(core, project)
                         
         return
 
@@ -557,11 +567,10 @@ class ThemeMenu(ConnectorMenu):
                                         interface_name)
 
         return
-        
-        
-        
 
-    def execute_all(self, core, project):
+    def execute_all(self, core,
+                          project,
+                          force_themes_completed=False):
 
         '''Execute a theme
 
@@ -575,7 +584,7 @@ class ThemeMenu(ConnectorMenu):
         '''
 
         level = "themes"
-        theme_connector = self._get_connector(project,"themes")
+        theme_connector = self._get_connector(project, "themes")
         
         # Unmask any states
         core.unmask_states(project)
@@ -586,8 +595,10 @@ class ThemeMenu(ConnectorMenu):
                                      
         # If the main hub has completed then force completed on the
         # themes
-        if self.get_scheduled(core, project) is None:
-            theme_connector.force_completed(core, project)
+        if (force_themes_completed and
+            not self.get_scheduled(core, project)):
+                
+            theme_connector.set_force_completed(core, project)
 
         return
 
