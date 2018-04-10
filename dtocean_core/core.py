@@ -1732,12 +1732,19 @@ class Connector(object):
     def __init__(self, hub_name):
 
         self._hub = hub_name
-        
-    def force_completed(self, core, project):
+    
+    def get_force_completed(self, project):
         
         simulation = project.get_simulation()
         hub = simulation.get_hub(self._hub)
-        hub.force_completed = True
+        
+        return hub.force_completed
+    
+    def set_force_completed(self, core, project, value=True):
+        
+        simulation = project.get_simulation()
+        hub = simulation.get_hub(self._hub)
+        hub.force_completed = value
         
         core.set_interface_status(project)
             
