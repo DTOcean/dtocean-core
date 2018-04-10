@@ -33,6 +33,7 @@ Note:
 
 import os
 import pickle
+import logging
 
 import utm
 import numpy as np
@@ -57,6 +58,9 @@ from ..utils.install_electrical import (set_collection_points,
                                         set_connectors,
                                         get_umbilical_terminations,
                                         set_cable_cp_references)
+
+# Set up logging
+module_logger = logging.getLogger(__name__)
 
 
 class InstallationInterface(ModuleInterface):
@@ -2137,6 +2141,9 @@ class InstallationInterface(ModuleInterface):
                                                index={"Control System": "C"})
             
             sub_systems = pd.concat([sub_systems, control_system])
+            
+        # Ensure sub_systems is numeric
+        sub_systems = sub_systems.apply(pd.to_numeric, args=('coerce',))
         
         # place limitation - A, B, C must be assembled at Port.
         restricted_stages = "[A,B,C"
@@ -2327,9 +2334,18 @@ class InstallationInterface(ModuleInterface):
         port_safety_factor_df = port_safety_factor_df.apply(pd.to_numeric,
                                                             errors='ignore')
         
+        
+        # Fix nans
+        if np.isnan(port_safety_factor_df["Safety factor (in %) [-]"]).any():
+            
+            logMsg = ("Detected missing safety factors for ports. Setting to "
+                      "1")
+            module_logger.warning(logMsg)
+            
+            port_safety_factor_df = port_safety_factor_df.fillna(1)
+        
         # Correct safety factors
         port_safety_factor_df["Safety factor (in %) [-]"] += -1
-
         
         # vessel
         name_map = {
@@ -2343,6 +2359,15 @@ class InstallationInterface(ModuleInterface):
         vessel_safety_factor_df = vessel_safety_factor_df.apply(
                                                             pd.to_numeric,
                                                             errors='ignore')
+        
+        # Fix nans
+        if np.isnan(vessel_safety_factor_df["Safety factor (in %) [-]"]).any():
+            
+            logMsg = ("Detected missing safety factors for vessels. Setting "
+                      "to 1")
+            module_logger.warning(logMsg)
+            
+            vessel_safety_factor_df = vessel_safety_factor_df.fillna(1)
         
         # Correct safety factors
         vessel_safety_factor_df["Safety factor (in %) [-]"] += -1
@@ -2381,6 +2406,16 @@ class InstallationInterface(ModuleInterface):
         equipment_safety_factor_df = equipment_safety_factor_df.apply(
                                                             pd.to_numeric,
                                                             errors='ignore')
+        
+        # Fix nans
+        if np.isnan(
+                equipment_safety_factor_df["Safety factor (in %) [-]"]).any():
+            
+            logMsg = ("Detected missing safety factors for equipment. Setting "
+                      "to 1")
+            module_logger.warning(logMsg)
+            
+            equipment_safety_factor_df = equipment_safety_factor_df.fillna(1)
         
         # Correct safety factors
         equipment_safety_factor_df["Safety factor (in %) [-]"] += -1
