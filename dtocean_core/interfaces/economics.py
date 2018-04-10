@@ -162,7 +162,9 @@ class EconomicInterface(ThemeInterface):
                        "project.discounted_capex",
                        "project.cost_breakdown",
                        "project.capex_breakdown",
+                       "project.capex_lcoe_breakdown",
                        "project.opex_breakdown",
+                       "project.opex_lcoe_breakdown",
                        "project.lcoe_pdf"]
         
         return output_list
@@ -300,7 +302,9 @@ class EconomicInterface(ThemeInterface):
                   "discounted_capex": "project.discounted_capex",
                   "cost_breakdown": "project.cost_breakdown",
                   'capex_breakdown': "project.capex_breakdown",
+                  "capex_lcoe_breakdown": "project.capex_lcoe_breakdown",
                   'opex_breakdown': "project.opex_breakdown",
+                  "opex_lcoe_breakdown": "project.opex_lcoe_breakdown",
                   "lcoe_pdf": "project.lcoe_pdf",
                   "externalities_capex": "project.externalities_capex",
                   "externalities_opex": "project.externalities_opex"
@@ -597,6 +601,48 @@ class EconomicInterface(ThemeInterface):
                 
                 self.data.opex_breakdown = {"Maintenance": total_maintenance,
                                             "Externalities": total_external}
+                
+        # LCOE Breakdowns
+        discounted_energy_mode = self.data.discounted_energy_mode
+        discounted_opex_mode = self.data.discounted_opex_mode
+        
+        if discounted_energy_mode is not None:
+            
+            if self.data.capex_breakdown is not None:
+        
+                capex_lcoe_breakdown = {}
+                
+                for k, v in self.data.capex_breakdown.iteritems():
+                    
+                    capex_lcoe_breakdown[k] = round(
+                                            v / discounted_energy_mode / 10,
+                                            2)
+                    
+                self.data.capex_lcoe_breakdown = capex_lcoe_breakdown
+            
+            if (discounted_opex_mode is not None and
+                self.data.externalities_opex is not None):
+                                
+                years = range(1, len(opex_bom) + 1)
+                
+                discounted_externals = [self.data.externalities_opex /
+                                       (1 + self.data.discount_rate) ** i
+                                                               for i in years]
+                
+                discounted_external = np.array(discounted_externals).sum()
+                discounted_maintenance = discounted_opex_mode - \
+                                                        discounted_external
+                
+                lcoe_maintenance = round(
+                        discounted_maintenance / discounted_energy_mode / 10,
+                        2)
+                lcoe_external = round(
+                        discounted_external / discounted_energy_mode / 10,
+                        2)
+                    
+                self.data.opex_lcoe_breakdown = {
+                                            "Maintenance": lcoe_maintenance,
+                                            "Externalities": lcoe_external}
 
         # LCOE distribution
         if (metrics_table["LCOE"].isnull().any() or
