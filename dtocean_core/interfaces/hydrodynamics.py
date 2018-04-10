@@ -375,7 +375,7 @@ class HydroInterface(ModuleInterface):
     #		MeteoceanConditions (dict): dictionary gathering all the information related to the metocean conditions 
     #		                            of the site. The dictionary is different for wave and tidal cases:
     #									Wave keys:
-    #									   'Tp' (numpy.ndarray)[s]: Vector containing the wave energy periods 
+    #									   'Te' (numpy.ndarray)[s]: Vector containing the wave energy periods 
     #										'Hs' (numpy.ndarray)[m]: Vector containing the significant wave height
     #										'dir' (numpy.ndarray)[rad]: Vector containing the wave direction
     #										'p' (numpy.ndarray)[-]: Probability of occurence of the sea state
@@ -472,7 +472,7 @@ class HydroInterface(ModuleInterface):
                           "probability equals {}").format(p_total)
                 raise ValueError(errStr)
             
-            occurrence_matrix_coords = [occurrence_matrix['Tp'],
+            occurrence_matrix_coords = [occurrence_matrix['Te'],
                                         occurrence_matrix['Hs'],
                                         occurrence_matrix['B']]
             matrix_xgrid = {"values": occurrence_matrix['p'],
@@ -598,7 +598,7 @@ class HydroInterface(ModuleInterface):
 #        tidal_bidirectional (bool, optional): bidirectional working principle of the turbine
 #        tidal_data_folder (string, optional): Path to tidal device CFD data files
 
-        yaw_angle = self.data.yaw_angle
+        yaw_angle = np.radians(self.data.yaw_angle)
         min_install = self.data.min_install
         max_install = self.data.max_install
         min_dist = (self.data.min_dist_x, self.data.min_dist_y)
@@ -648,7 +648,7 @@ class HydroInterface(ModuleInterface):
                                                   self.data.user_array_option)
                 raise ValueError(errStr)
                 
-            numpy_layout = np.array([point.coords[0]
+            numpy_layout = np.array([point.coords[0][:2]
                                     for point in self.data.user_array_layout])
             
             user_array_dict = {'Value': numpy_layout}
@@ -868,7 +868,7 @@ class HydroInterface(ModuleInterface):
             bearings = [radians_to_bearing(x)
                                         for x in power_matrix_dims["dirs"]]
             
-            occurrence_matrix_coords = [power_matrix_dims['tp'],
+            occurrence_matrix_coords = [power_matrix_dims['te'],
                                         power_matrix_dims['hm0'],
                                         bearings]
             
