@@ -117,6 +117,10 @@ class MaintenanceInterface(ModuleInterface):
                         'device.system_width',
                         'device.system_height',
                         'device.system_mass',
+                        
+                        MaskVariable("device.turbine_interdistance",
+                                     "device.system_type",
+                                     ["Tidal Fixed", "Tidal Floating"]),
 
                         'device.assembly_duration',
                         'device.bollard_pull',
@@ -276,20 +280,20 @@ class MaintenanceInterface(ModuleInterface):
                         'project.lease_area_entry_point',
                         'project.selected_installation_tool',
                         
+                        'project.port_safety_factors',
+                        'project.vessel_safety_factors',
                         'project.cable_burial_safety_factors',
                         'project.divers_safety_factors',
                         'project.hammer_safety_factors',
-                        'project.port_safety_factors',
                         'project.rov_safety_factors',
                         'project.split_pipe_safety_factors',
-                        'project.vessel_safety_factors',
+                        'project.vibro_driver_safety_factors',
 
                         'project.fuel_cost_rate',
                         'project.grout_rate',
                         'project.loading_rate',
                         'project.split_pipe_laying_rate',
                         'project.surface_laying_rate',
-                        'project.vibro_driver_safety_factors',
                         
                         "project.calendar_based_maintenance",
                         "project.condition_based_maintenance",
@@ -426,6 +430,7 @@ class MaintenanceInterface(ModuleInterface):
         '''
         
         options_list = [
+                        "device.turbine_interdistance",
                         'device.control_subsystem_access',
                         'device.control_subsystem_costs',
                         'device.control_subsystem_failure_rates',
@@ -550,6 +555,7 @@ class MaintenanceInterface(ModuleInterface):
             "discount_rate": "project.discount_rate",
             
             "system_type": "device.system_type",
+            "turbine_interdist": "device.turbine_interdistance",
             "network_type": "project.network_configuration",
             "array_layout": "project.layout",
             "bathymetry": "bathymetry.layers",
@@ -1235,6 +1241,14 @@ class MaintenanceInterface(ModuleInterface):
         if self.data.control_system is not None:
             subsytem_comps.insert(2,'control001')
             subsystem_rates.update(self.data.control_subsystem_failure_rates)
+        
+        # Multiple turbine case. This is a rough fix but the maintenance module
+        # can't handle a partial failure of the device anyway
+        if (self.data.turbine_interdist is not None and 
+            self.data.turbine_interdist > 0.):
+            
+            subsystem_rates['Prime Mover'] *= 2
+            subsystem_rates['PTO'] *= 2
             
         user_hierarchy, user_bom = get_user_network(subsytem_comps,
                                                     self.data.array_layout)
