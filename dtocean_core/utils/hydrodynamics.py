@@ -148,7 +148,7 @@ def make_wave_statistics(wave_df,
     Hm0_centered = yedges[:-1] + dH / 2.
     Dir_centered = np.array(Dbin[0:-1], dtype=float) * 180. / np.pi + (dD / 2.)
     
-    dictOut = {'Tp': Te_centered,
+    dictOut = {'Te': Te_centered,
                'Hs': Hm0_centered,
                'B': Dir_centered,
                'p': SDn}
