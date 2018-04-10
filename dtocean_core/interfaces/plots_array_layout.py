@@ -180,7 +180,7 @@ class ArrayCablesPlot(PlotInterface):
     @classmethod
     def declare_optional(cls):
         
-        option_list = None
+        option_list = ["site.lease_boundary"]
 
         return option_list
         
@@ -224,14 +224,21 @@ class ArrayCablesPlot(PlotInterface):
                                     for key, value in self.data.layout.items()}
         landing_dict = {"Export Cable Landing": self.data.landing_point}
         
-        plot_point_dict(ax1, landing_dict, 'or', annotate=True)
+        plot_point_dict(ax1,
+                        landing_dict,
+                        'or',
+                        annotate=True,
+                        text_weight="bold",
+                        text_size="large")
         dplot = plot_point_dict(ax1, short_layout, "k+", "Devices")
         splot = plot_point_dict(ax1,
                                 self.data.substation_layout,
                                 "gs",
                                 "Collection Points")
         plot_cables(ax1, self.data.cable_routes)
-        plot_lease_boundary(ax1, self.data.lease_poly)
+        
+        if self.data.lease_poly is not None:
+            plot_lease_boundary(ax1, self.data.lease_poly)
 
         ax1.margins(0.1, 0.1)
         ax1.autoscale_view()
@@ -414,7 +421,12 @@ def plot_point_dict(ax,
                     marker,
                     label=None,
                     annotate=False,
-                    markersize=None):
+                    markersize=None,
+                    text_weight=None,
+                    text_size=None):
+    
+    if text_weight is None: text_weight = 'normal'
+    if text_size is None: text_size = 'medium'
     
     x = []
     y = []
@@ -442,8 +454,8 @@ def plot_point_dict(ax,
                     xycoords='data',
                     textcoords='offset pixels',
                     horizontalalignment='center',
-                    weight="bold",
-                    size='large')
+                    weight=text_weight,
+                    size=text_size)
 
     return pplot[0]
 
@@ -455,7 +467,12 @@ def plot_lease_boundary(ax, lease_boundary, padding=None):
         outer_coords = list(lease_boundary.exterior.coords)
         inner_boundary = lease_boundary.buffer(-padding)
         inner_coords = list(inner_boundary.exterior.coords)
-        lease_boundary = Polygon(outer_coords, [inner_coords[::-1]])
+
+        # Check if the orientation of the polygons are the same
+        if clockwise(*zip(*inner_coords)) == clockwise(*zip(*outer_coords)):
+            inner_coords = inner_coords[::-1]
+        
+        lease_boundary = Polygon(outer_coords, [inner_coords])
 
         patch = PolygonPatch(lease_boundary,
                              fc=RED,
@@ -506,3 +523,13 @@ def plot_cables(ax, cable_routes):
         
         line = plt.Line2D(x, y)
         ax.add_line(line)
+        
+    
+def clockwise(x, y):
+    """ Use the shoelace formula to determine whether the polygon points are
+    defined in a clockwise direction"""
+    # https://stackoverflow.com/a/1165943/3215152
+    # https://stackoverflow.com/a/19875560/3215152
+    if sum(x[i] * (y[i + 1] - y[i - 1]) for i in xrange(-1, len(x) - 1)) >= 0:
+        return True
+    return False
