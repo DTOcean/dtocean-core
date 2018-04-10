@@ -259,15 +259,25 @@ class OrderedSim(Simulation):
         
         return
     
-    def get_input_ids(self, hub_id=None, interface_name=None):
+    def get_input_ids(self, hub_id=None,
+                            interface_name=None,
+                            valid_statuses=None):
         
-        result = self._get_ids(self._hub_input_status, hub_id, interface_name)
+        result = self._get_ids(self._hub_input_status,
+                               hub_id,
+                               interface_name,
+                               valid_statuses)
                 
         return result
         
-    def get_output_ids(self, hub_id=None, interface_name=None):
+    def get_output_ids(self, hub_id=None,
+                             interface_name=None,
+                             valid_statuses=None):
         
-        result = self._get_ids(self._hub_output_status, hub_id, interface_name)
+        result = self._get_ids(self._hub_output_status,
+                               hub_id,
+                               interface_name,
+                               valid_statuses)
                 
         return result
 
@@ -296,7 +306,10 @@ class OrderedSim(Simulation):
         
         return simulation
     
-    def _get_ids(self, sim_status, hub_id=None, interface_name=None):
+    def _get_ids(self, sim_status,
+                       hub_id=None,
+                       interface_name=None,
+                       valid_statuses=None):
         
         if hub_id is None:
             hub_ids = sim_status.keys()
@@ -317,8 +330,19 @@ class OrderedSim(Simulation):
             for this_interface_name in interface_names:
                 
                 input_status = hub_status[this_interface_name]
-                all_ids += input_status.keys()
                 
+                if valid_statuses is not None:
+                    
+                    print {k: v for k, v in input_status.items()
+                                    if any(x == v for x in valid_statuses)}
+                    
+                    all_ids += [k for k, v in input_status.items()
+                                    if any(x == v for x in valid_statuses)]
+                    
+                else:
+                
+                    all_ids += input_status.keys()
+                                    
         return list(set(all_ids))
 
 
@@ -1079,7 +1103,12 @@ class Core(object):
         
         # Get the input ids in the active simulation
         simulation = project.get_simulation()
-        input_ids = simulation.get_input_ids()
+        
+        # Avoid filling unavailable or overwritten inputs
+        valid_statuses = ["required", "optional"]
+        if overwrite: valid_statuses.append("satisfied")
+        
+        input_ids = simulation.get_input_ids(valid_statuses=valid_statuses)
         
         # Flag to remove datastate directory
         remove_dts_dir = False
@@ -1154,9 +1183,7 @@ class Core(object):
                 continue
             
             if exclude is not None and exclude in var_id: continue
-                
-            if not overwrite and self.has_data(project, var_id): continue
-    
+                    
             data_obj = temp_pool.get(data_index)
             
             var_ids.append(var_id)
