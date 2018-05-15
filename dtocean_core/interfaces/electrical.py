@@ -953,7 +953,7 @@ class ElectricalInterface(ModuleInterface):
         
         name_map = {"Key Identifier": "id",
                     "Number of Conductors": "n",
-                    "Rated Voltage (U)": "v_rate",
+                    "Rated Voltage (U0)": "v_rate",
                     "Rated Current in Air": "a_air",
                     "Rated Current if Buried": "a_bury",
                     "Rated Current in J Tube": "a_jtube",
@@ -996,7 +996,7 @@ class ElectricalInterface(ModuleInterface):
         
         name_map = { "Key Identifier": "id",
                      "Number Of Contacts": "n",
-                     "Rated Voltage (U)": "v_rate",
+                     "Rated Voltage (U0)": "v_rate",
                      "Rated Current": "a_rate",
                      "Dry Mass": "dry_mass",
                      "Height": "height",
