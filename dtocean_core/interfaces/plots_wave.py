@@ -202,7 +202,7 @@ class PowerMatrixPlot(PlotInterface):
     def connect(self):
 
         occurrence_grid = self.data.power_matrix
-        occurrence_flat = occurrence_grid.sum("Dir")
+        occurrence_flat = occurrence_grid.mean("Dir")
         vals = occurrence_flat.values.T
     
         col_normals = Normalize(vals.min(), vals.max())
@@ -242,7 +242,7 @@ class PowerMatrixPlot(PlotInterface):
                               loc='center',
                               bbox=[0, 0, 1, 0.9])
     
-        plt.title("Single Device Power Matrix (Over All Directions) [kW]")
+        plt.title("Single Device Power Matrix (Mean Over All Directions) [kW]")
 
         self.fig_handle = plt.gcf()
 
