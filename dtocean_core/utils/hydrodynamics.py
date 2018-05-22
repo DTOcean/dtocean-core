@@ -178,8 +178,8 @@ def make_wave_statistics(wave_df,
                   'Hm0-rows\n')
         for di_in in range(nDir):
             fid.write('Angle\t{}\n'.format(Dir_centered[di_in]))
-            for h_in in range(nH):
-                for t_in in range(nT):
+            for h_in in range(nH+1):
+                for t_in in range(nT+1):
                     fid.write('{}\t'.format(SDn[t_in,h_in,di_in]))
                 fid.write('\n')
   
