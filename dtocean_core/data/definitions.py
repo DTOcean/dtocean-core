@@ -3829,8 +3829,12 @@ class XGridND(Structure):
             coord_item = coord_tuples.append((dim, coord_list))
 
         if units is not None:
-
-            attrs = {'units': units.pop()}
+            
+            data_unit = units.pop()
+            
+            if data_unit is not None:
+                attrs = {'units': data_unit}
+                
             new_tuples = []
 
             for coord_item, unit in zip(coord_tuples, units):
