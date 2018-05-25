@@ -29,6 +29,7 @@ import pandas as pd
 from scipy.integrate import simps
 from scipy.interpolate import interp1d
 
+
 def make_wave_statistics(wave_df,
                          period_bin_size=1.,
                          wave_height_bin_size=0.5,
@@ -190,6 +191,7 @@ def make_wave_statistics(wave_df,
     assert np.allclose(np.sum(dictOut["p"]), 1)
         
     return dictOut
+
     
 def make_tide_statistics(dictinput):
     
@@ -385,6 +387,7 @@ def make_tide_statistics(dictinput):
     
     return dictoutput
 
+
 def add_Te(wave_df, gamma=3.3, drop_nan=True):
     
     given_cols = set(wave_df.columns)
@@ -416,7 +419,8 @@ def add_Te(wave_df, gamma=3.3, drop_nan=True):
         new_df = new_df.dropna()
                 
     return new_df
-    
+
+
 def make_JONSWAP(Hm0, Tp, gamma=3.3, w=-1, wc=-1):
     
     if wc<0:
@@ -443,7 +447,8 @@ def make_JONSWAP(Hm0, Tp, gamma=3.3, w=-1, wc=-1):
     S[0] = 0 
     
     return S, w
-        
+
+    
 def make_spectra_analysis(S,w):
 
     g = 9.8063
@@ -513,7 +518,8 @@ def make_spectra_analysis(S,w):
            'Qp':        Qp}
 
     return dic
-    
+
+
 def check_bin_widths(rated_power, bin_width):
     
     if bin_width is None: bin_width = 0.1
@@ -526,7 +532,8 @@ def check_bin_widths(rated_power, bin_width):
         raise ValueError(errStr)
         
     return
-    
+
+
 def make_power_histograms(device_power_pmfs,
                           rated_power,
                           bin_width=None):
@@ -562,7 +569,8 @@ def make_power_histograms(device_power_pmfs,
                                 final_bins)
         
     return device_hists
-    
+
+
 def sum_bins(bins, data):
     
     '''
@@ -586,19 +594,21 @@ def sum_bins(bins, data):
     
     return np.array(bin_sums)
 
+
 def bearing_to_radians(bearing):
 
-    #convert bearing to arithmetic angle in radians
     angle = 90. - bearing
     if angle <= -180.: angle += 360.
     
     angle = math.radians(angle)
     
-    return angle
+    if angle < 0: angle += 2 * math.pi
     
+    return angle
+
+
 def bearing_to_vector(bearing, distance=1.):
 
-    #convert bearing to arithmetic angle in radians
     angle = bearing_to_radians(bearing)
     
     start = complex(0., 0.)
@@ -610,19 +620,22 @@ def bearing_to_vector(bearing, distance=1.):
     
     return endx, endy
     
-def vector_to_bearing(x, y):
-
-    initial_bearing = math.atan2(x, y)
-    compass_bearing = radians_to_bearing(initial_bearing)
-
-    return compass_bearing
     
 def radians_to_bearing(x):
 
-    initial_bearing = math.degrees(x)
+    initial_bearing = 90 - math.degrees(x)
     compass_bearing = (initial_bearing + 360) % 360
 
     return compass_bearing
+
+
+def vector_to_bearing(x, y):
+
+    initial_bearing = math.atan2(y, x)
+    compass_bearing = radians_to_bearing(initial_bearing)
+
+    return compass_bearing
+
     
 def add_Te_interface():
     
@@ -686,6 +699,3 @@ def add_Te_interface():
         new_df.to_excel(file_path, index=False)
 
     return
-    
-
-
