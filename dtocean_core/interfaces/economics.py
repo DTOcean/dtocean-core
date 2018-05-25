@@ -86,6 +86,8 @@ class EconomicInterface(ThemeInterface):
         '''
 
         input_list  =  ["device.system_cost",
+                        'project.lifetime',
+                        "project.discount_rate",
                         "project.number_of_devices",
                         "project.electrical_economics_data",
                         "project.moorings_foundations_economics_data",
@@ -94,8 +96,6 @@ class EconomicInterface(ThemeInterface):
                         "project.opex_per_year",
                         "project.energy_per_year",
                         'project.electrical_network_efficiency',
-                        'project.lifetime',
-                        "project.discount_rate",
                         "project.externalities_capex",
                         "project.externalities_opex",
                         'project.electrical_cost_estimate',
