@@ -11,8 +11,11 @@ from dtocean_core.utils.hydrodynamics import (make_wave_statistics,
                                               make_tide_statistics,
                                               bearing_to_radians,
                                               bearing_to_vector,
+                                              radians_to_bearing,
+                                              vector_to_bearing,
                                               make_power_histograms)
-                                        
+
+
 def test_make_wave_statistics_propability():
     
     sample_size = 1000
@@ -44,10 +47,11 @@ def test_make_wave_statistics_propability():
 
     test = make_wave_statistics(wave_df)
 
-    assert len(test["Tp"]) == test["p"].shape[0]    
+    assert len(test["Te"]) == test["p"].shape[0]    
     assert len(test["Hs"]) == test["p"].shape[1]    
     assert len(test["B"]) == test["p"].shape[2]
     assert np.allclose(np.sum(test["p"]), 1)
+
 
 @pytest.mark.parametrize("nx, ny, nt, ns", 
                          [(50, 50, 24, 2),
@@ -85,6 +89,7 @@ def test_make_tide_statistics_propability(nx, ny, nt, ns):
     assert test["U"].shape == (nx, ny, ns)
     assert np.allclose(np.sum(test["p"]), 1)
 
+
 def test_make_tide_statistics_zero_V():
     
     nx = 50
@@ -121,7 +126,8 @@ def test_make_tide_statistics_zero_V():
     assert len(test["p"]) == ns
     assert test["U"].shape == (nx, ny, ns)
     assert np.allclose(np.sum(test["p"]), 1)
-    
+
+
 #@pytest.mark.parametrize("ext, gamma", 
 #                         [(".csv", 3.0),
 #                          (".csv", 3.3),
@@ -173,29 +179,71 @@ def test_make_tide_statistics_zero_V():
 #    assert wave_df["Te"].min() >= 0.
 #    assert wave_df["Te"].max() <= 16.
 
+
 @pytest.mark.parametrize("bearing, radians", 
                          [(0.,   math.pi / 2.),
+                          (45., math.pi / 4.),
                           (90.,  0.),
-                          (180., -math.pi / 2.),
-                          (270., math.pi)])
+                          (135., 7 * math.pi / 4.),
+                          (180., 3 * math.pi / 2.),
+                          (225., 5 * math.pi / 4.),
+                          (270., math.pi),
+                          (315., 3 * math.pi / 4.)])
 def test_bearing_to_radians(bearing, radians):
     
     test_radians = bearing_to_radians(bearing)
     
-    assert test_radians == radians
-    
+    assert np.isclose(test_radians, radians)
+
+
 @pytest.mark.parametrize("bearing, vector", 
                          [(0.,   [0.,  1.]),
+                          (45.,  [1 / math.sqrt(2),   1 / math.sqrt(2)]),
                           (90.,  [1.,  0.]),
+                          (135., [1 / math.sqrt(2),  -1 / math.sqrt(2)]),
                           (180., [0., -1.]),
-                          (270., [-1., 0.])])
+                          (225., [-1 / math.sqrt(2), -1 / math.sqrt(2)]),
+                          (270., [-1., 0.]),
+                          (315., [-1 / math.sqrt(2),  1 / math.sqrt(2)])])
 def test_bearing_to_vector(bearing, vector):
     
     test_vector = bearing_to_vector(bearing)
     
     assert np.isclose(test_vector, vector).all()
+
+
+@pytest.mark.parametrize("bearing, radians", 
+                         [(0.,   math.pi / 2.),
+                          (45.,  math.pi / 4.),
+                          (90.,  0.),
+                          (135., 7 * math.pi / 4.),
+                          (180., 3 * math.pi / 2.),
+                          (225., 5 * math.pi / 4.),
+                          (270., math.pi),
+                          (315., 3 * math.pi / 4.)])
+def test_radians_to_bearing(bearing, radians):
+    
+    test_bearing = radians_to_bearing(radians)
+    
+    assert np.isclose(test_bearing, bearing)
     
     
+@pytest.mark.parametrize("bearing, vector", 
+                         [(0.,   [0.,   1.]),
+                          (45.,  [1.,   1.]),
+                          (90.,  [1.,   0.]),
+                          (135., [1.,  -1.]),
+                          (180., [0.,  -1.]),
+                          (225., [-1., -1.]),
+                          (270., [-1.,  0.]),
+                          (315., [-1.,  1.])])
+def test_vector_to_bearing(bearing, vector):
+    
+    test_bearing = vector_to_bearing(*vector)
+    
+    assert np.isclose(test_bearing, bearing)
+
+
 def test_make_power_histograms():
     
     device_power_pmfs = {"device001": np.array([[0.2, 0.4],
