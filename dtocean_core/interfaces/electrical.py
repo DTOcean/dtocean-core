@@ -190,6 +190,7 @@ class ElectricalInterface(ModuleInterface):
                        'project.electrical_component_data',
                        'project.electrical_economics_data',
                        'project.cable_routes',
+                       'project.export_voltage',
                        'project.substation_props',
                        'project.substation_layout',
                        'project.substation_cog',
@@ -453,6 +454,9 @@ class ElectricalInterface(ModuleInterface):
                      
         self.data.cables_routes = solution.cable_routes.rename(
                                                             columns=name_map)
+        
+        # Export cable voltage
+        self.data.corridor_voltage = solution.export_voltage
                 
         if solution.collection_points:
             
