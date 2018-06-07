@@ -306,7 +306,7 @@ def installation_gantt_chart(plan=None,
         values = installation_gantt_dates(install_driven_piles_dates,
                                           component_time["Preparation"])
 
-        installation['Installation of driven pile foundations'] =\
+        installation['Installation of driven piles anchors/foundations'] =\
             values
 
     if any('direct-embedment' in phase for phase in plan):
@@ -338,8 +338,7 @@ def installation_gantt_chart(plan=None,
                                           component_time["Preparation"])
 
         installation[
-            'Installation of mooring systems with driven pile '
-            'anchors'] = values
+            'Installation of mooring systems with pile anchors'] = values
 
     if any('drag-embedment' in phase for phase in plan):
 
