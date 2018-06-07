@@ -2722,7 +2722,7 @@ class DateTimeDict(DateTimeData):
     def get_data(self, raw, meta_data):
 
         raw_dict = raw
-        typed_dict = {}
+        checked_dict = {}
 
         try:
 
@@ -2730,7 +2730,7 @@ class DateTimeDict(DateTimeData):
                             
                 date_item = super(DateTimeDict, self).get_data(value,
                                                                meta_data)
-                typed_dict[key] = date_item
+                checked_dict[key] = date_item
 
         except AttributeError:
 
@@ -2743,25 +2743,73 @@ class DateTimeDict(DateTimeData):
             errStr = ("Raw data is of incorrect type. Should be "
                       "datetime.datetime, but is {}.").format(type(value))
             raise TypeError(errStr)
-        
-        # Test keys against valid values
-        if meta_data.valid_values is not None:
-            
-            for key in typed_dict.iterkeys():
-                
-                if key not in meta_data.valid_values:
-                    
-                    valid_str = ", ".join(meta_data.valid_values)
-                    errStr = ("Raw data key '{}' does not match any valid "
-                              "value from: {}").format(key,
-                                                       valid_str)
-                    raise ValueError(errStr)
 
-        return typed_dict
+        return checked_dict
 
     def get_value(self, data):
 
         return deepcopy(data)
+    
+    @staticmethod
+    def auto_file_input(self):
+        
+        self.check_path()
+        
+        if ".xls" in self._path:
+            df = pd.read_excel(self._path)
+        elif ".csv" in self._path:
+            df = pd.read_csv(self._path)
+        else:
+             raise TypeError("The specified file format is not supported.",
+                             "Supported format are {},{},{}".format('.csv',
+                                                                    '.xls',
+                                                                    '.xlsx'))  
+        if not ("data" in df.columns 
+                and "ID" in df.columns):
+            raise TypeError("The file does not contain the correct header.",
+                            "The data column needs to have the header: 'data'",
+                            "and the key colum needs to have the header: 'ID'")
+        
+        result = {}
+        
+        for key, data in zip(df.ID, df.data):
+            
+            ts = pd.to_datetime(data)
+            dt = ts.to_pydatetime()
+            
+            result[key] = dt
+            
+        if not result: result = None
+            
+        self.data.result = result
+        
+        return
+        
+    @staticmethod
+    def auto_file_output(self):
+        
+        self.check_path()
+        
+        dc = self.data.result
+        data = [[k,v] for k,v in dc.iteritems()]
+        df = pd.DataFrame(data, columns=["ID", "data"])
+        
+        if ".xls" in self._path:
+            df.to_excel(self._path, index=False)
+        elif ".csv" in self._path:
+            df.to_csv(self._path, index=False)
+        else:
+            raise TypeError("The specified file format is not supported.",
+                            "Supported format are {},{},{}".format('.csv',
+                                                                   '.xls',
+                                                                   '.xlsx'))
+        
+        return
+        
+    @staticmethod
+    def get_valid_extensions(cls):
+        
+        return [".csv", ".xls", ".xlsx"]
         
         
 class TriStateData(Structure):
