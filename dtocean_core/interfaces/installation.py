@@ -644,8 +644,15 @@ class InstallationInterface(ModuleInterface):
                         "Foundation": "foundations [-]"}
 
             foundations_df = foundations_df.rename(columns=name_map)
-
-            # Map wp4 to wp5 
+            
+            # TEMP FIX: Change substation foundation to 'pile foundation'
+            # to stop it being treated as floating
+            array_idxs = foundations_df.index[
+                            foundations_df["devices [-]"] == "array"].tolist()
+            
+            foundations_df.at[array_idxs[0], "type [-]"] = 'pile foundation'
+            
+            # Add fixed or floating indicators to certain foundation types
             if "floating" in self.data.system_type.lower():
                 append_this = ' anchor'
             else:
@@ -656,7 +663,8 @@ class InstallationInterface(ModuleInterface):
                               'gravity': 'gravity' + append_this,
                               'pile': 'pile' + append_this,
                               'shallowfoundation': 'shallow' + append_this,
-                              'suctioncaisson': 'suction caisson anchor'}
+                              'suctioncaisson': 'suction caisson anchor',
+                              'pile foundation': 'pile foundation'}
                 
             foundations_df['type [-]'] = foundations_df['type [-]'].map(
                                                                 foundation_map)
