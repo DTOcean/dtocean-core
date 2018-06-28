@@ -1280,18 +1280,34 @@ def get_point_depth(bathyset, position):
     return depth
 
 
-def get_events_table(raw_df):
+def get_events_table(raw_df,
+                     prepend_special_raw=None,
+                     prepend_special_name=None):
     
     raw_df = raw_df.dropna()
     
-    data_df = raw_df[[u'repairActionRequestDate [-]',
-                      u'repairActionDate [-]',
-                      u'downtimeDuration [Hour]',
-                      u'ComponentSubType [-]',
-                      u'FM_ID [-]',
-                      u'costLogistic [Euro]',
-                      u'costOM_Labor [Euro]',
-                      u'costOM_Spare [Euro]']]
+    # Get required columns from raw_df
+    if prepend_special_raw is not None:
+        cols_toget = [prepend_special_raw]
+    else:
+        cols_toget = []
+    
+    # Add standard columns
+    cols_toget.extend([u'repairActionRequestDate [-]',
+                       u'repairActionDate [-]',
+                       u'downtimeDuration [Hour]',
+                       u'ComponentSubType [-]',
+                       u'FM_ID [-]',
+                       u'costLogistic [Euro]',
+                       u'costOM_Labor [Euro]',
+                       u'costOM_Spare [Euro]',
+                       u'nameOfvessel [-]'])
+    
+    data_df = raw_df[cols_toget]
+    
+    if prepend_special_raw is not None:
+        data_df[prepend_special_raw] = pd.to_datetime(
+                                            data_df[prepend_special_raw])
 
     data_df["repairActionDate [-]"] = pd.to_datetime(
                             data_df["repairActionDate [-]"])
@@ -1311,7 +1327,7 @@ def get_events_table(raw_df):
         if "RtP" in x:
             return "Replacement"
     
-    data_df["FM_ID [-]"] = data_df["FM_ID [-]"].apply(mode_match)
+    data_df["FM_ID [-]"] = data_df["FM_ID [-]"].apply(mode_match)        
     
     name_map = {
             "repairActionRequestDate [-]": "Operation Request Date",
@@ -1321,7 +1337,11 @@ def get_events_table(raw_df):
             "FM_ID [-]": "Operation Type",
             "costLogistic [Euro]": "Logistics Cost",
             "costOM_Labor [Euro]": "Labour Cost",
-            "costOM_Spare [Euro]": "Parts Cost"}
+            "costOM_Spare [Euro]": "Parts Cost",
+            'nameOfvessel [-]': "Vessel Name"}
+    
+    if prepend_special_name is not None:
+        name_map[prepend_special_raw] = prepend_special_name
 
     data_df = data_df.rename(columns=name_map)
     
