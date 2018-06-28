@@ -346,6 +346,7 @@ class MaintenanceInterface(ModuleInterface):
                         
                         "options.maintenance_data_points",
                         "options.parallel_operations",
+                        "options.corrective_prep_time",
                         "options.curtail_devices",
                         "options.suppress_corrective_maintenance"
                        ]
@@ -513,6 +514,7 @@ class MaintenanceInterface(ModuleInterface):
                         "device.two_stage_assembly",
                         "options.curtail_devices",
                         "options.parallel_operations",
+                        "options.corrective_prep_time",
                         "options.suppress_corrective_maintenance"
                         ]
                 
@@ -757,6 +759,7 @@ class MaintenanceInterface(ModuleInterface):
     
             "data_points": "options.maintenance_data_points",
             "parallel_operations": "options.parallel_operations",
+            "corrective_prep_time": "options.corrective_prep_time",
             "curtail_devices": "options.curtail_devices",
             "suppress_corrective": "options.suppress_corrective_maintenance",
             
@@ -1497,6 +1500,9 @@ class MaintenanceInterface(ModuleInterface):
 #                numberOfParallelActions (int) [-]:
 #                    Maximum number of operations that can be completed by one
 #                    vessel. Optional, defaults to 10
+#               correctivePrepTime (float) [hour]:
+#                   time required to prepare vessels for corrective 
+#                   maintenance actions. Defaults to 48
 #                
 #            Note:
 #
@@ -1524,6 +1530,7 @@ class MaintenanceInterface(ModuleInterface):
                          "numberOfSimulations": self.data.data_points,
                          "numberOfParallelActions":
                              self.data.parallel_operations,
+                         "correctivePrepTime": self.data.corrective_prep_time,
                          'dtocean_logistics_PRINT_FLAG': False,
                          'dtocean_maintenance_PRINT_FLAG': False,
                          'dtocean_maintenance_TEST_FLAG': False
@@ -1727,7 +1734,9 @@ class MaintenanceInterface(ModuleInterface):
         if not best_strategies['UnCoMa_eventsTable'].isnull().values.all():
             
             raw_df = best_strategies['UnCoMa_eventsTable']
-            best_corrective_events_df = get_events_table(raw_df)
+            best_corrective_events_df = get_events_table(raw_df,
+                                                         'failureDate [-]',
+                                                         'Failure Date')
             
         if not worst_strategies['CaBaMa_eventsTable'].isnull().values.all():
             
@@ -1742,7 +1751,9 @@ class MaintenanceInterface(ModuleInterface):
         if not worst_strategies['UnCoMa_eventsTable'].isnull().values.all():
             
             raw_df = worst_strategies['UnCoMa_eventsTable']
-            worst_corrective_events_df = get_events_table(raw_df)
+            worst_corrective_events_df = get_events_table(raw_df,
+                                                         'failureDate [-]',
+                                                         'Failure Date')
             
         self.data.calendar_events_best = best_calendar_events_df
         self.data.condition_events_best = best_condition_events_df
