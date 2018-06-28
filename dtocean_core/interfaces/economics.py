@@ -39,7 +39,10 @@ from dtocean_economics.preprocessing import (estimate_cost_per_power,
                                              make_phase_bom)
 
 from . import ThemeInterface
-from ..utils.stats import EstimatedDistribution
+from ..utils.stats import (UniVariateKDE,
+                           BiVariateKDE,
+                           pdf_confidence_densities,
+                           pdf_contour_coords)
 
 
 class EconomicInterface(ThemeInterface):
@@ -130,34 +133,20 @@ class EconomicInterface(ThemeInterface):
         '''
         
         output_list = ["project.economics_metrics",
-                       "project.lcoe_mean",
+                       "project.lcoe_mode_opex",
+                       "project.lcoe_mode_energy",
                        "project.lcoe_mode",
                        "project.lcoe_interval_lower",
                        "project.lcoe_interval_upper",
-                       "project.capex_lcoe_mean",
-                       "project.capex_lcoe_mode",
-                       "project.capex_lcoe_interval_lower",
-                       "project.capex_lcoe_interval_upper",
-                       "project.opex_lcoe_mean",
-                       "project.opex_lcoe_mode",
-                       "project.opex_lcoe_interval_lower",
-                       "project.opex_lcoe_interval_upper",
-                       "project.opex_mean",
-                       "project.opex_mode",
-                       "project.opex_interval_lower",
-                       "project.opex_interval_upper",
-                       "project.discounted_opex_mean",
+                       "project.lcoe_mean",
                        "project.discounted_opex_mode",
                        "project.discounted_opex_interval_lower",
                        "project.discounted_opex_interval_upper",
-                       "project.exported_energy_mean",
-                       "project.exported_energy_mode",
-                       "project.exported_energy_interval_lower",
-                       "project.exported_energy_interval_upper",
-                       "project.discounted_energy_mean",
+                       "project.discounted_opex_mean",
                        "project.discounted_energy_mode",
                        "project.discounted_energy_interval_lower",
                        "project.discounted_energy_interval_upper",
+                       "project.discounted_energy_mean",
                        "project.capex_total",
                        "project.discounted_capex",
                        "project.cost_breakdown",
@@ -165,6 +154,7 @@ class EconomicInterface(ThemeInterface):
                        "project.capex_lcoe_breakdown",
                        "project.opex_breakdown",
                        "project.opex_lcoe_breakdown",
+                       "project.confidence_density",
                        "project.lcoe_pdf"]
         
         return output_list
@@ -251,6 +241,8 @@ class EconomicInterface(ThemeInterface):
                   "energy_per_year": "project.energy_per_year",
                   'network_efficiency':
                       'project.electrical_network_efficiency',
+                  "externalities_capex": "project.externalities_capex",
+                  "externalities_opex": "project.externalities_opex",
                   "lifetime": 'project.lifetime',
                   
                   "electrical_estimate": 'project.electrical_cost_estimate',
@@ -265,33 +257,17 @@ class EconomicInterface(ThemeInterface):
                   
                   "economics_metrics": "project.economics_metrics",
                   "lcoe_mean": "project.lcoe_mean",
+                  "lcoe_mode_opex": "project.lcoe_mode_opex",
+                  "lcoe_mode_energy": "project.lcoe_mode_energy",
                   "lcoe_mode": "project.lcoe_mode",
                   "lcoe_lower": "project.lcoe_interval_lower",
                   "lcoe_upper": "project.lcoe_interval_upper",
-                  "capex_lcoe_mean": "project.capex_lcoe_mean",
-                  "capex_lcoe_mode": "project.capex_lcoe_mode",
-                  "capex_lcoe_lower": "project.capex_lcoe_interval_lower",
-                  "capex_lcoe_upper": "project.capex_lcoe_interval_upper",
-                  "opex_lcoe_mean": "project.opex_lcoe_mean",
-                  "opex_lcoe_mode": "project.opex_lcoe_mode",
-                  "opex_lcoe_lower": "project.opex_lcoe_interval_lower",
-                  "opex_lcoe_upper": "project.opex_lcoe_interval_upper",
-                  "opex_mean": "project.opex_mean",
-                  "opex_mode": "project.opex_mode",
-                  "opex_lower": "project.opex_interval_lower",
-                  "opex_upper": "project.opex_interval_upper",
                   "discounted_opex_mean": "project.discounted_opex_mean",
                   "discounted_opex_mode": "project.discounted_opex_mode",
                   "discounted_opex_lower":
                       "project.discounted_opex_interval_lower",
                   "discounted_opex_upper":
                       "project.discounted_opex_interval_upper",
-                  "exported_energy_mean": "project.exported_energy_mean",
-                  "exported_energy_mode": "project.exported_energy_mode",
-                  "exported_energy_lower":
-                      "project.exported_energy_interval_lower",
-                  "exported_energy_upper":
-                      "project.exported_energy_interval_upper",
                   "discounted_energy_mean": "project.discounted_energy_mean",
                   "discounted_energy_mode": "project.discounted_energy_mode",
                   "discounted_energy_lower":
@@ -305,9 +281,8 @@ class EconomicInterface(ThemeInterface):
                   "capex_lcoe_breakdown": "project.capex_lcoe_breakdown",
                   'opex_breakdown': "project.opex_breakdown",
                   "opex_lcoe_breakdown": "project.opex_lcoe_breakdown",
+                  "confidence_density": "project.confidence_density",
                   "lcoe_pdf": "project.lcoe_pdf",
-                  "externalities_capex": "project.externalities_capex",
-                  "externalities_opex": "project.externalities_opex"
                   }
                   
         return id_map
@@ -510,8 +485,8 @@ class EconomicInterface(ThemeInterface):
                       "LCOE CAPEX",
                       "LCOE OPEX",
                       "OPEX",
-                      "Discounted OPEX",
                       "Energy",
+                      "Discounted OPEX",
                       "Discounted Energy"]
             
         metrics_dict = {}
@@ -530,13 +505,8 @@ class EconomicInterface(ThemeInterface):
         
         self.data.economics_metrics = metrics_table
         
-        # Do stats on the metrics
-        args_table = {"LCOE": "lcoe",
-                      "LCOE CAPEX": "capex_lcoe",
-                      "LCOE OPEX": "opex_lcoe",
-                      "OPEX": "opex",
-                      "Discounted OPEX": "discounted_opex",
-                      "Energy": "exported_energy",
+        # Do univariate stats on discounted metrics
+        args_table = {"Discounted OPEX": "discounted_opex",
                       "Discounted Energy": "discounted_energy"}
         
         for key, arg_root in args_table.iteritems():
@@ -564,7 +534,7 @@ class EconomicInterface(ThemeInterface):
                 
                 try:
             
-                    distribution = EstimatedDistribution(data)
+                    distribution = UniVariateKDE(data)
                     mean = distribution.mean()
                     mode = distribution.mode()
                     
@@ -586,88 +556,99 @@ class EconomicInterface(ThemeInterface):
             self.data[arg_lower] = lower
             self.data[arg_upper] = upper
             
-        # CAPEX vs OPEX Breakdown and OPEX Breakdown if externalities
-        if self.data.opex_mode is not None:
-                        
-            breakdown = {"CAPEX": result["CAPEX"],
-                         "OPEX": self.data.opex_mode}
-            
-            self.data.cost_breakdown = breakdown
-                        
-            if self.data.externalities_opex is not None:
-                
-                total_external = self.data.externalities_opex * len(opex_bom)
-                total_maintenance = self.data.opex_mode - total_external
-                
-                self.data.opex_breakdown = {"Maintenance": total_maintenance,
-                                            "Externalities": total_external}
-                
-        # LCOE Breakdowns
-        discounted_energy_mode = self.data.discounted_energy_mode
-        discounted_opex_mode = self.data.discounted_opex_mode
+        # Bivariate stats on LCOE and related variables
+        self.data.lcoe_mean = metrics_table["LCOE"].values.mean()
         
-        if discounted_energy_mode is not None:
-            
-            if self.data.capex_breakdown is not None:
-        
-                capex_lcoe_breakdown = {}
-                
-                for k, v in self.data.capex_breakdown.iteritems():
-                    
-                    capex_lcoe_breakdown[k] = round(
-                                            v / discounted_energy_mode / 10,
-                                            2)
-                    
-                self.data.capex_lcoe_breakdown = capex_lcoe_breakdown
-            
-            if (discounted_opex_mode is not None and
-                self.data.externalities_opex is not None):
-                                
-                years = range(1, len(opex_bom) + 1)
-                
-                discounted_externals = [self.data.externalities_opex /
-                                       (1 + self.data.discount_rate) ** i
-                                                               for i in years]
-                
-                discounted_external = np.array(discounted_externals).sum()
-                discounted_maintenance = discounted_opex_mode - \
-                                                        discounted_external
-                
-                lcoe_maintenance = round(
-                        discounted_maintenance / discounted_energy_mode / 10,
-                        2)
-                lcoe_external = round(
-                        discounted_external / discounted_energy_mode / 10,
-                        2)
-                    
-                self.data.opex_lcoe_breakdown = {
-                                            "Maintenance": lcoe_maintenance,
-                                            "Externalities": lcoe_external}
-
-        # LCOE distribution
         if (metrics_table["LCOE"].isnull().any() or
             len(metrics_table["LCOE"])) < 3: return
         
-        data = metrics_table["LCOE"].values
+        opex = metrics_table["Discounted OPEX"] / 1000.
+        energy = metrics_table["Discounted Energy"]
         
         try:
-            distribution = EstimatedDistribution(data)
+            distribution = BiVariateKDE(opex, energy)
         except np.linalg.LinAlgError:
             return
         
-        dist_min = data.min()
-        dist_max = data.max()
-        dist_stop = (dist_max - dist_min) / 2.
+        mode_coords = distribution.mode()
+        lcoe_mode = (result["Discounted CAPEX"] / 1000. +
+                                             mode_coords[0]) / mode_coords[1]
         
-        while (distribution.pdf(dist_min)[0] > 1e-3 and
-               dist_min > data.min() - dist_stop): dist_min -= 0.01
+        self.data.lcoe_mode_opex = mode_coords[0] * 1000
+        self.data.lcoe_mode_energy = mode_coords[1]
+        self.data.lcoe_mode = lcoe_mode
+        
+        xx, yy, pdf = distribution.pdf()
+        clevels = pdf_confidence_densities(pdf)
+        cx, cy = pdf_contour_coords(xx, yy, pdf, clevels[0])
+        
+        lcoes = []
+
+        for discounted_opex, discounted_energy in zip(cx, cy):
             
-        while (distribution.pdf(dist_max)[0] > 1e-3 and
-               dist_max < data.max() + dist_stop): dist_max += 0.01
+            lcoe = (result["Discounted CAPEX"] / 1000. +
+                                        discounted_opex) / discounted_energy
+            lcoes.append(lcoe)
         
-        x = np.linspace(dist_min, dist_max, 500)
-        probabilities = distribution.pdf(x)
+        self.data.confidence_density = clevels[0]
+        self.data.lcoe_lower = min(lcoes)
+        self.data.lcoe_upper = max(lcoes)
         
-        self.data.lcoe_pdf = np.array((x, probabilities)).T
+        # Calculate values using most likely OPEX / Energy combination
+        
+        # CAPEX vs OPEX Breakdown and OPEX Breakdown if externalities
+        discounted_opex_mode = mode_coords[0] * 1000
+                            
+        breakdown = {"Discounted CAPEX": result["Discounted CAPEX"],
+                     "Discounted OPEX": discounted_opex_mode}
+        
+        self.data.cost_breakdown = breakdown
+                    
+        if self.data.externalities_opex is not None:
+            
+            years = range(1, len(opex_bom) + 1)
+            
+            discounted_externals = [self.data.externalities_opex /
+                                   (1 + self.data.discount_rate) ** i
+                                                           for i in years]
+            
+            discounted_external = np.array(discounted_externals).sum()
+            discounted_maintenance = discounted_opex_mode - \
+                                                    discounted_external
+            
+            self.data.opex_breakdown = {
+                                "Maintenance": discounted_external,
+                                "Externalities": discounted_maintenance}
+                
+        # LCOE Breakdowns in cent/kWh
+        discounted_energy_mode = mode_coords[1] * 10.
+                    
+        if self.data.capex_breakdown is not None:
+    
+            capex_lcoe_breakdown = {}
+            
+            for k, v in self.data.capex_breakdown.iteritems():
+                
+                capex_lcoe_breakdown[k] = round(v / discounted_energy_mode,
+                                                2)
+                
+            self.data.capex_lcoe_breakdown = capex_lcoe_breakdown
+        
+        if self.data.externalities_opex is not None:
+
+            lcoe_maintenance = round(
+                            discounted_maintenance / discounted_energy_mode,
+                            2)
+            lcoe_external = round(discounted_external / discounted_energy_mode,
+                                  2)
+                
+            self.data.opex_lcoe_breakdown = {"Maintenance": lcoe_maintenance,
+                                             "Externalities": lcoe_external}
+
+        # LCOE distribution
+        raw = {"values": pdf,
+               "coords": [xx, yy]}
+        
+        self.data.lcoe_pdf = raw
 
         return

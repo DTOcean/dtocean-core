@@ -156,6 +156,7 @@ setup(name='dtocean-core',
       install_requires=[
         'aneris==0.10.dev2',
         'basemap',
+        'contours',
         'dtocean-hydrodynamics>=1.0',
         'dtocean-electrical==1.1.dev0',
         'dtocean-moorings>=1.0',

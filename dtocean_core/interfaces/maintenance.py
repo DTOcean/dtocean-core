@@ -56,7 +56,7 @@ from ..utils.maintenance import (get_input_tables,
                                  get_user_compdict,
                                  get_point_depth,
                                  get_events_table)
-from ..utils.stats import EstimatedDistribution
+from ..utils.stats import UniVariateKDE
 
 # Set up logging
 module_logger = logging.getLogger(__name__)
@@ -1641,7 +1641,7 @@ class MaintenanceInterface(ModuleInterface):
                 
                 try:
             
-                    distribution = EstimatedDistribution(data)
+                    distribution = UniVariateKDE(data)
                     mean = distribution.mean()
                     mode = distribution.mode()
                     

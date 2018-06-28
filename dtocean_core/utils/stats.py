@@ -6,10 +6,12 @@ Created on Mon Sep 11 08:49:07 2017
 """
 
 import numpy as np
+
 from scipy import optimize, stats
+from contours.quad import QuadContourGenerator
 
 
-class EstimatedDistribution(object):
+class UniVariateKDE(object):
     
     def __init__(self, data, bandwidth=0.3):
         
@@ -110,3 +112,106 @@ class EstimatedDistribution(object):
         kde_ppf = np.vectorize(_kde_ppf)
         
         return kde_ppf
+
+
+class BiVariateKDE(object):
+    
+    def __init__(self, x, y):
+        
+        self.x = x
+        self.y = y
+        self.kernel = None
+        
+        # Populate the kernel
+        self._set_kernel()
+        
+        return
+        
+    def _set_kernel(self):
+        
+        values = np.vstack([self.x, self.y])
+        self.kernel = stats.gaussian_kde(values)
+                
+        return
+    
+    def mode(self, xtol=0.0001, ftol=0.0001, disp=False):
+        """Determine the ordinate of the most likely value of the given KDE"""
+        
+        medians = np.median(self.kernel.dataset, 1)
+        
+        neg_kde = lambda x: -1 * self.kernel(x)
+        modal_coords = optimize.fmin(neg_kde,
+                                     medians,
+                                     xtol=xtol,
+                                     ftol=ftol,
+                                     disp=disp)
+            
+        return modal_coords
+    
+    def pdf(self, x_range=None, y_range=None, npoints=1000):
+        
+        # Wide estimate on the ranges if not given
+        if x_range is None:
+            
+            dx = self.x.max() - self.x.min()
+            x_range = (self.x.min() - dx, self.x.max() + dx)
+                        
+        if y_range is None:
+            
+            dy = self.y.max() - self.y.min()
+            y_range = (self.y.min() - dy, self.y.max() + dy)
+        
+        X, Y = np.mgrid[x_range[0]:x_range[1]:(npoints * 1j),
+                        y_range[0]:y_range[1]:(npoints * 1j)]
+        positions = np.vstack([X.ravel(), Y.ravel()])
+        
+        xx = X[:,0]
+        yy = Y[0,:]
+        pdf = np.reshape(self.kernel(positions).T, X.shape)
+        
+        return xx, yy, pdf
+
+
+def pdf_confidence_densities(pdf, levels=None):
+    """Determine the required density values to satisfy a list of confidence
+    levels in the given pdf"""
+    
+    def diff_frac(density, pdf, target_frac, pdf_sum):
+        density_frac = pdf[pdf >= density].sum() / pdf_sum
+        return density_frac - target_frac
+    
+    if levels is None:
+        levels = np.array([95.])
+    else:
+        levels = np.array(levels)
+    
+    fracs = levels / 100.
+    pdf_sum = pdf.sum()
+    densities = []
+    
+    for frac in fracs:
+        
+        density = optimize.brentq(diff_frac,
+                                  pdf.min(),
+                                  pdf.max(),
+                                  args=(pdf, frac, pdf_sum))
+        
+        densities.append(density)
+        
+    return densities
+
+
+def pdf_contour_coords(xx, yy, pdf, level):
+
+    c = QuadContourGenerator.from_rectilinear(xx, yy, pdf.T)
+    levelc = c.contour(level)
+    
+    cx = []
+    cy = []
+
+    for v in levelc:
+        cx.extend(v[:,0])
+        cy.extend(v[:,1])
+        
+    return cx, cy
+        
