@@ -149,11 +149,12 @@ class EconomicInterface(ThemeInterface):
                        "project.discounted_energy_mean",
                        "project.capex_total",
                        "project.discounted_capex",
+                       "project.lcoe_breakdown",
+                       "project.capex_lcoe_breakdown",
+                       "project.opex_lcoe_breakdown",
                        "project.cost_breakdown",
                        "project.capex_breakdown",
-                       "project.capex_lcoe_breakdown",
                        "project.opex_breakdown",
-                       "project.opex_lcoe_breakdown",
                        "project.confidence_density",
                        "project.lcoe_pdf"]
         
@@ -281,6 +282,7 @@ class EconomicInterface(ThemeInterface):
                   "capex_lcoe_breakdown": "project.capex_lcoe_breakdown",
                   'opex_breakdown': "project.opex_breakdown",
                   "opex_lcoe_breakdown": "project.opex_lcoe_breakdown",
+                  "lcoe_breakdown": "project.lcoe_breakdown",
                   "confidence_density": "project.confidence_density",
                   "lcoe_pdf": "project.lcoe_pdf",
                   }
@@ -644,6 +646,12 @@ class EconomicInterface(ThemeInterface):
                 
             self.data.opex_lcoe_breakdown = {"Maintenance": lcoe_maintenance,
                                              "Externalities": lcoe_external}
+            
+        total_capex = sum(capex_lcoe_breakdown.values())
+        total_opex = lcoe_maintenance + lcoe_external
+        
+        self.data.lcoe_breakdown = {"CAPEX": total_capex,
+                                    "OPEX": total_opex}
 
         # LCOE distribution
         raw = {"values": pdf,
