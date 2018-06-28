@@ -10,7 +10,7 @@ import pytest
 import numpy as np
 from scipy.stats import norm
 
-from dtocean_core.utils.stats import EstimatedDistribution
+from dtocean_core.utils.stats import UniVariateKDE
 
 
 @pytest.fixture(scope="module")
@@ -19,7 +19,7 @@ def gaussian():
     """Build an estimate of a gaussian distribution. Object is shared"""
     
     data = np.random.normal(size=10000)
-    distribution = EstimatedDistribution(data)
+    distribution = UniVariateKDE(data)
     
     return distribution
 
@@ -30,7 +30,7 @@ def gaussian_fresh():
     """Build an estimate of a gaussian distribution. Object is recreated"""
     
     data = np.random.normal(size=10000)
-    distribution = EstimatedDistribution(data)
+    distribution = UniVariateKDE(data)
     
     return distribution
 
