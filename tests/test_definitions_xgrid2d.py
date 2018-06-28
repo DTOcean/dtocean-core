@@ -100,7 +100,9 @@ def test_XGrid2D_auto_plot(tmpdir):
                          "structure": "test",
                          "title": "test",
                          "labels": ['x', 'y'],
-                         "units": [None, 'm', 'POWER!']})
+                         "units": ['\sum_{n=1}^{\infty} 2^{-n} = 1',
+                                   'm', 
+                                   'POWER!']})
     
     test = XGrid2D()
     
