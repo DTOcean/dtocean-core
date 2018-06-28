@@ -3971,20 +3971,29 @@ class XGrid2D(XGridND):
 
         fig = plt.figure()
         ax1 = fig.add_subplot(1, 1, 1, aspect='equal')
-        plt.contourf(x,y,self.data.result.T)
+        plt.contourf(x, y, self.data.result.T)
         clb = plt.colorbar()
 
         xlabel = self.meta.result.labels[0]
         ylabel = self.meta.result.labels[1]
 
         if self.meta.result.units is not None:
-            xlabel = "{} [${}$]".format(xlabel, self.meta.result.units[0])
-            ylabel = "{} [${}$]".format(ylabel, self.meta.result.units[1])
-            clb.set_label("${}$".format(self.meta.result.units[2]))
+            
+            if self.meta.result.units[0] is not None:
+                xlabel = "{} [${}$]".format(xlabel, self.meta.result.units[0])
+                
+            if self.meta.result.units[1] is not None:
+                ylabel = "{} [${}$]".format(ylabel, self.meta.result.units[1])
+            
+            if self.meta.result.units[2] is not None:
+                clb.set_label("${}$".format(self.meta.result.units[2]))
 
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         
+        # Tick values to 8 significant figures
+        xuniques = ['{0:.8g}'.format(tick) for tick in xuniques]
+        yuniques = ['{0:.8g}'.format(tick) for tick in yuniques]
         ax1.set_xticklabels(xuniques)
         ax1.set_yticklabels(yuniques)
         
