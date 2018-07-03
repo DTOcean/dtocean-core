@@ -1128,6 +1128,7 @@ class ElectricalInterface(ModuleInterface):
         power_quality_df = None
 
         database = ElectricalComponentDatabase(static_cable_df,
+                                               static_cable_df,
                                                dynamic_cable_df,
                                                wet_mate_connectors_df,
                                                wet_mate_connectors_df,
