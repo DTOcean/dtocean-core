@@ -606,7 +606,11 @@ class EconomicInterface(ThemeInterface):
         
         self.data.cost_breakdown = breakdown
                     
-        if self.data.externalities_opex is not None:
+        if self.data.externalities_opex is None:
+            
+            discounted_maintenance = discounted_opex_mode
+
+        else:
             
             years = range(1, len(opex_bom) + 1)
             
@@ -635,12 +639,17 @@ class EconomicInterface(ThemeInterface):
                                                 2)
                 
             self.data.capex_lcoe_breakdown = capex_lcoe_breakdown
-        
-        if self.data.externalities_opex is not None:
-
-            lcoe_maintenance = round(
+            
+        lcoe_maintenance = round(
                             discounted_maintenance / discounted_energy_mode,
                             2)
+        
+        if self.data.externalities_opex is None:
+            
+            lcoe_external = 0
+            
+        else:
+
             lcoe_external = round(discounted_external / discounted_energy_mode,
                                   2)
                 

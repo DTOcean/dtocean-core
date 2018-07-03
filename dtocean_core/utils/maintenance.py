@@ -1498,8 +1498,8 @@ def _get_elec_db_cost(component_key, quantity, db, type_):
 
     '''
     
-    convert_map = {'export': 'static_cable',
-                   'array': 'static_cable',
+    convert_map = {'export': 'export_cable',
+                   'array': 'array_cable',
                    'umbilical': 'dynamic_cable',
                    'passive hub': 'collection_points',
                    'substation': 'collection_points',
