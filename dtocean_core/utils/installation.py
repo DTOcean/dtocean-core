@@ -51,11 +51,8 @@ def installation_phase_time_result(input_dict):
     data = {"Prep": input_dict['TIME']['Preparation Time [h]'],
             "Sea": input_dict['TIME']['Sea Operation Time [h]'],
             "Transit": input_dict['TIME']['Sea Transit Time [h]'],
+            "Wait": input_dict['TIME']['Waiting Time [h]'],
             "Total": input_dict['TIME']['Total Time [h]']}
-
-    wait_time = sum(input_dict['TIME']['Waiting Time [h]'])
-
-    data["Wait"] = wait_time
 
     return data
 
