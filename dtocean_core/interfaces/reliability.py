@@ -429,6 +429,7 @@ class ReliabilityInterface(ThemeInterface):
                 metrics_df.loc[:, "MTTF [hours]"] /= year_hours
                 
                 metrics_df = metrics_df.rename(columns=metrics_map)
+                metrics_df = metrics_df.reset_index(drop=True)
                 
                 self.data.hub_reliability = metrics_df
             
@@ -443,6 +444,7 @@ class ReliabilityInterface(ThemeInterface):
                 metrics_df.loc[:, "MTTF [hours]"] /= year_hours
                 
                 metrics_df = metrics_df.rename(columns=metrics_map)
+                metrics_df = metrics_df.reset_index(drop=True)
                 
                 self.data.inter_cable_reliability = metrics_df
                 
@@ -459,6 +461,7 @@ class ReliabilityInterface(ThemeInterface):
                 metrics_df.loc[:, "MTTF [hours]"] /= year_hours
                 
                 metrics_df = metrics_df.rename(columns=metrics_map)
+                metrics_df = metrics_df.reset_index(drop=True)
                 
                 self.data.moorings_reliability = metrics_df
                 
@@ -473,8 +476,21 @@ class ReliabilityInterface(ThemeInterface):
                 metrics_df.loc[:, "MTTF [hours]"] /= year_hours
                 
                 metrics_df = metrics_df.rename(columns=metrics_map)
+                metrics_df = metrics_df.reset_index(drop=True)
                 
                 self.data.umbilical_cable_reliability = metrics_df
+                
+        # Patch double counting of umbilical cable
+        if (self.data.inter_cable_reliability is not None and
+            self.data.umbilical_cable_reliability is not None):
+            
+            self.data.inter_cable_reliability["Failure Rate"] -= \
+                    self.data.umbilical_cable_reliability["Failure Rate"]
+            
+            hours_to_years = 1e6 / 24 / 365.25
+            mttf = [hours_to_years / rate for rate in
+                            self.data.inter_cable_reliability["Failure Rate"]]
+            self.data.inter_cable_reliability["MTTF"] = mttf
 
         return
 
