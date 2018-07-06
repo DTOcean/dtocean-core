@@ -327,6 +327,16 @@ class EconomicInterface(ThemeInterface):
                                         costs,
                                         years,
                                         "Devices")
+            
+        # Patch double counting of umbilical
+        if (self.data.electrical_bom is not None and
+            self.data.moorings_bom is not None):
+            
+            # Remove matching identifiers from electrical bom
+            unique = list(set(self.data.moorings_bom["Key Identifier"]))
+            
+            matching = self.data.electrical_bom["Key Identifier"].isin(unique)
+            self.data.electrical_bom = self.data.electrical_bom[~matching]
         
         if self.data.electrical_bom is not None:
             
