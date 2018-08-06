@@ -982,6 +982,11 @@ class ElectricalInterface(ModuleInterface):
         # Units to kg/km
         static_cable_df["dry_mass"] = static_cable_df["dry_mass"] * 1000.
         static_cable_df["wet_mass"] = static_cable_df["wet_mass"] * 1000.
+        
+        # Split array and export cables
+        array_cable_df = static_cable_df.copy()
+        export_cable_df = static_cable_df.copy()
+        
                 
         # Umbilical
         dynamic_cable_df = None
@@ -1127,8 +1132,8 @@ class ElectricalInterface(ModuleInterface):
         switchgear_df = None
         power_quality_df = None
 
-        database = ElectricalComponentDatabase(static_cable_df,
-                                               static_cable_df,
+        database = ElectricalComponentDatabase(array_cable_df,
+                                               export_cable_df,
                                                dynamic_cable_df,
                                                wet_mate_connectors_df,
                                                wet_mate_connectors_df,
