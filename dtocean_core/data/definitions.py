@@ -3969,8 +3969,19 @@ class XGrid2D(XGridND):
         xcoord = self.data.result.coords[self.meta.result.labels[0]]
         ycoord = self.data.result.coords[self.meta.result.labels[1]]
         
-        xuniques, x = np.unique(xcoord, return_inverse=True)
-        yuniques, y = np.unique(ycoord, return_inverse=True)
+        if xcoord.values.dtype.kind in {'U', 'S'}:
+            xuniques = xcoord.values
+            x = range(len(xuniques))
+        else:
+            xuniques, x = np.unique(xcoord, return_inverse=True)
+            xuniques = ['{0:.8g}'.format(tick) for tick in xuniques]
+            
+        if ycoord.values.dtype.kind in {'U', 'S'}:
+            yuniques = ycoord.values
+            y = range(len(yuniques))
+        else:
+            yuniques, y = np.unique(ycoord, return_inverse=True)
+            yuniques = ['{0:.8g}'.format(tick) for tick in yuniques]
 
         fig = plt.figure()
         ax1 = fig.add_subplot(1, 1, 1, aspect='equal')
@@ -3993,10 +4004,7 @@ class XGrid2D(XGridND):
 
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
-        
-        # Tick values to 8 significant figures
-        xuniques = ['{0:.8g}'.format(tick) for tick in xuniques]
-        yuniques = ['{0:.8g}'.format(tick) for tick in yuniques]
+                
         ax1.set_xticklabels(xuniques)
         ax1.set_yticklabels(yuniques)
         
