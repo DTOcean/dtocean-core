@@ -1342,20 +1342,23 @@ class EnvironmentalInterface(ThemeInterface):
         if any(not(math.isnan(x)) for x in operat_global_eis.values()): 
             self.data.operat_global_eis = operat_global_eis
         
-            
-        
-        self.data.global_eis = {}            
+        global_eis = {}            
         global_list = [hydro_global_eis, 
                        elec_global_eis, 
                        moor_global_eis, 
                        install_global_eis,
                        operat_global_eis]
 #        keys = list(set().union(*(d.keys() for d in global_list)))
-        keys = ["Negative Impact" , "Positive Impact" ]
+        keys = ["Negative Impact", "Positive Impact"]
         
         for key in keys:
-            self.data.global_eis[key] = np.mean([k[key] 
-                            for k in global_list
-                            if (not(math.isnan(k[key])) and k is not None)])
+            impacts = [impact[key] for impact in global_list
+                                                       if impact is not None]
+            if ~np.isnan(impacts).all():
+                global_eis[key] = np.nanmean(impacts)
+            else:
+                global_eis[key] = np.nan
+                
+        self.data.global_eis = global_eis
         
         return
