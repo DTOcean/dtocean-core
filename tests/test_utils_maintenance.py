@@ -3,9 +3,8 @@ import pytest
 
 import datetime as dt
 
-import numpy as np
 import pandas as pd
-from pandas.core.common import is_datetime64_dtype
+from pandas.api.types import is_datetime64_dtype
 
 from dtocean_core.utils.maintenance import (get_events_table,
                                             get_electrical_system_cost,
