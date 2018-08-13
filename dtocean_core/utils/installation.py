@@ -16,6 +16,9 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import pandas as pd
+
+
 def installation_phase_cost_output(input_dict):
 
     '''Collect installation phase cost results in dict for output.
@@ -69,9 +72,9 @@ def installation_phase_date_result(input_dict):
 
     '''
 
-    data = {"Start": input_dict['DATE']['Start Date'].to_datetime(),
-            "Depart": input_dict['DATE']['Depart Date'].to_datetime(),
-            "End": input_dict['DATE']['End Date'].to_datetime()}
+    data = {"Start": pd.to_datetime(input_dict['DATE']['Start Date']),
+            "Depart": pd.to_datetime(input_dict['DATE']['Depart Date']),
+            "End": pd.to_datetime(input_dict['DATE']['End Date'])}
 
     return data
 
