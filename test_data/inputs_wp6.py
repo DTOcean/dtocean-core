@@ -475,11 +475,7 @@ lifetime = 7. # 'project.lifetime',
 
 ### CREW SPECIFICATION
 
-duration_shift = 8.
 helideck = False
-number_crews_available = 8
-number_crews_per_shift = 4
-number_shifts_per_day = 3
 wage_specialist_day = 200.
 wage_specialist_night = 300.
 wage_technician_day = 100.
@@ -533,11 +529,7 @@ comp_tables_rel = get_reliability_tables(compdict)
 test_data = {
              "project.calendar_based_maintenance": calendar_based_maintenance,
              "project.condition_based_maintenance": condition_based_maintenance,
-             "project.duration_shift": duration_shift,
              "farm.helideck": helideck,
-             "project.number_crews_available": number_crews_available,
-             "project.number_crews_per_shift": number_crews_per_shift,
-             "project.number_shifts_per_day": number_shifts_per_day,
              "project.wage_specialist_day": wage_specialist_day,
              "project.wage_specialist_night": wage_specialist_night,
              "project.wage_technician_day": wage_technician_day,

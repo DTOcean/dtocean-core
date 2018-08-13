@@ -484,7 +484,38 @@ def corrective_events_table():
                                          27: dt.datetime(2017, 7, 21, 6, 8),
                                          28: dt.datetime(2017, 9, 14, 8, 32),
                                          29: dt.datetime(2019, 7, 5, 15, 44),
-                                         30: dt.datetime(2019, 8, 26, 8, 32)}}
+                                         30: dt.datetime(2019, 8, 26, 8, 32)},
+        'nameOfvessel [-]': {0: 'Bob',
+                             1: 'Bob',
+                             2: 'Bob',
+                             3: 'Bob',
+                             4: 'Bob',
+                             5: 'Bob',
+                             6: 'Bob',
+                             7: 'Bob',
+                             8: 'Bob',
+                             9: 'Bob',
+                             10: 'Bob',
+                             11: 'Bob',
+                             12: 'Bob',
+                             13: 'Bob',
+                             14: 'Bob',
+                             15: 'Bob',
+                             16: 'Bob',
+                             17: 'Bob',
+                             18: 'Bob',
+                             19: 'Bob',
+                             20: 'Bob',
+                             21: 'Bob',
+                             22: 'Bob',
+                             23: 'Bob',
+                             24: 'Bob',
+                             25: 'Bob',
+                             26: 'Bob',
+                             27: 'Bob',
+                             28: 'Bob',
+                             29: 'Bob',
+                             30: 'Bob'}}
 
     events_df = pd.DataFrame(events_dict)
     
@@ -503,7 +534,8 @@ def test_get_events_table(corrective_events_table):
                      "Operation Type",
                      "Logistics Cost",
                      "Labour Cost",
-                     "Parts Cost"]
+                     "Parts Cost",
+                     "Vessel Name"]
         
     assert len(result) == len(corrective_events_table)
     assert is_datetime64_dtype(result["Operation Request Date"])
