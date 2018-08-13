@@ -871,7 +871,9 @@ def update_comp_table(subsystem,
 
         num_cols = all_comp.shape[1]
         temp_comp = temp_comp.rename(num_cols)
-        all_comp = pd.concat([all_comp, temp_comp], axis=1)
+        all_comp = pd.concat([all_comp, temp_comp],
+                             axis=1,
+                             sort=False)
         
         if subsystem == 'Substations' and subhubs is not None:
             
@@ -883,7 +885,9 @@ def update_comp_table(subsystem,
         
                 num_cols = all_comp.shape[1]
                 temp_comp = temp_comp.rename(num_cols)
-                all_comp = pd.concat([all_comp, temp_comp], axis=1)
+                all_comp = pd.concat([all_comp, temp_comp],
+                                     axis=1,
+                                     sort=False)
         
     else:
         
@@ -899,7 +903,9 @@ def update_comp_table(subsystem,
 
             num_cols = all_comp.shape[1]
             temp_comp = temp_comp.rename(num_cols)
-            all_comp = pd.concat([all_comp, temp_comp], axis=1)
+            all_comp = pd.concat([all_comp, temp_comp],
+                                 axis=1,
+                                 sort=False)
                 
     return all_comp
 
@@ -958,14 +964,18 @@ def update_onsite_tables(subsystem,
 
         num_cols = all_repair.shape[1]
         temp_repair = temp_repair.rename(num_cols)
-        all_repair = pd.concat([all_repair, temp_repair], axis=1)
+        all_repair = pd.concat([all_repair, temp_repair],
+                               axis=1,
+                               sort=False)
 
         temp_modes["Component_ID"] = subsystem_id
         temp_modes["FM_ID"] = op_id
 
         num_cols = all_modes.shape[1]
         temp_modes = temp_modes.rename(num_cols)
-        all_modes = pd.concat([all_modes, temp_modes], axis=1)
+        all_modes = pd.concat([all_modes, temp_modes],
+                              axis=1,
+                              sort=False)
         
         if subsystem == 'Substations' and subhubs is not None:
             
@@ -975,13 +985,17 @@ def update_onsite_tables(subsystem,
         
                 num_cols = all_repair.shape[1]
                 temp_repair = temp_repair.rename(num_cols)
-                all_repair = pd.concat([all_repair, temp_repair], axis=1)
+                all_repair = pd.concat([all_repair, temp_repair],
+                                       axis=1,
+                                       sort=False)
         
                 temp_modes["Component_ID"] = subhub_id
         
                 num_cols = all_modes.shape[1]
                 temp_modes = temp_modes.rename(num_cols)
-                all_modes = pd.concat([all_modes, temp_modes], axis=1)
+                all_modes = pd.concat([all_modes, temp_modes],
+                                      axis=1,
+                                      sort=False)
             
     else:
         
@@ -1013,15 +1027,18 @@ def update_onsite_tables(subsystem,
             num_cols = all_repair.shape[1]
             temp_repair = temp_repair.rename(num_cols)
             all_repair = pd.concat([all_repair, temp_repair],
-                                   axis=1)
+                                   axis=1,
+                                   sort=False)
 
             temp_modes["Component_ID"] = subsystem_id
             temp_modes["FM_ID"] = op_id
 
             num_cols = all_modes.shape[1]
             temp_modes = temp_modes.rename(num_cols)
-            all_modes = pd.concat([all_modes, temp_modes], axis=1)
-                
+            all_modes = pd.concat([all_modes, temp_modes],
+                                  axis=1,
+                                  sort=False)       
+            
     return all_modes, all_repair
 
 
@@ -1078,14 +1095,17 @@ def update_replacement_tables(subsystem,
             num_cols = all_repair.shape[1]
             temp_repair = temp_repair.rename(num_cols)
             all_repair = pd.concat([all_repair, temp_repair],
-                                   axis=1)
+                                   axis=1,
+                                   sort=False)
 
             temp_modes["Component_ID"] = subsystem_id
             temp_modes["FM_ID"] = op_id
 
             num_cols = all_modes.shape[1]
             temp_modes = temp_modes.rename(num_cols)
-            all_modes = pd.concat([all_modes, temp_modes], axis=1)
+            all_modes = pd.concat([all_modes, temp_modes],
+                                  axis=1,
+                                  sort=False)
                 
     return all_modes, all_repair
 
@@ -1144,15 +1164,18 @@ def update_inspections_tables(subsystem,
 
         num_cols = all_inspection.shape[1]
         temp_inspection = temp_inspection.rename(num_cols)
-        all_inspection = pd.concat([all_inspection,
-                                    temp_inspection], axis=1)
+        all_inspection = pd.concat([all_inspection, temp_inspection],
+                                   axis=1,
+                                   sort=False)
 
         temp_modes["Component_ID"] = subsystem_id
         temp_modes["FM_ID"] = op_id
 
         num_cols = all_modes.shape[1]
         temp_modes = temp_modes.rename(num_cols)
-        all_modes = pd.concat([all_modes, temp_modes], axis=1)
+        all_modes = pd.concat([all_modes, temp_modes],
+                              axis=1,
+                              sort=False)
         
         if subsystem == 'Substations' and subhubs is not None:
             
@@ -1162,14 +1185,17 @@ def update_inspections_tables(subsystem,
         
                 num_cols = all_inspection.shape[1]
                 temp_inspection = temp_inspection.rename(num_cols)
-                all_inspection = pd.concat([all_inspection,
-                                            temp_inspection], axis=1)
+                all_inspection = pd.concat([all_inspection, temp_inspection],
+                                           axis=1,
+                                           sort=False)
         
                 temp_modes["Component_ID"] = subhub_id
         
                 num_cols = all_modes.shape[1]
                 temp_modes = temp_modes.rename(num_cols)
-                all_modes = pd.concat([all_modes, temp_modes], axis=1)
+                all_modes = pd.concat([all_modes, temp_modes],
+                                      axis=1,
+                                      sort=False)
             
     else:
         
@@ -1200,15 +1226,18 @@ def update_inspections_tables(subsystem,
 
             num_cols = all_inspection.shape[1]
             temp_inspection = temp_inspection.rename(num_cols)
-            all_inspection = pd.concat([all_inspection,
-                                        temp_inspection], axis=1)
+            all_inspection = pd.concat([all_inspection, temp_inspection],
+                                       axis=1,
+                                       sort=False)
 
             temp_modes["Component_ID"] = subsystem_id
             temp_modes["FM_ID"] = op_id
 
             num_cols = all_modes.shape[1]
             temp_modes = temp_modes.rename(num_cols)
-            all_modes = pd.concat([all_modes, temp_modes], axis=1)
+            all_modes = pd.concat([all_modes, temp_modes],
+                                  axis=1,
+                                  sort=False)
                 
     return all_modes, all_inspection
 

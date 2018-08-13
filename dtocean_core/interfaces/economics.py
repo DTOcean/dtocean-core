@@ -425,7 +425,8 @@ class EconomicInterface(ThemeInterface):
                                installation_bom,
                                capex_oandm_bom,
                                externalities_bom],
-                               ignore_index=True)
+                               ignore_index=True,
+                               sort=False)
             
         if self.data.opex_per_year is not None:
             
