@@ -274,13 +274,13 @@ wave_series['DateTime'] = date_index.copy()
 tidal_series = metocean.loc[:, ['Cs']]
 tidal_series['DateTime'] = date_index.copy()
 tidal_series = tidal_series.set_index(["DateTime"])
-tidal_series = tidal_series.to_records()
+tidal_series = tidal_series.to_records(convert_datetime64=True)
 tidal_series = [(x, float(y)) for x, y in tidal_series]
 
 wind_series = metocean.loc[:, ['Ws']]
 wind_series['DateTime'] = date_index.copy()
 wind_series = wind_series.set_index(["DateTime"])
-wind_series = wind_series.to_records()
+wind_series = wind_series.to_records(convert_datetime64=True)
 wind_series = [(x, float(y)) for x, y in wind_series]
 
 ### Device

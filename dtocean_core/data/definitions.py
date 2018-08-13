@@ -241,8 +241,8 @@ class TimeSeriesColumn(TimeSeries):
             df = df.drop("Date", 1)
             df = df.drop("Time", 1)
             df = df.set_index("DateTime")
-                        
-            result = df.to_records()
+            
+            result = df.to_records(convert_datetime64=True)
             
         self.data.result = result
 
