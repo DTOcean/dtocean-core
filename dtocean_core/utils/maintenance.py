@@ -1338,9 +1338,9 @@ def get_events_table(raw_df,
         data_df[prepend_special_raw] = pd.to_datetime(
                                             data_df[prepend_special_raw])
 
-    data_df["repairActionDate [-]"] = pd.to_datetime(
+    data_df.loc[:, "repairActionDate [-]"] = pd.to_datetime(
                             data_df["repairActionDate [-]"])
-    data_df["repairActionRequestDate [-]"] = pd.to_datetime(
+    data_df.loc[:, "repairActionRequestDate [-]"] = pd.to_datetime(
                             data_df["repairActionRequestDate [-]"])
     data_df = data_df.sort_values(by="repairActionDate [-]")
     data_df = data_df.reset_index(drop=True)
