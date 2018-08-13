@@ -82,7 +82,10 @@ class SeriesData(Structure):
         self.check_path()
         
         if ".csv" in self._path:
-            series = pd.Series.from_csv(self._path)
+            series = pd.read_csv(self._path,
+                                 header=None,
+                                 index_col=0,
+                                 squeeze=True)
         else:
              raise TypeError("The specified file format is not supported.",
                              "Supported format is .csv")
