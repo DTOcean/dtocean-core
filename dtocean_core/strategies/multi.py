@@ -185,7 +185,7 @@ class MultiSensitivity(Strategy):
         
         # Create a multi-index & sort                                        
         sorted_df = sorted_df.set_index(['Module', 'Variable'])
-        sorted_df = sorted_df.sortlevel(0)
+        sorted_df = sorted_df.sort_index(level=0)
         
         return sorted_df
         

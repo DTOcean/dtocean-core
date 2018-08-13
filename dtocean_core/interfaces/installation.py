@@ -1912,7 +1912,7 @@ class InstallationInterface(ModuleInterface):
                 
         site_df = site_df_unsort.unstack(level='layer')
         site_df = site_df.swaplevel(1, 1, axis=1)
-        site_df = site_df.sortlevel(1, axis=1)
+        site_df = site_df.sort_index(axis=1, level=1)
         site_df = site_df.reset_index()
 
         site_df.columns = [' '.join(col).strip()
@@ -1985,8 +1985,8 @@ class InstallationInterface(ModuleInterface):
             export_df_unsort = data.export.to_dataframe()
             
             export_df = export_df_unsort.unstack(level = 'layer')
-            export_df = export_df.swaplevel(1, 1, axis = 1)
-            export_df = export_df.sortlevel(1, axis = 1)
+            export_df = export_df.swaplevel(1, 1, axis=1)
+            export_df = export_df.sort_index(axis=1, level=1)
             export_df = export_df.reset_index()
     
             export_df.columns = [' '.join(col).strip()

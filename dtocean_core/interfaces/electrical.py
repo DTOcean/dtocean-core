@@ -608,7 +608,7 @@ class ElectricalInterface(ModuleInterface):
         bathymetry_pd_unsort = data.bathymetry.to_dataframe()
         bathymetry_pd = bathymetry_pd_unsort.unstack(level='layer')
         bathymetry_pd = bathymetry_pd.swaplevel(1, 1, axis=1)
-        bathymetry_pd = bathymetry_pd.sortlevel(1, axis=1)
+        bathymetry_pd = bathymetry_pd.sort_index(axis=1, level=1)
 
         cartesian_product_index = bathymetry_pd.index.labels
         
@@ -680,7 +680,7 @@ class ElectricalInterface(ModuleInterface):
         export_bathymetry_pd = export_bathymetry_pd_unsort.unstack(
                                                                 level='layer')
         export_bathymetry_pd = export_bathymetry_pd.swaplevel(1, 1, axis=1)
-        export_bathymetry_pd = export_bathymetry_pd.sortlevel(1, axis=1)
+        export_bathymetry_pd = export_bathymetry_pd.sort_index(axis=1, level=1)
         
         export_cartesian_product_index = export_bathymetry_pd.index.labels
         
