@@ -423,10 +423,10 @@ class ReliabilityInterface(ThemeInterface):
             
             if not metrics.empty:
 
-                metrics_df = metrics[["system id [-]",
-                                      "failure rate [1/10^6 hours]",
-                                      "MTTF [hours]" ]]
-                metrics_df.loc[:, "MTTF [hours]"] /= year_hours
+                metrics_df = metrics.loc[:, ("system id [-]",
+                                             "failure rate [1/10^6 hours]",
+                                             "MTTF [hours]")]
+                metrics_df[:, "MTTF [hours]"] /= year_hours
                 
                 metrics_df = metrics_df.rename(columns=metrics_map)
                 metrics_df = metrics_df.reset_index(drop=True)
@@ -438,9 +438,9 @@ class ReliabilityInterface(ThemeInterface):
             
             if not metrics.empty:
 
-                metrics_df = metrics[["system id [-]",
-                                      "failure rate [1/10^6 hours]",
-                                      "MTTF [hours]" ]]
+                metrics_df = metrics.loc[:, ("system id [-]",
+                                             "failure rate [1/10^6 hours]",
+                                             "MTTF [hours]")]
                 metrics_df.loc[:, "MTTF [hours]"] /= year_hours
                 
                 metrics_df = metrics_df.rename(columns=metrics_map)
@@ -455,9 +455,9 @@ class ReliabilityInterface(ThemeInterface):
             
             if not metrics.empty:
 
-                metrics_df = metrics[["system id [-]",
-                                      "failure rate [1/10^6 hours]",
-                                      "MTTF [hours]" ]]
+                metrics_df = metrics.loc[:, ("system id [-]",
+                                             "failure rate [1/10^6 hours]",
+                                             "MTTF [hours]")]
                 metrics_df.loc[:, "MTTF [hours]"] /= year_hours
                 
                 metrics_df = metrics_df.rename(columns=metrics_map)
@@ -470,9 +470,9 @@ class ReliabilityInterface(ThemeInterface):
             
             if not metrics.empty:
 
-                metrics_df = metrics[["system id [-]",
-                                      "failure rate [1/10^6 hours]",
-                                      "MTTF [hours]" ]]
+                metrics_df = metrics.loc[:, ("system id [-]",
+                                             "failure rate [1/10^6 hours]",
+                                             "MTTF [hours]")]
                 metrics_df.loc[:, "MTTF [hours]"] /= year_hours
                 
                 metrics_df = metrics_df.rename(columns=metrics_map)
