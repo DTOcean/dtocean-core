@@ -487,15 +487,15 @@ device_failure_rates = {'Prime Mover': 0.5,
                         'Support Structure': 0.05}
 
 book_path = os.path.join(op_dir, "device_requirements.xlsx")
-device_onsite_requirements = pd.read_excel(book_path, sheetname="On-Site")
+device_onsite_requirements = pd.read_excel(book_path, sheet_name="On-Site")
 device_replacement_requirements = pd.read_excel(book_path,
-                                                sheetname="Replacement")
+                                                sheet_name="Replacement")
 device_inspections_requirements = pd.read_excel(book_path,
-                                                sheetname="Inspections")
+                                                sheet_name="Inspections")
 
 book_path = os.path.join(op_dir, "device_parts.xlsx")
-device_onsite_parts = pd.read_excel(book_path, sheetname="On-Site")
-device_replacement_parts = pd.read_excel(book_path, sheetname="Replacement")
+device_onsite_parts = pd.read_excel(book_path, sheet_name="On-Site")
+device_replacement_parts = pd.read_excel(book_path, sheet_name="Replacement")
 
 device_lead_times = {'Prime Mover': 120.,
                      'PTO': 96.,
@@ -538,12 +538,12 @@ min_voltage = 0.9
 max_voltage = 1.0
                             
 book_path = os.path.join(op_dir, "electrical_requirements.xlsx")
-electrical_onsite_requirements = pd.read_excel(book_path, sheetname="On-Site")
+electrical_onsite_requirements = pd.read_excel(book_path, sheet_name="On-Site")
 electrical_inspections_requirements = pd.read_excel(book_path,
-                                                    sheetname="Inspections")
+                                                    sheet_name="Inspections")
 
 book_path = os.path.join(op_dir, "electrical_parts.xlsx")
-electrical_onsite_parts = pd.read_excel(book_path, sheetname="On-Site")
+electrical_onsite_parts = pd.read_excel(book_path, sheet_name="On-Site")
 
 electrical_lead_times = {'Inter-Array Cables': 48.,
                          'Substations': 120.,
@@ -560,12 +560,12 @@ grout_safety  = 6.0 #grout safety factor
 fab_cost = None # 1.0 #optional fabrication cost factor
                           
 book_path = os.path.join(op_dir, "moorings_requirements.xlsx")
-moorings_onsite_requirements = pd.read_excel(book_path, sheetname="On-Site")
+moorings_onsite_requirements = pd.read_excel(book_path, sheet_name="On-Site")
 moorings_inspections_requirements = pd.read_excel(book_path,
-                                                  sheetname="Inspections")
+                                                  sheet_name="Inspections")
 
 book_path = os.path.join(op_dir, "moorings_parts.xlsx")
-moorings_onsite_parts = pd.read_excel(book_path, sheetname="On-Site")
+moorings_onsite_parts = pd.read_excel(book_path, sheet_name="On-Site")
 
 moorings_lead_times = {"Foundations": 48.}
 
@@ -613,19 +613,19 @@ port_locations = {name: point for name, point in zip(port_names, port_points)}
 
 file_path = os.path.join(inst_dir, 'logisticsDB_vessel_python.xlsx')
 xls_file = pd.ExcelFile(file_path, encoding = 'utf-8')
-helicopter_df = xls_file.parse(sheetname="Helicopter")
-ahts_df = xls_file.parse(sheetname="AHTS")
-multicat_df = xls_file.parse(sheetname="Multicat")
-barge_df = xls_file.parse(sheetname="Barge")
-crane_barge_df = xls_file.parse(sheetname="Crane Barge")
-crane_vessel_df = xls_file.parse(sheetname="Crane Vessel")
-csv_df = xls_file.parse(sheetname="CSV")
-ctv_df = xls_file.parse(sheetname="CTV")
-clb_df = xls_file.parse(sheetname="CLB")
-clv_df = xls_file.parse(sheetname="CLV")
-jackup_barge_df = xls_file.parse(sheetname="Jackup Barge")
-jackup_vssel_df = xls_file.parse(sheetname="Jackup Vessel")
-tugboat_df = xls_file.parse(sheetname="Tugboat")
+helicopter_df = xls_file.parse(sheet_name="Helicopter")
+ahts_df = xls_file.parse(sheet_name="AHTS")
+multicat_df = xls_file.parse(sheet_name="Multicat")
+barge_df = xls_file.parse(sheet_name="Barge")
+crane_barge_df = xls_file.parse(sheet_name="Crane Barge")
+crane_vessel_df = xls_file.parse(sheet_name="Crane Vessel")
+csv_df = xls_file.parse(sheet_name="CSV")
+ctv_df = xls_file.parse(sheet_name="CTV")
+clb_df = xls_file.parse(sheet_name="CLB")
+clv_df = xls_file.parse(sheet_name="CLV")
+jackup_barge_df = xls_file.parse(sheet_name="Jackup Barge")
+jackup_vssel_df = xls_file.parse(sheet_name="Jackup Vessel")
+tugboat_df = xls_file.parse(sheet_name="Tugboat")
 
 # Project data
 comissioning_time = 6

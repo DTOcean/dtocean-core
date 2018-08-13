@@ -116,30 +116,30 @@ device_failure_rates = {'Prime Mover': 0.5,
 control_failure_rates = {'Control': 0.1}
 
 book_path = os.path.join(op_dir, "device_access.xlsx")
-device_access = pd.read_excel(book_path, sheetname="Access")
+device_access = pd.read_excel(book_path, sheet_name="Access")
 
 book_path = os.path.join(op_dir, "device_requirements.xlsx")
-device_onsite_requirements = pd.read_excel(book_path, sheetname="On-Site")
+device_onsite_requirements = pd.read_excel(book_path, sheet_name="On-Site")
 device_replacement_requirements = pd.read_excel(book_path,
-                                                sheetname="Replacement")
+                                                sheet_name="Replacement")
 device_inspections_requirements = pd.read_excel(book_path,
-                                                sheetname="Inspections")
+                                                sheet_name="Inspections")
 
 book_path = os.path.join(op_dir, "device_parts.xlsx")
-device_onsite_parts = pd.read_excel(book_path, sheetname="On-Site")
+device_onsite_parts = pd.read_excel(book_path, sheet_name="On-Site")
 
 book_path = os.path.join(op_dir, "control_access.xlsx")
-control_access = pd.read_excel(book_path, sheetname="Access")
+control_access = pd.read_excel(book_path, sheet_name="Access")
 
 book_path = os.path.join(op_dir, "control_requirements.xlsx")
-control_onsite_requirements = pd.read_excel(book_path, sheetname="On-Site")
+control_onsite_requirements = pd.read_excel(book_path, sheet_name="On-Site")
 control_replacement_requirements = pd.read_excel(book_path,
-                                                 sheetname="Replacement")
+                                                 sheet_name="Replacement")
 control_inspections_requirements = pd.read_excel(book_path,
-                                                 sheetname="Inspections")
+                                                 sheet_name="Inspections")
 
 book_path = os.path.join(op_dir, "control_parts.xlsx")
-control_onsite_parts = pd.read_excel(book_path, sheetname="On-Site")
+control_onsite_parts = pd.read_excel(book_path, sheet_name="On-Site")
 
 device_lead_times = {'Prime Mover': 120.,
                      'PTO': 96.,
@@ -193,12 +193,12 @@ elec_bom =  {'Cost': {0: 800.0,
              'Year': {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0}}
                             
 book_path = os.path.join(op_dir, "electrical_requirements.xlsx")
-electrical_onsite_requirements = pd.read_excel(book_path, sheetname="On-Site")
+electrical_onsite_requirements = pd.read_excel(book_path, sheet_name="On-Site")
 electrical_inspections_requirements = pd.read_excel(book_path,
-                                                    sheetname="Inspections")
+                                                    sheet_name="Inspections")
 
 book_path = os.path.join(op_dir, "electrical_parts.xlsx")
-electrical_onsite_parts = pd.read_excel(book_path, sheetname="On-Site")
+electrical_onsite_parts = pd.read_excel(book_path, sheet_name="On-Site")
 
 electrical_lead_times = {'Inter-Array Cables': 48.,
                          'Substations': 120.,
@@ -370,12 +370,12 @@ moor_bom =  {'Cost': {0: 46595.722315912215,
                       39: 0.0}}
                           
 book_path = os.path.join(op_dir, "moorings_requirements.xlsx")
-moorings_onsite_requirements = pd.read_excel(book_path, sheetname="On-Site")
+moorings_onsite_requirements = pd.read_excel(book_path, sheet_name="On-Site")
 moorings_inspections_requirements = pd.read_excel(book_path,
-                                                  sheetname="Inspections")
+                                                  sheet_name="Inspections")
 
 book_path = os.path.join(op_dir, "moorings_parts.xlsx")
-moorings_onsite_parts = pd.read_excel(book_path, sheetname="On-Site")
+moorings_onsite_parts = pd.read_excel(book_path, sheet_name="On-Site")
 
 moorings_lead_times = {"Foundations": 48.}
 
