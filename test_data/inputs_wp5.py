@@ -1898,18 +1898,8 @@ line_markers = np.repeat(lines_id, 8)
 moorings_data_df['Line Identifier'] = \
     pd.Series(line_markers, index = moorings_data_df.index)
 
-# Need to remove some foundation froms this example otherwise no solution is
-# found
-# only consider devices for now
-
-foundations_data_df.drop(foundations_data_df.index[[8]], inplace = True)
-
-## and remove large foundation
-
-foundations_data_df.drop(foundations_data_df.index[[2,6]], inplace = True)
-
 ## reset index as must be sequential
-foundations_data_df.reset_index(drop=True, inplace = True)
+foundations_data_df.reset_index(drop=True, inplace=True)
 
 # collect together
 test_data = {"component.rov" : equipment_rov,
