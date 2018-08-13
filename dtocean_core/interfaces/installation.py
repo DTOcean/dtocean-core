@@ -1898,7 +1898,8 @@ class InstallationInterface(ModuleInterface):
                                 data.vessel_jackup_barge,
                                 data.vessel_jackup_vessel,
                                 data.vessel_tugboat],
-                               ignore_index=True)
+                                ignore_index=True,
+                                sort=False)
         vessels_df = vessels_df.rename(columns=name_map)
 
         assert set(name_map.values()).issubset(set(vessels_df.columns))
@@ -2905,7 +2906,8 @@ class InstallationInterface(ModuleInterface):
             cable_route_df['soil type [-]'] = \
                 cable_route_df['soil type [-]'].map(soil_map)
                 
-            connector_db = elec_dry_mate_df.append(elec_wet_mate_df)
+            connector_db = elec_dry_mate_df.append(elec_wet_mate_df,
+                                                   sort=False)
 
             connectors_df = \
                 set_connectors(elec_component_data_df, connector_db)

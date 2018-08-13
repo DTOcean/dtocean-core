@@ -1422,7 +1422,8 @@ class MaintenanceInterface(ModuleInterface):
             num_cols = array_df.shape[1]
             dev_series = dev_series.rename(num_cols)
             array_df = pd.concat([array_df, dev_series],
-                                  axis=1)
+                                 axis=1,
+                                 sort=False)
             
         # If we have the electrical network then add the export cable
         # and the substation at the same locaton.        
@@ -1450,7 +1451,8 @@ class MaintenanceInterface(ModuleInterface):
             num_cols = array_df.shape[1]
             array_series = array_series.rename(num_cols)
             array_df = pd.concat([array_df, array_series],
-                                      axis=1)
+                                 axis=1,
+                                 sort=False)
                         
             if self.data.network_type == 'Star':
                                                 
@@ -1479,7 +1481,8 @@ class MaintenanceInterface(ModuleInterface):
             num_cols = array_df.shape[1]
             array_series = array_series.rename(num_cols)
             array_df = pd.concat([array_df, array_series],
-                                  axis=1)
+                                 axis=1,
+                                 sort=False)
         
         simu_param = {"Nbodies": len(dev_ids),
                       "annual_Energy_Production_perD": AEP_per_device,
