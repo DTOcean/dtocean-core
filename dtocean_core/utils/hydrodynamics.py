@@ -256,8 +256,8 @@ def make_tide_statistics(dictinput):
     vmax = np.max(v) + dv
     vmin = np.min(v) - dv
 
-    ltabu = np.ceil(np.array([umax - umin]) / du) 
-    ltabv = np.ceil(np.array([vmax - vmin]) / dv)
+    ltabu = int(np.ceil(np.array([umax - umin]) / du))
+    ltabv = int(np.ceil(np.array([vmax - vmin]) / dv))
     
     # then define each axis and center the bins
 
