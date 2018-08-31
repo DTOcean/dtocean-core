@@ -32,6 +32,7 @@ from matplotlib.dates import (MONTHLY,
                               RRuleLocator,
                               date2num,
                               rrulewrapper)
+from textwrap import wrap
 
 from . import PlotInterface
 
@@ -469,11 +470,10 @@ def installation_gantt_chart(plan=None,
                 alpha=0.75)
 
     # Format the y-axis
-    locsy, labelsy = plt.yticks(pos, ylabels)
-    plt.setp(labelsy, fontsize=12)
+    ylabels = ['\n'.join(wrap(l, 40)) for l in ylabels]
+    plt.yticks(pos, ylabels)
 
     # Format the x-axis
-
     ax.axis('tight')
     ax.set_ylim(ymin=-0.1, ymax=(num_phases) / 2 + 1.0)
     ax.grid(color='g', linestyle=':')
@@ -486,12 +486,13 @@ def installation_gantt_chart(plan=None,
 
     ax.xaxis.set_major_locator(loc)
     ax.xaxis.set_major_formatter(formatter)
-    labelsx = ax.get_xticklabels()
-    plt.setp(labelsx, rotation=30, fontsize=11)
+    
+    for label in ax.get_xticklabels():
+        label.set_rotation(30)
 
     # Format the legend
     font = font_manager.FontProperties(size='small')
-    ax.legend(loc=1, prop=font)
+    ax.legend(loc=0, prop=font)
 
     # Finish up
     ax.invert_yaxis()
