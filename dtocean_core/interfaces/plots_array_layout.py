@@ -129,8 +129,10 @@ class ArrayLeasePlot(PlotInterface):
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         plt.ticklabel_format(useOffset=False)
+        plt.xticks(rotation=30, ha='right')
         
         plt.title("Array Layout in Lease Area")
+        plt.tight_layout()
         
         self.fig_handle = plt.gcf()
         
@@ -224,12 +226,10 @@ class ArrayCablesPlot(PlotInterface):
                                     for key, value in self.data.layout.items()}
         landing_dict = {"Export Cable Landing": self.data.landing_point}
         
-        plot_point_dict(ax1,
-                        landing_dict,
-                        'or',
-                        annotate=True,
-                        text_weight="bold",
-                        text_size="large")
+        lplot = plot_point_dict(ax1,
+                                landing_dict,
+                                'or',
+                                "Export Cable Landing")
         dplot = plot_point_dict(ax1, short_layout, "k+", "Devices")
         splot = plot_point_dict(ax1,
                                 self.data.substation_layout,
@@ -249,13 +249,15 @@ class ArrayCablesPlot(PlotInterface):
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         plt.ticklabel_format(useOffset=False)
-        plt.legend(handles=[dplot, splot],
+        plt.xticks(rotation=30, ha='right')
+        plt.legend(handles=[dplot, splot, lplot],
                    bbox_to_anchor=(1.05, 1),
                    loc=2,
                    borderaxespad=0.,
                    numpoints=1)
         
         plt.title("Electrical Cable Layout")
+        plt.tight_layout()
         
         self.fig_handle = plt.gcf()
         
@@ -350,13 +352,11 @@ class ArrayFoundationsPlot(PlotInterface):
         dplot = plot_point_dict(ax1,
                                 short_layout,
                                 "k+",
-                                "Devices",
-                                markersize=15)
+                                "Devices")
         splot = plot_point_dict(ax1,
                                 self.data.substation_layout,
                                 "gs",
-                                "Collection Points",
-                                markersize=15)
+                                "Collection Points")
         
         foundation_marker = {'shallowfoundation': "b_",
                              'gravity': "r^",
@@ -385,7 +385,11 @@ class ArrayFoundationsPlot(PlotInterface):
             
             coords = group[["UTM X", "UTM Y"]].values
             plot_dict = {i: Point(xy) for i, xy in enumerate(coords)}
-            fplot = plot_point_dict(ax1, plot_dict, plot_marker, plot_name)
+            fplot = plot_point_dict(ax1,
+                                    plot_dict,
+                                    plot_marker,
+                                    plot_name,
+                                    markersize=8)
             
             foundations_handles.append(fplot)
         
@@ -403,6 +407,7 @@ class ArrayFoundationsPlot(PlotInterface):
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         plt.ticklabel_format(useOffset=False)
+        plt.xticks(rotation=30, ha='right')
         plt.legend(handles=all_handles,
                    bbox_to_anchor=(1.05, 1),
                    loc=2,
@@ -410,6 +415,7 @@ class ArrayFoundationsPlot(PlotInterface):
                    numpoints=1)
         
         plt.title("Foundations Layout")
+        plt.tight_layout()
         
         self.fig_handle = plt.gcf()
         
