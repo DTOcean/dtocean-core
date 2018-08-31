@@ -537,24 +537,28 @@ class Variable(object):
 
     def _find_providing_interface(self, core,
                                         socket_cls_name,
-                                        allow_missing=False):
+                                        allow_missing=False,
+                                        allow_multiple=False):
         
         interfaces = self._find_providing_interfaces(core, socket_cls_name)
         interface = self._select_interface(interfaces,
                                            socket_cls_name,
-                                           allow_missing)
+                                           allow_missing,
+                                           allow_multiple)
 
         return interface
         
     def _find_receiving_interface(self, core,
                                         socket_cls_name,
-                                        allow_missing=False):
+                                        allow_missing=False,
+                                        allow_multiple=False):
                                   
         
         interfaces = self._find_receiving_interfaces(core, socket_cls_name)
         interface = self._select_interface(interfaces,
                                            socket_cls_name,
-                                           allow_missing)
+                                           allow_missing,
+                                           allow_multiple)
 
         return interface
 
@@ -732,7 +736,8 @@ class Variable(object):
             
             interface = self._find_providing_interface(core,
                                                        super_interface_name,
-                                                       allow_missing=True)
+                                                       allow_missing=True,
+                                                       allow_multiple=True)
                                                        
         return interface
         
@@ -775,18 +780,20 @@ class Variable(object):
             interface = self._find_receiving_interface(core,
                                                        auto_interface_name,
                                                        allow_missing=True)
-                                                       
+            
         if interface is None:
             
             interface = self._find_receiving_interface(core,
                                                        super_interface_name,
-                                                       allow_missing=True)
-                                                       
+                                                       allow_missing=True,
+                                                       allow_multiple=True)
+            
         return interface
         
     def _select_interface(self, interfaces,
                                 socket_cls_name,
-                                allow_missing=False):
+                                allow_missing=False,
+                                allow_multiple=False):
         
         if len(interfaces) == 0 and allow_missing:
                 
@@ -798,9 +805,10 @@ class Variable(object):
                       "{}.").format(socket_cls_name, self._id)
             raise IOError(errStr)
                 
-        elif len(interfaces) > 1:
-                
-            infoStr = ", ".join(interfaces)
+        elif not allow_multiple and len(interfaces) > 1:
+            
+            interface_strs = [x.get_name() for x in interfaces]
+            infoStr = ", ".join(interface_strs)
             errStr = ("Multiple interfaces of type {} found for variable {}: "
                       "{}.").format(socket_cls_name, self._id, infoStr)
             raise ValueError(errStr)
