@@ -117,6 +117,110 @@ class ArrayLeasePlot(PlotInterface):
         short_layout = {key.replace("device", ""): value
                                     for key, value in self.data.layout.items()}
 
+        plot_point_dict(ax1, short_layout, "k+")
+        plot_lease_boundary(ax1, self.data.lease_poly, self.data.padding)
+
+        ax1.margins(0.1, 0.1)
+        ax1.autoscale_view()
+
+        xlabel = 'UTM x [$m$]'
+        ylabel = 'UTM y [$m$]'
+
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+        plt.ticklabel_format(useOffset=False)
+        plt.xticks(rotation=30, ha='right')
+        
+        plt.title("Array Layout in Lease Area")
+        plt.tight_layout()
+        
+        self.fig_handle = plt.gcf()
+        
+        return
+
+
+class ArrayLeasePlotNumbers(PlotInterface):
+    
+    @classmethod
+    def get_name(cls):
+        
+        '''A class method for the common name of the interface.
+        
+        Returns:
+          str: A unique string
+        '''
+        
+        return "Lease Area Array Layout (With Device Numbers)"
+        
+    @classmethod
+    def declare_inputs(cls):
+        
+        '''A class method to declare all the variables required as inputs by
+        this interface.
+        
+        Returns:
+          list: List of inputs identifiers
+        
+        Example:
+          The returned value can be None or a list of identifier strings which
+          appear in the data descriptions. For example::
+          
+              inputs = ["My:first:variable",
+                        "My:second:variable",
+                       ]
+        '''
+
+        input_list = ["site.lease_boundary",
+                      "project.layout",
+                      "options.boundary_padding"
+                      ]
+                                                
+        return input_list
+    
+    @classmethod
+    def declare_optional(cls):
+        
+        option_list = ["options.boundary_padding"]
+
+        return option_list
+        
+    @classmethod
+    def declare_id_map(self):
+        
+        '''Declare the mapping for variable identifiers in the data description
+        to local names for use in the interface. This helps isolate changes in
+        the data description or interface from effecting the other.
+        
+        Returns:
+          dict: Mapping of local to data description variable identifiers
+        
+        Example:
+          The returned value must be a dictionary containing all the inputs and
+          outputs from the data description and a local alias string. For
+          example::
+          
+              id_map = {"var1": "My:first:variable",
+                        "var2": "My:second:variable",
+                        "var3": "My:third:variable"
+                       }
+        
+        '''
+                  
+        id_map = {"lease_poly": "site.lease_boundary",
+                  "layout": "project.layout",
+                  "padding": "options.boundary_padding"
+                  }
+
+        return id_map
+
+    def connect(self):
+        
+        fig = plt.figure()
+        ax1 = fig.add_subplot(1, 1, 1, aspect='equal')
+        
+        short_layout = {key.replace("device", ""): value
+                                    for key, value in self.data.layout.items()}
+
         plot_point_dict(ax1, short_layout, "k+", annotate=True)
         plot_lease_boundary(ax1, self.data.lease_poly, self.data.padding)
 
