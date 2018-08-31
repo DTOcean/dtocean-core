@@ -690,18 +690,9 @@ class DataMenu(object):
         
         return
         
-    def check_database(self, identifier, pwd=None):
+    def check_database(self, identifier=None, credentials=None):
         
-        if identifier not in self._dbconfig:
-            
-            errStr = ("Identifier {} does not correspond to any found "
-                      "database credentials.").format(identifier)
-            raise ValueError(errStr)
-        
-        credentials = self._dbconfig[identifier]
-        
-        if "pwd" not in credentials or pwd is not None:
-            credentials["pwd"] = pwd
+        credentials = self._get_credentials(identifier, credentials)
             
         if "port" in credentials:
             port = credentials["port"]
@@ -713,28 +704,23 @@ class DataMenu(object):
 
         return port_open
         
-    def select_database(self, project, identifier, pwd=None):
+    def select_database(self, project, identifier=None, credentials=None):
         
-        # Allow nullification of credentials
-        if identifier is None:
-            project.set_database_credentials(None)
-            return
+        credentials = self._get_credentials(identifier, credentials)
+
+        if not self.check_database(credentials=credentials):
         
-        if identifier not in self._dbconfig:
-            
-            errStr = ("Identifier {} does not correspond to any found "
-                      "database credentials.").format(identifier)
-            raise ValueError(errStr)
-        
-        if not self.check_database(identifier, pwd=None):
-        
-            errStr = ("Port could not be opened for database "
-                      "{}.").format(identifier)
+            errStr = ("Port could not be opened for "
+                      "database '{}'").format(credentials["dbname"])
             raise RuntimeError(errStr)
-            
-        credentials = self._dbconfig[identifier]
 
         project.set_database_credentials(credentials)
+        
+        return
+    
+    def deselect_database(self, project):
+        
+        project.set_database_credentials(None)
         
         return
         
@@ -792,5 +778,21 @@ class DataMenu(object):
         
         return
         
-
-
+    def _get_credentials(self, identifier=None, credentials=None):
+        
+        if credentials is None and identifier is None:
+            
+            error_str = ("Either 'identifier' or 'credentials' keywords must "
+                         "be passed")
+            raise ValueError(error_str)
+            
+        if credentials is None and identifier not in self._dbconfig:
+                
+            errStr = ("Identifier {} does not correspond to any found "
+                      "database credentials.").format(identifier)
+            raise ValueError(errStr)
+            
+        if credentials is None:
+            credentials = self._dbconfig[identifier]
+            
+        return credentials
