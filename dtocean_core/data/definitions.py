@@ -547,9 +547,17 @@ class LineTable(TableData):
 
     @staticmethod
     def auto_plot(self):
+        
+        # Get number of columns for legend
+        ncol = len(self.data.result.columns) / 20 + 1
 
         fig = plt.figure()
-        self.data.result.plot(ax=fig.gca())
+        ax = fig.gca()
+        
+        self.data.result.plot(ax=ax)
+        lgd = ax.legend(bbox_to_anchor=(1.04, 1),
+                        loc="upper left",
+                        ncol=ncol)
 
         xlabel = self.meta.result.labels[0]
         ylabel = None
@@ -570,6 +578,22 @@ class LineTable(TableData):
         if ylabel is not None: plt.ylabel(ylabel)
         
         plt.title(self.meta.result.title)
+        
+        # Auto adjust canvas for legend
+        # https://stackoverflow.com/a/45846024
+        plt.gcf().canvas.draw()
+        invFigure = plt.gcf().transFigure.inverted()
+        
+        lgd_pos = lgd.get_window_extent()
+        lgd_coord = invFigure.transform(lgd_pos)
+        lgd_xmax = lgd_coord[1, 0]
+        
+        ax_pos = plt.gca().get_window_extent()
+        ax_coord = invFigure.transform(ax_pos)
+        ax_xmax = ax_coord[1, 0]
+        
+        shift = ax_xmax / lgd_xmax
+        plt.gcf().tight_layout(rect=(0, 0, shift, 1))
 
         self.fig_handle = plt.gcf()
 
@@ -2550,7 +2574,8 @@ class SimplePie(SimpleDict):
         
         # Set aspect ratio to be equal so that pie is drawn as a circle.
         plt.axis('equal')
-        plt.title(self.meta.result.title)
+        plt.title(self.meta.result.title, y=1.08)
+        plt.tight_layout()
 
         self.fig_handle = plt.gcf()
         
@@ -3311,8 +3336,10 @@ class PolygonData(Structure):
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         plt.ticklabel_format(useOffset=False)
+        plt.xticks(rotation=30, ha='right')
 
         plt.title(self.meta.result.title)
+        plt.tight_layout()
 
         self.fig_handle = plt.gcf()
         
@@ -3561,8 +3588,10 @@ class PolygonList(PolygonData):
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         plt.ticklabel_format(useOffset=False)
+        plt.xticks(rotation=30, ha='right')
 
         plt.title(self.meta.result.title)
+        plt.tight_layout()
 
         self.fig_handle = plt.gcf()
         
@@ -3757,8 +3786,10 @@ class PolygonDict(PolygonData):
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         plt.ticklabel_format(useOffset=False)
+        plt.xticks(rotation=30, ha='right')
 
         plt.title(self.meta.result.title)
+        plt.tight_layout()
 
         self.fig_handle = plt.gcf()
         
@@ -4214,8 +4245,10 @@ class Strata(XSet3D):
         plt.ylabel(ylabel)
         clb.set_label(zlabel)
         plt.ticklabel_format(useOffset=False)
-        
+        plt.xticks(rotation=30, ha='right')
+
         plt.title(self.meta.result.title)
+        plt.tight_layout()
 
         self.fig_handle = plt.gcf()
         
