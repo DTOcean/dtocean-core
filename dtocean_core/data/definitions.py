@@ -29,6 +29,7 @@ import pandas as pd
 import xarray as xr
 from natsort import natsorted
 import matplotlib.pyplot as plt
+import matplotlib.patheffects as PathEffects
 from mpl_toolkits.mplot3d import Axes3D
 
 from shapely.geometry import Polygon, Point
@@ -2566,11 +2567,16 @@ class SimplePie(SimpleDict):
 
         plt.figure()
         
-        plt.pie(sizes,
-                labels=labels,
-                autopct='%1.1f%%',
-                shadow=True, 
-                startangle=90)
+        _, _, autotexts = plt.pie(sizes,
+                                  labels=labels,
+                                  autopct='%1.1f%%',
+                                  shadow=True, 
+                                  startangle=90)
+        
+        for autotext in autotexts:
+            autotext.set_color('white')
+            autotext.set_path_effects([PathEffects.withStroke(linewidth=2,
+                                                              foreground='k')])
         
         # Set aspect ratio to be equal so that pie is drawn as a circle.
         plt.axis('equal')
