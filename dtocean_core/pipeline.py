@@ -473,6 +473,7 @@ class Variable(object):
         if include_auto: args.append("AutoPlot")
         
         active_receivers = self._get_receivers(*args)
+        active_receivers.sort()
 
         return active_receivers
         
