@@ -740,41 +740,25 @@ class DataMenu(object):
                              ("modules", "themes"))
         
         return
-
-    # TODO: Remove in final version?
-    def load_test_data(self, core,
-                             project,
-                             definitions_path,
-                             load_only=None,
-                             overwrite=False,
-                             skip_missing=True):
-                                 
-        if not core.has_data(project, "hidden.dataflow_active"):
-            
-            errStr = ("Bulk data can not be loaded until the dataflow has "
-                      "been initiated.")
-            raise RuntimeError(errStr)
+    
+    def export_data(self, core, project, file_path, mask_outputs=False):
         
-        with open(definitions_path, "r") as f:
-            definitions = yaml.load(f)
-            
-        if load_only is not None:
-            definitions = [x for x in definitions if x["branch"] in load_only]
-
-        for definition in definitions:
-            
-            branch = self._tree.get_branch(core,
-                                           project,
-                                           definition["branch"])
-            relative_path = definition["data_path"]
-            dir_path = os.path.dirname(definitions_path)
-            data_path = os.path.join(dir_path, relative_path)
-            
-            branch.read_test_data(core,
-                                  project,
-                                  data_path,
-                                  overwrite=overwrite,
-                                  skip_missing=skip_missing)
+        args = [project, file_path]
+        
+        if mask_outputs: args.append(core._markers["output"])
+                
+        core.dump_datastate(*args)
+        
+        return
+    
+    def import_data(self, core, project, file_path, skip_satisfied=False):
+        
+        args = [project, file_path]
+        kwargs = {"exclude": "hidden"}
+        
+        if skip_satisfied: kwargs["overwrite"] = False
+        
+        core.load_datastate(*args, **kwargs)
         
         return
         
