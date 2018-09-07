@@ -383,7 +383,6 @@ class Branch(object):
                                  
         return
         
-    # TODO: Remove in final version?
     def read_test_data(self, core,
                              project,
                              data_path,

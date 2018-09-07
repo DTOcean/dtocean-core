@@ -333,9 +333,6 @@ class OrderedSim(Simulation):
                 
                 if valid_statuses is not None:
                     
-                    print {k: v for k, v in input_status.items()
-                                    if any(x == v for x in valid_statuses)}
-                    
                     all_ids += [k for k, v in input_status.items()
                                     if any(x == v for x in valid_statuses)]
                     
