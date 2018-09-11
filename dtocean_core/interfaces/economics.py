@@ -29,6 +29,9 @@ Note:
 .. moduleauthor:: Mathew Topper <mathew.topper@tecnalia.com>
 """
 
+import pkg_resources
+from packaging.version import Version
+
 import numpy as np
 import pandas as pd
 
@@ -43,6 +46,19 @@ from ..utils.stats import (UniVariateKDE,
                            BiVariateKDE,
                            pdf_confidence_densities,
                            pdf_contour_coords)
+
+# Check module version
+pkg_title = "dtocean-economics"
+min_version = "1.1.dev0"
+version = pkg_resources.get_distribution(pkg_title).version
+
+if not Version(version) >= Version(min_version):
+    
+    err_msg = ("Installed {} is too old! At least version {} is required, but "
+               "version {} is installed").format(pkg_title,
+                                                 version,
+                                                 min_version)
+    raise ImportError(err_msg)
 
 
 class EconomicInterface(ThemeInterface):

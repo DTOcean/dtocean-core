@@ -33,6 +33,8 @@ Note:
 import os
 import pickle
 import logging
+import pkg_resources
+from packaging.version import Version
 
 from polite.paths import Directory, ObjDirectory, UserDataDirectory
 from polite.configuration import ReadINI
@@ -42,6 +44,19 @@ from . import ThemeInterface
 from ..utils.reliability import get_component_dict, read_RAM
 from ..utils.maintenance import (get_user_network,
                                  get_user_compdict)
+
+# Check module version
+pkg_title = "dtocean-reliability"
+min_version = "1.1.dev0"
+version = pkg_resources.get_distribution(pkg_title).version
+
+if not Version(version) >= Version(min_version):
+    
+    err_msg = ("Installed {} is too old! At least version {} is required, but "
+               "version {} is installed").format(pkg_title,
+                                                 version,
+                                                 min_version)
+    raise ImportError(err_msg)
 
 # Set up logging
 module_logger = logging.getLogger(__name__)

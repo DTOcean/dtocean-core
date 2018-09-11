@@ -34,6 +34,8 @@ Note:
 import os
 import pickle
 import logging
+import pkg_resources
+from packaging.version import Version
 
 import numpy as np
 import pandas as pd
@@ -52,9 +54,21 @@ from dtocean_electrical.inputs import (ElectricalComponentDatabase,
 from aneris.boundary.interface import MaskVariable
 
 from . import ModuleInterface
-from ..utils.hydrodynamics import bearing_to_radians
 from ..utils.electrical import sanitise_network
 from ..utils.network import find_marker_key
+
+# Check module version
+pkg_title = "dtocean-electrical"
+min_version = "1.1.dev0"
+version = pkg_resources.get_distribution(pkg_title).version
+
+if not Version(version) >= Version(min_version):
+    
+    err_msg = ("Installed {} is too old! At least version {} is required, but "
+               "version {} is installed").format(pkg_title,
+                                                 version,
+                                                 min_version)
+    raise ImportError(err_msg)
 
 # Set up logging
 module_logger = logging.getLogger(__name__)
