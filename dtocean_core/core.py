@@ -625,7 +625,8 @@ class Core(object):
         
         data_store = DataStorage(core_data)
         sequencer = Sequencer(self._hub_sockets,
-                              core_interfaces)
+                              core_interfaces,
+                              warn_import=True)
         
         loader = Loader(data_store)
         control = Controller(data_store,
