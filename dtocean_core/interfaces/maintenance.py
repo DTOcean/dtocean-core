@@ -33,6 +33,8 @@ Note:
 import os
 import pickle
 import logging
+import pkg_resources
+from packaging.version import Version
 
 # External 3rd party libraries
 import numpy as np
@@ -57,6 +59,19 @@ from ..utils.maintenance import (get_input_tables,
                                  get_point_depth,
                                  get_events_table)
 from ..utils.stats import UniVariateKDE
+
+# Check module version
+pkg_title = "dtocean-maintenance"
+min_version = "1.1.dev0"
+version = pkg_resources.get_distribution(pkg_title).version
+
+if not Version(version) >= Version(min_version):
+    
+    err_msg = ("Installed {} is too old! At least version {} is required, but "
+               "version {} is installed").format(pkg_title,
+                                                 version,
+                                                 min_version)
+    raise ImportError(err_msg)
 
 # Set up logging
 module_logger = logging.getLogger(__name__)

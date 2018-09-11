@@ -30,8 +30,11 @@ Note:
 .. moduleauthor:: Mathew Topper <mathew.topper@tecnalia.com>
 """
 
+
 import os
 import pickle
+import pkg_resources
+from packaging.version import Version
 
 import numpy as np
 from shapely.geometry import box
@@ -51,6 +54,19 @@ from ..utils.hydrodynamics import (make_wave_statistics,
                                    radians_to_bearing)
 
 from . import ModuleInterface
+
+# Check module version
+pkg_title = "dtocean-hydrodynamics"
+min_version = "1.0"
+version = pkg_resources.get_distribution(pkg_title).version
+
+if not Version(version) >= Version(min_version):
+    
+    err_msg = ("Installed {} is too old! At least version {} is required, but "
+               "version {} is installed").format(pkg_title,
+                                                 version,
+                                                 min_version)
+    raise ImportError(err_msg)
 
 
 class HydroInterface(ModuleInterface):

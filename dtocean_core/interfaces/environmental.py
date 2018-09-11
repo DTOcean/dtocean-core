@@ -34,6 +34,8 @@ Note:
 import os
 import math
 import pickle
+import pkg_resources
+from packaging.version import Version
 
 import pandas as pd
 import numpy as np
@@ -48,6 +50,19 @@ from dtocean_environment.main import (HydroStage,
                                       OperationMaintenanceStage)
                                      
 from . import ThemeInterface
+
+# Check module version
+pkg_title = "dtocean-environment"
+min_version = "1.0"
+version = pkg_resources.get_distribution(pkg_title).version
+
+if not Version(version) >= Version(min_version):
+    
+    err_msg = ("Installed {} is too old! At least version {} is required, but "
+               "version {} is installed").format(pkg_title,
+                                                 version,
+                                                 min_version)
+    raise ImportError(err_msg)
 
 
 class EnvironmentalInterface(ThemeInterface):

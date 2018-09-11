@@ -34,6 +34,8 @@ Note:
 import os
 import pickle
 import logging
+import pkg_resources
+from packaging.version import Version
 
 import utm
 import numpy as np
@@ -58,6 +60,19 @@ from ..utils.install_electrical import (set_collection_points,
                                         set_connectors,
                                         get_umbilical_terminations,
                                         set_cable_cp_references)
+
+# Check module version
+pkg_title = "dtocean-installation"
+min_version = "1.0"
+version = pkg_resources.get_distribution(pkg_title).version
+
+if not Version(version) >= Version(min_version):
+    
+    err_msg = ("Installed {} is too old! At least version {} is required, but "
+               "version {} is installed").format(pkg_title,
+                                                 version,
+                                                 min_version)
+    raise ImportError(err_msg)
 
 # Set up logging
 module_logger = logging.getLogger(__name__)

@@ -34,6 +34,8 @@ Note:
 # Built in modules
 import os
 import pickle
+import pkg_resources
+from packaging.version import Version
 
 # External 3rd party libraries
 import numpy as np
@@ -48,6 +50,19 @@ from dtocean_moorings.main import Variables, Main
 # DTOcean Core modules
 from . import ModuleInterface
 from ..utils.moorings import get_component_dict
+
+# Check module version
+pkg_title = "dtocean-moorings"
+min_version = "1.0"
+version = pkg_resources.get_distribution(pkg_title).version
+
+if not Version(version) >= Version(min_version):
+    
+    err_msg = ("Installed {} is too old! At least version {} is required, but "
+               "version {} is installed").format(pkg_title,
+                                                 version,
+                                                 min_version)
+    raise ImportError(err_msg)
 
 
 class MooringsInterface(ModuleInterface):
