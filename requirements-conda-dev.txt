@@ -1,7 +1,6 @@
 # REQUIREMENTS FOR CONDA INSTALLATION
 
 # INSTALLATION REQUIRED DEPENDENCIES
-aneris =0.10.dev2
 basemap
 cmocean
 contours
@@ -18,7 +17,6 @@ openpyxl
 packaging
 pandas >=0.18
 pil
-polite =0.10.dev1
 psycopg2
 pyproj
 python-dateutil
