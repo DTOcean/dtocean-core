@@ -2829,7 +2829,9 @@ class DateTimeDict(DateTimeData):
         df = pd.DataFrame(data, columns=["ID", "data"])
         
         if ".xls" in self._path:
-            df.to_excel(self._path, index=False)
+            writer = pd.ExcelWriter(self._path, engine='xlsxwriter')
+            df.to_excel(writer, index=False)
+            writer.save()
         elif ".csv" in self._path:
             df.to_csv(self._path, index=False)
         else:
