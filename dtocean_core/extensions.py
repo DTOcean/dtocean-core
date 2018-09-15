@@ -76,7 +76,7 @@ class ExtensionManager(Plugin):
         log_msg = 'Searching for {} classes'.format(cls_name)
         module_logger.debug(log_msg)
 
-        cls_map = self._discover_plugins(module, cls_name)
+        cls_map = self._discover_plugins(module, cls_name, warn_import=True)
         
         return cls_map
         

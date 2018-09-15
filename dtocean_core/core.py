@@ -757,7 +757,8 @@ class Core(object):
         
         # A sequencer is also required
         sequencer = Sequencer(self._hub_sockets,
-                              core_interfaces)
+                              core_interfaces,
+                              warn_import=True)
         
         # Flag to remove project directory
         remove_prj_dir = False
