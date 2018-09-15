@@ -13,9 +13,10 @@ from dtocean_core.pipeline import Tree, _get_connector
 
 # Check for module and version
 pkg_title = "dtocean-economics"
+pkg_import = "dtocean_economics"
 min_version = "1.1.dev0"
 
-pytest.importorskip(pkg_title)
+pytest.importorskip(pkg_import)
 version = pkg_resources.get_distribution(pkg_title).version
 pytestmark = pytest.mark.skipif(Version(version) < Version(min_version),
                                 reason="module version too old")
