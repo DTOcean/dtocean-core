@@ -7,10 +7,53 @@ from copy import deepcopy
 import matplotlib.pyplot as plt
 
 from dtocean_core.core import Core
+from dtocean_core.interfaces import ModuleInterface
 from dtocean_core.menu import ModuleMenu, ProjectMenu 
 from dtocean_core.pipeline import Tree
 
 dir_path = os.path.dirname(__file__)
+
+
+class MockModule(ModuleInterface):
+    
+    @classmethod
+    def get_name(cls):
+        
+        return "Mock Module"
+        
+    @classmethod         
+    def declare_weight(cls):
+        
+        return 999
+
+    @classmethod
+    def declare_inputs(cls):
+        
+        input_list = ['project.lease_area_entry_point']
+        
+        return input_list
+
+    @classmethod
+    def declare_outputs(cls):
+        
+        return None
+        
+    @classmethod
+    def declare_optional(cls):
+        
+        return None
+        
+    @classmethod
+    def declare_id_map(self):
+        
+        id_map = {"dummy": "project.lease_area_entry_point"}
+                  
+        return id_map
+                 
+    def connect(self, debug_entry=False,
+                      export_data=True):
+        
+        return
 
 
 # Using a py.test fixture to reduce boilerplate and test times.
@@ -19,7 +62,9 @@ def core():
     '''Share a Core object'''
     
     new_core = Core()
-        
+    socket = new_core.control._sequencer.get_socket("ModuleInterface")
+    socket.add_interface(MockModule)
+    
     return new_core
 
 
@@ -149,14 +194,14 @@ def test_DesignBoundaryPlot_available(core, project, tree):
     project = deepcopy(project)
     
     module_menu = ModuleMenu()
-    module_menu.activate(core, project, "Installation")
+    module_menu.activate(core, project, "Mock Module")
     
     project_menu = ProjectMenu()
     project_menu.initiate_dataflow(core, project)
     
     installation_branch = tree.get_branch(core,
                                           project,
-                                          "Installation")
+                                          "Mock Module")
     installation_branch.read_test_data(core,
                                      project,
                                      os.path.join(dir_path,
@@ -178,14 +223,14 @@ def test_DesignBoundaryPlot(core, project, tree):
     project = deepcopy(project)
     
     module_menu = ModuleMenu()
-    module_menu.activate(core, project, "Installation")
+    module_menu.activate(core, project, "Mock Module")
     
     project_menu = ProjectMenu()
     project_menu.initiate_dataflow(core, project)
     
     installation_branch = tree.get_branch(core,
                                           project,
-                                          "Installation")
+                                          "Mock Module")
     installation_branch.read_test_data(core,
                                      project,
                                      os.path.join(dir_path,

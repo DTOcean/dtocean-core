@@ -15,9 +15,9 @@ from dtocean_core.pipeline import Tree, _get_connector
 # Check for module and version
 pkg_title = "dtocean-moorings"
 min_version = "1.0"
-version = pkg_resources.get_distribution(pkg_title).version
 
-dtocean_moorings = pytest.importorskip("dtocean_moorings")
+pytest.importorskip(pkg_title)
+version = pkg_resources.get_distribution(pkg_title).version
 pytestmark = pytest.mark.skipif(Version(version) < Version(min_version),
                                 reason="module version too old")
 

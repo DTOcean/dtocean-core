@@ -1,18 +1,97 @@
 
-import pytest
-
 import os
 import datetime as dt
 from copy import deepcopy
 
+import pytest
 import pandas as pd
 import matplotlib.pyplot as plt
 
 from dtocean_core.core import Core
+from dtocean_core.interfaces import ModuleInterface
 from dtocean_core.menu import ModuleMenu, ProjectMenu
 from dtocean_core.pipeline import Tree
 
 dir_path = os.path.dirname(__file__)
+
+
+class MockModule(ModuleInterface):
+    
+    @classmethod
+    def get_name(cls):
+        
+        return "Mock Module"
+        
+    @classmethod         
+    def declare_weight(cls):
+        
+        return 999
+
+    @classmethod
+    def declare_inputs(cls):
+        
+        input_list = None
+        
+        return input_list
+
+    @classmethod
+    def declare_outputs(cls):
+        
+        output_list = ["project.installation_plan",
+                       "project.install_support_structure_dates",
+                       "project.install_devices_dates",
+                       "project.install_dynamic_cable_dates",
+                       "project.install_export_cable_dates",
+                       "project.install_array_cable_dates",
+                       "project.install_surface_piercing_substation_dates",
+                       "project.install_subsea_collection_point_dates",
+                       "project.install_cable_protection_dates",
+                       "project.install_driven_piles_dates",
+                       "project.install_direct_embedment_dates",
+                       "project.install_gravity_based_dates",
+                       "project.install_pile_anchor_dates",
+                       "project.install_drag_embedment_dates",
+                       "project.install_suction_embedment_dates",
+                       "project.device_phase_installation_times",
+                       "project.electrical_phase_installation_times",
+                       "project.mooring_phase_installation_times"]
+        
+        return output_list
+        
+    @classmethod
+    def declare_optional(cls):
+        
+        return None
+        
+    @classmethod
+    def declare_id_map(self):
+        
+        id_map = {"dummy": "project.installation_plan",
+                  "dummy1": "project.install_support_structure_dates",
+                  "dummy2": "project.install_devices_dates",
+                  "dummy3": "project.install_dynamic_cable_dates",
+                  "dummy4": "project.install_export_cable_dates",
+                  "dummy5": "project.install_array_cable_dates",
+                  "dummy6":
+                      "project.install_surface_piercing_substation_dates",
+                  "dummy7": "project.install_subsea_collection_point_dates",
+                  "dummy8": "project.install_cable_protection_dates",
+                  "dummy9": "project.install_driven_piles_dates",
+                  "dummy10": "project.install_direct_embedment_dates",
+                  "dummy11": "project.install_gravity_based_dates",
+                  "dummy12": "project.install_pile_anchor_dates",
+                  "dummy13": "project.install_drag_embedment_dates",
+                  "dummy14": "project.install_suction_embedment_dates",
+                  "dummy15": "project.device_phase_installation_times",
+                  "dummy16": "project.electrical_phase_installation_times",
+                  "dummy17": "project.mooring_phase_installation_times"}
+                  
+        return id_map
+                 
+    def connect(self, debug_entry=False,
+                      export_data=True):
+        
+        return
 
 
 # Using a py.test fixture to reduce boilerplate and test times.
@@ -21,6 +100,8 @@ def core():
     '''Share a Core object'''
 
     new_core = Core()
+    socket = new_core.control._sequencer.get_socket("ModuleInterface")
+    socket.add_interface(MockModule)
 
     return new_core
 
@@ -64,7 +145,7 @@ def test_InstallationGanttChartPlot_available(core, project, tree):
     module_menu = ModuleMenu()
     project_menu = ProjectMenu()
 
-    mod_name = "Installation"
+    mod_name = "Mock Module"
     module_menu.activate(core, project, mod_name)
     project_menu.initiate_dataflow(core, project)
 
@@ -262,7 +343,7 @@ def test_InstallationGanttChartPlot(core, project, tree):
     module_menu = ModuleMenu()
     project_menu = ProjectMenu()
 
-    mod_name = "Installation"
+    mod_name = "Mock Module"
     module_menu.activate(core, project, mod_name)
     project_menu.initiate_dataflow(core, project)
 

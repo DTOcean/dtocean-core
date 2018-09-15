@@ -1,17 +1,62 @@
 
-import pytest
-
 import os
 from copy import deepcopy
 
+import pytest
 import numpy as np
 import matplotlib.pyplot as plt
 
 from dtocean_core.core import Core
+from dtocean_core.interfaces import ModuleInterface
 from dtocean_core.menu import ModuleMenu, ProjectMenu
 from dtocean_core.pipeline import Tree
 
 dir_path = os.path.dirname(__file__)
+
+
+class MockModule(ModuleInterface):
+    
+    @classmethod
+    def get_name(cls):
+        
+        return "Mock Module"
+        
+    @classmethod         
+    def declare_weight(cls):
+        
+        return 999
+
+    @classmethod
+    def declare_inputs(cls):
+        
+        input_list = ["farm.wave_series"]
+        
+        return input_list
+
+    @classmethod
+    def declare_outputs(cls):
+        
+        output_list = ["farm.wave_occurrence"]
+        
+        return output_list
+        
+    @classmethod
+    def declare_optional(cls):
+        
+        return None
+        
+    @classmethod
+    def declare_id_map(self):
+        
+        id_map = {"dummy": "farm.wave_series",
+                  "dummy2": "farm.wave_occurrence"}
+                  
+        return id_map
+                 
+    def connect(self, debug_entry=False,
+                      export_data=True):
+        
+        return
 
 
 # Using a py.test fixture to reduce boilerplate and test times.
@@ -20,6 +65,8 @@ def core():
     '''Share a Core object'''
 
     new_core = Core()
+    socket = new_core.control._sequencer.get_socket("ModuleInterface")
+    socket.add_interface(MockModule)
 
     return new_core
 
@@ -63,7 +110,7 @@ def test_TeHm0Plot_available(core, project, tree):
     module_menu = ModuleMenu()
     project_menu = ProjectMenu()
 
-    mod_name = "Hydrodynamics"
+    mod_name = "Mock Module"
     module_menu.activate(core, project, mod_name)
     project_menu.initiate_dataflow(core, project)
 
@@ -86,7 +133,7 @@ def test_TeHm0Plot(core, project, tree):
     module_menu = ModuleMenu()
     project_menu = ProjectMenu()
 
-    mod_name = "Hydrodynamics"
+    mod_name = "Mock Module"
     module_menu.activate(core, project, mod_name)
     project_menu.initiate_dataflow(core, project)
 
@@ -111,7 +158,7 @@ def test_WaveOccurrencePlot_available(core, project, tree):
     module_menu = ModuleMenu()
     project_menu = ProjectMenu()
 
-    mod_name = "Hydrodynamics"
+    mod_name = "Mock Module"
     module_menu.activate(core, project, mod_name)
     project_menu.initiate_dataflow(core, project)
 
@@ -141,7 +188,7 @@ def test_WaveOccurrencePlot(core, project, tree):
     module_menu = ModuleMenu()
     project_menu = ProjectMenu()
 
-    mod_name = "Hydrodynamics"
+    mod_name = "Mock Module"
     module_menu.activate(core, project, mod_name)
     project_menu.initiate_dataflow(core, project)
 

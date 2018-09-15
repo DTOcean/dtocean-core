@@ -1,17 +1,121 @@
 
-import pytest
-
 import os
 import json
 import shutil
 from copy import deepcopy
 
+import pytest
+
 from dtocean_core.core import Core, Project
+from dtocean_core.interfaces import ModuleInterface, ThemeInterface
 from dtocean_core.menu import ModuleMenu, ProjectMenu, ThemeMenu
 from dtocean_core.pipeline import Tree
 
-
 dir_path = os.path.dirname(__file__)
+
+
+class MockModule(ModuleInterface):
+    
+    @classmethod
+    def get_name(cls):
+        
+        return "Mock Module"
+        
+    @classmethod         
+    def declare_weight(cls):
+        
+        return 998
+
+    @classmethod
+    def declare_inputs(cls):
+        
+        input_list = ['bathymetry.layers',
+                      'device.system_type',
+                      'device.power_rating',
+                      'device.cut_in_velocity',
+                      'device.turbine_interdistance']
+        
+        return input_list
+
+    @classmethod
+    def declare_outputs(cls):
+        
+        output_list = ['project.layout',
+                       'project.annual_energy',
+                       'project.number_of_devices']
+        
+        return output_list
+        
+    @classmethod
+    def declare_optional(cls):
+        
+        return None
+        
+    @classmethod
+    def declare_id_map(self):
+        
+        id_map = {"dummy1": "bathymetry.layers",
+                  "dummy2": "device.cut_in_velocity",
+                  "dummy3": "device.system_type",
+                  "dummy4": "device.power_rating",
+                  "dummy5": "project.layout",
+                  "dummy6": "project.annual_energy",
+                  "dummy7": "project.number_of_devices",
+                  "dummy8": "device.turbine_interdistance"}
+                  
+        return id_map
+                 
+    def connect(self, debug_entry=False,
+                      export_data=True):
+        
+        return
+
+
+class MockTheme(ThemeInterface):
+    
+    @classmethod
+    def get_name(cls):
+        
+        return "Mock Theme"
+        
+    @classmethod         
+    def declare_weight(cls):
+        
+        return 999
+
+    @classmethod
+    def declare_inputs(cls):
+        
+        input_list = ["project.discount_rate"]
+        
+        return input_list
+
+    @classmethod
+    def declare_outputs(cls):
+        
+        output_list = ['project.capex_total']
+                
+        return output_list
+        
+    @classmethod
+    def declare_optional(cls):
+        
+        option_list = ["project.discount_rate"]
+        
+        return option_list
+        
+    @classmethod
+    def declare_id_map(self):
+        
+        id_map = {"dummy1": "project.discount_rate",
+                  "dummy2": "project.capex_total"}
+                  
+        return id_map
+                 
+    def connect(self, debug_entry=False,
+                      export_data=True):
+        
+        return
 
 
 # Using a py.test fixture to reduce boilerplate and test times.
@@ -20,6 +124,12 @@ def core():
     '''Share a Core object'''
     
     new_core = Core()
+    
+    socket = new_core.control._sequencer.get_socket("ModuleInterface")
+    socket.add_interface(MockModule)
+    
+    socket = new_core.control._sequencer.get_socket("ThemeInterface")
+    socket.add_interface(MockTheme)
     
     return new_core
     
@@ -113,18 +223,18 @@ def test_dump_project(core, project, var_tree, tmpdir):
     module_menu = ModuleMenu()
     theme_menu = ThemeMenu()
 
-    module_menu.activate(core, project, "Hydrodynamics")
-    theme_menu.activate(core, project,  "Economics")
+    module_menu.activate(core, project, "Mock Module")
+    theme_menu.activate(core, project,  "Mock Theme")
     
     project_menu.initiate_dataflow(core, project)
                                    
-    hydro_branch = var_tree.get_branch(core, project, "Hydrodynamics")
+    hydro_branch = var_tree.get_branch(core, project, "Mock Module")
     hydro_branch.read_test_data(core,
                                 project,
                                 os.path.join(dir_path,
                                              "inputs_wp2_tidal.pkl"))
                                              
-    eco_branch = var_tree.get_branch(core, project, "Economics")
+    eco_branch = var_tree.get_branch(core, project, "Mock Theme")
     eco_branch.read_test_data(core,
                               project,
                               os.path.join(dir_path,
@@ -143,18 +253,18 @@ def test_dump_project_archive(core, project, var_tree, tmpdir):
     module_menu = ModuleMenu()
     theme_menu = ThemeMenu()
 
-    module_menu.activate(core, project, "Hydrodynamics")
-    theme_menu.activate(core, project,  "Economics")
+    module_menu.activate(core, project, "Mock Module")
+    theme_menu.activate(core, project,  "Mock Theme")
     
     project_menu.initiate_dataflow(core, project)
                                    
-    hydro_branch = var_tree.get_branch(core, project, "Hydrodynamics")
+    hydro_branch = var_tree.get_branch(core, project, "Mock Module")
     hydro_branch.read_test_data(core,
                                 project,
                                 os.path.join(dir_path,
                                              "inputs_wp2_tidal.pkl"))
                                              
-    eco_branch = var_tree.get_branch(core, project, "Economics")
+    eco_branch = var_tree.get_branch(core, project, "Mock Theme")
     eco_branch.read_test_data(core,
                               project,
                               os.path.join(dir_path,
@@ -176,8 +286,8 @@ def test_dump_project_nodir(core, project, var_tree):
     module_menu = ModuleMenu()
     theme_menu = ThemeMenu()
 
-    module_menu.activate(core, project, "Hydrodynamics")
-    theme_menu.activate(core, project,  "Economics")
+    module_menu.activate(core, project, "Mock Module")
+    theme_menu.activate(core, project,  "Mock Theme")
     
     project_menu.initiate_dataflow(core, project)
 
@@ -193,18 +303,18 @@ def test_load_project_archive(core, project, var_tree, tmpdir):
     module_menu = ModuleMenu()
     theme_menu = ThemeMenu()
 
-    module_menu.activate(core, project, "Hydrodynamics")
-    theme_menu.activate(core, project,  "Economics")
+    module_menu.activate(core, project, "Mock Module")
+    theme_menu.activate(core, project,  "Mock Theme")
     
     project_menu.initiate_dataflow(core, project)
                                    
-    hydro_branch = var_tree.get_branch(core, project, "Hydrodynamics")
+    hydro_branch = var_tree.get_branch(core, project, "Mock Module")
     hydro_branch.read_test_data(core,
                                 project,
                                 os.path.join(dir_path,
                                              "inputs_wp2_tidal.pkl"))
                                              
-    eco_branch = var_tree.get_branch(core, project, "Economics")
+    eco_branch = var_tree.get_branch(core, project, "Mock Theme")
     eco_branch.read_test_data(core,
                               project,
                               os.path.join(dir_path,
@@ -231,7 +341,7 @@ def test_load_project_archive(core, project, var_tree, tmpdir):
 
     assert loaded_project.check_integrity()
     assert active_sim.get_title() == "Default"
-    assert "Hydrodynamics" in module_menu.get_scheduled(core, loaded_project)
+    assert "Mock Module" in module_menu.get_scheduled(core, loaded_project)
 
 
 def test_dump_datastate(core, project, var_tree, tmpdir):
@@ -242,18 +352,18 @@ def test_dump_datastate(core, project, var_tree, tmpdir):
     module_menu = ModuleMenu()
     theme_menu = ThemeMenu()
 
-    module_menu.activate(core, project, "Hydrodynamics")
-    theme_menu.activate(core, project,  "Economics")
+    module_menu.activate(core, project, "Mock Module")
+    theme_menu.activate(core, project,  "Mock Theme")
     
     project_menu.initiate_dataflow(core, project)
                                    
-    hydro_branch = var_tree.get_branch(core, project, "Hydrodynamics")
+    hydro_branch = var_tree.get_branch(core, project, "Mock Module")
     hydro_branch.read_test_data(core,
                                 project,
                                 os.path.join(dir_path,
                                              "inputs_wp2_tidal.pkl"))
                                              
-    eco_branch = var_tree.get_branch(core, project, "Economics")
+    eco_branch = var_tree.get_branch(core, project, "Mock Theme")
     eco_branch.read_test_data(core,
                               project,
                               os.path.join(dir_path,
@@ -275,18 +385,18 @@ def test_dump_datastate_archive(core, project, var_tree, tmpdir):
     module_menu = ModuleMenu()
     theme_menu = ThemeMenu()
 
-    module_menu.activate(core, project, "Hydrodynamics")
-    theme_menu.activate(core, project,  "Economics")
+    module_menu.activate(core, project, "Mock Module")
+    theme_menu.activate(core, project,  "Mock Theme")
     
     project_menu.initiate_dataflow(core, project)
                                    
-    hydro_branch = var_tree.get_branch(core, project, "Hydrodynamics")
+    hydro_branch = var_tree.get_branch(core, project, "Mock Module")
     hydro_branch.read_test_data(core,
                                 project,
                                 os.path.join(dir_path,
                                              "inputs_wp2_tidal.pkl"))
                                              
-    eco_branch = var_tree.get_branch(core, project, "Economics")
+    eco_branch = var_tree.get_branch(core, project, "Mock Theme")
     eco_branch.read_test_data(core,
                               project,
                               os.path.join(dir_path,
@@ -308,8 +418,8 @@ def test_dump_datastate_nodir(core, project, var_tree):
     module_menu = ModuleMenu()
     theme_menu = ThemeMenu()
 
-    module_menu.activate(core, project, "Hydrodynamics")
-    theme_menu.activate(core, project,  "Economics")
+    module_menu.activate(core, project, "Mock Module")
+    theme_menu.activate(core, project,  "Mock Theme")
     
     project_menu.initiate_dataflow(core, project)
 
@@ -325,18 +435,18 @@ def test_load_datastate_archive(core, project, var_tree, tmpdir):
     module_menu = ModuleMenu()
     theme_menu = ThemeMenu()
 
-    module_menu.activate(core, temp_project, "Hydrodynamics")
-    theme_menu.activate(core, temp_project,  "Economics")
+    module_menu.activate(core, temp_project, "Mock Module")
+    theme_menu.activate(core, temp_project,  "Mock Theme")
     
     project_menu.initiate_dataflow(core, temp_project)
                                    
-    hydro_branch = var_tree.get_branch(core, temp_project, "Hydrodynamics")
+    hydro_branch = var_tree.get_branch(core, temp_project, "Mock Module")
     hydro_branch.read_test_data(core,
                                 temp_project,
                                 os.path.join(dir_path,
                                              "inputs_wp2_tidal.pkl"))
                                              
-    eco_branch = var_tree.get_branch(core, temp_project, "Economics")
+    eco_branch = var_tree.get_branch(core, temp_project, "Mock Theme")
     eco_branch.read_test_data(core,
                               temp_project,
                               os.path.join(dir_path,
@@ -364,7 +474,7 @@ def test_load_datastate_archive(core, project, var_tree, tmpdir):
     module_menu = ModuleMenu()
     theme_menu = ThemeMenu()
 
-    module_menu.activate(core, temp_project, "Hydrodynamics")
+    module_menu.activate(core, temp_project, "Mock Module")
     
     project_menu.initiate_dataflow(core, temp_project)
     
@@ -384,18 +494,18 @@ def test_load_datastate_archive_exclude(core, project, var_tree, tmpdir):
     module_menu = ModuleMenu()
     theme_menu = ThemeMenu()
 
-    module_menu.activate(core, temp_project, "Hydrodynamics")
-    theme_menu.activate(core, temp_project,  "Economics")
+    module_menu.activate(core, temp_project, "Mock Module")
+    theme_menu.activate(core, temp_project,  "Mock Theme")
     
     project_menu.initiate_dataflow(core, temp_project)
                                    
-    hydro_branch = var_tree.get_branch(core, temp_project, "Hydrodynamics")
+    hydro_branch = var_tree.get_branch(core, temp_project, "Mock Module")
     hydro_branch.read_test_data(core,
                                 temp_project,
                                 os.path.join(dir_path,
                                              "inputs_wp2_tidal.pkl"))
                                              
-    eco_branch = var_tree.get_branch(core, temp_project, "Economics")
+    eco_branch = var_tree.get_branch(core, temp_project, "Mock Theme")
     eco_branch.read_test_data(core,
                               temp_project,
                               os.path.join(dir_path,
@@ -423,7 +533,7 @@ def test_load_datastate_archive_exclude(core, project, var_tree, tmpdir):
     module_menu = ModuleMenu()
     theme_menu = ThemeMenu()
 
-    module_menu.activate(core, temp_project, "Hydrodynamics")
+    module_menu.activate(core, temp_project, "Mock Module")
     
     project_menu.initiate_dataflow(core, temp_project)
     
@@ -447,18 +557,18 @@ def test_load_datastate_bad_id(core, project, var_tree, tmpdir):
     module_menu = ModuleMenu()
     theme_menu = ThemeMenu()
 
-    module_menu.activate(core, project, "Hydrodynamics")
-    theme_menu.activate(core, project,  "Economics")
+    module_menu.activate(core, project, "Mock Module")
+    theme_menu.activate(core, project,  "Mock Theme")
     
     project_menu.initiate_dataflow(core, project)
                                    
-    hydro_branch = var_tree.get_branch(core, project, "Hydrodynamics")
+    hydro_branch = var_tree.get_branch(core, project, "Mock Module")
     hydro_branch.read_test_data(core,
                                 project,
                                 os.path.join(dir_path,
                                              "inputs_wp2_tidal.pkl"))
                                              
-    eco_branch = var_tree.get_branch(core, project, "Economics")
+    eco_branch = var_tree.get_branch(core, project, "Mock Theme")
     eco_branch.read_test_data(core,
                               project,
                               os.path.join(dir_path,

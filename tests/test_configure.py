@@ -1,4 +1,6 @@
 
+import logging
+
 from polite.paths import Directory
 from dtocean_core import (start_logging,
                           init_config,
@@ -102,7 +104,8 @@ def test_start_logging_rollover(mocker, tmpdir):
     logdir = config_tmpdir.join("..", "logs")
     
     assert len(logdir.listdir()) == 1
-              
+    
+    logging.shutdown()
     start_logging()
     
     assert len(logdir.listdir()) == 2
