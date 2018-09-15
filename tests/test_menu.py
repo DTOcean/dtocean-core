@@ -6,15 +6,107 @@ from copy import deepcopy
 
 from aneris.entity import Pipeline
 from dtocean_core.core import Core
+from dtocean_core.interfaces import ModuleInterface, ThemeInterface
 from dtocean_core.menu import DataMenu, ModuleMenu, ProjectMenu, ThemeMenu
 from dtocean_core.pipeline import Tree
-from dtocean_core.interfaces.hydrodynamics import HydroInterface
-from dtocean_core.interfaces.economics import EconomicInterface
-from dtocean_core.interfaces.environmental import EnvironmentalInterface
-from dtocean_core.interfaces.reliability import ReliabilityInterface
 from polite.paths import Directory
 
 dir_path = os.path.dirname(__file__)
+
+
+class MockModule(ModuleInterface):
+    
+    @classmethod
+    def get_name(cls):
+        
+        return "Mock Module"
+        
+    @classmethod         
+    def declare_weight(cls):
+        
+        return 998
+
+    @classmethod
+    def declare_inputs(cls):
+        
+        input_list = ["device.turbine_performance",
+                      "device.cut_in_velocity",
+                      "device.system_type"]
+        
+        return input_list
+
+    @classmethod
+    def declare_outputs(cls):
+        
+        output_list = None
+        
+        return output_list
+        
+    @classmethod
+    def declare_optional(cls):
+        
+        return None
+        
+    @classmethod
+    def declare_id_map(self):
+        
+        id_map = {"dummy1": "device.turbine_performance",
+                  "dummy2": "device.cut_in_velocity",
+                  "dummy3": "device.system_type"}
+                  
+        return id_map
+                 
+    def connect(self, debug_entry=False,
+                      export_data=True):
+        
+        return
+
+
+class MockTheme(ThemeInterface):
+    
+    @classmethod
+    def get_name(cls):
+        
+        return "Mock Theme"
+        
+    @classmethod         
+    def declare_weight(cls):
+        
+        return 999
+
+    @classmethod
+    def declare_inputs(cls):
+        
+        input_list = ["project.discount_rate"]
+        
+        return input_list
+
+    @classmethod
+    def declare_outputs(cls):
+        
+        output_list = ['project.capex_total']
+                
+        return output_list
+        
+    @classmethod
+    def declare_optional(cls):
+        
+        option_list = ["project.discount_rate"]
+        
+        return option_list
+        
+    @classmethod
+    def declare_id_map(self):
+        
+        id_map = {"dummy1": "project.discount_rate",
+                  "dummy2": "project.capex_total"}
+                  
+        return id_map
+                 
+    def connect(self, debug_entry=False,
+                      export_data=True):
+        
+        return
 
 
 # Using a py.test fixture to reduce boilerplate and test times.
@@ -22,7 +114,13 @@ dir_path = os.path.dirname(__file__)
 def core():
     '''Share a Core object'''
     
-    new_core = Core()    
+    new_core = Core()
+    
+    socket = new_core.control._sequencer.get_socket("ModuleInterface")
+    socket.add_interface(MockModule)
+    
+    socket = new_core.control._sequencer.get_socket("ThemeInterface")
+    socket.add_interface(MockTheme)
     
     return new_core
     
@@ -82,11 +180,11 @@ def test_get_available_modules(core, project, module_menu):
     project = deepcopy(project) 
     names = module_menu.get_available(core, project)
     
-    assert "Hydrodynamics" in names
+    assert "Mock Module" in names
     
 def test_activate_module(core, project, module_menu):
 
-    mod_name = "Hydrodynamics"
+    mod_name = "Mock Module"
     
     project = deepcopy(project) 
     module_menu.activate(core, project, mod_name)
@@ -94,29 +192,26 @@ def test_activate_module(core, project, module_menu):
     pipeline = simulation.get_hub("modules")
     module = pipeline._scheduled_interface_map.popitem(last=False)[1]
     
-    assert isinstance(module, HydroInterface)
+    assert isinstance(module, MockModule)
     
 def test_get_available_themes(core, project, theme_menu):
     
     project = deepcopy(project) 
     names = theme_menu.get_available(core, project)
     
-    assert "Economics" in names
-    assert "Environmental Impact Assessment" in names
-    assert "Reliability" in names
+    assert "Mock Theme" in names
     
 def test_activate_theme(core, project, theme_menu):
 
-    mod_name = "Environmental Impact Assessment"
+    mod_name = "Mock Theme"
     
     project = deepcopy(project) 
     theme_menu.activate(core, project, mod_name)
     simulation = project.get_simulation()
     hub = simulation.get_hub("themes")
-    module = hub._scheduled_interface_map["EnvironmentalInterface"]
+    module = hub._scheduled_interface_map["MockTheme"]
     
-    assert isinstance(module, EnvironmentalInterface)
-    
+    assert isinstance(module, MockTheme)
     
 def test_DataMenu_get_available_databases(mocker, tmpdir):
 
@@ -172,21 +267,17 @@ def test_DataMenu_update_database(mocker, tmpdir):
               
 def test_ModuleMenu_execute_current_nothemes(core,
                                              project,
-                                             module_menu,
-                                             mocker):
+                                             module_menu):
     
     var_tree = Tree()
     project = deepcopy(project)
-    mod_name = "Hydrodynamics"    
+    mod_name = "Mock Module"
     
     module_menu.activate(core, project, mod_name)
     mod_branch = var_tree.get_branch(core, project, mod_name)
     mod_branch.read_test_data(core,
                               project,
                               os.path.join(dir_path, "inputs_wp2_tidal.pkl"))
-    
-    mocker.patch('dtocean_core.menu.ModuleMenu._execute',
-                 return_value=None)
                  
     module_menu.execute_current(core, project, execute_themes=False)
     

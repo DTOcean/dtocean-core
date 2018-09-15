@@ -1,11 +1,151 @@
 
-import pytest
-
 from copy import deepcopy
 
+import pytest
+
 from dtocean_core.core import Core
+from dtocean_core.interfaces import ModuleInterface, ThemeInterface
 from dtocean_core.menu import ModuleMenu, ProjectMenu, ThemeMenu 
 from dtocean_core.pipeline import Tree, InputVariable
+
+
+class MockModule(ModuleInterface):
+    
+    @classmethod
+    def get_name(cls):
+        
+        return "Mock Module"
+        
+    @classmethod         
+    def declare_weight(cls):
+        
+        return 998
+
+    @classmethod
+    def declare_inputs(cls):
+        
+        input_list = ["bathymetry.layers",
+                      "device.cut_in_velocity",
+                      "device.system_type"]
+        
+        return input_list
+
+    @classmethod
+    def declare_outputs(cls):
+        
+        output_list = ['device.power_rating',
+                       'project.layout']
+        
+        return output_list
+        
+    @classmethod
+    def declare_optional(cls):
+        
+        return None
+        
+    @classmethod
+    def declare_id_map(self):
+        
+        id_map = {"dummy1": "bathymetry.layers",
+                  "dummy2": "device.cut_in_velocity",
+                  "dummy3": "device.system_type",
+                  "dummy4": "device.power_rating",
+                  "dummy5": "project.layout"}
+                  
+        return id_map
+                 
+    def connect(self, debug_entry=False,
+                      export_data=True):
+        
+        return
+
+
+class AnotherMockModule(ModuleInterface):
+    
+    @classmethod
+    def get_name(cls):
+        
+        return "Mock Module 2"
+        
+    @classmethod         
+    def declare_weight(cls):
+        
+        return 999
+
+    @classmethod
+    def declare_inputs(cls):
+        
+        input_list = ['device.power_rating',
+                      'project.layout']
+        
+        return input_list
+
+    @classmethod
+    def declare_outputs(cls):
+        
+        return None
+        
+    @classmethod
+    def declare_optional(cls):
+        
+        return None
+        
+    @classmethod
+    def declare_id_map(self):
+        
+        id_map = {"dummy1": "device.power_rating",
+                  "dummy2": "project.layout"}
+                  
+        return id_map
+                 
+    def connect(self, debug_entry=False,
+                      export_data=True):
+        
+        return
+
+
+class MockTheme(ThemeInterface):
+    
+    @classmethod
+    def get_name(cls):
+        
+        return "Mock Theme"
+        
+    @classmethod         
+    def declare_weight(cls):
+        
+        return 999
+
+    @classmethod
+    def declare_inputs(cls):
+        
+        input_list = ["project.discount_rate"]
+        
+        return input_list
+
+    @classmethod
+    def declare_outputs(cls):
+                
+        return None
+        
+    @classmethod
+    def declare_optional(cls):
+        
+        option_list = ["project.discount_rate"]
+        
+        return option_list
+        
+    @classmethod
+    def declare_id_map(self):
+        
+        id_map = {"dummy1": "project.discount_rate"}
+                  
+        return id_map
+                 
+    def connect(self, debug_entry=False,
+                      export_data=True):
+        
+        return
 
 # Using a py.test fixture to reduce boilerplate and test times.
 @pytest.fixture(scope="module")
@@ -13,6 +153,13 @@ def core():
     '''Share a Core object'''
     
     new_core = Core()
+    
+    socket = new_core.control._sequencer.get_socket("ModuleInterface")
+    socket.add_interface(MockModule)
+    socket.add_interface(AnotherMockModule)
+    
+    socket = new_core.control._sequencer.get_socket("ThemeInterface")
+    socket.add_interface(MockTheme)
     
     return new_core
     
@@ -67,7 +214,7 @@ def test_tree(project):
 
 def test_get_branch_input_status(core, project, module_menu, tree):
 
-    mod_name = "Hydrodynamics"
+    mod_name = "Mock Module"
     
     project = deepcopy(project) 
     module_menu.activate(core, project, mod_name)
@@ -80,7 +227,7 @@ def test_get_branch_input_status(core, project, module_menu, tree):
     
 def test_get_input_variable(core, project, module_menu, tree):
 
-    mod_name = "Hydrodynamics"
+    mod_name = "Mock Module"
     var_id = "device.cut_in_velocity"
     
     project = deepcopy(project) 
@@ -121,7 +268,7 @@ def test_get_input_variable(core, project, module_menu, tree):
         
 def test_connect(core, project, module_menu, tree):
     
-    mod_name = "Hydrodynamics"
+    mod_name = "Mock Module"
     var_id = "device.system_type"
     
     project = deepcopy(project) 
@@ -142,27 +289,20 @@ def test_module_overwritten_inputs(core, project, module_menu, tree):
 
     project = deepcopy(project) 
 
-    module_menu.activate(core, project, "Hydrodynamics")
-    module_menu.activate(core, project, "Electrical Sub-Systems")
-    module_menu.activate(core, project, "Mooring and Foundations")
+    module_menu.activate(core, project, "Mock Module")
+    module_menu.activate(core, project, "Mock Module 2")
     
-    electric_branch = tree.get_branch(core, project, "Electrical Sub-Systems") 
-    moorings_branch = tree.get_branch(core, project, "Mooring and Foundations") 
+    electric_branch = tree.get_branch(core, project, "Mock Module 2") 
     
     inputs = electric_branch.get_input_status(core, 
                                               project)
         
     assert inputs['device.power_rating'] == 'overwritten'
     assert inputs['project.layout'] == 'overwritten'
-    
-#    inputs = moorings_branch.get_input_status(core, 
-#                                              project)
-#    
-#    assert inputs['project.layout'] == 'unavailable'
 
 def test_get_theme_inputs(core, project, theme_menu, tree):
 
-    mod_name = "Economics"
+    mod_name = "Mock Theme"
 
     project = deepcopy(project) 
     theme_menu.activate(core, project, mod_name)
@@ -175,7 +315,7 @@ def test_get_theme_inputs(core, project, theme_menu, tree):
     
 def test_get_metadata(core, project, module_menu, tree):
     
-    mod_name = "Hydrodynamics"
+    mod_name = "Mock Module"
     var_id = "device.system_type"
     
     project = deepcopy(project) 
@@ -189,7 +329,7 @@ def test_get_metadata(core, project, module_menu, tree):
     
 def test_get_value(core, project, module_menu, tree):
     
-    mod_name = "Hydrodynamics"
+    mod_name = "Mock Module"
     var_id = "device.system_type"
     
     project = deepcopy(project) 

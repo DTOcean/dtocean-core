@@ -1,19 +1,72 @@
 
-import pytest
-
 import os
 from copy import deepcopy
 
+import pytest
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from shapely.geometry import Polygon
 
 from dtocean_core.core import Core
+from dtocean_core.interfaces import ModuleInterface
 from dtocean_core.menu import ModuleMenu, ProjectMenu
 from dtocean_core.pipeline import Tree
 
 dir_path = os.path.dirname(__file__)
+
+
+class MockModule(ModuleInterface):
+    
+    @classmethod
+    def get_name(cls):
+        
+        return "Mock Module"
+        
+    @classmethod         
+    def declare_weight(cls):
+        
+        return 999
+
+    @classmethod
+    def declare_inputs(cls):
+        
+        input_list = ['project.layout',
+                      'site.lease_boundary',
+                      'corridor.landing_point']
+        
+        return input_list
+
+    @classmethod
+    def declare_outputs(cls):
+        
+        output_list = ['project.cable_routes',
+                       'project.substation_layout',
+                       'project.foundations_component_data']
+        
+        return output_list
+        
+    @classmethod
+    def declare_optional(cls):
+        
+        return None
+        
+    @classmethod
+    def declare_id_map(self):
+        
+        id_map = {"dummy": "project.layout",
+                  "dummy2": "site.lease_boundary",
+                  "dummy3": "project.cable_routes",
+                  "dummy4": "corridor.landing_point",
+                  "dummy5": "project.substation_layout",
+                  "dummy6": "project.foundations_component_data"}
+                  
+        return id_map
+                 
+    def connect(self, debug_entry=False,
+                      export_data=True):
+        
+        return
 
 
 # Using a py.test fixture to reduce boilerplate and test times.
@@ -22,6 +75,8 @@ def core():
     '''Share a Core object'''
 
     new_core = Core()
+    socket = new_core.control._sequencer.get_socket("ModuleInterface")
+    socket.add_interface(MockModule)
 
     return new_core
 
@@ -65,7 +120,7 @@ def test_ArrayLeasePlot_available(core, project, tree):
     module_menu = ModuleMenu()
     project_menu = ProjectMenu()
 
-    mod_name = "Electrical Sub-Systems"
+    mod_name = "Mock Module"
     module_menu.activate(core, project, mod_name)
     project_menu.initiate_dataflow(core, project)
 
@@ -93,7 +148,7 @@ def test_ArrayLeasePlot(core, project, tree):
     module_menu = ModuleMenu()
     project_menu = ProjectMenu()
 
-    mod_name = "Electrical Sub-Systems"
+    mod_name = "Mock Module"
     module_menu.activate(core, project, mod_name)
     project_menu.initiate_dataflow(core, project)
 
@@ -122,7 +177,7 @@ def test_ArrayCablesPlot_available(core, project, tree):
     module_menu = ModuleMenu()
     project_menu = ProjectMenu()
 
-    mod_name = "Electrical Sub-Systems"
+    mod_name = "Mock Module"
     module_menu.activate(core, project, mod_name)
     project_menu.initiate_dataflow(core, project)
     
@@ -175,7 +230,7 @@ def test_ArrayCablesPlot(core, project, tree):
     module_menu = ModuleMenu()
     project_menu = ProjectMenu()
 
-    mod_name = "Electrical Sub-Systems"
+    mod_name = "Mock Module"
     module_menu.activate(core, project, mod_name)
     project_menu.initiate_dataflow(core, project)
     
@@ -230,7 +285,7 @@ def test_ArrayFoundationsPlot_available(core, project, tree):
     module_menu = ModuleMenu()
     project_menu = ProjectMenu()
 
-    mod_name = "Mooring and Foundations"
+    mod_name = "Mock Module"
     module_menu.activate(core, project, mod_name)
     project_menu.initiate_dataflow(core, project)
     
@@ -333,7 +388,7 @@ def test_ArrayFoundationsPlot(core, project, tree, soiltype):
     module_menu = ModuleMenu()
     project_menu = ProjectMenu()
 
-    mod_name = "Mooring and Foundations"
+    mod_name = "Mock Module"
     module_menu.activate(core, project, mod_name)
     project_menu.initiate_dataflow(core, project)
     

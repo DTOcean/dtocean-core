@@ -1,16 +1,64 @@
 
-import pytest
-
 import os
 from copy import deepcopy
 
+import pytest
 import matplotlib.pyplot as plt
 
 from dtocean_core.core import Core
+from dtocean_core.interfaces import ModuleInterface
 from dtocean_core.menu import ModuleMenu, ProjectMenu 
 from dtocean_core.pipeline import Tree
 
 dir_path = os.path.dirname(__file__)
+
+
+class MockModule(ModuleInterface):
+    
+    @classmethod
+    def get_name(cls):
+        
+        return "Mock Module"
+        
+    @classmethod         
+    def declare_weight(cls):
+        
+        return 999
+
+    @classmethod
+    def declare_inputs(cls):
+        
+        input_list = ["device.turbine_performance",
+                      "device.cut_in_velocity",
+                      "device.cut_out_velocity",
+                      "farm.tidal_series"]
+        
+        return input_list
+
+    @classmethod
+    def declare_outputs(cls):
+        
+        return None
+        
+    @classmethod
+    def declare_optional(cls):
+        
+        return None
+        
+    @classmethod
+    def declare_id_map(self):
+        
+        id_map = {"dummy": "device.turbine_performance",
+                  "dummy2": "device.cut_in_velocity",
+                  "dummy3": "device.cut_out_velocity",
+                  "dummy4": "farm.tidal_series"}
+                  
+        return id_map
+                 
+    def connect(self, debug_entry=False,
+                      export_data=True):
+        
+        return
 
 
 # Using a py.test fixture to reduce boilerplate and test times.
@@ -19,7 +67,9 @@ def core():
     '''Share a Core object'''
     
     new_core = Core()
-        
+    socket = new_core.control._sequencer.get_socket("ModuleInterface")
+    socket.add_interface(MockModule)
+    
     return new_core
 
 
@@ -62,7 +112,7 @@ def test_TidalPowerPerformancePlot_available(core, project, tree):
     module_menu = ModuleMenu()
     project_menu = ProjectMenu()
     
-    mod_name = "Hydrodynamics"
+    mod_name = "Mock Module"
     module_menu.activate(core, project, mod_name)
     project_menu.initiate_dataflow(core, project)
 
@@ -86,7 +136,7 @@ def test_TidalPowerPerformancePlot(core, project, tree):
     module_menu = ModuleMenu()
     project_menu = ProjectMenu()
     
-    mod_name = "Hydrodynamics"
+    mod_name = "Mock Module"
     module_menu.activate(core, project, mod_name)
     project_menu.initiate_dataflow(core, project)
     
@@ -112,7 +162,7 @@ def test_TidalVelocityPlot_available(core, project, tree):
     module_menu = ModuleMenu()
     project_menu = ProjectMenu()
     
-    mod_name = "Hydrodynamics"
+    mod_name = "Mock Module"
     module_menu.activate(core, project, mod_name)
     project_menu.initiate_dataflow(core, project)
 
@@ -136,7 +186,7 @@ def test_TidalVelocityPlot(core, project, tree):
     module_menu = ModuleMenu()
     project_menu = ProjectMenu()
     
-    mod_name = "Hydrodynamics"
+    mod_name = "Mock Module"
     module_menu.activate(core, project, mod_name)
     project_menu.initiate_dataflow(core, project)
     

@@ -6,11 +6,61 @@ import matplotlib.pyplot as plt
 from copy import deepcopy
 
 from dtocean_core.core import Core
+from dtocean_core.interfaces import ModuleInterface
 from dtocean_core.menu import ModuleMenu, ProjectMenu 
 from dtocean_core.pipeline import Tree, InputVariable
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 data_dir = os.path.join(this_dir, "..", "test_data")
+
+
+class MockModule(ModuleInterface):
+    
+    @classmethod
+    def get_name(cls):
+        
+        return "Mock Module"
+        
+    @classmethod         
+    def declare_weight(cls):
+        
+        return 998
+
+    @classmethod
+    def declare_inputs(cls):
+        
+        input_list = ["device.turbine_performance",
+                      "device.cut_in_velocity",
+                      "device.system_type"]
+        
+        return input_list
+
+    @classmethod
+    def declare_outputs(cls):
+        
+        output_list = None
+        
+        return output_list
+        
+    @classmethod
+    def declare_optional(cls):
+        
+        return None
+        
+    @classmethod
+    def declare_id_map(self):
+        
+        id_map = {"dummy1": "device.turbine_performance",
+                  "dummy2": "device.cut_in_velocity",
+                  "dummy3": "device.system_type"}
+                  
+        return id_map
+                 
+    def connect(self, debug_entry=False,
+                      export_data=True):
+        
+        return
+
 
 # Using a py.test fixture to reduce boilerplate and test times.
 @pytest.fixture(scope="module")
@@ -18,6 +68,8 @@ def core():
     '''Share a Core object'''
     
     new_core = Core()
+    socket = new_core.control._sequencer.get_socket("ModuleInterface")
+    socket.add_interface(MockModule)
         
     return new_core
     
@@ -58,7 +110,7 @@ def test_NumpyLine_has_plot(core, project):
     module_menu = ModuleMenu()
     project_menu = ProjectMenu()
     
-    module_menu.activate(core, project, "Hydrodynamics")
+    module_menu.activate(core, project, "Mock Module")
     
     project_menu.initiate_dataflow(core, project)
 
@@ -73,7 +125,7 @@ def test_auto_plot(core, project, tree):
     module_menu = ModuleMenu()
     project_menu = ProjectMenu()
     
-    mod_name = "Hydrodynamics"
+    mod_name = "Mock Module"
     module_menu.activate(core, project, mod_name)
     project_menu.initiate_dataflow(core, project)
 
@@ -96,7 +148,7 @@ def test_auto_plot(core, project, tree):
     
 def test_set_auto_raw(core, project, tree):
     
-    mod_name = "Hydrodynamics"
+    mod_name = "Mock Module"
     var_id = "device.system_type"
     
     project = deepcopy(project) 
@@ -117,7 +169,7 @@ def test_set_auto_raw(core, project, tree):
     
 def test_get_file_input_interfaces(core, project, tree):
     
-    mod_name = "Hydrodynamics"
+    mod_name = "Mock Module"
     var_id = "device.turbine_performance"
     
     project = deepcopy(project) 
@@ -138,7 +190,7 @@ def test_get_file_input_interfaces(core, project, tree):
     
 def test_set_file_input_interface(core, project, tree):
     
-    mod_name = "Hydrodynamics"
+    mod_name = "Mock Module"
     var_id = "device.turbine_performance"
     
     project = deepcopy(project) 
@@ -159,7 +211,7 @@ def test_set_file_input_interface(core, project, tree):
     
 def test_auto_file_read(core, project, tree):
     
-    mod_name = "Hydrodynamics"
+    mod_name = "Mock Module"
     var_id = "device.turbine_performance"
     
     project = deepcopy(project) 
@@ -185,7 +237,7 @@ def test_auto_file_read(core, project, tree):
 
 def test_get_file_output_interfaces(core, project, tree):
     
-    mod_name = "Hydrodynamics"
+    mod_name = "Mock Module"
     var_id = "device.turbine_performance"
     
     project = deepcopy(project) 
@@ -206,7 +258,7 @@ def test_get_file_output_interfaces(core, project, tree):
     
 def test_auto_write_file(core, project, tree):
     
-    mod_name = "Hydrodynamics"
+    mod_name = "Mock Module"
     var_id = "device.turbine_performance"
     
     project = deepcopy(project) 
