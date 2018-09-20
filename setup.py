@@ -190,9 +190,10 @@ setup(name='dtocean-core',
                'add-Te = dtocean_core.utils.hydrodynamics:add_Te_interface',
                'dtocean-core-config = '
                     'dtocean_core.utils.config:init_config_interface',
+               'dtocean-database = '
+                    'dtocean_core.utils.database:database_convert_interface'
                ]},
       package_data={'dtocean_core': ['data/yaml/*.yaml',
-                                     'interfaces/reliability_data/*.yaml',
                                      'config/*.ini',
                                      'config/*.yaml']
                     },

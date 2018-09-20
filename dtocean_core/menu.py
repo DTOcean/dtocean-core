@@ -15,9 +15,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
 import abc
-import yaml
 import logging
 from datetime import timedelta
 
@@ -29,6 +27,7 @@ from polite.configuration import ReadYAML
 
 from .core import Connector
 from .pipeline import Tree, set_output_scope
+from .utils.database import get_database_config
 
 # Set up logging
 module_logger = logging.getLogger(__name__)
@@ -615,24 +614,9 @@ class DataMenu(object):
         self._useryaml = None
         self._dbconfig = None
 
-        self._useryaml, self._dbconfig = self._init_dbdefs()
+        self._useryaml, self._dbconfig = get_database_config()
 
         return
-
-    def _init_dbdefs(self, db_config_name="database.yaml"):
-
-        userconfigdir = UserDataDirectory("dtocean_core", "DTOcean", "config")
-        useryaml = ReadYAML(userconfigdir, db_config_name)
-        
-        if userconfigdir.isfile(db_config_name):
-            configdir = userconfigdir
-        else:
-            configdir = ObjDirectory("dtocean_core", "config")
-        
-        configyaml = ReadYAML(configdir, db_config_name)
-        config = configyaml.read()
-                
-        return useryaml, config
         
     def get_available_databases(self):
         
