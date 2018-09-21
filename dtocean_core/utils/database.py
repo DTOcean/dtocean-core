@@ -1107,6 +1107,20 @@ def get_database_config(db_config_name="database.yaml"):
     return useryaml, config
 
 
+def get_database(credentials,
+                 echo=False,
+                 timeout=None,
+                 db_adapter="psycopg2"):
+            
+    database = PostgreSQL(db_adapter)
+    database.set_credentials(credentials)
+    database.set_echo(echo)
+    database.set_timeout(timeout)
+    database.configure()
+    
+    return database
+
+
 def database_convert_interface():
     '''Command line interface for database_to_files and database_from_files.
     

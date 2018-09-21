@@ -13,6 +13,7 @@ from dtocean_core.menu import DataMenu, ProjectMenu
 from dtocean_core.pipeline import Tree
 from dtocean_core.data import CoreMetaData
 from dtocean_core.data.definitions import PolygonDataColumn
+from dtocean_core.utils.database import get_database
 
 class MuleInterface(QueryInterface):
     
@@ -103,7 +104,7 @@ def database(core, project):
     data_menu = DataMenu()
     
     data_menu.select_database(project, "testing")
-    database = core.get_database(project)
+    database = get_database(project.get_database_credentials())
     
     return database
     
@@ -117,7 +118,7 @@ def localhost(core, project):
     credentials = data_menu._dbconfig["local"]
     project.set_database_credentials(credentials)
     
-    database = core.get_database(project, echo=True)
+    database = get_database(project.get_database_credentials(), echo=True)
     
     return database
 

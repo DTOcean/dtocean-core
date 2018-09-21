@@ -49,6 +49,7 @@ from . import interfaces as core_interfaces
 from .interfaces import (FileInputInterface,
                          FileOutputInterface,
                          PlotInterface)
+from .utils.database import get_database
 from .utils.files import package_dir
 
 # Set up logging
@@ -1460,7 +1461,8 @@ class Core(object):
         if (isinstance(interface, QueryInterface) and
            project.get_database_credentials() is not None):
             
-            database = self.get_database(project, timeout=60, echo=False)
+            credentials = project.get_database_credentials()
+            database = get_database(credentials, timeout=60, echo=False)
             interface.put_database(database)
             
         # If its a MetaInterface try to add meta data
@@ -1477,7 +1479,7 @@ class Core(object):
                 
         if isinstance(interface, QueryInterface):
             
-            interface.safe_connect()      
+            interface.safe_connect()
             interface._db = None
             
         else:
@@ -1485,22 +1487,6 @@ class Core(object):
             interface.connect()
         
         return interface
-        
-    @classmethod
-    def get_database(cls, project,
-                          echo=False,
-                          timeout=None,
-                          db_adapter="psycopg2"):
-        
-        db_credentials = project.get_database_credentials()
-        
-        database = PostgreSQL(db_adapter)
-        database.set_credentials(db_credentials)
-        database.set_echo(echo)
-        database.set_timeout(timeout)
-        database.configure()
-        
-        return database
         
     def _build_named_socket(self, socket_str):
         
