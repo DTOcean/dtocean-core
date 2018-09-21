@@ -1032,6 +1032,18 @@ def check_dict(table_dict):
     return full_dict
 
 
+def get_table_map(map_name="table_map.yaml"):
+    
+    # Load the yaml files
+    objdir = ObjDirectory(__name__, "..", "config")
+    table_yaml = objdir.get_path(map_name)
+    
+    with open(table_yaml, "r") as f:
+        table_list = yaml.load(f)
+        
+    return table_list
+
+
 def filter_map(table_list, filter_name, parent=None):
     
     copy_list = table_list[:]
@@ -1223,12 +1235,7 @@ def database_convert_interface():
         
         return
     
-    # Load the yaml files
-    objdir = ObjDirectory(__name__, "..", "config")
-    table_yaml = objdir.get_path("table_map.yaml")
-    
-    with open(table_yaml, "r") as f:
-        table_list = yaml.load(f)    
+    table_list = get_table_map()
     
     # Filter the table if required
     if filter_table is not None:
@@ -1260,9 +1267,7 @@ def database_convert_interface():
     if db_pwd is not None:
         cred["pwd"] = "postgres"
 
-    db = PostgreSQL("psycopg2")
-    db.set_credentials(cred)
-    db.configure()
+    db = get_database(cred, timeout=60)
     
     if action == "dump":
         
