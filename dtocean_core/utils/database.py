@@ -504,7 +504,8 @@ def database_to_files(root_path,
                           pid_list,
                           fid_list,
                           where_list,
-                          auto_child)
+                          auto_child,
+                          print_function)
         
         return
     
@@ -830,7 +831,8 @@ def database_from_files(root_path,
                                     full_dict["children"],
                                     database,
                                     var_schema,
-                                    first_fid)
+                                    first_fid,
+                                    print_function=print_function)
                 
                 for next_tab_dir, next_fid in zip(tab_dirs, fids):
                     
@@ -841,7 +843,8 @@ def database_from_files(root_path,
                                         database,
                                         var_schema,
                                         next_fid,
-                                        False)
+                                        False,
+                                        print_function=print_function)
                     
             else:
             
@@ -850,7 +853,8 @@ def database_from_files(root_path,
                 database_from_files(child_path,
                                     full_dict["children"],
                                     database,
-                                    var_schema)
+                                    var_schema,
+                                    print_function=print_function)
             
     return
 
