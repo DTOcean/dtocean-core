@@ -433,7 +433,6 @@ class ModuleMenu(ConnectorMenu):
                               project,
                               execute_themes=True,
                               allow_unavailable=False,
-                              force_themes_completed=False,
                               log_execution_time=True):
         
         module_name = self.get_current(core, project)
@@ -523,16 +522,9 @@ class ModuleMenu(ConnectorMenu):
                                          register_level=False,
                                          allow_non_execution=True)
             
-            # Set global scope for theme outputs                             
+            # Set global scope for theme outputs
             set_output_scope(core, project)
             
-            # If the main hub has completed then force completed on the
-            # themes            
-            if (force_themes_completed and
-                not self.get_scheduled(core, project)):
-                
-                theme_connector.set_force_completed(core, project)
-                        
         return
 
         
