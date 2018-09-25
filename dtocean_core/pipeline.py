@@ -317,6 +317,13 @@ class Branch(object):
         return
         
     def reset(self, core, project):
+        
+        connector = _get_connector(project, self._hub_name)
+
+        # Can't reset unless the interface has executed.
+        if not connector.is_interface_completed(core,
+                                                project,
+                                                self._name): return
 
         registered_level = "{} {}".format(self._name.lower(),
                                           core._markers["register"])
