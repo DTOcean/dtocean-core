@@ -344,6 +344,12 @@ def test_load_project_archive(core, project, var_tree, tmpdir):
     assert "Mock Module" in module_menu.get_scheduled(core, loaded_project)
 
 
+def test_load_project_bad_ext(core):
+    
+    with pytest.raises(ValueError):
+        core.load_project("bad_ext.bad")
+
+
 def test_dump_datastate(core, project, var_tree, tmpdir):
     
     project = deepcopy(project) 
@@ -592,4 +598,88 @@ def test_load_datastate_bad_id(core, project, var_tree, tmpdir):
     core.load_datastate(project, str(tmpdir))
     
     assert True
+
+
+def test_OrderedSim_get_output_ids(core, project):
     
+    project = deepcopy(project) 
+
+    project_menu = ProjectMenu()
+    module_menu = ModuleMenu()
+    theme_menu = ThemeMenu()
+
+    module_menu.activate(core, project, "Mock Module")
+    theme_menu.activate(core, project,  "Mock Theme")
+    
+    project_menu.initiate_dataflow(core, project)
+    test = project.get_simulation()
+    
+    result = test.get_output_ids()
+        
+    assert set(result) == set(['project.annual_energy',
+                               'hidden.pipeline_active',
+                               'project.number_of_devices',
+                               'project.capex_total',
+                               'project.layout'])
+            
+            
+def test_OrderedSim_get_output_ids_hub_id(core, project):
+    
+    project = deepcopy(project) 
+
+    project_menu = ProjectMenu()
+    module_menu = ModuleMenu()
+    theme_menu = ThemeMenu()
+
+    module_menu.activate(core, project, "Mock Module")
+    theme_menu.activate(core, project,  "Mock Theme")
+    
+    project_menu.initiate_dataflow(core, project)
+    test = project.get_simulation()
+    
+    result = test.get_output_ids(hub_id="modules")
+        
+    assert set(result) == set(['project.annual_energy',
+                               'project.number_of_devices',
+                               'project.layout'])
+
+
+def test_OrderedSim_get_output_ids_interface_name(core, project):
+    
+    project = deepcopy(project) 
+
+    project_menu = ProjectMenu()
+    module_menu = ModuleMenu()
+    theme_menu = ThemeMenu()
+
+    module_menu.activate(core, project, "Mock Module")
+    theme_menu.activate(core, project,  "Mock Theme")
+    
+    project_menu.initiate_dataflow(core, project)
+    test = project.get_simulation()
+    
+    result = test.get_output_ids(hub_id="modules",
+                                 interface_name="Mock Module")
+        
+    assert set(result) == set(['project.annual_energy',
+                               'project.number_of_devices',
+                               'project.layout'])
+
+
+def test_OrderedSim_get_output_ids_valid_statuses(core, project):
+    
+    project = deepcopy(project) 
+
+    project_menu = ProjectMenu()
+    module_menu = ModuleMenu()
+    theme_menu = ThemeMenu()
+
+    module_menu.activate(core, project, "Mock Module")
+    theme_menu.activate(core, project,  "Mock Theme")
+    
+    project_menu.initiate_dataflow(core, project)
+    test = project.get_simulation()
+    
+    result = test.get_output_ids(valid_statuses=["satisfied"])
+        
+    assert set(result) == set(['hidden.pipeline_active'])

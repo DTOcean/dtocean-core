@@ -993,24 +993,26 @@ class Core(object):
             msg_str = "Data added for "
         else:
             msg_str = "Data added with level '{}' for ".format(level)
+            
+        if identifiers is not None:
         
-        # Filter data with non-None values
-        log_identifiers = []
-        
-        for identifier, value in zip(identifiers, values):
-            if value is not None: log_identifiers.append(identifier)
-        
-        if len(log_identifiers) == 1:
+            # Filter data with non-None values
+            log_identifiers = []
             
-            msg_str += "identifier '{}'".format(log_identifiers[0])
+            for identifier, value in zip(identifiers, values):
+                if value is not None: log_identifiers.append(identifier)
             
-        elif len(log_identifiers) > 1:
-            
-            id_tabs = ["    {}".format(x) for x in log_identifiers]
-            id_str = "\n".join(id_tabs)
-            msg_str += "identifiers:\n{}".format(id_str)
-            
-        if log_identifiers: module_logger.info(msg_str)
+            if len(log_identifiers) == 1:
+                
+                msg_str += "identifier '{}'".format(log_identifiers[0])
+                
+            elif len(log_identifiers) > 1:
+                
+                id_tabs = ["    {}".format(x) for x in log_identifiers]
+                id_str = "\n".join(id_tabs)
+                msg_str += "identifiers:\n{}".format(id_str)
+                
+            if log_identifiers: module_logger.info(msg_str)
 
         if not update_status: return
 

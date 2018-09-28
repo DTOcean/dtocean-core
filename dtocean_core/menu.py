@@ -22,8 +22,6 @@ from datetime import timedelta
 from monotonic import monotonic
 
 from aneris.utilities.database import check_host_port
-from polite.paths import ObjDirectory, UserDataDirectory
-from polite.configuration import ReadYAML
 
 from .core import Connector
 from .pipeline import Tree, set_output_scope

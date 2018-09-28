@@ -9,6 +9,7 @@ from dtocean_core.core import Core
 from dtocean_core.interfaces import ModuleInterface, ThemeInterface
 from dtocean_core.menu import DataMenu, ModuleMenu, ProjectMenu, ThemeMenu
 from dtocean_core.pipeline import Tree
+from polite.configuration import ReadYAML
 from polite.paths import Directory
 
 dir_path = os.path.dirname(__file__)
@@ -213,31 +214,29 @@ def test_activate_theme(core, project, theme_menu):
     
     assert isinstance(module, MockTheme)
     
-def test_DataMenu_get_available_databases(mocker, tmpdir):
+def test_DataMenu_get_available_databases(tmpdir):
 
     # Make a source directory with some files
     config_tmpdir = tmpdir.mkdir("config")
     mock_dir = Directory(str(config_tmpdir))
-        
-    mocker.patch('dtocean_core.menu.UserDataDirectory',
-                 return_value=mock_dir)
                  
     datamenu = DataMenu()
+    datamenu._useryaml = ReadYAML(mock_dir, "database.yaml")
+    
     dbs = datamenu.get_available_databases()
     
     assert len(dbs) > 0
               
               
-def test_DataMenu_get_database_dict(mocker, tmpdir):
+def test_DataMenu_get_database_dict(tmpdir):
     
     # Make a source directory with some files
     config_tmpdir = tmpdir.mkdir("config")
     mock_dir = Directory(str(config_tmpdir))
-        
-    mocker.patch('dtocean_core.menu.UserDataDirectory',
-                 return_value=mock_dir)
                  
     datamenu = DataMenu()
+    datamenu._useryaml = ReadYAML(mock_dir, "database.yaml")
+    
     dbs = datamenu.get_available_databases()
     db_id = dbs[0]
     
@@ -246,16 +245,15 @@ def test_DataMenu_get_database_dict(mocker, tmpdir):
     assert "host" in db_dict.keys()
     
     
-def test_DataMenu_update_database(mocker, tmpdir):
+def test_DataMenu_update_database(tmpdir):
     
     # Make a source directory with some files
     config_tmpdir = tmpdir.mkdir("config")
     mock_dir = Directory(str(config_tmpdir))
         
-    mocker.patch('dtocean_core.menu.UserDataDirectory',
-                 return_value=mock_dir)
-                 
     datamenu = DataMenu()
+    datamenu._useryaml = ReadYAML(mock_dir, "database.yaml")
+    
     dbs = datamenu.get_available_databases()
     db_id = dbs[0]
     
