@@ -1,5 +1,6 @@
 import pytest
 
+import pandas as pd
 import matplotlib.pyplot as plt
 from geoalchemy2.elements import WKTElement
 
@@ -67,6 +68,15 @@ def test_PolygonDict():
     
     with pytest.raises(ValueError):
         test.get_data(raw, meta)
+        
+    raw = {"block 1": [(0., 0., 0.),
+                       (1., 1., 1.)],
+           "block 2": [(10., 10., 10.),
+                       (11., 11., 11.)]
+           }
+        
+    with pytest.raises(ValueError):
+        test.get_data(raw, meta)
 
 
 def test_get_None():
@@ -131,6 +141,31 @@ def test_PolygonDict_auto_file(tmpdir, fext):
         assert result["block 2"].exterior.coords[2][1] == 12.
         assert result["block 1"].has_z == ztest
         
+        
+def test_PolygonDict_auto_file_input_bad_header(mocker):
+
+    df_dict = {"Wrong": [1],
+               "Headers": [1]}
+    df = pd.DataFrame(df_dict)
+    
+    mocker.patch('dtocean_core.data.definitions.pd.read_excel',
+                 return_value=df)
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test"})
+
+    test = PolygonDict()
+              
+    fin_factory = InterfaceFactory(AutoFileInput)
+    FInCls = fin_factory(meta, test)
+              
+    fin = FInCls()
+    fin._path = "file.xlsx"
+    
+    with pytest.raises(ValueError):
+        fin.connect()
+
 
 def test_PolygonDict_auto_plot(tmpdir):
         

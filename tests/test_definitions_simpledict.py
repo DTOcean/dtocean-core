@@ -1,5 +1,6 @@
 import pytest
 
+import pandas as pd
 import matplotlib.pyplot as plt
 
 from aneris.control.factory import InterfaceFactory
@@ -82,6 +83,31 @@ def test_SimpleDict_auto_file(tmpdir, fext):
     
     assert result["a"] == 0
     assert result["b"] == 1
+    
+    
+def test_SimpleDict_auto_file_input_bad_header(mocker):
+
+    df_dict = {"Wrong": [1],
+               "Headers": [1]}
+    df = pd.DataFrame(df_dict)
+    
+    mocker.patch('dtocean_core.data.definitions.pd.read_excel',
+                 return_value=df)
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test"})
+
+    test = SimpleDict()
+              
+    fin_factory = InterfaceFactory(AutoFileInput)
+    FInCls = fin_factory(meta, test)
+              
+    fin = FInCls()
+    fin._path = "file.xlsx"
+    
+    with pytest.raises(ValueError):
+        fin.connect()
 
 
 def test_SimpleDict_auto_plot():

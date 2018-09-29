@@ -1,11 +1,12 @@
+
 import pytest
 import datetime
+
+import pandas as pd
 
 from aneris.control.factory import InterfaceFactory
 from dtocean_core.core import (AutoFileInput,
                                AutoFileOutput,
-                               AutoPlot,
-                               AutoQuery,
                                Core)
 from dtocean_core.data import CoreMetaData
 from dtocean_core.data.definitions import DateTimeDict
@@ -36,6 +37,21 @@ def test_DateTimeDict():
     assert b["b"] == raw["b"]
     
     
+def test_DateTimeDict_type_error():
+
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test"})
+    
+    test = DateTimeDict()
+    
+    raw = {"a": "wrong",
+           "b": datetime.datetime.utcnow()}
+    
+    with pytest.raises(TypeError):
+        test.get_data(raw, meta)
+    
+    
 def test_get_None():
     
     test = DateTimeDict()
@@ -45,7 +61,7 @@ def test_get_None():
     
 
 @pytest.mark.parametrize("fext", [".csv", ".xls", ".xlsx"])
-def test_SimpleDict_auto_file(tmpdir, fext):
+def test_DateTimeDict_auto_file(tmpdir, fext):
 
     test_path = tmpdir.mkdir("sub").join("test{}".format(fext))
     test_path_str = str(test_path)
@@ -84,3 +100,65 @@ def test_SimpleDict_auto_file(tmpdir, fext):
                                             raw["a"].replace(microsecond=0)
     assert result["b"].replace(microsecond=0) == \
                                             raw["b"].replace(microsecond=0)
+                                            
+
+
+def test_DateTimeDict_auto_file_input_bad_header(mocker):
+
+    df_dict = {"Wrong": [1],
+               "Headers": [1]}
+    df = pd.DataFrame(df_dict)
+    
+    mocker.patch('dtocean_core.data.definitions.pd.read_excel',
+                 return_value=df)
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test"})
+
+    test = DateTimeDict()
+              
+    fin_factory = InterfaceFactory(AutoFileInput)
+    FInCls = fin_factory(meta, test)
+              
+    fin = FInCls()
+    fin._path = "file.xlsx"
+    
+    with pytest.raises(ValueError):
+        fin.connect()
+        
+        
+def test_DateTimeDict_auto_file_input_bad_ext():
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test"})
+
+    test = DateTimeDict()
+              
+    fin_factory = InterfaceFactory(AutoFileInput)
+    FInCls = fin_factory(meta, test)
+              
+    fin = FInCls()
+    fin._path = "file.bad"
+    
+    with pytest.raises(IOError):
+        fin.connect()
+        
+        
+def test_DateTimeDict_auto_file_output_bad_ext():
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test"})
+
+    test = DateTimeDict()
+              
+    fin_factory = InterfaceFactory(AutoFileOutput)
+    FInCls = fin_factory(meta, test)
+              
+    fin = FInCls()
+    fin._path = "file.bad"
+    
+    with pytest.raises(IOError):
+        fin.connect()

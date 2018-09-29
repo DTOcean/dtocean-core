@@ -117,3 +117,31 @@ def test_XGrid2D_auto_plot(tmpdir):
     
     assert len(plt.get_fignums()) == 1
     plt.close("all")
+
+
+def test_XGrid2D_auto_plot_reverse(tmpdir):
+        
+    raw = {"values": np.random.randn(3, 2),
+           "coords": [[-2, 0, 2], ['a', 'b']]}
+           
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test",
+                         "labels": ['x', 'y'],
+                         "units": ['\sum_{n=1}^{\infty} 2^{-n} = 1',
+                                   'm', 
+                                   'POWER!']})
+    
+    test = XGrid2D()
+    
+    fout_factory = InterfaceFactory(AutoPlot)
+    PlotCls = fout_factory(meta, test)
+    
+    plot = PlotCls()
+    plot.data.result = test.get_data(raw, meta)
+    plot.meta.result = meta
+
+    plot.connect()
+    
+    assert len(plt.get_fignums()) == 1
+    plt.close("all")

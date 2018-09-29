@@ -6,7 +6,7 @@ from copy import deepcopy
 
 import pytest
 
-from dtocean_core.core import Core, Project
+from dtocean_core.core import Connector, Core, Project
 from dtocean_core.interfaces import ModuleInterface, ThemeInterface
 from dtocean_core.menu import ModuleMenu, ProjectMenu, ThemeMenu
 from dtocean_core.pipeline import Tree
@@ -683,3 +683,13 @@ def test_OrderedSim_get_output_ids_valid_statuses(core, project):
     result = test.get_output_ids(valid_statuses=["satisfied"])
         
     assert set(result) == set(['hidden.pipeline_active'])
+
+
+def test_Connector_force_completed(core, project):
+    
+    project = deepcopy(project) 
+
+    connector = Connector("project")
+    connector.set_force_completed(core, project)
+    
+    assert connector.get_force_completed(project)
