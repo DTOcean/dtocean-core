@@ -2477,14 +2477,10 @@ class SimpleDict(Structure):
             df = pd.read_excel(self._path)
         elif ".csv" in self._path:
             df = pd.read_csv(self._path)
-        else:
-             raise TypeError("The specified file format is not supported.",
-                             "Supported format are {},{},{}".format('.csv',
-                                                                    '.xls',
-                                                                    '.xlsx'))  
+
         if not ("data" in df.columns 
                 and "ID" in df.columns):
-            raise TypeError("The file does not contain the correct header.",
+            raise ValueError("The file does not contain the correct header.",
                             "The data column needs to have the header: 'data'",
                             "and the key colum needs to have the header: 'ID'")
                             
@@ -2505,11 +2501,6 @@ class SimpleDict(Structure):
             df.to_excel(self._path, index=False)
         elif ".csv" in self._path:
             df.to_csv(self._path, index=False)
-        else:
-            raise TypeError("The specified file format is not supported.",
-                            "Supported format are {},{},{}".format('.csv',
-                                                                   '.xls',
-                                                                   '.xlsx'))
         
         return
         
@@ -2793,16 +2784,13 @@ class DateTimeDict(DateTimeData):
             df = pd.read_excel(self._path)
         elif ".csv" in self._path:
             df = pd.read_csv(self._path)
-        else:
-             raise TypeError("The specified file format is not supported.",
-                             "Supported format are {},{},{}".format('.csv',
-                                                                    '.xls',
-                                                                    '.xlsx'))  
+        
         if not ("data" in df.columns 
                 and "ID" in df.columns):
-            raise TypeError("The file does not contain the correct header.",
-                            "The data column needs to have the header: 'data'",
-                            "and the key colum needs to have the header: 'ID'")
+            raise ValueError("The file does not contain the correct ",
+                             "header. The data column needs to have the ",
+                             "header: 'data' and the key colum needs to have "
+                             "the header: 'ID'")
         
         result = {}
         
@@ -2834,11 +2822,6 @@ class DateTimeDict(DateTimeData):
             writer.save()
         elif ".csv" in self._path:
             df.to_csv(self._path, index=False)
-        else:
-            raise TypeError("The specified file format is not supported.",
-                            "Supported format are {},{},{}".format('.csv',
-                                                                   '.xls',
-                                                                   '.xlsx'))
         
         return
         
@@ -2861,12 +2844,10 @@ class TriStateData(Structure):
                 
                 return raw
                 
-        else:
-            
-            errStr = ('Given raw value is incorrectly formatted. It must be '
-                      'a string with value "true", "false" or "unknown". '
-                      'Given was: {}').format(raw)
-            raise ValueError(errStr)
+        errStr = ('Given raw value is incorrectly formatted. It must be '
+                  'a string with value "true", "false" or "unknown". '
+                  'Given was: {}').format(raw)
+        raise ValueError(errStr)
 
     def get_value(self, data):
 
@@ -3661,12 +3642,7 @@ class PolygonDict(PolygonData):
             df = pd.read_excel(self._path)
         elif ".csv" in self._path:
             df = pd.read_csv(self._path)
-        else:
-             raise TypeError("The specified file format is not supported. ",
-                             "Supported format are {},{},{}".format('.csv',
-                                                                    '.xls',
-                                                                    '.xlsx'))  
-        
+
         data = {}
 
         if ("ID" in df.columns and
@@ -3679,11 +3655,6 @@ class PolygonDict(PolygonData):
             for k in ks:
                 
                 t = df[df["ID"] == k]
-                
-                if len(t.x) < 3:
-                    raise ValueError("PolygonError: A LinearRing must have ",
-                                     "at least 3 coordinate tuples")
-                                     
                 data[k] = Polygon(np.c_[t.x, t.y, t.z])
 
         elif "ID" in df.columns and "x" in df.columns and "y" in df.columns:
@@ -3693,11 +3664,6 @@ class PolygonDict(PolygonData):
             for k in ks:
                 
                 t = df[df["ID"] == k]
-                
-                if len(t.x) < 3:
-                    raise ValueError("PolygonError: A LinearRing must have ",
-                                     "at least 3 coordinate tuples")
-                                     
                 data[k] = Polygon(np.c_[t.x, t.y])
                 
         else:
@@ -3747,12 +3713,7 @@ class PolygonDict(PolygonData):
             df.to_excel(self._path, index=False)
         elif ".csv" in self._path:
             df.to_csv(self._path, index=False)
-        else:
-            raise TypeError("The specified file format is not supported.",
-                            "Supported format are {},{},{}".format('.csv',
-                                                                   '.xls',
-                                                                   '.xlsx'))
-                
+        
         return
     
     @staticmethod        

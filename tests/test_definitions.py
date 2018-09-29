@@ -5,24 +5,14 @@ from datetime import datetime
 
 import numpy as np
 
-from dtocean_core.core import Core
 from dtocean_core.data import CoreMetaData
-from dtocean_core.data.definitions import (HistogramDict,
+from dtocean_core.data.definitions import (TriStateData,
                                            XSet2D,
                                            XSet3D
                                            )
 
-# Using a py.test fixture to reduce boilerplate and test times.
-@pytest.fixture(scope="module")
-def core():
-    '''Share a Core object'''
-    
-    new_core = Core()
-        
-    return new_core
-    
 
-def test_XSet2D(core):
+def test_XSet2D():
     
     raw = {"values": {"a": np.random.randn(2, 3),
                       "b": np.random.randn(2, 3)},
@@ -44,7 +34,7 @@ def test_XSet2D(core):
     assert b.y.units == 'm'
 
 
-def test_XSet3D(core):
+def test_XSet3D():
     
     raw = {"values": {"a": np.random.randn(2, 3, 1),
                       "b": np.random.randn(2, 3, 1)},
@@ -66,3 +56,31 @@ def test_XSet3D(core):
     assert b["a"].shape == (2, 3, 1)
     assert b["a"].units == 'POWER!'
     assert b.t.units == 's'
+    
+
+@pytest.mark.parametrize("raw", ["true", "false", "unknown"])
+def test_TriStateData(raw):
+           
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test"
+                         })
+    
+    test = TriStateData()
+    a = test.get_data(raw, meta)
+    b = test.get_value(a)
+    
+    assert b == raw
+
+
+def test_TriStateData_bad_input():
+           
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test"
+                         })
+    
+    test = TriStateData()
+    
+    with pytest.raises(ValueError):
+        test.get_data("bad", meta)
