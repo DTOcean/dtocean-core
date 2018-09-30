@@ -135,7 +135,8 @@ def test_HistogramColumn_auto_db(mocker):
     mock_lists = [bin_values, bin_lowers, bin_uppers]
     
     mocker.patch('dtocean_core.data.definitions.get_all_from_columns',
-                 return_value=mock_lists)
+                 return_value=mock_lists,
+                 autospec=True)
 
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
@@ -167,7 +168,8 @@ def test_HistogramColumn_auto_db_empty(mocker):
     mock_lists = [[], [], []]
     
     mocker.patch('dtocean_core.data.definitions.get_all_from_columns',
-                 return_value=mock_lists)
+                 return_value=mock_lists,
+                 autospec=True)
 
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
@@ -197,7 +199,8 @@ def test_HistogramColumn_auto_db_none(mocker):
     mock_lists = [[None, None], [None, None], [None, None]]
     
     mocker.patch('dtocean_core.data.definitions.get_all_from_columns',
-                 return_value=mock_lists)
+                 return_value=mock_lists,
+                 autospec=True)
 
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",

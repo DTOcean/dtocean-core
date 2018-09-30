@@ -135,7 +135,8 @@ def test_reliability_interface_entry(theme_menu,
     mock_dir = Directory(str(config_tmpdir))
         
     mocker.patch('dtocean_core.interfaces.reliability.UserDataDirectory',
-                 return_value=mock_dir)
+                 return_value=mock_dir,
+                 autospec=True)
         
     theme_name = "Reliability"
 #    project_menu = ProjectMenu()

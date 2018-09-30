@@ -127,7 +127,8 @@ def test_NumpyLineArray_auto_db(mocker):
     mock_list = [zip(coarse_sample, np.sin(coarse_sample))]
     
     mocker.patch('dtocean_core.data.definitions.get_one_from_column',
-                 return_value=mock_list)
+                 return_value=mock_list,
+                 autospec=True)
     
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
@@ -155,7 +156,8 @@ def test_NumpyLineArray_auto_db_empty(mocker):
     mock_list = None
     
     mocker.patch('dtocean_core.data.definitions.get_one_from_column',
-                 return_value=mock_list)
+                 return_value=mock_list,
+                 autospec=True)
     
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
@@ -182,7 +184,8 @@ def test_NumpyLineArray_auto_db_none(mocker):
     mock_list = [None]
     
     mocker.patch('dtocean_core.data.definitions.get_one_from_column',
-                 return_value=mock_list)
+                 return_value=mock_list,
+                 autospec=True)
     
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
@@ -210,7 +213,8 @@ def test_NumpyLineColumn_auto_db(mocker):
     mock_lists = [coarse_sample, list(np.sin(coarse_sample))]
     
     mocker.patch('dtocean_core.data.definitions.get_all_from_columns',
-                 return_value=mock_lists)
+                 return_value=mock_lists,
+                 autospec=True)
     
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
@@ -238,7 +242,8 @@ def test_NumpyLineColumn_auto_db_empty(mocker):
     mock_lists = [[], []]
     
     mocker.patch('dtocean_core.data.definitions.get_all_from_columns',
-                 return_value=mock_lists)
+                 return_value=mock_lists,
+                 autospec=True)
     
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
@@ -265,7 +270,8 @@ def test_NumpyLineColumn_auto_db_none(mocker):
     mock_lists = [[None, None], [None, None]]
     
     mocker.patch('dtocean_core.data.definitions.get_all_from_columns',
-                 return_value=mock_lists)
+                 return_value=mock_lists,
+                 autospec=True)
     
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
