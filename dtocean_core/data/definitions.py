@@ -2113,12 +2113,15 @@ class CartesianListDict(CartesianList):
         
         ks = np.unique(df.ID)
         data = {}
+        
         for k in ks:
+            
             t = df[df["ID"]==k]
+            
             if dim==2:
                 data[k] = np.c_[t.x, t.y]
             else:
-                data[k] = np.c_[t.x, t.y, t.z]    
+                data[k] = np.c_[t.x, t.y, t.z]
             
         self.data.result = data
         
@@ -3464,11 +3467,6 @@ class PolygonList(PolygonData):
             df = pd.read_excel(self._path)
         elif ".csv" in self._path:
             df = pd.read_csv(self._path)
-        else:
-             raise TypeError("The specified file format is not supported. ",
-                             "Supported format are {},{},{}".format('.csv',
-                                                                    '.xls',
-                                                                    '.xlsx'))  
         
         if ("ID" in df.columns and
             "x" in df.columns and
@@ -3477,24 +3475,20 @@ class PolygonList(PolygonData):
             
             ks = np.unique(df.ID)
             data = []
+            
             for k in ks:
+                
                 t = df[df["ID"]==k]
-                if len(t.x)<3:
-                    raise ValueError("PolygonError: A LinearRing must have ",
-                                     "at least 3 coordinate tuples")
-                                     
                 data.append(Polygon(np.c_[t.x, t.y, t.z]))
 
         elif "ID" in df.columns and "x" in df.columns and "y" in df.columns:
             
             ks = np.unique(df.ID)
             data = []
+            
             for k in ks:
+                
                 t = df[df["ID"]==k]
-                if len(t.x)<3:
-                    raise ValueError("PolygonError: A LinearRing must have ",
-                                     "at least 3 coordinate tuples")
-                                     
                 data.append(Polygon(np.c_[t.x, t.y]))
                 
         else:
@@ -3541,11 +3535,6 @@ class PolygonList(PolygonData):
             df.to_excel(self._path, index=False)
         elif ".csv" in self._path:
             df.to_csv(self._path, index=False)
-        else:
-            raise TypeError("The specified file format is not supported.",
-                            "Supported format are {},{},{}".format('.csv',
-                                                                   '.xls',
-                                                                   '.xlsx'))
                 
         return
     

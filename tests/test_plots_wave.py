@@ -36,7 +36,8 @@ class MockModule(ModuleInterface):
     @classmethod
     def declare_outputs(cls):
         
-        output_list = ["farm.wave_occurrence"]
+        output_list = ["farm.wave_occurrence",
+                       "device.wave_power_matrix"]
         
         return output_list
         
@@ -49,6 +50,7 @@ class MockModule(ModuleInterface):
     def declare_id_map(self):
         
         id_map = {"dummy": "farm.wave_series",
+                  "dummy1": "device.wave_power_matrix",
                   "dummy2": "farm.wave_occurrence"}
                   
         return id_map
@@ -208,6 +210,68 @@ def test_WaveOccurrencePlot(core, project, tree):
                                                      project,
                                                      "farm.wave_occurrence")
     wave_occurrence.plot(core, project, "Wave Resource Occurrence Matrix")
+
+    assert len(plt.get_fignums()) == 1
+
+    plt.close("all")
+    
+    
+def test_PowerMatrixPlot_available(core, project, tree):
+
+    project = deepcopy(project)
+    module_menu = ModuleMenu()
+    project_menu = ProjectMenu()
+
+    mod_name = "Mock Module"
+    module_menu.activate(core, project, mod_name)
+    project_menu.initiate_dataflow(core, project)
+    
+    # Force addition of power matrix
+    power_matrix_coords = [[0., 1],
+                           [0., 1],
+                           [0., 1]]
+    matrix_xgrid = {"values": np.ones([2, 2, 2]),
+                    "coords": power_matrix_coords}
+
+    core.add_datastate(project,
+                       identifiers=["device.wave_power_matrix"],
+                       values=[matrix_xgrid])
+
+    mod_branch = tree.get_branch(core, project, mod_name)
+    power_matrix = mod_branch.get_output_variable(core,
+                                                  project,
+                                                  'device.wave_power_matrix')
+    result = power_matrix.get_available_plots(core, project)
+
+    assert "Single Wave Device Power Matrix" in result
+
+
+def test_PowerMatrixPlot(core, project, tree):
+
+    project = deepcopy(project)
+    module_menu = ModuleMenu()
+    project_menu = ProjectMenu()
+
+    mod_name = "Mock Module"
+    module_menu.activate(core, project, mod_name)
+    project_menu.initiate_dataflow(core, project)
+
+    # Force addition of power matrix
+    power_matrix_coords = [[0., 1],
+                           [0., 1],
+                           [0., 1]]
+    matrix_xgrid = {"values": np.ones([2, 2, 2]),
+                    "coords": power_matrix_coords}
+
+    core.add_datastate(project,
+                       identifiers=["device.wave_power_matrix"],
+                       values=[matrix_xgrid])
+
+    mod_branch = tree.get_branch(core, project, mod_name)
+    power_matrix = mod_branch.get_output_variable(core,
+                                                  project,
+                                                  'device.wave_power_matrix')
+    power_matrix.plot(core, project, "Single Wave Device Power Matrix")
 
     assert len(plt.get_fignums()) == 1
 

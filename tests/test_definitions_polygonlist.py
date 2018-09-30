@@ -1,5 +1,6 @@
 import pytest
 
+import pandas as pd
 import matplotlib.pyplot as plt
 from geoalchemy2.elements import WKTElement
 
@@ -67,6 +68,14 @@ def test_PolygonList():
     
     with pytest.raises(ValueError):
         test.get_data(raw, meta)
+        
+    raw = [[(0., 0., 0.),
+            (1., 1., 1.)],
+           [(10., 10., 10.),
+            (11., 11., 11.)]]
+
+    with pytest.raises(ValueError):
+        test.get_data(raw, meta)
 
 
 def test_get_None():
@@ -130,6 +139,32 @@ def test_PolygonList_auto_file(tmpdir, fext):
         assert result[0].exterior.coords[0][0] == 0.
         assert result[1].exterior.coords[2][1] == 12.
         assert result[0].has_z == ztest
+        
+
+
+def test_PolygonList_auto_file_input_bad_header(mocker):
+
+    df_dict = {"Wrong": [1],
+               "Headers": [1]}
+    df = pd.DataFrame(df_dict)
+    
+    mocker.patch('dtocean_core.data.definitions.pd.read_excel',
+                 return_value=df)
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test"})
+
+    test = PolygonList()
+              
+    fin_factory = InterfaceFactory(AutoFileInput)
+    FInCls = fin_factory(meta, test)
+              
+    fin = FInCls()
+    fin._path = "file.xlsx"
+    
+    with pytest.raises(ValueError):
+        fin.connect()
         
 
 def test_PolygonList_auto_plot(tmpdir):
@@ -251,3 +286,26 @@ def test_PolygonListColumn_auto_db_none(mocker):
     query.connect()
         
     assert query.data.result is None
+    
+    
+def test_PolygonListColumn_auto_db_no_tables(mocker):
+    
+    mock_lists = [[None]]
+    
+    mocker.patch('dtocean_core.data.definitions.get_all_from_columns',
+                 return_value=mock_lists)
+
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test"})
+    
+    test = PolygonListColumn()
+    
+    query_factory = InterfaceFactory(AutoQuery)
+    QueryCls = query_factory(meta, test)
+    
+    query = QueryCls()
+    query.meta.result = meta
+    
+    with pytest.raises(ValueError):
+        query.connect()

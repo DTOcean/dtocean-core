@@ -10,6 +10,7 @@ from shapely.geometry import Polygon
 
 from dtocean_core.core import Core
 from dtocean_core.interfaces import ModuleInterface
+from dtocean_core.interfaces.plots_array_layout import clockwise
 from dtocean_core.menu import ModuleMenu, ProjectMenu
 from dtocean_core.pipeline import Tree
 
@@ -157,11 +158,14 @@ def test_ArrayLeasePlot(core, project, tree):
                               project,
                               os.path.join(dir_path, "inputs_wp3.pkl"))
 
-    # Force addition of lease area
-    lease_area = Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])
+    # Force addition of lease area and padding
+    lease_area = Polygon([(0, 0), (10, 0), (10, 10), (0, 10)])
+    padding = 1
     core.add_datastate(project,
-                       identifiers=["site.lease_boundary"],
-                       values=[lease_area])
+                       identifiers=["site.lease_boundary",
+                                    "options.boundary_padding"],
+                       values=[lease_area,
+                               padding])
 
     layout = mod_branch.get_input_variable(core, project, "project.layout")
     layout.plot(core, project, "Lease Area Array Layout")
@@ -169,8 +173,65 @@ def test_ArrayLeasePlot(core, project, tree):
     assert len(plt.get_fignums()) == 1
 
     plt.close("all")
-    
-    
+
+
+def test_ArrayLeasePlotNumbers_available(core, project, tree):
+
+    project = deepcopy(project)
+    module_menu = ModuleMenu()
+    project_menu = ProjectMenu()
+
+    mod_name = "Mock Module"
+    module_menu.activate(core, project, mod_name)
+    project_menu.initiate_dataflow(core, project)
+
+    mod_branch = tree.get_branch(core, project, mod_name)
+    mod_branch.read_test_data(core,
+                              project,
+                              os.path.join(dir_path, "inputs_wp3.pkl"))
+
+    # Force addition of lease area
+    lease_area = Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])
+    core.add_datastate(project,
+                       identifiers=["site.lease_boundary"],
+                       values=[lease_area])
+
+
+    layout = mod_branch.get_input_variable(core, project, "project.layout")
+    result = layout.get_available_plots(core, project)
+
+    assert "Lease Area Array Layout (With Device Numbers)" in result
+
+
+def test_ArrayLeasePlotNumbers(core, project, tree):
+
+    project = deepcopy(project)
+    module_menu = ModuleMenu()
+    project_menu = ProjectMenu()
+
+    mod_name = "Mock Module"
+    module_menu.activate(core, project, mod_name)
+    project_menu.initiate_dataflow(core, project)
+
+    mod_branch = tree.get_branch(core, project, mod_name)
+    mod_branch.read_test_data(core,
+                              project,
+                              os.path.join(dir_path, "inputs_wp3.pkl"))
+
+    # Force addition of lease area
+    lease_area = Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])
+    core.add_datastate(project,
+                       identifiers=["site.lease_boundary"],
+                       values=[lease_area])
+
+    layout = mod_branch.get_input_variable(core, project, "project.layout")
+    layout.plot(core, project, "Lease Area Array Layout (With Device Numbers)")
+
+    assert len(plt.get_fignums()) == 1
+
+    plt.close("all")
+
+
 def test_ArrayCablesPlot_available(core, project, tree):
     
     project = deepcopy(project)
@@ -477,3 +538,13 @@ def test_ArrayFoundationsPlot(core, project, tree, soiltype):
     assert len(plt.get_fignums()) == 1
 
     plt.close("all")
+
+
+@pytest.mark.parametrize("x, y, expected",
+                         [([0, 0, 1, 1, 0], [0, 1, 1, 0, 0], True),
+                          ([0, 1, 1, 0, 0], [0, 0, 1, 1, 0], False)])
+def test_clockwise(x, y, expected):
+        
+    result = clockwise(x, y)
+    
+    assert result is expected
