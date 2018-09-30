@@ -15,7 +15,8 @@ def test_init_config(mocker, tmpdir):
     mock_dir = Directory(str(config_tmpdir))
         
     mocker.patch('dtocean_core.UserDataDirectory',
-                 return_value=mock_dir)
+                 return_value=mock_dir,
+                 autospec=True)
                  
     init_config(logging=True, database=True, files=True)
         
@@ -43,9 +44,11 @@ def test_init_config_interface(mocker, tmpdir):
     mock_dir = Directory(str(config_tmpdir))
         
     mocker.patch('dtocean_core.UserDataDirectory',
-                 return_value=mock_dir)
+                 return_value=mock_dir,
+                 autospec=True)
     mocker.patch('dtocean_core.init_config_parser',
-                 return_value=(True, True, True, False))
+                 return_value=(True, True, True, False),
+                 autospec=True)
                  
     init_config_interface()
         
@@ -59,7 +62,8 @@ def test_start_logging(mocker, tmpdir):
     mock_dir = Directory(str(config_tmpdir))
         
     mocker.patch('dtocean_core.UserDataDirectory',
-                 return_value=mock_dir)
+                 return_value=mock_dir,
+                 autospec=True)
 
     start_logging()
     
@@ -75,13 +79,15 @@ def test_start_logging_user(mocker, tmpdir):
     mock_dir = Directory(str(config_tmpdir))
         
     mocker.patch('dtocean_core.UserDataDirectory',
-                 return_value=mock_dir)
+                 return_value=mock_dir,
+                 autospec=True)
                  
     init_config(logging=True, files=True)
     
     # This will raise is the files are not found in the user config directory
     mocker.patch('dtocean_core.ObjDirectory',
-                 return_value=None)
+                 return_value=None,
+                 autospec=True)
     
     start_logging()
     
@@ -97,7 +103,8 @@ def test_start_logging_rollover(mocker, tmpdir):
     mock_dir = Directory(str(config_tmpdir))
         
     mocker.patch('dtocean_core.UserDataDirectory',
-                 return_value=mock_dir)
+                 return_value=mock_dir,
+                 autospec=True)
 
     start_logging()
     

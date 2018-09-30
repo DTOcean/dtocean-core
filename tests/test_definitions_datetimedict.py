@@ -110,7 +110,8 @@ def test_DateTimeDict_auto_file_input_bad_header(mocker):
     df = pd.DataFrame(df_dict)
     
     mocker.patch('dtocean_core.data.definitions.pd.read_excel',
-                 return_value=df)
+                 return_value=df,
+                 autospec=True)
     
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",

@@ -115,7 +115,8 @@ def test_TableDataColumn_auto_db(mocker):
     mock_df = pd.DataFrame(mock_dict)
     
     mocker.patch('dtocean_core.data.definitions.get_table_df',
-                 return_value=mock_df)
+                 return_value=mock_df,
+                 autospec=True)
     
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
@@ -146,7 +147,8 @@ def test_TableDataColumn_auto_db_empty(mocker):
     mock_df = pd.DataFrame(mock_dict)
     
     mocker.patch('dtocean_core.data.definitions.get_table_df',
-                 return_value=mock_df)
+                 return_value=mock_df,
+                 autospec=True)
     
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
@@ -175,7 +177,8 @@ def test_TableDataColumn_auto_db_none(mocker):
     mock_df = pd.DataFrame(mock_dict)
     
     mocker.patch('dtocean_core.data.definitions.get_table_df',
-                 return_value=mock_df)
+                 return_value=mock_df,
+                 autospec=True)
     
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",

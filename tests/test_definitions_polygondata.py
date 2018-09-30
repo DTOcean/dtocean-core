@@ -161,7 +161,8 @@ def test_PolygonDataColumn_auto_db(mocker):
         mock_list = [raw]
         
         mocker.patch('dtocean_core.data.definitions.get_one_from_column',
-                     return_value=mock_list)
+                     return_value=mock_list,
+                     autospec=True)
     
         meta = CoreMetaData({"identifier": "test",
                              "structure": "test",
@@ -188,7 +189,8 @@ def test_PolygonDataColumn_auto_db_empty(mocker):
     mock_list = None
         
     mocker.patch('dtocean_core.data.definitions.get_one_from_column',
-                 return_value=mock_list)
+                 return_value=mock_list,
+                 autospec=True)
 
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
@@ -213,7 +215,8 @@ def test_PolygonDataColumn_auto_db_none(mocker):
     mock_list = [None]
         
     mocker.patch('dtocean_core.data.definitions.get_one_from_column',
-                 return_value=mock_list)
+                 return_value=mock_list,
+                 autospec=True)
 
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",

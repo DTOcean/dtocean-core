@@ -135,7 +135,8 @@ def test_installation_interface_entry(module_menu,
     mock_dir = Directory(str(config_tmpdir))
         
     mocker.patch('dtocean_core.interfaces.installation.UserDataDirectory',
-                 return_value=mock_dir)
+                 return_value=mock_dir,
+                 autospec=True)
         
     mod_name = "Installation"
     
