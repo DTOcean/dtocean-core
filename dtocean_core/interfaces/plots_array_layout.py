@@ -640,6 +640,6 @@ def clockwise(x, y):
     defined in a clockwise direction"""
     # https://stackoverflow.com/a/1165943/3215152
     # https://stackoverflow.com/a/19875560/3215152
-    if sum(x[i] * (y[i + 1] - y[i - 1]) for i in xrange(-1, len(x) - 1)) >= 0:
+    if sum(x[i] * (y[i + 1] - y[i - 1]) for i in xrange(-1, len(x) - 1)) < 0:
         return True
     return False

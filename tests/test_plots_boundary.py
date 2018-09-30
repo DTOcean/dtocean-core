@@ -5,6 +5,7 @@ import os
 from copy import deepcopy
 
 import matplotlib.pyplot as plt
+from shapely.geometry import Polygon
 
 from dtocean_core.core import Core
 from dtocean_core.interfaces import ModuleInterface
@@ -236,6 +237,14 @@ def test_DesignBoundaryPlot(core, project, tree):
                                      os.path.join(dir_path,
                                                   "inputs_boundary.pkl"))
     installation_branch.read_auto(core, project)
+    
+    # Add nogo area
+    nogo_area = {"test": Polygon([(0, 0), (10, 0), (10, 10), (0, 10)])}
+    core.add_datastate(project,
+                       identifiers=["farm.nogo_areas",
+                                    "corridor.nogo_areas"],
+                       values=[nogo_area,
+                               nogo_area])
 
     lease_entry = installation_branch.get_input_variable(
                                             core,

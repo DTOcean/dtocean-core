@@ -293,3 +293,26 @@ def test_PolygonDictColumn_auto_db_none(mocker):
     query.connect()
         
     assert query.data.result is None
+    
+    
+def test_PolygonDictColumn_auto_db_no_tables(mocker):
+    
+    mock_lists = [[None, None], [None, None]]
+    
+    mocker.patch('dtocean_core.data.definitions.get_all_from_columns',
+                 return_value=mock_lists)
+
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test"})
+    
+    test = PolygonDictColumn()
+    
+    query_factory = InterfaceFactory(AutoQuery)
+    QueryCls = query_factory(meta, test)
+    
+    query = QueryCls()
+    query.meta.result = meta
+    
+    with pytest.raises(ValueError):
+        query.connect()

@@ -19,7 +19,7 @@ def test_SimplePie_available():
     assert "SimplePie" in all_objs.keys()
 
 
-def test_SimpleDict():
+def test_SimplePie():
 
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
@@ -45,7 +45,7 @@ def test_get_None():
     
 
 @pytest.mark.parametrize("fext", [".csv", ".xls", ".xlsx"])
-def test_SimpleDict_auto_file(tmpdir, fext):
+def test_SimplePie_auto_file(tmpdir, fext):
 
     test_path = tmpdir.mkdir("sub").join("test{}".format(fext))
     test_path_str = str(test_path)
@@ -83,7 +83,7 @@ def test_SimpleDict_auto_file(tmpdir, fext):
     assert result["b"] == 1
 
 
-def test_SimpleDict_auto_plot():
+def test_SimplePie_auto_plot():
     
     raw = {"a": 0, "b": 1}
     
