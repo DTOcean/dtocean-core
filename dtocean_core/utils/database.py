@@ -22,7 +22,6 @@ from __future__ import division, print_function
 import os
 import re
 import time
-import pprint
 import shutil
 import string
 import logging

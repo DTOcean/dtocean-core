@@ -16,19 +16,15 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
-
-# Set up logging
 import logging
-import warnings
-
-module_logger = logging.getLogger(__name__)
-
-import abc
 from pickle import load as load_pkl
 
 import matplotlib.pyplot as plt
 
 from .core import Connector
+
+# Set up logging
+module_logger = logging.getLogger(__name__)
 
 
 class Tree(object):
@@ -415,7 +411,7 @@ class Branch(object):
                  
                  if "unavailable" in status: continue
             
-            # Loop if no variable is found                                   
+            # Loop if no variable is found
             if variable is None: continue
             
             variable.set_raw_interface(core, value)
@@ -433,12 +429,10 @@ class Variable(object):
 
     '''Interface class for the pipeline at the variable level'''
     
-    __metaclass__ = abc.ABCMeta
-
     def __init__(self, identifier):
 
         self._id = identifier
-        self._interface = None        
+        self._interface = None
         
         return
 
