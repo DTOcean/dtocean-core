@@ -22,20 +22,16 @@
 """
 
 import os
-import sys
-import argparse
 import logging
 from pkg_resources import get_distribution
 
 from polite.configuration import ReadINI
 from polite.paths import (Directory,
                           ObjDirectory,
-                          UserDataDirectory,
-                          DirectoryMap)
+                          UserDataDirectory)
 from polite.configuration import Logger
 
 __version__ = get_distribution('dtocean-core').version
-
 
 # Set default logging handler to avoid "No handler found" warnings.
 try:  # Python 2.7+
@@ -95,84 +91,4 @@ def start_logging():
             
     logger.info("Begin logging for dtocean_core")
     
-    return
-
-
-def init_config(logging=False, database=False, files=False, overwrite=False):
-    
-    """Copy config files to user data directory"""
-    
-    if not any([logging, database, files]): return
-    
-    objdir = ObjDirectory(__name__, "config")
-    datadir = UserDataDirectory("dtocean_core", "DTOcean", "config")
-    dirmap = DirectoryMap(datadir, objdir)
-    
-    if logging: dirmap.copy_file("logging.yaml", overwrite=overwrite)
-    if database: dirmap.copy_file("database.yaml", overwrite=overwrite)
-    if files: dirmap.copy_file("files.ini", overwrite=overwrite)
-            
-    return datadir.get_path()
-
-
-def init_config_parser(args):
-    
-    '''Command line parser for init_config.
-    
-    Example:
-    
-        To get help::
-        
-            $ dtocean-core-config -h
-            
-    '''
-    
-    epiStr = ('Mathew Topper (c) 2017.')
-              
-    desStr = ("Copy user modifiable configuration files to "
-              "User\AppData\Roaming\DTOcean\dtocean-core\config")
-
-    parser = argparse.ArgumentParser(description=desStr,
-                                     epilog=epiStr)
-    
-    parser.add_argument("--logging",
-                        help=("copy logging configuration"),
-                        action="store_true")
-    
-    parser.add_argument("--database",
-                        help=("copy database configuration"),
-                        action="store_true")
-    
-    parser.add_argument("--files",
-                        help=("copy log and debug files location "
-                              "configuration"),
-                        action="store_true")
-    
-    parser.add_argument("--overwrite",
-                        help=("overwrite any existing configuration files"),
-                        action="store_true")
-    
-    args = parser.parse_args(args)
-                        
-    logging = args.logging
-    database = args.database
-    files = args.files
-    overwrite = args.overwrite
-    
-    return logging, database, files, overwrite
-
-
-def init_config_interface():
-    
-    '''Command line interface for init_config.'''
-    
-    logging, database, files, overwrite = init_config_parser(sys.argv[1:])
-    dir_path = init_config(logging=logging,
-                           database=database,
-                           files=files,
-                           overwrite=overwrite)
-    
-    if dir_path is not None:
-        print "Copying configuration files to {}".format(dir_path)
-
     return

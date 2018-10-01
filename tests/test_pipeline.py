@@ -1,4 +1,5 @@
 
+import os
 from copy import deepcopy
 
 import pytest
@@ -6,7 +7,9 @@ import pytest
 from dtocean_core.core import Core
 from dtocean_core.interfaces import ModuleInterface, ThemeInterface
 from dtocean_core.menu import ModuleMenu, ProjectMenu, ThemeMenu 
-from dtocean_core.pipeline import Tree, InputVariable
+from dtocean_core.pipeline import Tree, InputVariable, OutputVariable, Variable
+
+dir_path = os.path.dirname(__file__)
 
 
 class MockModule(ModuleInterface):
@@ -34,7 +37,9 @@ class MockModule(ModuleInterface):
     def declare_outputs(cls):
         
         output_list = ['device.power_rating',
-                       'project.layout']
+                       'project.layout',
+                       'project.annual_energy',
+                       'project.number_of_devices']
         
         return output_list
         
@@ -50,12 +55,19 @@ class MockModule(ModuleInterface):
                   "dummy2": "device.cut_in_velocity",
                   "dummy3": "device.system_type",
                   "dummy4": "device.power_rating",
-                  "dummy5": "project.layout"}
+                  "dummy5": "project.layout",
+                  "dummy6": "project.annual_energy",
+                  "dummy7": "project.number_of_devices"}
                   
         return id_map
                  
     def connect(self, debug_entry=False,
                       export_data=True):
+        
+        self.data.dummy4 = 1
+        self.data.dummy5 = {"device0": [0, 0]}
+        self.data.dummy6 = 1
+        self.data.dummy7 = 1
         
         return
 
@@ -76,7 +88,8 @@ class AnotherMockModule(ModuleInterface):
     def declare_inputs(cls):
         
         input_list = ['device.power_rating',
-                      'project.layout']
+                      'project.layout',
+                      'project.number_of_devices']
         
         return input_list
 
@@ -94,7 +107,8 @@ class AnotherMockModule(ModuleInterface):
     def declare_id_map(self):
         
         id_map = {"dummy1": "device.power_rating",
-                  "dummy2": "project.layout"}
+                  "dummy2": "project.layout",
+                  "dummy3": "project.number_of_devices"}
                   
         return id_map
                  
@@ -125,8 +139,10 @@ class MockTheme(ThemeInterface):
 
     @classmethod
     def declare_outputs(cls):
+        
+        output_list = ['project.capex_total']
                 
-        return None
+        return output_list
         
     @classmethod
     def declare_optional(cls):
@@ -138,7 +154,8 @@ class MockTheme(ThemeInterface):
     @classmethod
     def declare_id_map(self):
         
-        id_map = {"dummy1": "project.discount_rate"}
+        id_map = {"dummy1": "project.discount_rate",
+                  "dummy2": "project.capex_total"}
                   
         return id_map
                  
@@ -146,6 +163,7 @@ class MockTheme(ThemeInterface):
                       export_data=True):
         
         return
+
 
 # Using a py.test fixture to reduce boilerplate and test times.
 @pytest.fixture(scope="module")
@@ -162,7 +180,8 @@ def core():
     socket.add_interface(MockTheme)
     
     return new_core
-    
+
+
 @pytest.fixture(scope="module")
 def tree():
     '''Share a Tree object'''
@@ -170,7 +189,8 @@ def tree():
     new_tree = Tree()
         
     return new_tree
-    
+
+
 @pytest.fixture(scope="module")
 def project(core, tree):
     '''Share a Project object'''
@@ -193,26 +213,23 @@ def project(core, tree):
     project_menu.initiate_pipeline(core, new_project)
     
     return new_project
-    
+
+
 @pytest.fixture(scope="module")
 def module_menu(core):
     '''Share a ModuleMenu object'''  
     
     return ModuleMenu()
-    
+
+
 @pytest.fixture(scope="module")
 def theme_menu(core):
     '''Share a ModuleMenu object'''  
     
     return ThemeMenu()
-    
-def test_tree(project):
-    
-    var_tree = Tree()
-        
-    assert isinstance(var_tree, Tree)
 
-def test_get_branch_input_status(core, project, module_menu, tree):
+
+def test_Branch_get_input_status(core, project, module_menu, tree):
 
     mod_name = "Mock Module"
     
@@ -224,8 +241,9 @@ def test_get_branch_input_status(core, project, module_menu, tree):
     
     assert "bathymetry.layers" in inputs.keys()
     assert inputs["bathymetry.layers"] == 'required'
-    
-def test_get_input_variable(core, project, module_menu, tree):
+
+
+def test_Branch_get_input_variable(core, project, module_menu, tree):
 
     mod_name = "Mock Module"
     var_id = "device.cut_in_velocity"
@@ -237,55 +255,40 @@ def test_get_input_variable(core, project, module_menu, tree):
     new_var = hydro_branch.get_input_variable(core, project, var_id)
     
     assert isinstance(new_var, InputVariable)
-    
-#def test_get_raw_interfaces(core, project, module_menu, tree):
-#    
-#    mod_name = "Hydrodynamics"
-#    var_id = "device.cut_in_velocity"
-#    
-#    module_menu.activate(core, project, mod_name)
-#    
-#    hydro_branch = tree.get_branch(project, mod_name)
-#    new_var = hydro_branch.get_input_variable(core, project, var_id)
-#    
-#    list_raw = new_var.get_raw_interfaces(core)
-#    
-#    assert 'Hydrodynamics Raw Inputs' in list_raw
-#
-#def test_set_raw_interface(core, project, module_menu, tree):
-#    
-#    var_id = "corridor.max_water_depth"
-#    var_id = "device.system_type"
-#    
-#    module_menu.activate(core, project, mod_name)
-#    
-#    hydro_branch = tree.get_branch(project, mod_name)
-#    new_var = hydro_branch.get_input_variable(core, project, var_id)
-#    
-#    new_var.set_raw_interface(core, "Tidal Fixed")
-#        
-#    assert new_var._interface.data[var_id] == 'Tidal Fixed'
-        
-def test_connect(core, project, module_menu, tree):
-    
+
+
+def test_Branch_get_output_status(core, project, module_menu, tree):
+
     mod_name = "Mock Module"
-    var_id = "device.system_type"
+
+    project = deepcopy(project) 
+    module_menu.activate(core, project, mod_name)
+    
+    hydro_branch = tree.get_branch(core, project, mod_name)
+    outputs = hydro_branch.get_output_status(core, project)
+    
+    assert 'project.annual_energy' in outputs.keys()
+    assert outputs['project.annual_energy'] == 'unavailable'
+
+    
+def test_Branch_get_output_variable(core, project, module_menu, tree):
+
+    mod_name = "Mock Module"
+    var_id = "project.annual_energy"
     
     project = deepcopy(project) 
     module_menu.activate(core, project, mod_name)
     
     hydro_branch = tree.get_branch(core, project, mod_name)
-    new_var = hydro_branch.get_input_variable(core, project, var_id)
+    new_var = hydro_branch.get_output_variable(core, project, var_id)
     
-    new_var.set_raw_interface(core, 'Tidal Fixed')
-    
-    new_var.read(core, project)
-    
-    inputs = hydro_branch.get_input_status(core, project)
-    
-    assert inputs["device.system_type"] == 'satisfied'
-    
-def test_module_overwritten_inputs(core, project, module_menu, tree):
+    assert isinstance(new_var, OutputVariable)
+
+
+def test_Branch_get_input_status_overwritten(core,
+                                             project,
+                                             module_menu,
+                                             tree):
 
     project = deepcopy(project) 
 
@@ -300,20 +303,89 @@ def test_module_overwritten_inputs(core, project, module_menu, tree):
     assert inputs['device.power_rating'] == 'overwritten'
     assert inputs['project.layout'] == 'overwritten'
 
-def test_get_theme_inputs(core, project, theme_menu, tree):
-
-    mod_name = "Mock Theme"
+  
+def test_Branch_get_output_status_overwritten(core,
+                                              project,
+                                              module_menu,
+                                              tree):
 
     project = deepcopy(project) 
-    theme_menu.activate(core, project, mod_name)
+
+    module_menu.activate(core, project, "Mock Module")
+    module_menu.activate(core, project, "Mock Module 2")
     
-    eco_branch = tree.get_branch(core, project, mod_name)
-    inputs = eco_branch.get_input_status(core, project)
+    hydro_branch = tree.get_branch(core, project, "Mock Module")
+    outputs = hydro_branch.get_output_status(core, project)
+    
+    assert outputs["project.number_of_devices"] == 'unavailable'
+    
+    
+def test_Branch_reset(core, project, module_menu, tree):
+    
+    project = deepcopy(project)
+    
+    module_menu.activate(core, project, "Mock Module")
+    module_menu.activate(core, project, "Mock Module 2")
+
+    mod1_branch = tree.get_branch(core, project, "Mock Module")
+    mod1_branch.read_test_data(core,
+                               project,
+                               os.path.join(dir_path, "inputs_wp2_tidal.pkl"))
+    
+    mod2_branch = tree.get_branch(core, project, "Mock Module 2")
+    mod2_branch.read_test_data(core,
+                               project,
+                               os.path.join(dir_path, "inputs_wp2_tidal.pkl"))
+    
+    module_menu.execute_current(core, project)
+    module_menu.execute_current(core, project)
+    
+    simulation = project.get_simulation()
         
-    assert "project.discount_rate" in inputs.keys()
-    assert inputs["project.discount_rate"] == 'optional'
+    assert simulation.get_inspection_level() == "mock module 2 start"
+        
+    mod1_branch.reset(core, project)
     
-def test_get_metadata(core, project, module_menu, tree):
+    assert simulation.get_inspection_level() == "mock module start"
+
+
+def test_Variable_get_auto_raw_interfaces(core, project, module_menu, tree):
+    
+    project = deepcopy(project)
+    
+    mod_name = "Mock Module"
+    var_id = "device.cut_in_velocity"
+    
+    module_menu.activate(core, project, mod_name)
+    
+    hydro_branch = tree.get_branch(core, project, mod_name)
+    new_var = hydro_branch.get_input_variable(core, project, var_id)
+    
+    list_raw = new_var.get_raw_interfaces(core, include_auto=True)
+    
+    assert 'device.cut_in_velocity AutoRaw Interface' in list_raw
+
+
+def test_Variable_set_raw_interface(core, project, module_menu, tree):
+    
+    mod_name = "Mock Module"
+    var_id = "device.system_type"
+    
+    project = deepcopy(project) 
+    module_menu.activate(core, project, mod_name)
+    
+    hydro_branch = tree.get_branch(core, project, mod_name)
+    new_var = hydro_branch.get_input_variable(core, project, var_id)
+    
+    new_var.set_raw_interface(core, 'Tidal Fixed')
+    new_var.read(core, project)
+    
+    inputs = hydro_branch.get_input_status(core, project)
+    
+    assert inputs["device.system_type"] == 'satisfied'
+
+
+def test_Variable_get_metadata(core, project, module_menu, tree):
     
     mod_name = "Mock Module"
     var_id = "device.system_type"
@@ -326,8 +398,9 @@ def test_get_metadata(core, project, module_menu, tree):
     metadata = new_var.get_metadata(core)
         
     assert metadata.title == "Device Technology Type"
-    
-def test_get_value(core, project, module_menu, tree):
+
+
+def test_Variable_get_value(core, project, module_menu, tree):
     
     mod_name = "Mock Module"
     var_id = "device.system_type"
@@ -343,5 +416,14 @@ def test_get_value(core, project, module_menu, tree):
     value = new_var.get_value(core, project)
         
     assert value == "Tidal Fixed"
+
+
+def test_Variable__select_interface_multiple_error(core):
     
+    test = Variable("test")
     
+    with pytest.raises(ValueError):
+        test._select_interface([MockModule(), AnotherMockModule()],
+                               "ModuleInterface",
+                               False,
+                               False)

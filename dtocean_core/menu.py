@@ -131,12 +131,12 @@ class ConnectorMenu(object):
 
         return result
     
-    def get_force_completed(self, project):
-        
-        connector = self._get_connector(project)
-        result = connector.get_force_completed(project)
-        
-        return result
+#    def get_force_completed(self, project):
+#        
+#        connector = self._get_connector(project)
+#        result = connector.get_force_completed(project)
+#        
+#        return result
         
     def _get_connector(self, project, hub_name=None):
                 
@@ -558,8 +558,8 @@ class ThemeMenu(ConnectorMenu):
         return
 
     def execute_all(self, core,
-                          project,
-                          force_themes_completed=False):
+                          project):
+#                          force_themes_completed=False):
 
         '''Execute a theme
 
@@ -582,12 +582,12 @@ class ThemeMenu(ConnectorMenu):
                                      project,
                                      level)
                                      
-        # If the main hub has completed then force completed on the
-        # themes
-        if (force_themes_completed and
-            not self.get_scheduled(core, project)):
-                
-            theme_connector.set_force_completed(core, project)
+#        # If the main hub has completed then force completed on the
+#        # themes
+#        if (force_themes_completed and
+#            not self.get_scheduled(core, project)):
+#                
+#            theme_connector.set_force_completed(core, project)
 
         return
 

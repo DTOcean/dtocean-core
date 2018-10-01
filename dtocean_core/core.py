@@ -1374,7 +1374,7 @@ class Core(object):
         pool = project.get_pool()
         simulation = project.get_simulation()
         
-        if level == simulation.get_execution_level(): return     
+        if level == simulation.get_execution_level(): return
                                 
         if level == None:
             
