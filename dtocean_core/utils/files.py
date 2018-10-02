@@ -19,7 +19,7 @@
 """
 Created on Tue Feb 23 15:38:18 2016
 
-@author: 108630
+@author: Mathew Topper
 """
 
 import os
@@ -27,6 +27,7 @@ import shutil
 import pickle
 import zipfile
 import tempfile
+
 
 def pickle_test_data(file_path, test_data_dict):
 
@@ -42,7 +43,8 @@ def pickle_test_data(file_path, test_data_dict):
         pickle.dump(test_data_dict, dataf)
         
     return dst_path
-    
+
+
 def package_dir(src_dir_path, dst_path, archive=False):
     
     if not os.path.splitext(dst_path)[1]: archive = False
@@ -103,3 +105,26 @@ def package_dir(src_dir_path, dst_path, archive=False):
     
     return
 
+
+def onerror(func, path, exc_info):
+    """
+    Error handler for ``shutil.rmtree``.
+
+    If the error is due to an access error (read only file)
+    it attempts to add write permission and then retries.
+
+    If the error is for another reason it re-raises the error.
+    
+    Usage : ``shutil.rmtree(path, onerror=onerror)``
+    
+    Copyright Michael Foord 2004
+    Released subject to the BSD License
+    Please see http://www.voidspace.org.uk/python/license.shtml
+    """
+    import stat
+    if not os.access(path, os.W_OK):
+        # Is the error an access error ?
+        os.chmod(path, stat.S_IWUSR)
+        func(path)
+    else:
+        raise

@@ -6,7 +6,11 @@ import datetime as dt
 import pandas as pd
 from pandas.api.types import is_datetime64_dtype
 
-from dtocean_core.utils.maintenance import (get_events_table,
+from dtocean_core.utils.maintenance import (update_comp_table,
+                                            update_onsite_tables,
+                                            update_replacement_tables,
+                                            update_inspections_tables,
+                                            get_events_table,
                                             get_electrical_system_cost,
                                             get_mandf_system_cost,
                                             _get_elec_db_cost)
@@ -521,6 +525,320 @@ def corrective_events_table():
     return events_df
 
 
+def test_update_comp_table_subhubs():
+    
+    subsystem = 'Substations'
+    subsystem_root = "test"
+    array_layout = {}
+    temp_comp = pd.Series()
+    all_comp = pd.DataFrame()
+    subhubs = ["subhub1", "subhub2"]
+
+    result = update_comp_table(subsystem,
+                               subsystem_root,
+                               array_layout,
+                               temp_comp,
+                               all_comp,
+                               subhubs)
+        
+    assert set(result.index.values) == set(["Component_ID",
+                                            "Component_type",
+                                            "Component_subtype"])
+    assert len(result.columns) == 3
+    
+    
+def test_update_comp_table_devices():
+    
+    subsystem = 'PTO'
+    subsystem_root = "test"
+    array_layout = {"dev1": 0, "dev2": 0}
+    temp_comp = pd.Series()
+    all_comp = pd.DataFrame()
+    subhubs = None
+
+    result = update_comp_table(subsystem,
+                               subsystem_root,
+                               array_layout,
+                               temp_comp,
+                               all_comp,
+                               subhubs)
+    
+    assert set(result.index.values) == set(["Component_ID",
+                                            "Component_type"])
+    assert len(result.columns) == 2
+    
+    
+def test_update_onsite_tables_subhubs(mocker):
+    
+    subsystem = 'Substations'
+    subsystem_root = "test"
+    system_type = 'Wave Floating'
+    array_layout = {}
+    bathymetry = None
+    temp_modes = pd.Series()
+    temp_repair = pd.Series()
+    all_modes = pd.DataFrame()
+    all_repair = pd.DataFrame()
+    subhubs = ["subhub1", "subhub2"]
+    
+    mocker.patch("dtocean_core.utils.maintenance.get_point_depth",
+                 return_value=1,
+                 autospec=True)
+    
+    all_modes, all_repair = update_onsite_tables(subsystem,
+                                                 subsystem_root,
+                                                 system_type,
+                                                 array_layout,
+                                                 bathymetry,
+                                                 temp_modes,
+                                                 temp_repair,
+                                                 all_modes,
+                                                 all_repair,
+                                                 subhubs)
+
+    assert set(all_modes.index.values) == set(["Component_ID",
+                                               "FM_ID"])
+    assert set(all_repair.index.values) == set(["Component_ID",
+                                                "FM_ID"])
+    assert len(all_modes.columns) == 3
+    assert len(all_repair.columns) == 3
+    
+    
+def test_update_onsite_tables_devices(mocker):
+    
+    subsystem = 'PTO'
+    subsystem_root = "test"
+    system_type = 'Wave Floating'
+    array_layout = {"dev1": 0, "dev2": 0}
+    bathymetry = None
+    temp_modes = pd.Series()
+    temp_repair = pd.Series()
+    all_modes = pd.DataFrame()
+    all_repair = pd.DataFrame()
+    subhubs = None
+    
+    mocker.patch("dtocean_core.utils.maintenance.get_point_depth",
+                 return_value=-1,
+                 autospec=True)
+    
+    all_modes, all_repair = update_onsite_tables(subsystem,
+                                                 subsystem_root,
+                                                 system_type,
+                                                 array_layout,
+                                                 bathymetry,
+                                                 temp_modes,
+                                                 temp_repair,
+                                                 all_modes,
+                                                 all_repair,
+                                                 subhubs)
+
+    assert set(all_modes.index.values) == set(["Component_ID",
+                                               "FM_ID"])
+    assert set(all_repair.index.values) == set(["Component_ID",
+                                                "FM_ID"])
+    assert len(all_modes.columns) == 2
+    assert len(all_repair.columns) == 2
+
+
+def test_update_onsite_tables_devices_deep(mocker):
+    
+    subsystem = 'PTO'
+    subsystem_root = "test"
+    system_type = 'Wave Floating'
+    array_layout = {"dev1": 0, "dev2": 0}
+    bathymetry = None
+    temp_modes = pd.Series()
+    temp_repair = pd.Series()
+    all_modes = pd.DataFrame()
+    all_repair = pd.DataFrame()
+    subhubs = None
+    
+    mocker.patch("dtocean_core.utils.maintenance.get_point_depth",
+                 return_value=-50,
+                 autospec=True)
+    
+    all_modes, all_repair = update_onsite_tables(subsystem,
+                                                 subsystem_root,
+                                                 system_type,
+                                                 array_layout,
+                                                 bathymetry,
+                                                 temp_modes,
+                                                 temp_repair,
+                                                 all_modes,
+                                                 all_repair,
+                                                 subhubs)
+
+    assert set(all_modes.index.values) == set(["Component_ID",
+                                               "FM_ID"])
+    assert set(all_repair.index.values) == set(["Component_ID",
+                                                "FM_ID"])
+    assert len(all_modes.columns) == 2
+    assert len(all_repair.columns) == 2
+
+
+@pytest.mark.parametrize("transport", 
+                         ["Tow", "Deck"])
+def test_update_replacement_tables(transport):
+
+    subsystem = 'PTO'
+    subsystem_root = "test"
+    system_type = 'Wave Floating'
+    transportation_method = transport
+    array_layout = {"dev1": 0, "dev2": 0}
+    temp_modes = pd.Series()
+    temp_repair = pd.Series()
+    all_modes = pd.DataFrame()
+    all_repair = pd.DataFrame()
+
+    all_modes, all_repair = update_replacement_tables(subsystem,
+                                                      subsystem_root,
+                                                      system_type,
+                                                      transportation_method,
+                                                      array_layout,
+                                                      temp_modes,
+                                                      temp_repair,
+                                                      all_modes,
+                                                      all_repair)
+    
+    assert set(all_modes.index.values) == set(["Component_ID",
+                                               "FM_ID"])
+    assert set(all_repair.index.values) == set(["Component_ID",
+                                                "FM_ID"])
+    assert len(all_modes.columns) == 2
+    assert len(all_repair.columns) == 2
+
+
+def test_update_replacement_tables_bad_transport():
+
+    subsystem = 'PTO'
+    subsystem_root = "test"
+    system_type = 'Wave Floating'
+    transportation_method = "Bad"
+    array_layout = {"dev1": 0, "dev2": 0}
+    temp_modes = pd.Series()
+    temp_repair = pd.Series()
+    all_modes = pd.DataFrame()
+    all_repair = pd.DataFrame()
+
+    with pytest.raises(RuntimeError):
+        update_replacement_tables(subsystem,
+                                  subsystem_root,
+                                  system_type,
+                                  transportation_method,
+                                  array_layout,
+                                  temp_modes,
+                                  temp_repair,
+                                  all_modes,
+                                  all_repair)
+
+
+def test_update_inspections_tables_subhubs(mocker):
+
+    subsystem = 'Substations'
+    subsystem_root = "test"
+    system_type = 'Wave Floating'
+    array_layout = {}
+    bathymetry = None
+    temp_modes = pd.Series()
+    temp_inspection = pd.Series()
+    all_modes = pd.DataFrame()
+    all_inspection = pd.DataFrame()
+    subhubs = ["subhub1", "subhub2"]
+
+    (all_modes,
+     all_inspection) = update_inspections_tables(subsystem,
+                                                 subsystem_root,
+                                                 system_type,
+                                                 array_layout,
+                                                 bathymetry,
+                                                 temp_modes,
+                                                 temp_inspection,
+                                                 all_modes,
+                                                 all_inspection,
+                                                 subhubs)
+    
+    assert set(all_modes.index.values) == set(["Component_ID",
+                                               "FM_ID"])
+    assert set(all_inspection.index.values) == set(["Component_ID",
+                                                "FM_ID"])
+    assert len(all_modes.columns) == 3
+    assert len(all_inspection.columns) == 3
+
+
+def test_update_inspections_tables_devices(mocker):
+
+    subsystem = 'PTO'
+    subsystem_root = "test"
+    system_type = 'Wave Floating'
+    array_layout = {"dev1": 0, "dev2": 0}
+    bathymetry = None
+    temp_modes = pd.Series()
+    temp_inspection = pd.Series()
+    all_modes = pd.DataFrame()
+    all_inspection = pd.DataFrame()
+    subhubs = None
+    
+    mocker.patch("dtocean_core.utils.maintenance.get_point_depth",
+                 return_value=-1,
+                 autospec=True)
+
+    (all_modes,
+     all_inspection) = update_inspections_tables(subsystem,
+                                                 subsystem_root,
+                                                 system_type,
+                                                 array_layout,
+                                                 bathymetry,
+                                                 temp_modes,
+                                                 temp_inspection,
+                                                 all_modes,
+                                                 all_inspection,
+                                                 subhubs)
+    
+    assert set(all_modes.index.values) == set(["Component_ID",
+                                               "FM_ID"])
+    assert set(all_inspection.index.values) == set(["Component_ID",
+                                                "FM_ID"])
+    assert len(all_modes.columns) == 2
+    assert len(all_inspection.columns) == 2
+
+
+def test_update_inspections_tables_devices_deep(mocker):
+
+    subsystem = 'PTO'
+    subsystem_root = "test"
+    system_type = 'Wave Floating'
+    array_layout = {"dev1": 0, "dev2": 0}
+    bathymetry = None
+    temp_modes = pd.Series()
+    temp_inspection = pd.Series()
+    all_modes = pd.DataFrame()
+    all_inspection = pd.DataFrame()
+    subhubs = None
+    
+    mocker.patch("dtocean_core.utils.maintenance.get_point_depth",
+                 return_value=-50,
+                 autospec=True)
+
+    (all_modes,
+     all_inspection) = update_inspections_tables(subsystem,
+                                                 subsystem_root,
+                                                 system_type,
+                                                 array_layout,
+                                                 bathymetry,
+                                                 temp_modes,
+                                                 temp_inspection,
+                                                 all_modes,
+                                                 all_inspection,
+                                                 subhubs)
+    
+    assert set(all_modes.index.values) == set(["Component_ID",
+                                               "FM_ID"])
+    assert set(all_inspection.index.values) == set(["Component_ID",
+                                                "FM_ID"])
+    assert len(all_modes.columns) == 2
+    assert len(all_inspection.columns) == 2
+
+
 def test_get_events_table(corrective_events_table):
     
     events_df = corrective_events_table.copy()
@@ -536,6 +854,31 @@ def test_get_events_table(corrective_events_table):
                      "Parts Cost",
                      "Vessel Name"]
         
+    assert len(result) == len(corrective_events_table)
+    assert is_datetime64_dtype(result["Operation Request Date"])
+    assert is_datetime64_dtype(result["Operation Action Date"])
+    assert set(result.columns) == set(valid_columns)
+    assert (result["Downtime"] >= 0).all()
+    
+    
+def test_get_events_table_prepend(corrective_events_table):
+    
+    events_df = corrective_events_table.copy()
+    result = get_events_table(events_df,
+                              "indexFM [-]",
+                              "Test")
+    
+    valid_columns = ["Operation Request Date",
+                     "Operation Action Date",
+                     "Downtime",
+                     "Sub-System",
+                     "Operation Type",
+                     "Logistics Cost",
+                     "Labour Cost",
+                     "Parts Cost",
+                     "Vessel Name",
+                     "Test"]
+    
     assert len(result) == len(corrective_events_table)
     assert is_datetime64_dtype(result["Operation Request Date"])
     assert is_datetime64_dtype(result["Operation Action Date"])

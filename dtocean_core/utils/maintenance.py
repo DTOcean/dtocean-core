@@ -892,7 +892,7 @@ def update_comp_table(subsystem,
     else:
         
         # Iterate through the devices
-        for device_id, position in array_layout.iteritems():
+        for device_id in array_layout.keys():
             
             numstrs = re.findall('\d+', device_id)
             num = int(numstrs[0])

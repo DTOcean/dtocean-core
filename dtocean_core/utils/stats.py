@@ -191,10 +191,12 @@ def pdf_confidence_densities(pdf, levels=None):
     
     for frac in fracs:
         
+        local_pdf = np.copy(pdf)
+        
         density = optimize.brentq(diff_frac,
                                   pdf.min(),
                                   pdf.max(),
-                                  args=(pdf, frac, pdf_sum))
+                                  args=(local_pdf, frac, pdf_sum))
         
         densities.append(density)
         
