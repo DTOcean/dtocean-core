@@ -173,10 +173,14 @@
           fkey: fk_sub_system_id
         - table: sub_systems_maintenance
           fkey: fk_sub_system_id
+          bool:
+            - interruptible
         - table: sub_systems_operation_weightings
           fkey: fk_sub_system_id
         - table: sub_systems_replace
           fkey: fk_sub_system_id
+          bool:
+            - interruptible
 - table: site
   pkey: id
   autokey: True

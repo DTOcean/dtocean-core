@@ -41,6 +41,9 @@ from aneris.utilities.database import PostgreSQL
 from polite.paths import ObjDirectory, UserDataDirectory
 from polite.configuration import ReadYAML
 
+# Local modules
+from .files import onerror
+
 # Set up logging
 module_logger = logging.getLogger(__name__)
 
@@ -491,7 +494,9 @@ def database_to_files(root_path,
             auto_child = False
 
         # dump a directory
-        if os.path.exists(child_path): shutil.rmtree(child_path)
+        if os.path.exists(child_path):
+            shutil.rmtree(child_path, onerror=onerror)
+            
         os.makedirs(child_path)
         
         # Recurse for the children
@@ -549,29 +554,27 @@ def database_to_files(root_path,
         if not full_dict["dummy"]:
             
             if table_name_list is None:
+                
                 table_idx = 0
                 new_name_list = [full_dict["table"]]
+                
             else:
+                
                 table_idx = len(table_name_list)
                 new_name_list = table_name_list + [full_dict["table"]]
-                
+                    
                 if fid_list is None:
                     new_fid_list = [full_dict["fkey"]]
                 else:
                     new_fid_list = fid_list + [full_dict["fkey"]]
-                
-            if pid_list is None:
-                new_pid_list = [full_dict["pkey"]]
-            else:
-                new_pid_list = pid_list + [full_dict["pkey"]]
-                
+            
             # Filter by the parent table if required
             query_str = query_builder(new_name_list,
-                                      new_pid_list,
+                                      pid_list,
                                       new_fid_list,
                                       where_list,
                                       var_schema)
-                
+
             msg_str = "Executing query: {}".format(query_str)
             print_function(msg_str)
             
@@ -653,7 +656,14 @@ def database_to_files(root_path,
                 table_df.to_csv(tab_path, index=False)
                 
         if full_dict["children"] is not None:
-                        
+            
+            # Include pid in iteration
+            if full_dict["pkey"] is not None:
+                if pid_list is None:
+                    new_pid_list = [full_dict["pkey"]]
+                else:
+                    new_pid_list = pid_list + [full_dict["pkey"]]
+            
             # Check autokey
             if full_dict["autokey"]:
                                 
@@ -859,7 +869,7 @@ def database_from_files(root_path,
 
         
 def query_builder(table_list,
-                  pid_list,
+                  pid_list=None,
                   fid_list=None,
                   where_list=None,
                   schema=None):
@@ -873,17 +883,21 @@ def query_builder(table_list,
             
         return dbname
     
-    table_shorts = ["t{}".format(i) for i in xrange(len(table_list))]
-    
     consume_list = table_list[:]
-    consume_shorts = table_shorts[:]
-    
     table_name = _add_schema(consume_list.pop(), schema)
-    table_short = consume_shorts.pop()
-    query_str = "SELECT {0}.*\nFROM {1} {0}".format(table_short, table_name)
     
+    # No joins or wheres
+    if pid_list is None:
+        query_str = "SELECT * FROM {};".format(table_name)
+        return query_str
+    
+    table_shorts = ["t{}".format(i) for i in xrange(len(table_list))]
+    consume_shorts = table_shorts[:]
+    table_short = consume_shorts.pop()
+    
+    query_str = "SELECT {0}.*\nFROM {1} {0}".format(table_short, table_name)
+        
     consume_pid = pid_list[:]
-    consume_pid.pop()
     
     # Add joins
     if fid_list is not None:
@@ -1132,15 +1146,8 @@ def get_database(credentials,
     return database
 
 
-def database_convert_interface():
-    '''Command line interface for database_to_files and database_from_files.
-    
-    Example:
-    
-        To get help::
-        
-            $ dtocean-database -h
-            
+def database_convert_parser():
+    '''Command line parser for database_to_files and database_from_files.
     '''
                   
     desStr = "Convert DTOcean database to and from structured files"
@@ -1195,19 +1202,35 @@ def database_convert_interface():
     
     args = parser.parse_args()
     
-    action       = args.action
-    root_path    = args.directory
-    filter_table = args.section
-    db_id        = args.identifier
-    db_host      = args.host
-    db_name      = args.name
-    db_user      = args.user
-    db_pwd       = args.pwd
+    result = {"action": args.action,
+              "root_path": args.directory,
+              "filter_table": args.section,
+              "db_id": args.identifier,
+              "db_host": args.host,
+              "db_name": args.name,
+              "db_user": args.user,
+              "db_pwd": args.pwd}
+    
+    return result
+
+
+def database_convert_interface():
+    '''Command line interface for database_to_files and database_from_files.
+    
+    Example:
+    
+        To get help::
+        
+            $ dtocean-database -h
+            
+    '''
+                  
+    request = database_convert_parser()
     
     _, config = get_database_config()
     
     # List the available database configurations
-    if action == "list":
+    if request["action"] == "list":
         
         id_str = ", ".join(config.keys())
         
@@ -1221,13 +1244,13 @@ def database_convert_interface():
         
         return
     
-    if action == "view":
+    if request["action"] == "view":
         
-        if db_id is None:
+        if request["db_id"] is None:
             err_msg = "Option '-i' must be specified with 'view' action"
             raise ValueError(err_msg)
             
-        cred = config[db_id]
+        cred = config[request["db_id"]]
         
         for k, v in cred.iteritems():
             print('{:>8} ::  {}'.format(k, v))
@@ -1237,51 +1260,52 @@ def database_convert_interface():
     table_list = get_table_map()
     
     # Filter the table if required
-    if filter_table is not None:
-        filtered_dict = filter_map(table_list, filter_table)
+    if request["filter_table"] is not None:
+        filtered_dict = filter_map(table_list, request["filter_table"])
         table_list = [filtered_dict]
     
-    if action == "dir":
+    if request["action"] == "dir":
         print("\n" + draw_map(table_list))
         return
     
     # Set up the DB
-    if db_id is not None:
-        cred = config[db_id]
+    if request["db_id"] is not None:
+        cred = config[request["db_id"]]
     else:
         cred = {"host": None,
                 "dbname": None,
                 "user": None,
                 "pwd": None}
     
-    if db_host is not None:
-        cred["host"] = db_host
+    if request["db_host"] is not None:
+        cred["host"] = request["db_host"]
         
-    if db_name is not None:
-        cred["dbname"] =  db_name
+    if request["db_name"] is not None:
+        cred["dbname"] =  request["db_name"]
         
-    if db_user is not None:
-        cred["user"] = db_user
+    if request["db_user"] is not None:
+        cred["user"] = request["db_user"]
         
-    if db_pwd is not None:
+    if request["db_pwd"] is not None:
         cred["pwd"] = "postgres"
 
     db = get_database(cred, timeout=60)
     
-    if action == "dump":
+    if request["action"] == "dump":
         
         # make a directory if required
-        if not os.path.exists(root_path): os.makedirs(root_path)
+        if not os.path.exists(request["root_path"]):
+            os.makedirs(request["root_path"])
                 
-        database_to_files(root_path,
+        database_to_files(request["root_path"],
                           table_list,
                           db)
         
         return
     
-    if action == "load":
+    if request["action"] == "load":
         
-        database_from_files(root_path,
+        database_from_files(request["root_path"],
                             table_list,
                             db)
         

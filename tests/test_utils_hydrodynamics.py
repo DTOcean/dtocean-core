@@ -1,9 +1,9 @@
 
-import pytest
-
+import os
 import math
 from subprocess import call
 
+import pytest
 import numpy as np
 import pandas as pd
 
@@ -51,6 +51,44 @@ def test_make_wave_statistics_propability():
     assert len(test["Hs"]) == test["p"].shape[1]    
     assert len(test["B"]) == test["p"].shape[2]
     assert np.allclose(np.sum(test["p"]), 1)
+    
+    
+def test_make_wave_statistics_save(tmpdir):
+    
+    save_path = os.path.join(str(tmpdir), "test")
+    
+    sample_size = 1000
+        
+    Hm0 = 9. * np.random.random_sample(sample_size)
+    Te = 15. * np.random.random_sample(sample_size)    
+    dir_rmean = 360. * np.random.random_sample(sample_size)
+#    H_max = 16. * np.random.random_sample(sample_size)
+#    Tp = 16. * np.random.random_sample(sample_size)
+#    T02 = 12. * np.random.random_sample(sample_size)
+#    dir_peak = 360. * np.random.random_sample(sample_size)
+#    P = 600. * np.random.random_sample(sample_size)
+#    Wind_speed = 30. * np.random.random_sample(sample_size)
+#    Wind_dir = 360. * np.random.random_sample(sample_size)
+    
+    wave_dict = {"Hm0"          : Hm0,
+                 "Te"           : Te,
+                 "Dir"          : dir_rmean
+#                 "H_max"        : H_max,
+#                 "Tp"           : Tp,
+#                 "T02"          : T02,
+#                 "dir_peak"     : dir_peak,
+#                 "P"            : P,
+#                 "wind_speed"   : Wind_speed,
+#                 "wind_dir"     : Wind_dir
+                 }
+                
+    wave_df = pd.DataFrame(wave_dict)
+
+    make_wave_statistics(wave_df,
+                         save_flag=True,
+                         filepath=save_path)
+
+    assert len(os.listdir(str(tmpdir))) == 1
 
 
 @pytest.mark.parametrize("nx, ny, nt, ns", 
