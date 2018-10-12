@@ -156,6 +156,14 @@ def test_UniVariateKDE_interval_fresh(gaussian_fresh):
     assert np.isclose(estimated, ideal, rtol=0, atol=2e-1).all()
 
 
+def test_BiVariateKDE_mean(bigaussian):
+    
+    estimated = bigaussian.mean()
+    ideal = [0, 0]
+    
+    assert  np.isclose(estimated, ideal, rtol=0, atol=1e-1).all()
+
+
 def test_BiVariateKDE_mode(bigaussian):
     
     estimated = bigaussian.mode()
@@ -185,7 +193,7 @@ def test_pdf_confidence_densities(bigaussian_pdf):
 def test_pdf_confidence_densities_levels(bigaussian_pdf):
     
     pdf = bigaussian_pdf["pdf"]
-    result = pdf_confidence_densities(pdf, [40, 95])
+    result = pdf_confidence_densities(pdf, [50, 95])
     is_positive = [x > 0 for x in result]
         
     assert all(is_positive)
