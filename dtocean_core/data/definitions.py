@@ -1969,7 +1969,9 @@ class CartesianDict(CartesianData):
                                columns=columns[1:])
             df2["ID"] = k
             
-            df = df.append(df2, ignore_index=True)
+            df = df.append(df2,
+                           ignore_index=True,
+                           sort=False)
                    
         if ".xls" in self._path:
             df.to_excel(self._path, index=False)
