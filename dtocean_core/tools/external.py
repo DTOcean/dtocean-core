@@ -1,6 +1,6 @@
+# -*- coding: utf-8 -*-
 
-#    Copyright (C) 2016 'Mathew Topper, Vincenzo Nava, David Bould, Rui Duarte,
-#                       'Francesco Ferri, Adam Collin'
+#    Copyright (C) 2016-2018 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -14,11 +14,6 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-# Set up logging
-import logging
-
-module_logger = logging.getLogger(__name__)
 
 import subprocess
 

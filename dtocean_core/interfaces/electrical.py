@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2016 'Mathew Topper, Vincenzo Nava, David Bould, Rui Duarte,
-#                       'Francesco Ferri, Adam Collin'
+#    Copyright (C) 2016 Mathew Topper, Vincenzo Nava
+#    Copyright (C) 2017-2018 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -26,9 +26,9 @@ Note:
 .. module:: electrical
    :platform: Windows
    :synopsis: Aneris interface for dtocean_core package
-   
-.. moduleauthor:: Mathew Topper <mathew.topper@tecnalia.com>
-                  Vincenzo Nava <vincenzo.nava@tecnalia.com>
+
+.. moduleauthor:: Mathew Topper <mathew.topper@dataonlygreater.com>
+.. moduleauthor:: Vincenzo Nava <vincenzo.nava@tecnalia.com>
 """
 
 import os

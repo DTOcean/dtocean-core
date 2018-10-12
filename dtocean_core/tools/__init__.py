@@ -1,6 +1,6 @@
+# -*- coding: utf-8 -*-
 
-#    Copyright (C) 2016 'Mathew Topper, Vincenzo Nava, David Bould, Rui Duarte,
-#                       'Francesco Ferri, Adam Collin'
+#    Copyright (C) 2016-2018 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -16,10 +16,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import abc
-
 from copy import deepcopy
-
-from polite.abc import abstractclassmethod
 
 from ..interfaces import MapInterface
 
@@ -46,4 +43,3 @@ class Tool(MapInterface):
         self._config = config_dict
         
         return
-

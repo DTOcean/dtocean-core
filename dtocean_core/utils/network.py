@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2016 'Mathew Topper, Vincenzo Nava, David Bould, Rui Duarte,
-#                       'Francesco Ferri, Adam Collin'
+#    Copyright (C) 2016-2018 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -15,7 +14,7 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-    
+
 def find_marker_key(nodes_dict, marker, return_top_key=False):
     
     """Locate the parent key of a given marker in a network nodes dictionary
@@ -43,5 +42,3 @@ def find_marker_key(nodes_dict, marker, return_top_key=False):
     if result is not None and return_top_key: result = top_key
         
     return result
-
-

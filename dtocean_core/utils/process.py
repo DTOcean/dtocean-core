@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
 
 #    Copyright (C) 2016 Mathew Topper, Rui Duarte
+#    Copyright (C) 2017-2018 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -17,8 +19,10 @@
 import os
 import sys
 
+
 def is_exe(fpath):
     return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
 
 def which(program):
     
@@ -42,6 +46,7 @@ def which(program):
             if is_exe(exe_file): return exe_file
 
     return None
+
 
 def script(program, scripts_dir="Scripts"):
     
