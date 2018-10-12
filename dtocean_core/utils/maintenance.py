@@ -1332,7 +1332,7 @@ def get_events_table(raw_df,
                        u'costOM_Spare [Euro]',
                        u'nameOfvessel [-]'])
     
-    data_df = raw_df[cols_toget]
+    data_df = raw_df.loc[:, cols_toget]
     
     if prepend_special_raw is not None:
         data_df[prepend_special_raw] = pd.to_datetime(
