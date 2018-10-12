@@ -510,10 +510,7 @@ class EconomicInterface(ThemeInterface):
         else:
             return
                     
-        table_cols = ["LCOE",
-                      "LCOE CAPEX",
-                      "LCOE OPEX",
-                      "OPEX",
+        table_cols = ["OPEX",
                       "Energy",
                       "Discounted OPEX",
                       "Discounted Energy"]
@@ -586,10 +583,8 @@ class EconomicInterface(ThemeInterface):
             self.data[arg_upper] = upper
             
         # Bivariate stats on LCOE and related variables
-        self.data.lcoe_mean = metrics_table["LCOE"].values.mean()
-        
-        if (metrics_table["LCOE"].isnull().any() or
-            len(metrics_table["LCOE"])) < 3: return
+        if (metrics_table["Discounted Energy"].isnull().any() or
+            len(metrics_table["Discounted Energy"])) < 3: return
         
         opex = metrics_table["Discounted OPEX"] / 1000.
         energy = metrics_table["Discounted Energy"]
@@ -598,6 +593,10 @@ class EconomicInterface(ThemeInterface):
             distribution = BiVariateKDE(opex, energy)
         except np.linalg.LinAlgError:
             return
+        
+        mean_coords = distribution.mean()
+        self.data.lcoe_mean = (result["Discounted CAPEX"] / 1000. +
+                                             mean_coords[0]) / mean_coords[1]
         
         mode_coords = distribution.mode()
         lcoe_mode = (result["Discounted CAPEX"] / 1000. +

@@ -131,8 +131,12 @@ class BiVariateKDE(object):
         
         values = np.vstack([self.x, self.y])
         self.kernel = stats.gaussian_kde(values)
-                
+        
         return
+    
+    def mean(self):
+        
+        return self.x.mean(), self.y.mean()
     
     def mode(self, xtol=0.0001, ftol=0.0001, disp=False):
         """Determine the ordinate of the most likely value of the given KDE"""
