@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2016 'Mathew Topper, Vincenzo Nava, David Bould, Rui Duarte,
-#                       'Francesco Ferri, Adam Collin'
+#    Copyright (C) 2016 Adam Collin, Mathew Topper
+#    Copyright (C) 2017-2018 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -19,7 +19,8 @@
 """
 Created on Wed Apr 06 15:59:04 2016
 
-@author: 108630
+.. moduleauthor:: Adam Collin <adam.collin@ieee.org>
+.. moduleauthor:: Mathew Topper <mathew.topper@dataonlygreater.com>
 """
 
 from datetime import timedelta

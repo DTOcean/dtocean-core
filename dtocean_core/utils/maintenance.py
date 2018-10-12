@@ -1,12 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Nov 30 12:02:41 2016
 
-@author: 108630
-"""
-
-#    Copyright (C) 2016 'Mathew Topper, Vincenzo Nava, David Bould, Rui Duarte,
-#                       'Francesco Ferri, Adam Collin'
+#    Copyright (C) 2016-2018 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -21,20 +15,25 @@ Created on Wed Nov 30 12:02:41 2016
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Set up logging
-import logging
-module_logger = logging.getLogger(__name__)
+"""
+Created on Wed Nov 30 12:02:41 2016
+
+.. moduleauthor:: Mathew Topper <mathew.topper@dataonlygreater.com>
+"""
 
 import re
+import logging
 import calendar
 import datetime as dt
 from collections import Counter
 
-import numpy as np
 import pandas as pd
 from scipy.interpolate import RegularGridInterpolator
 
 from .reliability import get_component_dict
+
+# Set up logging
+module_logger = logging.getLogger(__name__)
 
 
 def get_input_tables(system_type,
