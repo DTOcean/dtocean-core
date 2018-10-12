@@ -668,10 +668,14 @@ class DataMenu(object):
         credentials = self._get_credentials(identifier, credentials)
 
         if not self.check_database(credentials=credentials):
+            
+            if "dbname" in credentials:
+                add_str = " for database '{}'".format(credentials["dbname"])
+            else:
+                add_str = ""
         
-            errStr = ("Port could not be opened for "
-                      "database '{}'").format(credentials["dbname"])
-            raise RuntimeError(errStr)
+            err_str = "Port could not be opened" + add_str
+            raise RuntimeError(err_str)
 
         project.set_database_credentials(credentials)
         

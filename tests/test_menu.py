@@ -324,28 +324,32 @@ def test_ThemeMenu_execute_all(core,
     assert result == 2
 
 
-def test_DataMenu_get_available_databases(tmpdir):
+def test_DataMenu_get_available_databases(mocker, tmpdir):
 
     # Make a source directory with some files
     config_tmpdir = tmpdir.mkdir("config")
     mock_dir = Directory(str(config_tmpdir))
+    
+    mocker.patch("dtocean_core.utils.database.UserDataDirectory",
+                 return_value=mock_dir)
                  
     data_menu = DataMenu()
-    data_menu._useryaml = ReadYAML(mock_dir, "database.yaml")
     
     dbs = data_menu.get_available_databases()
     
     assert len(dbs) > 0
               
               
-def test_DataMenu_get_database_dict(tmpdir):
+def test_DataMenu_get_database_dict(mocker, tmpdir):
     
     # Make a source directory with some files
     config_tmpdir = tmpdir.mkdir("config")
     mock_dir = Directory(str(config_tmpdir))
+    
+    mocker.patch("dtocean_core.utils.database.UserDataDirectory",
+                 return_value=mock_dir)
                  
     data_menu = DataMenu()
-    data_menu._useryaml = ReadYAML(mock_dir, "database.yaml")
     
     dbs = data_menu.get_available_databases()
     db_id = dbs[0]
@@ -355,14 +359,16 @@ def test_DataMenu_get_database_dict(tmpdir):
     assert "host" in db_dict.keys()
     
     
-def test_DataMenu_update_database(tmpdir):
+def test_DataMenu_update_database(mocker, tmpdir):
     
     # Make a source directory with some files
     config_tmpdir = tmpdir.mkdir("config")
     mock_dir = Directory(str(config_tmpdir))
-        
+    
+    mocker.patch("dtocean_core.utils.database.UserDataDirectory",
+                 return_value=mock_dir)
+                 
     data_menu = DataMenu()
-    data_menu._useryaml = ReadYAML(mock_dir, "database.yaml")
     
     dbs = data_menu.get_available_databases()
     db_id = dbs[0]
@@ -373,15 +379,16 @@ def test_DataMenu_update_database(tmpdir):
     assert len(config_tmpdir.listdir()) == 1
 
 
-def test_DataMenu_select_database(tmpdir, project):
+def test_DataMenu_select_database(mocker, tmpdir, project):
 
     # Make a source directory with some files
     config_tmpdir = tmpdir.mkdir("config")
     mock_dir = Directory(str(config_tmpdir))
+    
+    mocker.patch("dtocean_core.utils.database.UserDataDirectory",
+                 return_value=mock_dir)
                  
     data_menu = DataMenu()
-    data_menu._useryaml = ReadYAML(mock_dir, "database.yaml")
-    
     project = deepcopy(project)
     
     assert project.get_database_credentials() is None
@@ -393,45 +400,48 @@ def test_DataMenu_select_database(tmpdir, project):
     assert project.get_database_credentials()
     
     
-def test_DataMenu_select_database_no_info(tmpdir, project):
+def test_DataMenu_select_database_no_info(mocker, tmpdir, project):
 
     # Make a source directory with some files
     config_tmpdir = tmpdir.mkdir("config")
     mock_dir = Directory(str(config_tmpdir))
+    
+    mocker.patch("dtocean_core.utils.database.UserDataDirectory",
+                 return_value=mock_dir)
                  
     data_menu = DataMenu()
-    data_menu._useryaml = ReadYAML(mock_dir, "database.yaml")
-    
     project = deepcopy(project)
     
     with pytest.raises(ValueError):
         data_menu.select_database(project)
 
 
-def test_DataMenu_select_database_bad_id(tmpdir, project):
+def test_DataMenu_select_database_bad_id(mocker, tmpdir, project):
 
     # Make a source directory with some files
     config_tmpdir = tmpdir.mkdir("config")
     mock_dir = Directory(str(config_tmpdir))
+    
+    mocker.patch("dtocean_core.utils.database.UserDataDirectory",
+                 return_value=mock_dir)
                  
     data_menu = DataMenu()
-    data_menu._useryaml = ReadYAML(mock_dir, "database.yaml")
-    
     project = deepcopy(project)
     
     with pytest.raises(ValueError):
         data_menu.select_database(project, "bad_id")
 
 
-def test_DataMenu_select_database_no_port(tmpdir, project):
+def test_DataMenu_select_database_no_port(mocker, tmpdir, project):
 
     # Make a source directory with some files
     config_tmpdir = tmpdir.mkdir("config")
     mock_dir = Directory(str(config_tmpdir))
+    
+    mocker.patch("dtocean_core.utils.database.UserDataDirectory",
+                 return_value=mock_dir)
                  
     data_menu = DataMenu()
-    data_menu._useryaml = ReadYAML(mock_dir, "database.yaml")
-    
     project = deepcopy(project)
     
     with pytest.raises(RuntimeError):
@@ -440,15 +450,16 @@ def test_DataMenu_select_database_no_port(tmpdir, project):
                                                "host": "-1.-1.-1.-1"})
 
 
-def test_DataMenu_deselect_database(tmpdir, project):
+def test_DataMenu_deselect_database(mocker, tmpdir, project):
 
     # Make a source directory with some files
     config_tmpdir = tmpdir.mkdir("config")
     mock_dir = Directory(str(config_tmpdir))
+    
+    mocker.patch("dtocean_core.utils.database.UserDataDirectory",
+                 return_value=mock_dir)
                  
     data_menu = DataMenu()
-    data_menu._useryaml = ReadYAML(mock_dir, "database.yaml")
-    
     project = deepcopy(project)
     
     assert project.get_database_credentials() is None
@@ -464,15 +475,16 @@ def test_DataMenu_deselect_database(tmpdir, project):
     assert project.get_database_credentials() is None
     
     
-def test_DataMenu_export_data(tmpdir, core, project, module_menu):
+def test_DataMenu_export_data(mocker, tmpdir, core, project, module_menu):
     
     # Make a source directory with some files
     config_tmpdir = tmpdir.mkdir("config")
     mock_dir = Directory(str(config_tmpdir))
+    
+    mocker.patch("dtocean_core.utils.database.UserDataDirectory",
+                 return_value=mock_dir)
                  
     data_menu = DataMenu()
-    data_menu._useryaml = ReadYAML(mock_dir, "database.yaml")
-    
     var_tree = Tree()
     project = deepcopy(project)
     mod_name = "Mock Module"
@@ -490,15 +502,16 @@ def test_DataMenu_export_data(tmpdir, core, project, module_menu):
     assert os.path.isfile(dts_path)
     
     
-def test_DataMenu_import_data(tmpdir, core, project, module_menu):
+def test_DataMenu_import_data(mocker, tmpdir, core, project, module_menu):
     
     # Make a source directory with some files
     config_tmpdir = tmpdir.mkdir("config")
     mock_dir = Directory(str(config_tmpdir))
+    
+    mocker.patch("dtocean_core.utils.database.UserDataDirectory",
+                 return_value=mock_dir)
                  
     data_menu = DataMenu()
-    data_menu._useryaml = ReadYAML(mock_dir, "database.yaml")
-    
     var_tree = Tree()
     project = deepcopy(project)
     mod_name = "Mock Module"
