@@ -509,7 +509,10 @@ class EconomicInterface(ThemeInterface):
         else:
             return
                     
-        table_cols = ["OPEX",
+        table_cols = ["LCOE",
+                      "LCOE CAPEX",
+                      "LCOE OPEX",
+                      "OPEX",
                       "Energy",
                       "Discounted OPEX",
                       "Discounted Energy"]
