@@ -115,6 +115,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added variables project.capex_lcoe_breakdown and project.opex_lcoe_breakdown
   to record the breakdown of CAPEX and OPEX LCOE values calculated in the 
   economics interface.
+- Added variable project.lcoe_breakdown variable to compare OPEX and CAPEX 
+  contributions to the most-likely LCOE.
 - Added project.export_voltage variable to record export cable voltage chosen
   by the electrical module.
 - Added file I/O for DateTimeDict structure.
@@ -122,8 +124,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   date of sub-system failure.
 - Added options.corrective_prep_time variable to allow the amount of preparation
   time for corrective maintenance operations to be changed.
-- Added project.lcoe_breakdown variable to compare OPEX and CAPEX contributions
-  to the most-likely LCOE.
 - Added sort=False to all pandas concat and append calls.
 - Added array layout plot without device numbers.
 - Added plots for bathymetry and first sediment layer of the combined deployment
