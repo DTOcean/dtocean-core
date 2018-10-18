@@ -24,6 +24,7 @@ pyproj
 python-dateutil
 pyyaml
 scipy
+setuptools
 shapely
 utm
 xarray
