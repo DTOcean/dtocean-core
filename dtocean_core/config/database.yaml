@@ -2,6 +2,6 @@
 "local":
   dbname: dtocean_examples
   host: localhost
-  user: dtocean_core
+  user: dtocean_user
   pwd: 
  

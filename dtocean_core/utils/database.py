@@ -861,6 +861,7 @@ def database_from_files(root_path,
                                     full_dict["children"],
                                     database,
                                     var_schema,
+                                    truncate=truncate,
                                     print_function=print_function)
             
     return
