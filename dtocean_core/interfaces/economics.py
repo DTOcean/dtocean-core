@@ -493,7 +493,7 @@ class EconomicInterface(ThemeInterface):
         result = main(capex_bom,
                       opex_bom,
                       energy_record,
-                      self.data.discount_rate)        
+                      self.data.discount_rate)
 
         self.data.capex_total = result["CAPEX"]
         self.data.discounted_capex = result["Discounted CAPEX"]
