@@ -293,9 +293,9 @@ class Branch(object):
                                                 self._name): return
         
         output_level = "{} {}".format(self._name.lower(),
-                                      core._markers["output"])     
+                                      core._markers["output"])
         register_level = "{} {}".format(self._name.lower(),
-                                         core._markers["register"])                                        
+                                         core._markers["register"])
 
         # Call inspect level on the output level, but force the inspection
         # level to the theme scope.

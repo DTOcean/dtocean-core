@@ -163,6 +163,7 @@ class EconomicInterface(ThemeInterface):
                        "project.discounted_energy_interval_upper",
                        "project.discounted_energy_mean",
                        "project.capex_total",
+                       "project.capex_without_externalities",
                        "project.discounted_capex",
                        "project.lcoe_breakdown",
                        "project.capex_lcoe_breakdown",
@@ -291,6 +292,8 @@ class EconomicInterface(ThemeInterface):
                   "discounted_energy_upper":
                       "project.discounted_energy_interval_upper",
                   "capex_total": "project.capex_total",
+                  "capex_no_externalities":
+                      "project.capex_without_externalities",
                   "discounted_capex": "project.discounted_capex",
                   "cost_breakdown": "project.cost_breakdown",
                   'capex_breakdown': "project.capex_breakdown",
@@ -499,6 +502,10 @@ class EconomicInterface(ThemeInterface):
         self.data.discounted_capex = result["Discounted CAPEX"]
         self.data.capex_breakdown = result["CAPEX breakdown"]
         
+        if self.data.externalities_capex is not None:
+            self.data.capex_no_externalities = \
+                        self.data.capex_total - self.data.externalities_capex
+        
         # Build metrics table if possible
         n_rows = None
         
@@ -580,7 +587,7 @@ class EconomicInterface(ThemeInterface):
             arg_upper = "{}_upper".format(arg_root)
             
             self.data[arg_mean] = mean
-            self.data[arg_mode] = mode                        
+            self.data[arg_mode] = mode
             self.data[arg_lower] = lower
             self.data[arg_upper] = upper
             
