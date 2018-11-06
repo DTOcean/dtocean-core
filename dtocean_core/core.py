@@ -1020,12 +1020,14 @@ class Core(object):
         return
         
     def mask_states(self, project,
+                          simulation=None,
                           search_str=None,
                           mask_after=None,
                           no_merge=False,
                           update_status=True):
         
-        simulation = project.get_simulation()
+        if simulation is None:
+            simulation = project.get_simulation()
         
         # Mask all output states after the given level
         n_masks = self.control.mask_states(simulation,
@@ -1040,11 +1042,13 @@ class Core(object):
         return
                                                                     
     def unmask_states(self, project,
+                            simulation=None,
                             search_str=None,
                             no_merge=False,
                             update_status=True):
         
-        simulation = project.get_simulation()
+        if simulation is None:
+            simulation = project.get_simulation()
         
         # Remove all existing masks
         n_unmasks = self.control.unmask_states(simulation,
@@ -1073,7 +1077,7 @@ class Core(object):
             return save_pool, save_state
         
         # Allow a mask to applied before dumping
-        if mask is not None: self.mask_states(project, mask)
+        if mask is not None: self.mask_states(project, search_str=mask)
         
         # Get the pool and datastate subsets
         save_pool, save_state = get_subsets()
@@ -1226,7 +1230,7 @@ class Core(object):
                          sim_index=None,
                          sim_title=None):
 
-        simulation = project.get_simulation(sim_index, sim_title)    
+        simulation = project.get_simulation(sim_index, sim_title)
         levels = OrderedSet(
                         simulation.get_active_levels(show_masked=show_masked))
         
@@ -1350,8 +1354,8 @@ class Core(object):
             
         # Mask all output states after the given level
         self.mask_states(project,
-                         self._markers["output"],
-                         level,
+                         search_str=self._markers["output"],
+                         mask_after=level,
                          update_status=False)
                     
         simulation.set_inspection_level(inspection_level)
@@ -1409,15 +1413,15 @@ class Core(object):
             
         # Mask all register states after the given level
         self.mask_states(project,
-                         self._markers["register"],
-                         level,
+                         search_str=self._markers["register"],
+                         mask_after=level,
                          no_merge=True,
                          update_status=False)
                                         
         # Mask the given level
         if not preserve_level:
             self.mask_states(project,
-                             level,
+                             search_str=level,
                              no_merge=True,
                              update_status=False)
         

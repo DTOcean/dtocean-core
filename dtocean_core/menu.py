@@ -487,11 +487,11 @@ class ModuleMenu(ConnectorMenu):
             # Run the themes just on local data. Mask all outputs then
             # unmask only those containing the module name.
             core.mask_states(project,
-                             core._markers["output"],
+                             search_str=core._markers["output"],
                              no_merge=True,
                              update_status=False)
             core.unmask_states(project,
-                               module_name,
+                               search_str=module_name,
                                update_status=False)
             
             local_level = "{} {}".format(module_name, core._markers["local"])
