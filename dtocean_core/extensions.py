@@ -269,7 +269,7 @@ class StrategyManager(ExtensionManager):
 
         colormap = plt.cm.Set1
         colors = [colormap(i) for i in np.linspace(0, 1, num_plots)]
-        ax.set_color_cycle(colors)
+        ax.set_prop_cycle(color=colors)
             
         x = range(len(done_levels))
         metadata = core.get_metadata(var_id)
