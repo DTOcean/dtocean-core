@@ -1079,20 +1079,23 @@ def set_output_scope(core,
 
     # Mask all the local and global output levels
     core.mask_states(project,
+                     simulation,
                      core._markers["local"],
                      no_merge=True,
                      update_status=False)
     core.mask_states(project,
+                     simulation,
                      core._markers["global"],
                      no_merge=True,
                      update_status=False)
                                     
     # Unmask the levels relevant to the branch and scope.
     core.unmask_states(project,
+                       simulation,
                        unmask_level,
                        update_status=False)
                        
-    core.set_interface_status(project)
+    core.set_interface_status(project, simulation)
     
     return
 
