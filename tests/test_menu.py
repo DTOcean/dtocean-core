@@ -450,6 +450,23 @@ def test_DataMenu_select_database_no_port(mocker, tmpdir, project):
                                                "host": "-1.-1.-1.-1"})
 
 
+def test_DataMenu_select_database_no_port_dbname(mocker, tmpdir, project):
+
+    # Make a source directory with some files
+    config_tmpdir = tmpdir.mkdir("config")
+    mock_dir = Directory(str(config_tmpdir))
+    
+    mocker.patch("dtocean_core.utils.database.UserDataDirectory",
+                 return_value=mock_dir)
+                 
+    data_menu = DataMenu()
+    project = deepcopy(project)
+    
+    with pytest.raises(RuntimeError):
+        data_menu.select_database(project,
+                                  credentials={"host": "-1.-1.-1.-1"})
+
+
 def test_DataMenu_deselect_database(mocker, tmpdir, project):
 
     # Make a source directory with some files

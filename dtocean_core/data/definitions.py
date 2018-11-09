@@ -2146,7 +2146,9 @@ class CartesianListDict(CartesianList):
             df2 = pd.DataFrame(v, columns=columns[1:])
             df2["ID"] = [k]*v.shape[0]
             
-            df = df.append(df2, ignore_index=True)
+            df = df.append(df2,
+                           ignore_index=True,
+                           sort=False)
                    
         if ".xls" in self._path:
             df.to_excel(self._path, index=False)
@@ -3531,7 +3533,9 @@ class PolygonList(PolygonData):
             df2 = pd.DataFrame(v, columns=columns[1:])
             df2["ID"] = [k]*v.shape[0]
             
-            df = df.append(df2, ignore_index=True)
+            df = df.append(df2,
+                           ignore_index=True,
+                           sort=False)
         
         if ".xls" in self._path:
             df.to_excel(self._path, index=False)
@@ -3698,7 +3702,9 @@ class PolygonDict(PolygonData):
             df2 = pd.DataFrame(v, columns=columns[1:])
             df2["ID"] = [k]*v.shape[0]
             
-            df = df.append(df2, ignore_index=True)
+            df = df.append(df2,
+                           ignore_index=True,
+                           sort=False)
         
         if ".xls" in self._path:
             df.to_excel(self._path, index=False)

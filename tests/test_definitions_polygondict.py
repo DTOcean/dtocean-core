@@ -168,6 +168,35 @@ def test_PolygonDict_auto_file_input_bad_header(mocker):
         fin.connect()
 
 
+def test_PolygonDict_auto_file_output_bad_data(tmpdir):
+
+    test_path = tmpdir.mkdir("sub").join("test{}".format(".csv"))
+    test_path_str = str(test_path)
+           
+    raw = {"block 1": [(0., 0.),
+                       (1., 1.),
+                       (2., 2.)],
+           "block 2": [(10., 10.),
+                       (11., 11.),
+                       (12., 12.)]}
+        
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test"})
+
+    test = PolygonDict()
+    
+    fout_factory = InterfaceFactory(AutoFileOutput)
+    FOutCls = fout_factory(meta, test)
+    
+    fout = FOutCls()
+    fout._path = test_path_str
+    fout.data.result = raw
+
+    with pytest.raises(TypeError):
+        fout.connect()
+
+
 def test_PolygonDict_auto_plot(tmpdir):
         
     meta = CoreMetaData({"identifier": "test",

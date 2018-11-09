@@ -133,6 +133,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added database export and import command line tool called dtocean-database.
   This program can dump the database into a folder structure of excel and csv
   files and then overwrite the database using the same file structure.
+- Add "CAPEX (Excluding Externalities)" variable to show CAPEX resulting from
+  modules only.
   
 ### Changed
 
@@ -330,7 +332,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed bug when multiple interfaces are discovered for a variable in the
   pipeline.
 - Fixed upstream bug where timestamps could not be saved to excel files.
-
+- Fixed bug in set_output_state where only the output state of the active 
+  simulation would be changed. Correct behaviour is for all simulations to be 
+  modified.
 
 ## [1.0.0] - 2017-02-23
 
