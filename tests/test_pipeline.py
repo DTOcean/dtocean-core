@@ -7,7 +7,11 @@ import pytest
 from dtocean_core.core import Core
 from dtocean_core.interfaces import ModuleInterface, ThemeInterface
 from dtocean_core.menu import ModuleMenu, ProjectMenu, ThemeMenu 
-from dtocean_core.pipeline import Tree, InputVariable, OutputVariable, Variable
+from dtocean_core.pipeline import (Tree,
+                                   Variable, 
+                                   InputVariable,
+                                   OutputVariable,
+                                   set_output_scope)
 
 dir_path = os.path.dirname(__file__)
 
@@ -96,7 +100,9 @@ class AnotherMockModule(ModuleInterface):
     @classmethod
     def declare_outputs(cls):
         
-        return None
+        output_list = ['project.export_voltage']
+        
+        return output_list
         
     @classmethod
     def declare_optional(cls):
@@ -108,12 +114,15 @@ class AnotherMockModule(ModuleInterface):
         
         id_map = {"dummy1": "device.power_rating",
                   "dummy2": "project.layout",
-                  "dummy3": "project.number_of_devices"}
+                  "dummy3": "project.number_of_devices",
+                  "dummy4": "project.export_voltage"}
                   
         return id_map
                  
     def connect(self, debug_entry=False,
                       export_data=True):
+        
+        self.data.dummy4 = 1
         
         return
 
@@ -133,21 +142,25 @@ class MockTheme(ThemeInterface):
     @classmethod
     def declare_inputs(cls):
         
-        input_list = ["project.discount_rate"]
+        input_list = ["project.discount_rate",
+                      "project.number_of_devices",
+                      "project.export_voltage"]
         
         return input_list
 
     @classmethod
     def declare_outputs(cls):
         
-        output_list = ['project.capex_total']
+        output_list = ["project.capex_total"]
                 
         return output_list
         
     @classmethod
     def declare_optional(cls):
         
-        option_list = ["project.discount_rate"]
+        option_list = ["project.discount_rate",
+                       "project.number_of_devices",
+                       "project.export_voltage"]
         
         return option_list
         
@@ -155,12 +168,24 @@ class MockTheme(ThemeInterface):
     def declare_id_map(self):
         
         id_map = {"dummy1": "project.discount_rate",
-                  "dummy2": "project.capex_total"}
+                  "dummy2": "project.number_of_devices",
+                  "dummy3": "project.export_voltage",
+                  "dummy4": "project.capex_total"}
                   
         return id_map
                  
     def connect(self, debug_entry=False,
                       export_data=True):
+        
+        total = 0
+        
+        if self.data.dummy2 is not None:
+            total += self.data.dummy2
+        
+        if self.data.dummy3 is not None:
+            total += self.data.dummy3
+        
+        self.data.dummy4 = total
         
         return
 
@@ -427,3 +452,41 @@ def test_Variable__select_interface_multiple_error(core):
                                "ModuleInterface",
                                False,
                                False)
+
+
+def test_set_output_scope(core, project, module_menu, theme_menu, tree):
+    
+    project = deepcopy(project)
+    
+    module_menu.activate(core, project, "Mock Module")
+    module_menu.activate(core, project, "Mock Module 2")
+    theme_menu.activate(core, project, "Mock Theme")
+
+    mod1_branch = tree.get_branch(core, project, "Mock Module")
+    mod1_branch.read_test_data(core,
+                               project,
+                               os.path.join(dir_path, "inputs_wp2_tidal.pkl"))
+    
+    mod2_branch = tree.get_branch(core, project, "Mock Module 2")
+    mod2_branch.read_test_data(core,
+                               project,
+                               os.path.join(dir_path, "inputs_wp2_tidal.pkl"))
+    
+    module_menu.execute_current(core, project)
+    module_menu.execute_current(core, project)
+    
+    theme_branch = tree.get_branch(core, project, "Mock Theme")
+    new_var = theme_branch.get_output_variable(core,
+                                               project,
+                                               'project.capex_total')
+    value = new_var.get_value(core, project)
+    
+    assert value == 2
+    
+    set_output_scope(core,
+                     project,
+                     scope="local")
+    
+    value = new_var.get_value(core, project)
+    
+    assert value == 1

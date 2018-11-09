@@ -246,8 +246,8 @@ class StrategyManager(ExtensionManager):
                                            scope)
         done_levels = self._module_menu.get_completed(core, project)
         
-        # Check the number of levels in each simulation        
-        sim_lengths = []        
+        # Check the number of levels in each simulation
+        sim_lengths = []
         
         for level_values in sim_levels.itervalues():
             sim_lengths.append(len(level_values.values()))
@@ -273,11 +273,11 @@ class StrategyManager(ExtensionManager):
             
         x = range(len(done_levels))
         metadata = core.get_metadata(var_id)
-                
+        
         for i, (sim_key, level_values) in enumerate(sim_levels.iteritems()):
             
             # Do not exceed the maximum number of lines
-            if i == max_lines: break 
+            if i == max_lines: break
             
             sane_values = []
             
@@ -300,7 +300,7 @@ class StrategyManager(ExtensionManager):
                 
                 sane_values.append(value)
         
-            plt.plot(x, sane_values, '-o', label=sim_key) 
+            plt.plot(x, sane_values, '-o', label=sim_key)
             plt.ylabel(metadata.title)
         
         plt.xticks(x, done_levels, rotation='vertical')
