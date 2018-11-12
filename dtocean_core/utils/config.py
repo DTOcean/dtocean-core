@@ -27,7 +27,7 @@ from polite.paths import (ObjDirectory,
                           UserDataDirectory,
                           DirectoryMap)
 
-from .. import start_logging
+from . import SmartFormatter
 
 # Set up logging
 module_logger = logging.getLogger(__name__)
@@ -62,52 +62,48 @@ def init_config_parser(args):
             
     '''
     
-    epiStr = ('Mathew Topper (c) 2017.')
+    epiStr = ('Mathew Topper (c) 2018.')
               
     desStr = ("Copy user modifiable configuration files to "
               "User\AppData\Roaming\DTOcean\dtocean-core\config")
 
     parser = argparse.ArgumentParser(description=desStr,
-                                     epilog=epiStr)
+                                     epilog=epiStr,
+                                     formatter_class=SmartFormatter)
     
-    parser.add_argument("--logging",
-                        help=("copy logging configuration"),
-                        action="store_true")
-    
-    parser.add_argument("--database",
-                        help=("copy database configuration"),
-                        action="store_true")
-    
-    parser.add_argument("--files",
-                        help=("copy log and debug files location "
-                              "configuration"),
-                        action="store_true")
-    
+    parser.add_argument("action",
+                        choices=['logging', 'database', 'files'],
+                        help="R|Select an action, where\n"
+                             " logging = copy logging configuration\n"
+                             " database = copy database configuration\n"
+                             " files = copy file location configuration")
+
     parser.add_argument("--overwrite",
                         help=("overwrite any existing configuration files"),
                         action="store_true")
     
     args = parser.parse_args(args)
                         
-    logging = args.logging
-    database = args.database
-    files = args.files
+    action = args.action
     overwrite = args.overwrite
     
-    return logging, database, files, overwrite
+    return action, overwrite
 
 
 def init_config_interface():
     
     '''Command line interface for init_config.'''
     
-    start_logging()
+    action, overwrite = init_config_parser(sys.argv[1:])
     
-    logging, database, files, overwrite = init_config_parser(sys.argv[1:])
-    dir_path = init_config(logging=logging,
-                           database=database,
-                           files=files,
-                           overwrite=overwrite)
+    kwargs = {"logging": False,
+              "database": False,
+              "files": False,
+              "overwrite": overwrite}
+    
+    kwargs[action] = True
+    
+    dir_path = init_config(**kwargs)
     
     if dir_path is not None:
         log_msg =  "Copying configuration files to {}".format(dir_path)
