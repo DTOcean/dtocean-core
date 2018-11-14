@@ -433,6 +433,10 @@ class Project(object):
         
     def set_simulation_title(self, new_title, index=None, title=None):
         
+        simulation = self._get_simulation(index, title)
+        
+        if title is None: title = simulation.get_title()
+        
         # Skip matching simulation titles
         if index is None and title is not None and title == new_title: return
         
@@ -447,7 +451,6 @@ class Project(object):
                           "exists").format(new_title)
                 raise ValueError(errStr)
                 
-        simulation = self._get_simulation(index, title)
         simulation.set_title(new_title)
         
         self._set_simulation(simulation)
