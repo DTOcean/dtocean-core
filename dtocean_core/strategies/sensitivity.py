@@ -115,32 +115,33 @@ class UnitSensitivity(Strategy):
             errStr = "Project has not been activated."
             raise RuntimeError(errStr)
             
-        sim_title = None
-                        
+        sim_titles = []
+        
         # Iterate through the values up to last entry
-        for i, unit_value in enumerate(variable_values[:-1]):
+        for unit_value in variable_values[:-1]:
 
             # Set the variable
             new_title = self._get_title_str(unit_meta, unit_value)
             
             # Deal with identical titles
-            if sim_title is None:
-                sim_title = new_title
-            elif new_title == sim_title:
-                new_title = "{} [repeat {}]".format(new_title, i)               
+            if new_title in sim_titles:
+                n_reps = sum((x.count(new_title) for x in sim_titles))
+                new_title = "{} [repeat {}]".format(new_title, n_reps)
+            
+            sim_titles.append(new_title)
             
             project.set_simulation_title(new_title)
             
             unit_var.set_raw_interface(core, unit_value)
             unit_var.read(core, project)
             
-            success_flag = self._safe_exe(core, project, sim_title)
+            success_flag = self._safe_exe(core, project, new_title)
             
             # Move to the required branch and create a new simulation clone
             if success_flag:
             
                 self.add_simulation_index(sim_index)
-                core.clone_simulation(project)                
+                core.clone_simulation(project)
                 sim_index = project.get_active_index()
                 
             mod_branch.reset(core, project)
@@ -149,8 +150,9 @@ class UnitSensitivity(Strategy):
         new_title = self._get_title_str(unit_meta,  variable_values[-1])
         
         # Deal with identical titles
-        if sim_title is not None and new_title == sim_title:
-            new_title = "{} [repeat {}]".format(new_title, i + 1)
+        if new_title in sim_titles:
+            n_reps = sum((x.count(new_title) for x in sim_titles))
+            new_title = "{} [repeat {}]".format(new_title, n_reps)
         
         project.set_simulation_title(new_title)
             
@@ -158,15 +160,17 @@ class UnitSensitivity(Strategy):
         unit_var.read(core, project)
 
         # Run the simulation
-        success_flag = self._safe_exe(core, project, sim_title)
+        success_flag = self._safe_exe(core, project, new_title)
         
         if success_flag:
             self.add_simulation_index(sim_index)
 
-            
         return
         
     def _safe_exe(self, core, project, sim_title):
+        
+        msg = 'Executing simulation "{}"'.format(sim_title)
+        module_logger.info(msg)
         
         success_flag = True
                 
