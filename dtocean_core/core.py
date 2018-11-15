@@ -1260,7 +1260,8 @@ class Core(object):
     def get_project_values(self, project,
                                  data_identity,
                                  level,
-                                 force_indexes=None):
+                                 force_indexes=None,
+                                 allow_none=False):
                                      
         """Collect the value of a given identity at a given level for all
         simulations in the project"""
@@ -1284,7 +1285,7 @@ class Core(object):
                                                     level=level,
                                                     check_identity=True)
                                       
-            if sim_value is None: continue
+            if sim_value is None and not allow_none: continue
                 
             project_values.append((sim_title, sim_value))
             
