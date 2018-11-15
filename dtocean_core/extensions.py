@@ -357,12 +357,14 @@ class StrategyManager(ExtensionManager):
         var_one_values = core.get_project_values(project,
                                                  var_one_id,
                                                  output_level,
-                                                 force_indexes=sim_indexes)
+                                                 force_indexes=sim_indexes,
+                                                 allow_none=True)
 
         var_two_values = core.get_project_values(project,
                                                  var_two_id,
                                                  output_level,
-                                                 force_indexes=sim_indexes)
+                                                 force_indexes=sim_indexes,
+                                                 allow_none=True)
         
         if var_one_values is None or var_two_values is None:
             x = []
