@@ -1329,6 +1329,7 @@ class MaintenanceInterface(ModuleInterface):
 
         installation_input_dict = InstallationInterface.get_input_dict(
                                     self.data,
+                                    self.meta,
                                     self.data.bathymetry,
                                     self.data.system_type,
                                     self.data.array_layout,
