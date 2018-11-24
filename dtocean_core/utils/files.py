@@ -24,6 +24,7 @@ Created on Tue Feb 23 15:38:18 2016
 import os
 import shutil
 import pickle
+import tarfile
 import zipfile
 import tempfile
 
@@ -67,39 +68,18 @@ def package_dir(src_dir_path, dst_path, archive=False):
      
         return
 
-    zip_dir_path = tempfile.mkdtemp()
+    tgz_dir_path = tempfile.mkdtemp()
     
     project_file_name = os.path.split(dst_path)[1]
-    zip_file_name = "{}.zip".format(project_file_name)
-    zip_file_path = os.path.join(zip_dir_path, zip_file_name)
+    tgz_file_name = "{}.tar.gz".format(project_file_name)
+    tgz_file_path = os.path.join(tgz_dir_path, tgz_file_name)
     
-    first = True
-        
-    for root, dirs, files in os.walk(src_dir_path):
-
-        for name in files:
-            
-            file_path = os.path.join(root, name)
-            short_path = file_path.replace(src_dir_path, "")
-                            
-            if first:
-                mode = "w"
-                first = False
-            else:
-                mode = "a"
-            
-            zf = zipfile.ZipFile(zip_file_path,
-                                 mode,
-                                 zipfile.ZIP_DEFLATED)
-            
-            try:
-                zf.write(file_path, arcname=short_path)
-            finally:
-                zf.close()
+    with tarfile.open(tgz_file_path, "w:gz") as tar:
+        tar.add(src_dir_path, arcname="")
     
-    shutil.move(zip_file_path, dst_path)
+    shutil.move(tgz_file_path, dst_path)
     
-    shutil.rmtree(zip_dir_path)
+    shutil.rmtree(tgz_dir_path)
     shutil.rmtree(src_dir_path)
     
     return
