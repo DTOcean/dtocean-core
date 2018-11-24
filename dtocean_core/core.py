@@ -21,6 +21,7 @@ import json
 import shutil
 import pickle
 import logging
+import tarfile
 import zipfile
 import tempfile
 from copy import deepcopy
@@ -773,9 +774,15 @@ class Core(object):
             # Unzip the file to a temporary directory
             prj_dir_path = tempfile.mkdtemp()
             
-            zf = zipfile.ZipFile(load_path, 'r')
-            zf.extractall(prj_dir_path)
-            zf.close()
+            # Determine if archive is new tar style or legacy zip
+            if tarfile.is_tarfile(load_path):
+                tar = tarfile.open(load_path)
+                tar.extractall(prj_dir_path)
+                tar.close()
+            else:
+                zf = zipfile.ZipFile(load_path, 'r')
+                zf.extractall(prj_dir_path)
+                zf.close()
             
             remove_prj_dir = True
             
