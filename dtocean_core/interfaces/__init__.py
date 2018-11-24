@@ -22,21 +22,20 @@ Created on Sat Apr 11 21:38:18 2015
 """
 
 from aneris.boundary.interface import (FileInterface,
-                                       MapInterface,
                                        MetaInterface,
                                        WeightedInterface)
 
-class ProjectInterface(MapInterface):
+class ProjectInterface(MetaInterface):
 
     '''QueryInterface subclass for database queries'''
 
 
-class ModuleInterface(WeightedInterface, MapInterface):
+class ModuleInterface(WeightedInterface, MetaInterface):
 
     '''MapInterface subclass for the computational modules'''
 
 
-class ThemeInterface(WeightedInterface, MapInterface):
+class ThemeInterface(WeightedInterface, MetaInterface):
 
     '''MapInterface subclass for the thematic assessement modules'''
 
