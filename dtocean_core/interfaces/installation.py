@@ -599,6 +599,7 @@ class InstallationInterface(ModuleInterface):
             zone = zone + ' U' # prepare for module
 
         input_dict = self.get_input_dict(self.data,
+                                         self.meta,
                                          self.data.site,
                                          self.data.system_type,
                                          self.data.layout,
@@ -614,8 +615,10 @@ class InstallationInterface(ModuleInterface):
             
             if foundations_data is None:
                 
-                errStr = ("Complete moorings and foundations data has not "
-                          "been provided.")
+                var_name = self.meta.foundations_data.title
+                errStr = ("Complete foundations data has not been provided. "
+                          "Variable with title {} must be "
+                          "satisfied").format(var_name)
                 raise ValueError(errStr)
             
             network = self.data.mf_network['nodes']
@@ -706,19 +709,45 @@ class InstallationInterface(ModuleInterface):
             
             foundations_df = pd.DataFrame(foundations)
 
-        if "floating" in self.data.system_type.lower():
+        if (self.data.mf_network is not None and
+            "floating" in self.data.system_type.lower()):
+            
+            line_components = self.data.line_component_data
+            line_data = self.data.line_summary_data
+            
+            missing_titles = []
+            
+            if line_components is None:
+                missing_titles.append(self.meta.line_component_data.title)
+            
+            if line_data is None:
+                missing_titles.append(self.meta.line_summary_data.title)
+            
+            if missing_titles:
+
+                var_str = "Variable"
+                if len(missing_titles) > 1: var_str += "s"
+                
+                title_str = "title"
+                if len(missing_titles) > 1: title_str += "s"
+                
+                quote_missing = ["'{}'".format(x) for x in missing_titles]
+                all_missing = ", ".join(quote_missing)
+                
+                errStr = ("Complete moorings data has not been provided. "
+                          "{} with {} {} must be "
+                          "satisfied.").format(var_str, title_str, all_missing)
+                raise ValueError(errStr)
 
             # get first marker of each line id
-            all_lines = \
-                    self.data.line_component_data['Line Identifier'].unique()
+            all_lines = line_components['Line Identifier'].unique()
         
             device_association = []
         
             for line in all_lines:
         
-                marker = self.data.line_component_data[
-                    self.data.line_component_data['Line Identifier'] == \
-                    line].Marker.iloc[0]
+                marker = line_components[
+                    line_components['Line Identifier'] == line].Marker.iloc[0]
 
                 device_association.append(
                     find_marker_key_mf(network, marker, 'mooring'))
@@ -727,8 +756,10 @@ class InstallationInterface(ModuleInterface):
             line_interm = pd.DataFrame({"Device": device_association, 
                                         "Line Identifier": all_lines})
 
-            lines_df = pd.merge(self.data.line_summary_data, line_interm,
-                                  on = 'Line Identifier', how ='inner')
+            lines_df = pd.merge(line_data,
+                                line_interm,
+                                on = 'Line Identifier',
+                                how ='inner')
 
             # set index
             ids = lines_df.index.tolist()
@@ -1556,6 +1587,7 @@ class InstallationInterface(ModuleInterface):
     
     @classmethod    
     def get_input_dict(cls, data,
+                            meta,
                             bathymetry,
                             system_type,
                             array_layout,
@@ -2683,20 +2715,46 @@ class InstallationInterface(ModuleInterface):
             cable_route_df = data.cable_routes
             landfall = data.landfall
             
-            data_missing = False
+            missing_titles = []
             
-            if elec_component_data_df is None: data_missing = True
-            if elec_substation_data is None: data_missing = True
-            if elec_static_cables_df is None: data_missing = True
-            if elec_dry_mate_df is None: data_missing = True
-            if elec_wet_mate_df is None: data_missing = True
-            if cable_route_df is None: data_missing = True
-            if landfall is None: data_missing = True
+            if elec_component_data_df is None:
+                missing_titles.append(meta.electrical_components.title)
             
-            if data_missing:
+            if elec_substation_data is None:
+                missing_titles.append(meta.substations.title)
+                
+            if elec_static_cables_df is None:
+                missing_titles.append(meta.elec_db_static_cable.title)
+            
+            if elec_dynamic_cables_df is None:
+                missing_titles.append(meta.elec_db_dynamic_cable.title)
+            
+            if elec_dry_mate_df is None:
+                missing_titles.append(meta.elec_db_dry_mate.title)
+                
+            if elec_wet_mate_df is None:
+                missing_titles.append(meta.elec_db_wet_mate.title)
+                
+            if cable_route_df is None:
+                missing_titles.append(meta.cable_routes.title)
+                
+            if landfall is None:
+                missing_titles.append(meta.landfall.title)
+            
+            if missing_titles:
+
+                var_str = "Variable"
+                if len(missing_titles) > 1: var_str += "s"
+                
+                title_str = "title"
+                if len(missing_titles) > 1: title_str += "s"
+                
+                quote_missing = ["'{}'".format(x) for x in missing_titles]
+                all_missing = ", ".join(quote_missing)
                 
                 errStr = ("Complete electrical network data has not been "
-                          "provided.")
+                          "provided. {} with {} {} must be "
+                          "satisfied.").format(var_str, title_str, all_missing)
                 raise ValueError(errStr)
             
             collection_point_df = set_collection_points(elec_component_data_df,
