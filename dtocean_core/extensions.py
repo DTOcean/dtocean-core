@@ -476,13 +476,17 @@ class StrategyManager(ExtensionManager):
         if var_two_meta.units is not None:
             var_two_str = "{} ({})".format(var_two_str,
                                            var_two_meta.units[0])
+        
+        if x_ticks is None:
             
-        if len(x) == 1:
-            plt.plot(x, y, marker='o', ls='')
+            if len(x) == 1:
+                plt.plot(x, y, marker='o', ls='')
+            else:
+                plt.plot(x,y)
+            
         else:
-            plt.plot(x,y)
             
-        if x_ticks is not None:
+            plt.bar(x, y, align="center")
             plt.xticks(x, x_ticks, rotation='vertical')
         
         plt.xlabel(var_one_str)
