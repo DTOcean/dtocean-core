@@ -144,9 +144,13 @@ class InstallationInterface(ModuleInterface):
                         "device.disconnect_duration",
                         "device.two_stage_assembly",
                         
-                        "component.dry_mate_connectors",
-                        "component.dynamic_cable",
                         "component.static_cable",
+
+                        MaskVariable("component.dynamic_cable",
+                                     'device.system_type',
+                                     ['Tidal Floating', 'Wave Floating']),
+                        
+                        "component.dry_mate_connectors",
                         "component.wet_mate_connectors",
                         "component.rov",
                         "component.divers",
@@ -192,21 +196,21 @@ class InstallationInterface(ModuleInterface):
                         "project.substation_props",
                         
                         MaskVariable("project.umbilical_cable_data",
-                                      'device.system_type',
-                                      ['Tidal Floating', 'Wave Floating']),
+                                     'device.system_type',
+                                     ['Tidal Floating', 'Wave Floating']),
                         MaskVariable("project.umbilical_seabed_connection",
-                                      'device.system_type',
-                                      ['Tidal Floating', 'Wave Floating']),
+                                     'device.system_type',
+                                     ['Tidal Floating', 'Wave Floating']),
                         
                         "project.moorings_foundations_network",
                         "project.foundations_component_data",
                         
                         MaskVariable("project.moorings_line_data",
-                                      'device.system_type',
-                                      ['Tidal Floating', 'Wave Floating']),
+                                     'device.system_type',
+                                     ['Tidal Floating', 'Wave Floating']),
                         MaskVariable("project.moorings_component_data",
-                                      'device.system_type',
-                                      ['Tidal Floating', 'Wave Floating']),
+                                     'device.system_type',
+                                     ['Tidal Floating', 'Wave Floating']),
                                      
                         "project.surface_laying_rate",
                         "project.split_pipe_laying_rate",

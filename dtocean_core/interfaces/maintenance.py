@@ -165,19 +165,19 @@ class MaintenanceInterface(ModuleInterface):
                         'device.control_subsystem_replacement',
                         'device.control_subsystem_operation_weightings',
                         
-                        'component.static_cable',
-                        
+                        "component.static_cable",
+
                         MaskVariable("component.dynamic_cable",
                                      'device.system_type',
                                      ['Tidal Floating', 'Wave Floating']),
-                        
-                        'component.dry_mate_connectors',
-                        'component.wet_mate_connectors',
-                        'component.transformers',
+
+                        "component.dry_mate_connectors",
+                        "component.wet_mate_connectors",
                         'component.collection_points',
                         'component.collection_point_cog',
                         'component.collection_point_foundations',
-                        
+                        'component.transformers',
+
                         "component.foundations_anchor",
                         'component.foundations_anchor_sand',
                         'component.foundations_anchor_soft',
@@ -202,29 +202,31 @@ class MaintenanceInterface(ModuleInterface):
                                      'device.system_type',
                                      ['Tidal Floating', 'Wave Floating']),
 
-                        "component.collection_points_NCFR",
-                        "component.dry_mate_connectors_NCFR",
-                        "component.dynamic_cable_NCFR",
                         "component.static_cable_NCFR",
-                        "component.transformers_NCFR",
+                        "component.dynamic_cable_NCFR",
+                        "component.dry_mate_connectors_NCFR",
                         "component.wet_mate_connectors_NCFR",
-                        "component.collection_points_CFR",
-                        "component.dry_mate_connectors_CFR",
-                        "component.dynamic_cable_CFR",
+                        "component.collection_points_NCFR",
+                        "component.transformers_NCFR",
                         "component.static_cable_CFR",
-                        "component.transformers_CFR",
+                        "component.dynamic_cable_CFR",
+                        "component.dry_mate_connectors_CFR",
                         "component.wet_mate_connectors_CFR",
-                        "component.moorings_chain_NCFR",
+                        "component.collection_points_CFR",
+                        "component.transformers_CFR",
+                                    
                         "component.foundations_anchor_NCFR",
-                        "component.moorings_forerunner_NCFR",
                         "component.foundations_pile_NCFR",
+                        "component.foundations_anchor_CFR",
+                        "component.foundations_pile_CFR",
+                        
+                        "component.moorings_chain_NCFR",
+                        "component.moorings_forerunner_NCFR",
                         "component.moorings_rope_NCFR",
                         "component.moorings_shackle_NCFR",
                         "component.moorings_swivel_NCFR",
                         "component.moorings_chain_CFR",
-                        "component.foundations_anchor_CFR",
                         "component.moorings_forerunner_CFR",
-                        "component.foundations_pile_CFR",
                         "component.moorings_rope_CFR",
                         "component.moorings_shackle_CFR",
                         "component.moorings_swivel_CFR",
@@ -265,15 +267,14 @@ class MaintenanceInterface(ModuleInterface):
                         "component.operations_limit_cs",
 
                         "project.layout",
-                        "project.substation_layout",
                         "project.annual_energy_per_device",
                         "project.mean_power_per_device",
-                        
-                        "project.network_configuration",
-                        'project.landfall_contruction_technique',
                         "project.electrical_network",
+
+                        "project.network_configuration",
                         'project.cable_routes',
                         'project.electrical_component_data',
+                        "project.substation_layout",
                         'project.substation_props',
                         
                         MaskVariable('project.umbilical_cable_data',
@@ -283,6 +284,9 @@ class MaintenanceInterface(ModuleInterface):
                                      'device.system_type',
                                      ['Tidal Floating', 'Wave Floating']),
                         
+                        'project.landfall_contruction_technique',
+                        'project.selected_installation_tool',
+              
                         "project.moorings_foundations_network",
                         "project.moorings_foundations_economics_data",
                         
@@ -293,7 +297,6 @@ class MaintenanceInterface(ModuleInterface):
                         'project.cost_contingency',
                         'project.port_percentage_cost',
                         'project.lease_area_entry_point',
-                        'project.selected_installation_tool',
                         
                         'project.port_safety_factors',
                         'project.vessel_safety_factors',
@@ -325,22 +328,29 @@ class MaintenanceInterface(ModuleInterface):
                         'project.array_cables_operations_weighting',
                         'project.export_cable_operations_weighting',
                         'project.substations_operations_weighting',
-                        'project.foundations_operations_weighting',
-                        'project.moorings_operations_weighting',
-                        
+
                         MaskVariable('project.umbilical_operations_weighting',
+                                     'device.system_type',
+                                      ['Tidal Floating', 'Wave Floating']),
+                        
+                        'project.foundations_operations_weighting',
+
+                        MaskVariable('project.moorings_operations_weighting',
                                      'device.system_type',
                                      ['Tidal Floating', 'Wave Floating']),
                         
                         'project.electrical_inspections_requirements',
                         'project.moorings_inspections_requirements',
+                        
                         'project.electrical_onsite_maintenance_requirements',
                         'project.moorings_onsite_maintenance_requirements',
+                        
                         'project.electrical_replacement_requirements',
                         'project.moorings_replacement_requirements',
 
                         'project.electrical_onsite_maintenance_parts',
                         'project.moorings_onsite_maintenance_parts',
+                        
                         'project.electrical_replacement_parts',
                         'project.moorings_replacement_parts',
 
@@ -368,7 +378,7 @@ class MaintenanceInterface(ModuleInterface):
                  
         return input_list
 
-    @classmethod        
+    @classmethod
     def declare_outputs(cls):
         
         '''A class method to declare all the output variables provided by
