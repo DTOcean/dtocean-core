@@ -776,7 +776,7 @@ class Core(object):
             
             # Determine if archive is new tar style or legacy zip
             if tarfile.is_tarfile(load_path):
-                tar = tarfile.open(load_path)
+                tar = tarfile.open(load_path, 'r:gz')
                 tar.extractall(prj_dir_path)
                 tar.close()
             else:
