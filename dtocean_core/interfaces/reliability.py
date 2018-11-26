@@ -403,6 +403,8 @@ class ReliabilityInterface(ThemeInterface):
             network_configuration = "radial"
         elif self.data.network_configuration_user == "Star":
             network_configuration = "multiplehubs"
+        else:
+            network_configuration = None
             
         ram_df = read_RAM(main.rsubsysvalues2,
                           main.rsubsysvalues3,
@@ -538,7 +540,7 @@ class ReliabilityInterface(ThemeInterface):
                 network_configuration = "multiplehubs"
              
         # Component Check
-        if data.electrical_network is not None:      
+        if data.electrical_network is not None:
                     
             if (data.collection_points_NCFR is None or 
                 data.collection_points_CFR is None or
