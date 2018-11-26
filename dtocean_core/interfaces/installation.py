@@ -148,7 +148,6 @@ class InstallationInterface(ModuleInterface):
                         "component.dynamic_cable",
                         "component.static_cable",
                         "component.wet_mate_connectors",
-                        "component.transformers",
                         "component.rov",
                         "component.divers",
                         "component.cable_burial",
@@ -341,7 +340,6 @@ class InstallationInterface(ModuleInterface):
                     "component.dynamic_cable",
                     "component.static_cable",
                     "component.wet_mate_connectors",
-                    "component.transformers",
                     "component.operations_limit_hs",
                     "component.operations_limit_tp",
                     "component.operations_limit_ws",
@@ -476,7 +474,6 @@ class InstallationInterface(ModuleInterface):
                   "elec_db_dynamic_cable": "component.dynamic_cable",
                   "elec_db_static_cable": "component.static_cable",
                   "elec_db_wet_mate": "component.wet_mate_connectors",
-                  "elec_db_transformers": "component.transformers",
                   "device_component_costs":
                       "project.device_phase_installation_costs",
                   "device_component_cost_breakdown":
