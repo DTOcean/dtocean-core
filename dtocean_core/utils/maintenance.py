@@ -37,7 +37,6 @@ module_logger = logging.getLogger(__name__)
 
 
 def get_input_tables(system_type,
-                     network_type,
                      array_layout,
                      bathymetry,
                      maintenance_start,

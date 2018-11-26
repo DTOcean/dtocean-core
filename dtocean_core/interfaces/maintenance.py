@@ -1123,7 +1123,6 @@ class MaintenanceInterface(ModuleInterface):
          repair_action_df,
          inspection_df) = get_input_tables(
                             self.data.system_type,
-                            self.data.network_type,
                             self.data.array_layout,
                             self.data.bathymetry,
                             self.data.commissioning_date,
