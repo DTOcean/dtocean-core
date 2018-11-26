@@ -73,10 +73,17 @@ def package_dir(src_dir_path, dst_path, archive=False):
     project_file_name = os.path.split(dst_path)[1]
     tgz_file_name = "{}.tar.gz".format(project_file_name)
     tgz_file_path = os.path.join(tgz_dir_path, tgz_file_name)
-    
+
     with tarfile.open(tgz_file_path, "w:gz") as tar:
-        tar.add(src_dir_path, arcname="")
+        
+        for root, dirs, files in os.walk(src_dir_path):
     
+            for name in files:
+                
+                file_path = os.path.join(root, name)
+                short_path = file_path.replace(src_dir_path, "")
+                tar.add(file_path, arcname=short_path)
+
     shutil.move(tgz_file_path, dst_path)
     
     shutil.rmtree(tgz_dir_path)
