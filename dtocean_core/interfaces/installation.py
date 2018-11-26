@@ -2706,7 +2706,6 @@ class InstallationInterface(ModuleInterface):
             elec_component_data_df = data.electrical_components
             elec_substation_data = data.substations
             elec_static_cables_df = data.elec_db_static_cable
-            elec_dynamic_cables_df = data.elec_db_dynamic_cable
             elec_dry_mate_df = data.elec_db_dry_mate
             elec_wet_mate_df = data.elec_db_wet_mate
             cable_route_df = data.cable_routes
@@ -2723,9 +2722,6 @@ class InstallationInterface(ModuleInterface):
             if elec_static_cables_df is None:
                 missing_titles.append(meta.elec_db_static_cable.title)
             
-            if elec_dynamic_cables_df is None:
-                missing_titles.append(meta.elec_db_dynamic_cable.title)
-            
             if elec_dry_mate_df is None:
                 missing_titles.append(meta.elec_db_dry_mate.title)
                 
@@ -2737,6 +2733,9 @@ class InstallationInterface(ModuleInterface):
                 
             if landfall is None:
                 missing_titles.append(meta.landfall.title)
+                
+            if data.cable_tool is None:
+                missing_titles.append(meta.cable_tool.title)
             
             if missing_titles:
 
@@ -2820,6 +2819,13 @@ class InstallationInterface(ModuleInterface):
             
             if 'floating' in system_type.lower():
                 
+                if data.elec_db_dynamic_cable is None:
+                    
+                    errStr = ("The dynamic electrical cable database must be "
+                              "provided for electrical network installation "
+                              "of floating devices")
+                    raise ValueError(errStr)
+                
                 if data.umbilical_terminations is None:
                     
                     errStr = ("The umbilical seabed connection points must be "
@@ -2830,7 +2836,7 @@ class InstallationInterface(ModuleInterface):
                 dynamic_cable_df = set_cables(elec_component_data_df,
                                               elec_network_design,
                                               elec_hierarchy,
-                                              elec_dynamic_cables_df,
+                                              data.elec_db_dynamic_cable,
                                               'dynamic')
 
                 umbilical_ends = {name.lower(): val for name, val in
