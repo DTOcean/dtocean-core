@@ -492,7 +492,8 @@ class StrategyManager(ExtensionManager):
         plt.xlabel(var_one_str)
         plt.ylabel(var_two_str)
         plt.title("Simulation Comparison at Module: {} "
-                  "({} Scope)".format(module, scope.capitalize()))
+                  "({} Scope)".format(module, scope.capitalize()),
+                  y=1.08)
         
         plt.tight_layout()
                 
