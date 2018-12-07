@@ -360,7 +360,7 @@ class ArrayCablesPlot(PlotInterface):
                    numpoints=1)
         
         plt.title("Electrical Cable Layout")
-        plt.tight_layout()
+        plt.tight_layout(rect=[0, 0.04, 0.84, 0.96])
         
         self.fig_handle = plt.gcf()
         
