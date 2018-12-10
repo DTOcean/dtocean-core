@@ -92,6 +92,21 @@ def package_dir(src_dir_path, dst_path, archive=False):
     return
 
 
+def unpack_archive(src_path, dst_path):
+    
+    # Determine if archive is new tar style or legacy zip
+    if tarfile.is_tarfile(src_path):
+        tar = tarfile.open(src_path, 'r:gz')
+        tar.extractall(dst_path)
+        tar.close()
+    else:
+        zf = zipfile.ZipFile(src_path, 'r')
+        zf.extractall(dst_path)
+        zf.close()
+        
+    return
+
+
 def onerror(func, path, exc_info):
     """
     Error handler for ``shutil.rmtree``.
