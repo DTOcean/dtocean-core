@@ -22,15 +22,17 @@ def test_init_config(mocker, tmpdir):
 
 def test_init_config_parser():
     
-    args = init_config_parser([])
+    action, overwrite = init_config_parser(['logging'])
     
-    assert not any(args)
+    assert action == 'logging'
+    assert not overwrite
 
 
 def test_init_config_parser_overwrite():
     
-    overwrite = init_config_parser(["--overwrite"])
+    action, overwrite = init_config_parser(['logging', "--overwrite"])
     
+    assert action == 'logging'
     assert overwrite
     
     
@@ -44,9 +46,9 @@ def test_init_config_interface(mocker, tmpdir):
                  return_value=mock_dir,
                  autospec=True)
     mocker.patch('dtocean_core.utils.config.init_config_parser',
-                 return_value=(True, True, True, False),
+                 return_value=('logging', False),
                  autospec=True)
                  
     init_config_interface()
         
-    assert len(config_tmpdir.listdir()) == 3
+    assert len(config_tmpdir.listdir()) == 1
