@@ -6,7 +6,7 @@ from copy import deepcopy
 
 import pytest
 
-from dtocean_core.core import Connector, Core, Project
+from dtocean_core.core import Connector, Core, OrderedSim, Project
 from dtocean_core.interfaces import ModuleInterface, ThemeInterface
 from dtocean_core.menu import ModuleMenu, ProjectMenu, ThemeMenu
 from dtocean_core.pipeline import Tree
@@ -683,6 +683,46 @@ def test_OrderedSim_get_output_ids_valid_statuses(core, project):
     result = test.get_output_ids(valid_statuses=["satisfied"])
         
     assert set(result) == set(['hidden.pipeline_active'])
+
+
+def test_Project_add_simulation(project):
+    
+    project = deepcopy(project)
+
+    new_sim = OrderedSim("test")
+    project.add_simulation(new_sim, True)
+    
+    assert project.get_simulation_title() == "test"
+
+
+def test_Project_set_simulation_title(project):
+    
+    project = deepcopy(project)
+    project.set_simulation_title("test")
+    
+    assert project.get_simulation_title() == "test"
+
+
+def test_Project_set_simulation_title_identical(project):
+    
+    project = deepcopy(project)
+    
+    assert project.get_simulation_title() == "Default"
+    
+    project.set_simulation_title("Default")
+    
+    assert True
+
+
+def test_Project_set_simulation_title_used(project):
+    
+    project = deepcopy(project)
+    
+    new_sim = OrderedSim("test")
+    project.add_simulation(new_sim, True)
+    
+    with pytest.raises(ValueError):
+        project.set_simulation_title("Default")
 
 
 def test_Connector_force_completed(core, project):
