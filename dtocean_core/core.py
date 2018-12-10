@@ -14,15 +14,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
 import os
 import json
 import shutil
 import pickle
 import logging
-import tarfile
-import zipfile
 import tempfile
 from copy import deepcopy
 
@@ -41,7 +37,6 @@ from aneris.control.sockets import NamedSocket, Socket
 from aneris.entity.data import DataCatalog, DataPool
 from aneris.entity.simulation import Simulation
 from aneris.utilities.data import check_integrity
-from aneris.utilities.database import PostgreSQL
 from aneris.utilities.misc import OrderedSet
 
 from . import data as core_data
@@ -50,7 +45,7 @@ from .interfaces import (FileInputInterface,
                          FileOutputInterface,
                          PlotInterface)
 from .utils.database import get_database
-from .utils.files import package_dir
+from .utils.files import package_dir, unpack_archive
 
 # Set up logging
 module_logger = logging.getLogger(__name__)
@@ -773,17 +768,7 @@ class Core(object):
             
             # Unzip the file to a temporary directory
             prj_dir_path = tempfile.mkdtemp()
-            
-            # Determine if archive is new tar style or legacy zip
-            if tarfile.is_tarfile(load_path):
-                tar = tarfile.open(load_path, 'r:gz')
-                tar.extractall(prj_dir_path)
-                tar.close()
-            else:
-                zf = zipfile.ZipFile(load_path, 'r')
-                zf.extractall(prj_dir_path)
-                zf.close()
-            
+            unpack_archive(load_path, prj_dir_path)
             remove_prj_dir = True
             
         elif os.path.isdir(load_path):
@@ -1158,11 +1143,7 @@ class Core(object):
             
             # Unzip the file to a temporary directory
             dts_dir_path = tempfile.mkdtemp()
-            
-            zf = zipfile.ZipFile(load_path, 'r')
-            zf.extractall(dts_dir_path)
-            zf.close()
-            
+            unpack_archive(load_path, dts_dir_path)
             remove_dts_dir = True
             
         elif os.path.isdir(load_path):
