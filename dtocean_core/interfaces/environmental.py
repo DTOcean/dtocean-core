@@ -69,12 +69,12 @@ class EnvironmentalInterface(ThemeInterface):
     
     '''Interface to the environmental thematic functions.
     '''
-
+    
     def __init__(self):
         
         super(EnvironmentalInterface, self).__init__()
-        
-    @classmethod         
+    
+    @classmethod
     def get_name(cls):
         
         '''A class method for the common name of the interface.
@@ -83,14 +83,14 @@ class EnvironmentalInterface(ThemeInterface):
           str: A unique string
         '''
         
-        return "Environmental Impact Assessment"
-        
-    @classmethod         
+        return "Environmental Impact Assessment (Experimental)"
+    
+    @classmethod
     def declare_weight(cls):
         
         return 3
-
-    @classmethod         
+    
+    @classmethod
     def declare_inputs(cls):
         
         '''A class method to declare all the variables required as inputs by
