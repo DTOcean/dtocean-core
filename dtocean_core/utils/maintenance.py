@@ -209,7 +209,7 @@ def get_input_tables(system_type,
     repair_map = {
             'Maintenance Duration': 'duration_maintenance',
             'Access Duration': 'duration_accessibility',
-            'Interruptable': 'interruptable',
+            'Interruptible': 'interruptable',
             'Crew Preparation Delay': 'delay_crew',
             'Other Delay': 'delay_organisation',
             'Spare Parts Preparation Delay': 'delay_spare',
@@ -444,7 +444,7 @@ def get_input_tables(system_type,
                 
                 device_repair_map = {
                   'Operation Duration': 'duration_maintenance',
-                  'Interruptable': 'interruptable',
+                  'Interruptible': 'interruptable',
                   'Crew Preparation Delay': 'delay_crew',
                   'Other Delay': 'delay_organisation',
                   'Spare Parts Preparation Delay': 'delay_spare',
@@ -562,7 +562,7 @@ def get_input_tables(system_type,
                 
                 device_repair_map = {
                   'Operation Duration': 'duration_maintenance',
-                  'Interruptable': 'interruptable',
+                  'Interruptible': 'interruptable',
                   'Crew Preparation Delay': 'delay_crew',
                   'Other Delay': 'delay_organisation',
                   'Spare Parts Preparation Delay': 'delay_spare',
