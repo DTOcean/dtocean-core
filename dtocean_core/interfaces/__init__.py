@@ -25,35 +25,36 @@ from aneris.boundary.interface import (FileInterface,
                                        MetaInterface,
                                        WeightedInterface)
 
-class ProjectInterface(MetaInterface):
 
+class ProjectInterface(MetaInterface):
+    
     '''QueryInterface subclass for database queries'''
 
 
 class ModuleInterface(WeightedInterface, MetaInterface):
-
+    
     '''MapInterface subclass for the computational modules'''
 
 
 class ThemeInterface(WeightedInterface, MetaInterface):
-
+    
     '''MapInterface subclass for the thematic assessement modules'''
 
-    
+
 class FileInputInterface(FileInterface):
     
     '''FileInterface subclass for inputting data through files'''
     
     @classmethod
     def declare_inputs(cls):
-
-        return None
         
-    @classmethod
-    def declare_optional(cls):
-
         return None
     
+    @classmethod
+    def declare_optional(cls):
+        
+        return None
+
 
 class FileOutputInterface(FileInterface):
     
@@ -61,12 +62,12 @@ class FileOutputInterface(FileInterface):
     
     @classmethod
     def declare_optional(cls):
-
+        
         return None
     
     @classmethod
     def declare_outputs(cls):
-
+        
         return None
 
 
@@ -80,16 +81,13 @@ class PlotInterface(MetaInterface):
         self.fig_handle = None
         
         return
-
+    
     @classmethod
     def declare_optional(cls):
-
+        
         return None
     
     @classmethod
     def declare_outputs(cls):
-
+        
         return None
-
-
-

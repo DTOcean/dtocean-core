@@ -72,7 +72,7 @@ def tidal_project(core, var_tree):
 
 def test_environmental_inputs(theme_menu, core, tidal_project, var_tree):
         
-    theme_name = "Environmental Impact Assessment"
+    theme_name = "Environmental Impact Assessment (Experimental)"
     data_menu = DataMenu()
     
     project_menu = ProjectMenu()
@@ -94,7 +94,7 @@ def test_get_environmental_interface(theme_menu,
                                      tidal_project,
                                      var_tree):
     
-    theme_name = "Environmental Impact Assessment"
+    theme_name = "Environmental Impact Assessment (Experimental)"
 
     project_menu = ProjectMenu()
     project = deepcopy(tidal_project) 
@@ -140,7 +140,7 @@ def test_environmental_interface_entry(theme_menu,
                  return_value=mock_dir,
                  autospec=True)
         
-    theme_name = "Environmental Impact Assessment"
+    theme_name = "Environmental Impact Assessment (Experimental)"
 #    project_menu = ProjectMenu()
  
     project_menu = ProjectMenu()
