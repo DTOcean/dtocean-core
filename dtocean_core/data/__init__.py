@@ -111,7 +111,7 @@ class CoreMetaData(MetaData):
 
     @property
     def experimental(self):
-        '''List of experimental labels or entire variable if list contains
+        '''List of experimental values or entire variable if list contains
         True'''
         return self._experimental
 

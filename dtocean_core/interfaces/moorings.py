@@ -265,7 +265,7 @@ class MooringsInterface(ModuleInterface):
                  'constants.grout_compressive_strength',
                  
                  'options.repeat_foundations',
-                 'options.ignore_fex'
+                 'options.apply_fex'
                  ]
                                                 
         return input_list
@@ -335,7 +335,7 @@ class MooringsInterface(ModuleInterface):
                        'project.substation_cog',
                        'project.substation_foundation_location',
                        'options.repeat_foundations',
-                       'options.ignore_fex'
+                       'options.apply_fex'
                        ]
                 
         return option_list
@@ -475,7 +475,7 @@ class MooringsInterface(ModuleInterface):
                     "line_data": "project.moorings_line_data",
                     "dimensions_data": "project.moorings_dimensions",
                     'repeat_foundations': 'options.repeat_foundations',
-                    'ignore_fex': 'options.ignore_fex'
+                    'apply_fex': 'options.apply_fex'
                     }
                   
         return id_map
@@ -625,7 +625,7 @@ class MooringsInterface(ModuleInterface):
             # Umbilical data
             umbilical_connection = self.data.dev_umbilical_point
             seabed_connection = self.data.seabed_connection
-                                          
+            
             seabed_connection_dict = {}
             
             for dev, point in seabed_connection.iteritems():
@@ -639,22 +639,22 @@ class MooringsInterface(ModuleInterface):
             seabed_connection_dict = None
             
         # Single device forces
-        fex = self.data.fex
+        fex_list = None
         
-        if fex is None or self.data.ignore_fex:
-            fex_list = None
-        else:
+        if self.data.fex is not None and self.data.apply_fex:
+            
+            fex = self.data.fex
             fex_list = [fex["Te"].values, 
                         fex["Dir"].values,
                         fex["Modes"].values,
                         np.swapaxes(fex.values, 1, 2)]
-            
+        
         # Device layout
         sysorig = {key.lower(): np.append(position, 0.).tolist()
                         for key, position in self.data.system_position.items()}
                             
         devices = sysorig.keys()
- 
+        
         # Substations
         if self.data.substparams is None:
             
@@ -663,14 +663,14 @@ class MooringsInterface(ModuleInterface):
         else:
             
             name_map = { "Substation Identifier" : "substid",
-                    	   "Type" : "presubstfound",
+                         "Type" : "presubstfound",
                          "Mass" : "submass",
                          "Volume" : "subvol",
                          "Length" : "sublength",
-                         "Width" : 	"subwidth",
+                         "Width" : "subwidth",
                          "Height" : "subheight",
                          "Profile" : "subprof",
-                         "Wet Frontal Area" : "subwetfa",	
+                         "Wet Frontal Area" : "subwetfa",
                          "Wet Beam Area" : "subwetba",
                          "Dry Frontal Area" : "subdryfa",
                          "Dry Beam Area" : "subdryba",
@@ -696,7 +696,7 @@ class MooringsInterface(ModuleInterface):
                 subcog[sub_id] = str(self.data.substation_cog[sub_id].tolist())
                                    
                 substloc[sub_id] = str(self.data.substation_foundations[
-                                                            sub_id].tolist())                         
+                                                            sub_id].tolist())
                 
             substation_props = pd.concat([substation_props,
                                           suborig,
