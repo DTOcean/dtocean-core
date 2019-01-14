@@ -36,6 +36,7 @@ class CoreMetaData(MetaData):
         self._units = None
         self._labels = None
         self._valid_values = None
+        self._experimental = None
         
         super(CoreMetaData, self).__init__(props_dict)
 
@@ -51,7 +52,16 @@ class CoreMetaData(MetaData):
     @property
     def title(self):
         '''A short name for the data'''
-        return self._title
+        
+        if self.experimental is None:
+            return self._title
+        
+        if True in self.experimental:
+            title = "{} (Experimental)".format(self._title)
+        else:
+            title = self._title
+        
+        return title
         
     @property
     def description(self):
@@ -98,6 +108,12 @@ class CoreMetaData(MetaData):
     def valid_values(self):
         '''List of valid values for discrete data'''
         return self._valid_values
+
+    @property
+    def experimental(self):
+        '''List of experimental labels or entire variable if list contains
+        True'''
+        return self._experimental
 
 
 class CoreData(DataDefinition):
