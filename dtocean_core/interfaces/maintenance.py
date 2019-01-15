@@ -1101,7 +1101,8 @@ class MaintenanceInterface(ModuleInterface):
         
         subsystem_replacement = pd.concat([self.data.subsystem_replacement, 
                                            replacement_limits],
-                                          axis=1)
+                                          axis=1,
+                                          sort=False)
         
         parts_cols = ["Length", "Width", "Height", "Dry Mass"]
         parts_map = {"Length": "Spare Parts Max Length",
@@ -1122,7 +1123,8 @@ class MaintenanceInterface(ModuleInterface):
             control_replacement = pd.concat(
                                     [self.data.control_subsystem_replacement, 
                                      control_replacement_limits],
-                                    axis=1)
+                                    axis=1,
+                                    sort=False)
     
             control_replacement_parts = self.data.control_system[parts_cols]
             control_replacement_parts = control_replacement_parts.rename(
@@ -1498,7 +1500,8 @@ class MaintenanceInterface(ModuleInterface):
                     num_cols = array_df.shape[1]
                     array_series = array_series.rename(num_cols)
                     array_df = pd.concat([array_df, array_series],
-                                          axis=1)
+                                          axis=1,
+                                          sort=False)
             
             array_series["Component_ID"] = "Export Cable001"
             array_series['depth'] = -point_bathy
