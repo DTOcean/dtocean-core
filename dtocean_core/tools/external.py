@@ -119,20 +119,21 @@ class WECSimulatorTool(Tool):
         id_map = {}
 
         return id_map
-        
+    
     def configure(self, kwargs=None):
         
         """Does nothing in this case"""
-
-        return
         
+        return
+    
     def connect(self, **kwargs):
         
         script_path = script("dtocean-wec.exe")
         
         if script_path is None: return
-            
-        subprocess.call(script_path)
-            
-        return
         
+        si = subprocess.STARTUPINFO()
+        si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        subprocess.call(script_path, startupinfo=si)
+        
+        return
