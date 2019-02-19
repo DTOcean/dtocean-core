@@ -586,7 +586,12 @@ class MooringsInterface(ModuleInterface):
             thrustcurv = self.data.turbine_performance[
                             'Coefficient of Thrust'].reset_index().values
             
-        else:        
+            # Change frame of reference for floating devices from sea level
+            # to bottom of device
+            if "floating" in self.data.system_type.lower():
+                hubheight += self.data.sysdraft
+            
+        else:
             
             Clen = None
             hubheight = None
@@ -613,8 +618,20 @@ class MooringsInterface(ModuleInterface):
         # Floating Device characteristics
         if "floating" in self.data.system_type.lower():
             
+            # Conversion from sea level reference frame to device bottom.
+            # Add draft to vertical coordinate
+            
+            # Centre of gravity
+            syscog = self.data.syscog[:]
+            syscog[2] += self.data.sysdraft
+            
             # Fairleads
-            fair_loc_list = self.data.fairloc
+            fair_loc_list = []
+            
+            for fair_loc in self.data.fairloc:
+                new_fair_loc = fair_loc[:]
+                new_fair_loc[2] += self.data.sysdraft
+                fair_loc_list.append(new_fair_loc)
             
             # Predefined mooring types (optional)
             if self.data.premoor is not None:
@@ -623,8 +640,9 @@ class MooringsInterface(ModuleInterface):
                 premoor_low = None
                 
             # Umbilical data
-            umbilical_connection = self.data.dev_umbilical_point
             seabed_connection = self.data.seabed_connection
+            umbilical_connection = self.data.dev_umbilical_point[:]
+            umbilical_connection[2] += self.data.sysdraft
             
             seabed_connection_dict = {}
             
@@ -633,6 +651,7 @@ class MooringsInterface(ModuleInterface):
             
         else:
             
+            syscog = self.data.syscog[:]
             fair_loc_list = None
             premoor_low = None
             umbilical_connection = None
@@ -1048,7 +1067,7 @@ class MooringsInterface(ModuleInterface):
                            self.data.depvar,
                            self.data.sysprof.lower(),
                            self.data.sysmass,
-                           self.data.syscog,
+                           syscog,
                            self.data.sysvol,
                            self.data.sysheight,
                            self.data.syswidth,
@@ -1114,8 +1133,8 @@ class MooringsInterface(ModuleInterface):
 
             pkl_path = debugdir.get_path("moorings_inputs.pkl")
             pickle.dump(input_data, open(pkl_path, "wb"))
-                               
-        main = Main(input_data)    
+        
+        main = Main(input_data)
         
         if debug_entry: return
         
