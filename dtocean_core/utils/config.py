@@ -22,6 +22,7 @@
 import sys
 import logging
 import argparse
+import datetime
 
 from polite.paths import (ObjDirectory,
                           UserDataDirectory,
@@ -61,11 +62,13 @@ def init_config_parser(args):
             $ dtocean-core-config -h
             
     '''
-    
-    epiStr = ('Mathew Topper (c) 2018.')
+       
+
+    now = datetime.datetime.now()
+    epiStr = 'The DTOcean Developers (c) {}.'.format(now.year)
               
     desStr = ("Copy user modifiable configuration files to "
-              "User\AppData\Roaming\DTOcean\dtocean-core\config")
+              "<UserName>\AppData\Roaming\DTOcean\dtocean-core\config")
 
     parser = argparse.ArgumentParser(description=desStr,
                                      epilog=epiStr,
@@ -106,7 +109,6 @@ def init_config_interface():
     dir_path = init_config(**kwargs)
     
     if dir_path is not None:
-        log_msg =  "Copying configuration files to {}".format(dir_path)
-        module_logger.info(log_msg)
+        print "Copying configuration files to {}".format(dir_path)
 
     return
