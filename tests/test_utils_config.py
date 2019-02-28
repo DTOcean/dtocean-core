@@ -1,4 +1,6 @@
 
+import pytest
+
 from polite.paths import Directory
 from dtocean_core.utils.config import (init_config,
                                        init_config_parser,
@@ -20,22 +22,25 @@ def test_init_config(mocker, tmpdir):
     assert len(config_tmpdir.listdir()) == 3
 
 
-def test_init_config_parser():
+@pytest.mark.parametrize("test_input", [
+    'logging', 'database', 'files'])
+def test_init_config_parser(test_input):
     
-    action, overwrite = init_config_parser(['logging'])
+    action, overwrite = init_config_parser([test_input])
     
-    assert action == 'logging'
+    assert action == test_input
     assert not overwrite
 
-
-def test_init_config_parser_overwrite():
+@pytest.mark.parametrize("test_input", [
+    'logging', 'database', 'files'])
+def test_init_config_parser_overwrite(test_input):
     
-    action, overwrite = init_config_parser(['logging', "--overwrite"])
+    action, overwrite = init_config_parser([test_input, "--overwrite"])
     
-    assert action == 'logging'
+    assert action == test_input
     assert overwrite
-    
-    
+
+
 def test_init_config_interface(mocker, tmpdir):
 
     # Make a source directory with some files
