@@ -765,7 +765,8 @@ class ElectricalInterface(ModuleInterface):
                                   
         if "floating" in data.device_type.lower():
             dev_type = "floating"
-            umbilical_connection = data.dev_umbilical_point + data.sysdraft
+            umbilical_connection = data.dev_umbilical_point[:]
+            umbilical_connection[2] += data.sysdraft
         else: 
             dev_type = "fixed"   
             umbilical_connection = None
