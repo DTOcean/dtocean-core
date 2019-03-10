@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2016-2018 Mathew Topper
+#    Copyright (C) 2016-2019 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -30,6 +30,10 @@ from polite.paths import (Directory,
                           UserDataDirectory)
 from polite.configuration import Logger
 
+# Define build number for packaging test
+from ._build import BUILD
+
+__build__ = BUILD
 __version__ = get_distribution('dtocean-core').version
 
 # Set default logging handler to avoid "No handler found" warnings.
