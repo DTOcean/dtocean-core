@@ -47,16 +47,16 @@ install:
   - copy .condarc %CONDA_PREFIX%
   - >
     conda install polite=0.10.0 
-                  aneris=0.10.0 
-                  dtocean-economics=2.0.0 
-                  dtocean-electrical=2.0.0 
-                  dtocean-environment=2.0.0 
-                  dtocean-hydrodynamics=2.0.0 
-                  dtocean-installation=2.0.0 
-                  dtocean-logistics=2.0.0 
-                  dtocean-maintenance=2.0.0 
-                  dtocean-moorings=2.0.0 
-                  dtocean-reliability=2.0.0
+    aneris=0.10.0 
+    dtocean-economics=2.0.0 
+    dtocean-electrical=2.0.0 
+    dtocean-environment=2.0.0 
+    dtocean-hydrodynamics=2.0.0 
+    dtocean-installation=2.0.0 
+    dtocean-logistics=2.0.0 
+    dtocean-maintenance=2.0.0 
+    dtocean-moorings=2.0.0 
+    dtocean-reliability=2.0.0
   - python setup.py bootstrap
   - conda install --file requirements-conda-dev.txt
   - pip install -e .
