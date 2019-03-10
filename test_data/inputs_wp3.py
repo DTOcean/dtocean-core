@@ -278,6 +278,7 @@ test_data = { "bathymetry.layers": strata,
               "project.onshore_infrastructure_cost":
                   onshore_infrastructure_cost,
               "project.mean_power_hist_per_device": mean_power_hist_per_device,
+              "device.system_draft": device_draft,
               'device.umbilical_connection_point': umbilical_connection,
               "project.umbilical_safety_factor": umbsf,
               'constants.gravity': gravity,
