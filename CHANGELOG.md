@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [2.0.0] - 2019-03-10
 
 ### Added
 
@@ -135,6 +135,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   files and then overwrite the database using the same file structure.
 - Add "CAPEX (Excluding Externalities)" variable to show CAPEX resulting from
   modules only.
+- Added experimental variables or variable values. The label "(Experimental)" 
+  is automatically added to the titles.
   
 ### Changed
 
@@ -215,6 +217,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   interfaces themselves and are no longer listed in setup.py.
 - Ensure the Branch.reset method cannot be called if a module has not yet been
   executed.
+- Allow None values when collecting data for comparisons.
+- Improved simulation name repetition logic in unit sensitivity strategy.
+- Switch to saving project files as tar.gz archives to improve performance. The
+  zip versions are still supported for opening.
+- Module interfaces changed from MapInterfaces to MetaInterfaces to allow access
+  to meta data.
+- Improved error messages for missing optional variables in installation 
+  interface.
+- Changed to using a bar chart in simulation comparison plot if x-axis ticks 
+  are non-numeric.
+- Renamed tests to better reflect source code file structure.
+- Changed name of "Environmental Impact Assessment" module to "Environmental 
+  Impact Assessment (Experimental)".
+- Changed project.ignore_fex variable to project.apply_fex. If set to True
+  hydrodynamic force calculations are used for wave devices in the moorings
+  module. Set to experimental.
+- Set "Star" network layout option to electrical sub-systems module as 
+  experimental.
 
 ### Removed
 
@@ -335,6 +355,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed bug in set_output_state where only the output state of the active 
   simulation would be changed. Correct behaviour is for all simulations to be 
   modified.
+- Fixed bug when setting a simulation title to its existing value.
+- Fix issue with network configuration being undefined in reliability interface.
+- Fix misspelling of "interruptible".
+- Fixed dtocean-wec tool extension leaving an open a cmd window when called.
+- Fixed reference frame conversion for floating devices in moorings 
+  calculations.
+
 
 ## [1.0.0] - 2017-02-23
 

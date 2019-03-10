@@ -137,24 +137,14 @@ class Bootstrap(Command):
 
 
 setup(name='dtocean-core',
-      version='1.1.dev13',
+      version='2.0.0',
       description='dtocean-core: The core component of the DTOcean tools',
-      author=('Mathew Topper, '
-              'Vincenzo Nava, '
-              'David Bould, '
-              'Rui Duarte, '
-              'Francesco Ferri, '
-              'Adam Collin'),
-      author_email=('damm_horse@yahoo.co.uk, '
-                    'vincenzo.nava@tecnalia.com, '
-                    'david.bould@ed.ac.uk, '
-                    'Rui.Duarte@france-energies-marines.org, '
-                    'ff@civil.aau.dk, '
-                    'acollin@staffmail.ed.ac.uk'),
+      maintainer='Mathew Topper',
+      maintainer_email='mathew.topper@dataonlygreater.com',
       license="GPLv3",
       packages=find_packages(),
       install_requires=[
-        'aneris==0.10.dev3',
+        'aneris==0.10.0',
         'basemap',
         'cmocean',
         'contours',
@@ -170,7 +160,7 @@ setup(name='dtocean-core',
         'packaging',
         'pandas>=0.18',
         'pil',
-        'polite>=0.10.dev1',
+        'polite>=0.10.0',
         'psycopg2',
         'pyproj',
         # 'PyQt4',

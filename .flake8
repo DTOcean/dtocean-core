@@ -1,4 +1,4 @@
 [flake8]
 max-line-length = 79
 ignore = E126,E127,W293,E701
-exclude = doc/source/conf.py,example_data,test_data
+exclude = example_data,test_data

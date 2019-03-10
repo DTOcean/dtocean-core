@@ -1,0 +1,9 @@
+pinned_packages:
+  - pyqt=4
+  - python=2
+  - netcdf4=1.4
+
+channels:
+  - defaults
+  - conda-forge
+  - dataonlygreater
