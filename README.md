@@ -86,14 +86,19 @@ $ conda install dtocean-hydrodynamics ^
                 dtocean-environment
 ```
 
-Note, the above command will overwrite the source installed version of polite.
-To avoid this, install all required DTOcean packages from source, or uninstall 
-the conda version of polite (`conda remove polite`) and reinstall from source 
-using pip.
+Notes:
 
-If installing dtocean-hydrodynamics, you must also install the hydrodynamic 
-data package which can be downloaded from [Github](
-https://setis.ec.europa.eu/dt-ocean/).
+ * The above command will overwrite the source installed version of polite.
+   To avoid this, install all required DTOcean packages from source, or
+   uninstall the conda version of polite (`conda remove polite`) and reinstall 
+   from source using pip.
+ * If using dtocean-hydrodynamics, you must also install the hydrodynamic data 
+   package. See the [dtocean-hydrodynamics](
+   https://github.com/DTOcean/dtocean-hydrodynamics) repository for 
+   installation instructions.
+ * The core can read module inputs from the DTOcean database. See the 
+  [dtocean-database](https://github.com/DTOcean/dtocean-database) repository 
+  for installation instructions.
 
 A "bootstrapping" stage is required to prepare the data catalogue files:
 
