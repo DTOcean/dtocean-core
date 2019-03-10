@@ -239,12 +239,12 @@ def test_draw_map():
     assert result
 
 
-def test_get_database_config(mocker, tmpdir):
+def test_get_user_database_config_empty(mocker, tmpdir):
     
-    # Make a source directory with some files
+    # Make a source directory without files
     config_tmpdir = tmpdir.mkdir("config")
     mock_dir = Directory(str(config_tmpdir))
-        
+    
     mocker.patch('dtocean_core.utils.database.UserDataDirectory',
                  return_value=mock_dir,
                  autospec=True)
@@ -255,16 +255,20 @@ def test_get_database_config(mocker, tmpdir):
     assert isinstance(config, dict)
 
 
-def test_start_logging_user(mocker, tmpdir):
+def test_get_user_database_config(mocker, tmpdir):
     
     # Make a source directory with some files
     config_tmpdir = tmpdir.mkdir("config")
     mock_dir = Directory(str(config_tmpdir))
-        
+    
     mocker.patch('dtocean_core.utils.config.UserDataDirectory',
                  return_value=mock_dir,
                  autospec=True)
-                 
+    
+    mocker.patch('dtocean_core.utils.database.UserDataDirectory',
+                 return_value=mock_dir,
+                 autospec=True)
+    
     init_config(database=True)
     useryaml, config = get_database_config()
     

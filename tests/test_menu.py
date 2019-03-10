@@ -387,7 +387,11 @@ def test_DataMenu_select_database(mocker, tmpdir, project):
     
     mocker.patch("dtocean_core.utils.database.UserDataDirectory",
                  return_value=mock_dir)
-                 
+    
+    # Create mock connection
+    mocker.patch("dtocean_core.menu.check_host_port",
+                 return_value=(True, "Mock connection returned"))
+    
     data_menu = DataMenu()
     project = deepcopy(project)
     
@@ -475,7 +479,11 @@ def test_DataMenu_deselect_database(mocker, tmpdir, project):
     
     mocker.patch("dtocean_core.utils.database.UserDataDirectory",
                  return_value=mock_dir)
-                 
+    
+    # Create mock connection
+    mocker.patch("dtocean_core.menu.check_host_port",
+                 return_value=(True, "Mock connection returned"))
+    
     data_menu = DataMenu()
     project = deepcopy(project)
     
