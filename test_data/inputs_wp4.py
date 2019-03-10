@@ -55,9 +55,9 @@ raw_found_dict = {}
 
 for i, sub_id in enumerate(sub_ids):
     
-    raw_origin_dict[sub_id] = eval(suborig.ix[i])
-    raw_cog_dict[sub_id] = eval(subcog .ix[i])
-    raw_found_dict[sub_id] = eval(substloc.ix[i])
+    raw_origin_dict[sub_id] = eval(suborig.iloc[i])
+    raw_cog_dict[sub_id] = eval(subcog.iloc[i])
+    raw_found_dict[sub_id] = eval(substloc.iloc[i])
 
 bathy_table = pd.read_csv(os.path.join(data_dir, 'aegirbath2.txt'),
                           delimiter="\t",
@@ -124,13 +124,13 @@ for z in layers:
     sediment_layers.append(sediments)
     
 depth_array = np.swapaxes(np.array(depth_layers, dtype=float), 0, 2)
-sediment_array = np.swapaxes(np.array(sediment_layers), 0, 2)
+sediment_array = np.swapaxes(np.array(sediment_layers), 0, 2).astype(object)
 
 layer_names = ["layer {}".format(x_layers) for x_layers in layers]
 
-strata = strata={"values": {"depth": depth_array,
-                            'sediment': sediment_array},
-                 "coords": [x, y, layer_names]}
+strata = {"values": {"depth": depth_array,
+                     'sediment': sediment_array},
+          "coords": [x, y, layer_names]}
        
        
 turbine_hub_height = 20.
@@ -261,30 +261,6 @@ hcfdrsoil = pd.read_csv(os.path.join(data_dir,
                                'Drained Friction Angle = 40 degrees']) 
                                 
 rockcomstr = 206843.0 #rock compressive strength
-depvar = False #depth variation permitted
-sysprof = "Cylindrical"   #device profile options: "cylindrical" "rectangular"
-sysmass = 320.0e3 #device mass
-syscog = [0.0, 0.0, 11.0] #device centre of gravity
-sysvol = 1440.0 #device displaced volume
-sysheight = 33.5 #device height
-syswidth = 15.0 #device width
-syslength = 22.0 #device length
-sysrough = 0.9e-2 #device surface roughness
-
-layout = {'device001': [585500.0, 6650000.0, 0.0]}
-
-fairloc = np.array([[-15.,  15., 0.],
-                    [ 15.,  15., 0.],
-                    [ 15., -15., 0.],
-                    [-15., -15., 0.]]) #fairlead locations (from device origin)
-
-foundloc = np.array([[-100,   100., 0.],
-                     [ 100,   100., 0.],
-                     [ 100., -100., 0.],
-                     [-100., -100., 0.]]) #foundation locations (from device origin)
-
-sysdryfa = 8.0 #device dry frontal area
-sysdryba = 360.0 #device dry beam area
 
 #cylinder drag coefficients        
 dragcoefcyl = np.loadtxt(os.path.join(data_dir,
@@ -362,6 +338,32 @@ Cp = np.array([ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
              
 Ct = 0.4*np.ones((100))
 
+depvar = False #depth variation permitted
+sysprof = "Rectangular"   #device profile options: "cylindrical" "rectangular"
+sysmass = 4.5e5 #device mass
+syscog = [0.0, 0.0, 0] #device centre of gravity
+sysvol = 440.0 #device displaced volume
+sysheight = 6 #device height
+syswidth = 15.0 #device width
+syslength = 22.0 #device length
+sysrough = 0.9e-2 #device surface roughness
+
+layout = {'device001': [585500.0, 6650000.0, 0.0]}
+
+fairloc = np.array([[-15.,  15., 0.],
+                    [ 15.,  15., 0.],
+                    [ 15., -15., 0.],
+                    [-15., -15., 0.]]) #fairlead locations (from device origin)
+
+foundloc = np.array([[-100,   100., 0.],
+                     [ 100,   100., 0.],
+                     [ 100., -100., 0.],
+                     [-100., -100., 0.]]) #foundation locations (from device origin)
+
+sysdryfa = 8.0 #device dry frontal area
+sysdryba = 360.0 #device dry beam area
+
+
 # Performance curves are matched to the same veloity abscissae
 tidal_performance = {"Velocity": X,
                      "Coefficient of Power": Cp,
@@ -369,13 +371,13 @@ tidal_performance = {"Velocity": X,
 
 rotor_diam = 23.
 turbine_interdist = 0.
-hubheight = 22.0 #hub height
+hubheight = -25. #hub height
 sysorienang = 0. #device orientation angle
 loadraos = np.loadtxt(os.path.join(data_dir, 'loadraos.txt'), delimiter="\t") #device load raos
 addmass = np.loadtxt(os.path.join(data_dir, 'addmass.txt'), delimiter="\t") #device added mass
 raddamp = np.loadtxt(os.path.join(data_dir, 'raddamp.txt'), delimiter="\t") #device radiation damping
 hydrostiff = 66.394e3 #device hydrostatic stiffness
-premoor = "Catenary" #predefined mooring system type options:, 'catenary', 'taut'
+premoor = "Taut" #predefined mooring system type options:, 'catenary', 'taut'
 maxdisp = [75.0, 75.0, 10.0] #device maximum displacements in surge, sway and heave
 prefound = None #predefined foundation type
 coststeel = 1.0 #steel cost
