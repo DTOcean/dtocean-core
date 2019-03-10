@@ -91,6 +91,10 @@ To avoid this, install all required DTOcean packages from source, or uninstall
 the conda version of polite (`conda remove polite`) and reinstall from source 
 using pip.
 
+If installing dtocean-hydrodynamics, you must also install the hydrodynamic 
+data package which can be downloaded from [Github](
+https://setis.ec.europa.eu/dt-ocean/).
+
 A "bootstrapping" stage is required to prepare the data catalogue files:
 
 ```
