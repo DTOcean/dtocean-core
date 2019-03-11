@@ -9,9 +9,18 @@ The dtocean-core module provides the model for the DTOcean suite of tools. It
 manages data transfer and between the DTOcean components (modules, database,
 user), data storage and versioning, and module execution ordering.
 
+Power users and developers of DTOcean modules may wish to install this module, 
+following the installation instructions below, and any other DTOcean modules 
+they wish to use or develop. This allows scripted operation of the DTOcean 
+tools, without the need for a graphical user interface (GUI). For use and 
+development with a GUI, see the [dtocean-app](
+https://github.com/DTOcean/dtocean-core) repository. 
+
+* For python 2.7 only.
+
 ## Installation
 
-Installation and development of aneris uses the [Anaconda Distribution](
+Installation and development of dtocean-core uses the [Anaconda Distribution](
 https://www.anaconda.com/distribution/) (Python 2.7)
 
 ### DTOcean Modules
@@ -26,19 +35,41 @@ it is recommended to start by installing this module, or [dtocean-app]
 
 ### Conda Package
 
-To install:
+It is recommended to install DTOcean into a dedicated conda environment, 
+which can be configured to the needs of the system. To create an environment 
+and configure it:
 
 ```
-$ conda install -c defaults -c conda-forge -c dataonlygreater dtocean-core
+$ conda create -n _dtocean_core python=2.7
+$ conda activate _dtocean_core
 ```
 
-DTOcean modules for use with the core must be installed separately. For example:
+Download the [`.condarc`](
+https://raw.githubusercontent.com/DTOcean/dtocean-core/master/.condarc) file 
+for dtocean-core, save it and copy it to the root of the environment:
 
 ```
-$ conda install -c dataonlygreater dtocean-hydrodynamics
+$ copy .condarc %CONDA_PREFIX%
 ```
 
-See the README.md file of each module for conda installation instructions.
+To install dtocean-core into the environment:
+
+```
+$ conda install dtocean-core
+```
+
+DTOcean modules for use with the core must be installed separately (See the 
+README.md file of each module for installation instructions). For example:
+
+```
+$ conda install dtocean-electrical
+```
+
+To deactivate the conda environment:
+
+```
+$ conda deactivate
+```
 
 ### Source Code
 
@@ -100,7 +131,8 @@ Notes:
   [dtocean-database](https://github.com/DTOcean/dtocean-database) repository 
   for installation instructions.
 
-A "bootstrapping" stage is required to prepare the data catalogue files:
+A "bootstrapping" stage is required to convert the data definition 
+specification files (located in the `DDS` directory) to native yaml format:
 
 ```
 $ cd \\path\\to\\dtocean-core
@@ -191,6 +223,13 @@ Once the test_data directory has been placed alongside the notebook, the
 notebook can be executed in the normal way.
 
 ### Command Line Tools
+
+Command line tools are provided for various functions. Remember to activate the 
+conda environment first:
+
+```
+$ conda activate _dtocean_core
+```
 
 A utility is provided to add an energy period (Te) time series to wave data 
 containing significant wave height (Hm0) and wave peak period (Tp). To get help:
