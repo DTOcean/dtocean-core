@@ -1,6 +1,6 @@
 [![appveyor](https://ci.appveyor.com/api/projects/status/github/DTOcean/dtocean-core?branch=master&svg=true)](https://ci.appveyor.com/project/DTOcean/dtocean-core)
 [![codecov](https://codecov.io/gh/DTOcean/dtocean-core/branch/master/graph/badge.svg)](https://codecov.io/gh/DTOcean/dtocean-core)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/bb34506cc82f4df883178a6e64619eaf)](https://www.codacy.com/project/H0R5E/dtocean-core/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=DTOcean/dtocean-core&amp;utm_campaign=Badge_Grade_Dashboard&amp;branchId=8410911)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/7cfcd9f1332e46368c09fb7e0144017f)](https://www.codacy.com/project/H0R5E/dtocean-core/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=DTOcean/dtocean-core&amp;utm_campaign=Badge_Grade_Dashboard&amp;branchId=11755899)
 [![release](https://img.shields.io/github/release/DTOcean/dtocean-core.svg)](https://github.com/DTOcean/dtocean-core/releases/latest)
 
 # DTOcean Core Module
@@ -123,10 +123,12 @@ Notes:
    To avoid this, install all required DTOcean packages from source, or
    uninstall the conda version of polite (`conda remove polite`) and reinstall 
    from source using pip.
- * If using dtocean-hydrodynamics, you must also install the hydrodynamic data 
-   package. See the [dtocean-hydrodynamics](
-   https://github.com/DTOcean/dtocean-hydrodynamics) repository for 
-   installation instructions.
+ * If using dtocean-hydrodynamics, you must also install the latest version of 
+   the hydrodynamic data package (`dtocean-hydrodynamic-data-*.exe`). This can 
+   be downloaded from the dtocean-hydrodynamics' [Releases](
+   https://github.com/DTOcean/dtocean-hydrodynamics/releases) page. See the 
+   [dtocean-hydrodynamics](https://github.com/DTOcean/dtocean-hydrodynamics) 
+   repository for further information.
  * The core can read module inputs from the DTOcean database. See the 
   [dtocean-database](https://github.com/DTOcean/dtocean-database) repository 
   for installation instructions.
