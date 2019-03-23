@@ -6,7 +6,7 @@
 # DTOcean Core Module
 
 The dtocean-core module provides the model for the DTOcean suite of tools. It
-manages data transfer and between the DTOcean components (modules, database,
+manages data transfer between the DTOcean components (modules, database,
 user), data storage and versioning, and module execution ordering.
 
 Power users and developers of DTOcean modules may wish to install this module, 
