@@ -349,7 +349,7 @@ class ElectricalInterface(ModuleInterface):
         return id_map
                  
     def connect(self, debug_entry=False,
-                      export_data=True):
+                      export_data=False):
         
         '''The connect method is used to execute the external program and 
         populate the interface data store with values.
