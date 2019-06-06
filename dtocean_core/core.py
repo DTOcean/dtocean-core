@@ -347,13 +347,10 @@ class Project(object):
     def __init__(self, title):
         
         self.title = title
-        self._pool = None
+        self._pool = DataPool()
         self._simulations = []
         self._active_index = None
         self._db_cred = None
-        
-        # Functional initialisation
-        self._pool = DataPool()
         
         return
         
