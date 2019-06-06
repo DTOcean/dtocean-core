@@ -22,6 +22,7 @@ Created on Tue Feb 23 15:38:18 2016
 """
 
 import os
+import time
 import shutil
 import pickle
 import tarfile
@@ -83,11 +84,11 @@ def package_dir(src_dir_path, dst_path, archive=False):
                 file_path = os.path.join(root, name)
                 short_path = file_path.replace(src_dir_path, "")
                 tar.add(file_path, arcname=short_path)
-
-    shutil.move(tgz_file_path, dst_path)
     
-    shutil.rmtree(tgz_dir_path)
-    shutil.rmtree(src_dir_path)
+    shutil.copyfile(tgz_file_path, dst_path)
+    
+    rmtree_retry(src_dir_path, fail_silent=True)
+    rmtree_retry(tgz_dir_path, fail_silent=True)
     
     return
 
@@ -129,3 +130,34 @@ def onerror(func, path, exc_info):
         func(path)
     else:
         raise
+
+
+def rmtree_retry(src_path,
+                 max_attempts=60,
+                 sleep_seconds=1,
+                 fail_silent=False):
+    
+    file_locked = True
+    n_attempts = 0
+    
+    while file_locked:
+    
+        n_attempts += 1
+        
+        if n_attempts > max_attempts:
+            
+            if fail_silent: return
+            
+            total_seconds = max_attempts * sleep_seconds
+            
+            err_str = ("shutil.rmtree failed for over {} seconds: "
+                       "{}").format(total_seconds, src_path)
+            raise OSError(err_str)
+        
+        try:
+            shutil.rmtree(src_path)
+            file_locked = False
+        except OSError:
+            time.sleep(sleep_seconds)
+    
+    return
