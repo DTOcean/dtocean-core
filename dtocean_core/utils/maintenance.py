@@ -28,6 +28,7 @@ import datetime as dt
 from collections import Counter
 
 import pandas as pd
+from pandas.api.types import is_string_dtype
 from scipy.interpolate import RegularGridInterpolator
 
 from .reliability import get_component_dict
@@ -544,7 +545,7 @@ def get_input_tables(system_type,
                                                 all_modes,
                                                 all_repair,
                                                 subhubs)
-
+        
         # Add replacement operations
         if "replacement" in active_ops:
             
@@ -663,7 +664,7 @@ def get_input_tables(system_type,
                                                      temp_repair,
                                                      all_modes,
                                                      all_repair)
-
+        
         if "inspections" in active_ops:
             
             # Initiate temporary table data
@@ -840,10 +841,10 @@ def get_input_tables(system_type,
     
     assert all_comp.shape[0] == 11
     assert all_modes.shape[0] == 11
-        
+    
     assert all_repair.shape[0] == 18
     assert all_inspection.shape[0] == 16
-
+    
     assert all_modes.shape[1] == all_repair.shape[1] + \
                                                 all_inspection.shape[1]
                 
@@ -1433,13 +1434,14 @@ def get_electrical_system_cost(component_data, system_names, db):
             
             errStr = "Where's the bloody air force?"
             raise RuntimeError(errStr)
+        
+        component_id = int(component['Key Identifier'])
+        
+        cost_dict[subsytem_type] += _get_elec_db_cost(component_id,
+                                                      component.Quantity,
+                                                      db,
+                                                      install_type)
     
-        cost_dict[subsytem_type] += _get_elec_db_cost(
-                                                component['Key Identifier'],
-                                                component.Quantity,
-                                                db,
-                                                install_type)
-
     return cost_dict
 
 
@@ -1476,7 +1478,7 @@ def get_mandf_system_cost(mandf_bom, system_names, db):
 
     for _, component in mandf_bom.iterrows():
         
-        component_id = component['Key Identifier']
+        component_id = int(component['Key Identifier'])
         
         # Catch 'n/a'
         if component_id == "n/a":
@@ -1487,7 +1489,7 @@ def get_mandf_system_cost(mandf_bom, system_names, db):
         else:
             
             # Get the component dictionary
-            component_dict = db[component_id]
+            component_dict = db[str(component_id)]
             
             # Pick up the component type
             component_type = component_dict['item2']
@@ -1541,11 +1543,12 @@ def _get_elec_db_cost(component_key, quantity, db, type_):
         raise ValueError(errMsg)
     
     converted_type = convert_map[type_]
-
     component_db = getattr(db, converted_type)
     
+    if is_string_dtype(component_db.id):
+        component_key = str(component_key)
+    
     cost = component_db[component_db.id == component_key].cost.values[0]
-
     val = quantity * cost
-
+    
     return val

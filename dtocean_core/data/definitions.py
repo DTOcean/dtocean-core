@@ -342,6 +342,21 @@ class TableData(Structure):
             dataframe = dataframe[natsorted(dataframe.columns)]
         else:
             dataframe = dataframe[req_cols]
+        
+        # Assign types
+        if meta_data.types is not None:
+            
+            if len(meta_data.types) == len(req_cols) + 1:
+                types = meta_data.types[1:]
+            else:
+                types = meta_data.types
+            
+            for c, t in zip(req_cols, types):
+                
+                try:
+                    dataframe[c] = dataframe[c].astype(t)
+                except:
+                    pass
 
         return dataframe
 

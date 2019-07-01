@@ -75,7 +75,7 @@ def set_cables(component_data_df, network_design, hierarchy, db, cable_type):
     for _, electrical_component in cables.iterrows():
     
         index = electrical_component['Key Identifier']
-            
+        
         mass.append(
             db[db['Key Identifier'] == index][
                                         'Dry Mass per Unit Length'].item())
@@ -238,7 +238,7 @@ def set_connectors(component_data_df, db):
 
     for _, connector in connectors.iterrows():
 
-        index = connector['Key Identifier']
+        index = int(connector['Key Identifier'])
 
         mass.append(
                 db[db['Key Identifier'] == index]['Dry Mass'].item())
