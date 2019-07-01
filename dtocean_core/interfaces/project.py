@@ -758,10 +758,11 @@ class BoundariesInterface(ProjectInterface):
                        ]
         '''
 
-        input_list = ["site.lease_boundary",
+        input_list = ["site.projection",
+                      "site.lease_boundary",
                       "site.corridor_boundary",
                       "corridor.landing_point"]
-                                                
+        
         return input_list
 
     @classmethod        
@@ -835,12 +836,13 @@ class BoundariesInterface(ProjectInterface):
                        }
         
         '''
-                  
-        id_map = {"corridor_poly": "site.corridor_boundary",
+        
+        id_map = {"projection": "site.projection",
+                  "corridor_poly": "site.corridor_boundary",
                   "lease_poly": "site.lease_boundary",
                   "landing_point": "corridor.landing_point"
                   }
-                  
+        
         return id_map
                  
     def connect(self):
@@ -855,7 +857,7 @@ class BoundariesInterface(ProjectInterface):
           self.data.my_output_variable = value
         
         '''
-                        
+        
         return
 
 
