@@ -46,10 +46,17 @@ $ conda activate _dtocean_core
 
 Download the [`.condarc`](
 https://raw.githubusercontent.com/DTOcean/dtocean-core/master/.condarc) file 
-for dtocean-core, save it and copy it to the root of the environment:
+for dtocean-core, save it and copy it to the root of the environment. For 
+64-bit:
 
 ```
 $ copy .condarc %CONDA_PREFIX%
+```
+
+Or for 32-bit:
+
+```
+$ copy .condarc-32 %CONDA_PREFIX%\\.condarc
 ```
 
 To install dtocean-core into the environment:
