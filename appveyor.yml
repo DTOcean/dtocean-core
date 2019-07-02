@@ -40,11 +40,11 @@ init:
 install:
   - "set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%"
   - conda config --set always_yes yes --set changeps1 no
-  - conda install --quiet conda=4.6.8
+  - conda install --quiet conda=4.6.14
   - conda info --all
   - conda create -n _dtocean_core python=%PYTHON_VERSION% pip
   - activate _dtocean_core
-  - copy .condarc %CONDA_PREFIX%
+  - copy .condarc-%ARCH% %CONDA_PREFIX%\\.condarc
   - >
     conda install polite=0.10.0 
     aneris=0.10.0 
