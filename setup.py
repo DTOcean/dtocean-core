@@ -137,7 +137,7 @@ class Bootstrap(Command):
 
 
 setup(name='dtocean-core',
-      version='2.0.0',
+      version='2.0.1.dev0',
       description='dtocean-core: The core component of the DTOcean tools',
       maintainer='Mathew Topper',
       maintainer_email='mathew.topper@dataonlygreater.com',
