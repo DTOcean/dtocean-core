@@ -28,11 +28,12 @@ environment:
     - PYTHON_VERSION: 2.7
       MINICONDA: C:\Miniconda
       ARCH: "32"
+      CONDARC: .condarc-32
       
     - PYTHON_VERSION: 2.7
       MINICONDA: C:\Miniconda-x64
       ARCH: "64"
-
+      CONDARC: .condarc
 
 init:
   - "ECHO %PYTHON_VERSION% %MINICONDA%"
@@ -44,7 +45,7 @@ install:
   - conda info --all
   - conda create -n _dtocean_core python=%PYTHON_VERSION% pip
   - activate _dtocean_core
-  - copy .condarc-%ARCH% %CONDA_PREFIX%\\.condarc
+  - copy %CONDARC% %CONDA_PREFIX%\\.condarc
   - >
     conda install polite=0.10.0 
     aneris=0.10.0 
