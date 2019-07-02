@@ -9,7 +9,7 @@ geoalchemy2
 matplotlib <2
 monotonic
 natsort
-netcdf4 =1.4.*
+netcdf4
 numpy
 openpyxl
 packaging
