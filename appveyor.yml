@@ -35,7 +35,6 @@ environment:
       ARCH: "64"
       CONDARC: .condarc
 
-
 init:
   - "ECHO %PYTHON_VERSION% %MINICONDA%"
 
@@ -49,7 +48,7 @@ install:
   - copy %CONDARC% %CONDA_PREFIX%\\.condarc
   - >
     conda install polite=0.10.1
-    aneris=0.10.1
+    aneris=0.10.2
     dtocean-economics=2.0.0
     dtocean-electrical=2.0.0
     dtocean-environment=2.0.0

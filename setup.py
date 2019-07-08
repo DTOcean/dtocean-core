@@ -144,7 +144,7 @@ setup(name='dtocean-core',
       license="GPLv3",
       packages=find_packages(),
       install_requires=[
-        'aneris==0.10.1',
+        'aneris==0.10.2',
         'basemap',
         'cmocean',
         'contours',
