@@ -21,7 +21,7 @@ skip_commits:
     - dtocean_core/config/
 
 # version format
-version: 2.0.0.build{build}
+version: 2.0.1-build{build}
 
 environment:
   matrix:
@@ -35,6 +35,7 @@ environment:
       ARCH: "64"
       CONDARC: .condarc
 
+
 init:
   - "ECHO %PYTHON_VERSION% %MINICONDA%"
 
@@ -47,16 +48,16 @@ install:
   - activate _dtocean_core
   - copy %CONDARC% %CONDA_PREFIX%\\.condarc
   - >
-    conda install polite=0.10.0 
-    aneris=0.10.0 
-    dtocean-economics=2.0.0 
-    dtocean-electrical=2.0.0 
-    dtocean-environment=2.0.0 
-    dtocean-hydrodynamics=2.0.0 
-    dtocean-installation=2.0.0 
-    dtocean-logistics=2.0.0 
-    dtocean-maintenance=2.0.0 
-    dtocean-moorings=2.0.0 
+    conda install polite=0.10.1
+    aneris=0.10.1
+    dtocean-economics=2.0.0
+    dtocean-electrical=2.0.0
+    dtocean-environment=2.0.0
+    dtocean-hydrodynamics=2.0.0
+    dtocean-installation=2.0.0
+    dtocean-logistics=2.0.0
+    dtocean-maintenance=2.0.0
+    dtocean-moorings=2.0.0
     dtocean-reliability=2.0.0
   - python setup.py bootstrap
   - conda install --file requirements-conda-dev.txt

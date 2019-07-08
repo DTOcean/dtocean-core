@@ -137,14 +137,14 @@ class Bootstrap(Command):
 
 
 setup(name='dtocean-core',
-      version='2.0.1.dev0',
+      version='2.0.1',
       description='dtocean-core: The core component of the DTOcean tools',
       maintainer='Mathew Topper',
       maintainer_email='mathew.topper@dataonlygreater.com',
       license="GPLv3",
       packages=find_packages(),
       install_requires=[
-        'aneris==0.10.0',
+        'aneris==0.10.1',
         'basemap',
         'cmocean',
         'contours',
