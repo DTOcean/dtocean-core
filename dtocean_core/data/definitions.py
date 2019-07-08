@@ -27,6 +27,7 @@ import yaml
 import numpy as np
 import pandas as pd
 import xarray as xr
+import shapefile
 from natsort import natsorted
 import matplotlib.pyplot as plt
 import matplotlib.patheffects as PathEffects
@@ -2904,7 +2905,7 @@ class PointData(Structure):
         
         if data is not None:
             result = Point(data)
-
+        
         return result
     
     @staticmethod
@@ -2912,35 +2913,18 @@ class PointData(Structure):
         
         self.check_path()
         
-        if ".xls" in self._path:
-            df = pd.read_excel(self._path)
-        elif ".csv" in self._path:
-            df = pd.read_csv(self._path)
+        if ".xls" in self._path or ".csv" in self._path:
+            data = PointData._read_table(self._path)
+        elif ".shp" in self._path:
+            data = PointData._read_shapefile(self._path)
         else:
              raise TypeError("The specified file format is not supported. ",
                              "Supported format are {},{},{}".format('.csv',
+                                                                    '.shp',
                                                                     '.xls',
-                                                                    '.xlsx'))  
+                                                                    '.xlsx'))
         
-        if "x" in df.columns and "y" in df.columns:
-            
-            data = np.c_[df.x,df.y]
-            if "z" in df.columns: data = np.c_[data, df.z]
-
-        else:
-            
-            raise ValueError("The specified file structure is not supported, "
-                             "the columns' headers shuld be defined as: "
-                             "x, y, z(optional))")
-                 
-        result = None
-        
-        if len(data) == 1:
-            result = Point(data[0])
-        else:
-            result = [Point(coord) for coord in data]
-            
-        self.data.result = result
+        self.data.result = data
         
         return
      
@@ -2949,41 +2933,128 @@ class PointData(Structure):
         
         self.check_path()
         
-        if isinstance(self.data.result, list):
-            data_ = np.array([np.array(el) for el in self.data.result])
-        elif isinstance(self.data.result, dict):
-            data_ = np.array([np.array(el) for k, el in
-                                                  self.data.result.items()])
-        elif isinstance(self.data.result, Point):
-            data_ = np.array(self.data.result).reshape((1,-1))
+        poly = self.data.result
+        
+        if ".xls" in self._path or ".csv" in self._path:
+            PointData._write_table(self._path, poly)
+        elif ".shp" in self._path:
+            PointData._write_shapefile(self._path, poly)
         else:
-            raise TypeError("Data type not understood: possible type for a "
-                            "PointData subclass are: Point, list, dictionary")
-                                
+             raise TypeError("The specified file format is not supported. ",
+                             "Supported format are {},{},{}".format('.csv',
+                                                                    '.shp',
+                                                                    '.xls',
+                                                                    '.xlsx'))
+        
+        return
+    
+    @staticmethod
+    def _read_table(path):
+        
+        if ".xls" in path:
+            df = pd.read_excel(path)
+        elif ".csv" in path:
+            df = pd.read_csv(path) 
+        
+        if "x" in df.columns and "y" in df.columns:
+            
+            data = np.c_[df.x,df.y]
+            if "z" in df.columns: data = np.c_[data, df.z]
+        
+        else:
+            
+            raise ValueError("The specified file structure is not supported, "
+                             "the columns' headers shuld be defined as: "
+                             "x, y, z(optional))")
+        
+        result = None
+        
+        if len(data) == 1:
+            result = Point(data[0])
+        else:
+            result = [Point(coord) for coord in data]
+        
+        return result
+    
+    @staticmethod
+    def _write_table(path, point):
+
+        if isinstance(point, Point):
+            data_ = np.array(point).reshape((1,-1))
+        else:
+            raise TypeError("Data type not understood: type for a "
+                            "PointData subclass is shapely Point")
+        
         data = {"x": data_[:,0],
                 "y": data_[:,1]}
-                
+        
         if data_.shape[1] == 3:
             data["z"] = data_[:,2]
         
         df = pd.DataFrame(data)
         
-        if ".xls" in self._path:
-            df.to_excel(self._path, index=False)
-        elif ".csv" in self._path:
-            df.to_csv(self._path, index=False)
-        else:
-            raise TypeError("The specified file format is not supported.",
-                            "Supported format are {},{},{}".format('.csv',
-                                                                   '.xls',
-                                                                   '.xlsx'))
-                
+        if ".xls" in path:
+            df.to_excel(path, index=False)
+        elif ".csv" in path:
+            df.to_csv(path, index=False)
+        
         return
     
-    @staticmethod        
+    @staticmethod
+    def _read_shapefile(path):
+        
+        with shapefile.Reader(path) as shp:
+        
+            if shp.shapeType != shapefile.POINT:
+                
+                err_str = ("The imported shapefile must have POINT type. "
+                           "Given file has {} type").format(shp.shapeTypeName)
+                raise ValueError(err_str)
+            
+            shapes = shp.shapes()
+            
+            if len(shapes) != 1:
+                
+                err_str = ("Only one shape may be defined in the imported "
+                           "shapefile. Given file has {} "
+                           "shapes").format(len(shapes))
+                raise ValueError(err_str)
+            
+            s = shapes[0]
+            
+            if len(s.points) != 1:
+                
+                err_str = ("Only a single point may be defined in the "
+                           "imported shapefile. Given file has {} "
+                           "points").format(len(s.points))
+                raise ValueError(err_str)
+            
+            point = s.points[0]
+            
+        data = Point(point)
+            
+        return data
+    
+    @staticmethod
+    def _write_shapefile(path, point):
+        
+        if isinstance(point, Point):
+            data = zip(*point.xy)[0]
+        else:
+            raise TypeError("Data is not a valid Point object.")
+            
+        with shapefile.Writer(path) as shp:
+            
+            shp.field('name', 'C')
+            shp.point(*data)
+            shp.record('point1')
+        
+        return
+    
+    @staticmethod
     def get_valid_extensions(cls):
         
-        return [".csv", ".xls", ".xlsx"]
+        return [".csv", ".shp", ".xls", ".xlsx"]
 
     @staticmethod
     def auto_plot(self):
@@ -3331,8 +3402,8 @@ class PolygonData(Structure):
         coords = list(self.data.result.exterior.coords)
         
         for i, xy in enumerate(coords[:-1]):
-
-            ax1.annotate(str(xy[:2]),
+            
+            ax1.annotate("({:.1f}, {:.1f})".format(*xy[:2]),
                          xy=xy[:2],
                          horizontalalignment='center',
                          weight="bold",
@@ -3361,15 +3432,48 @@ class PolygonData(Structure):
         
         self.check_path()
         
-        if ".xls" in self._path:
-            df = pd.read_excel(self._path)
-        elif ".csv" in self._path:
-            df = pd.read_csv(self._path)
+        if ".xls" in self._path or ".csv" in self._path:
+            data = PolygonData._read_table(self._path)
+        elif ".shp" in self._path:
+            data = PolygonData._read_shapefile(self._path)
         else:
              raise TypeError("The specified file format is not supported. ",
                              "Supported format are {},{},{}".format('.csv',
+                                                                    '.shp',
                                                                     '.xls',
-                                                                    '.xlsx'))  
+                                                                    '.xlsx'))
+        
+        self.data.result = data
+        
+        return
+     
+    @staticmethod
+    def auto_file_output(self):
+        
+        self.check_path()
+        
+        poly = self.data.result
+        
+        if ".xls" in self._path or ".csv" in self._path:
+            PolygonData._write_table(self._path, poly)
+        elif ".shp" in self._path:
+            PolygonData._write_shapefile(self._path, poly)
+        else:
+             raise TypeError("The specified file format is not supported. ",
+                             "Supported format are {},{},{}".format('.csv',
+                                                                    '.shp',
+                                                                    '.xls',
+                                                                    '.xlsx'))
+        
+        return
+    
+    @staticmethod
+    def _read_table(path):
+        
+        if ".xls" in path:
+            df = pd.read_excel(path)
+        elif ".csv" in path:
+            df = pd.read_csv(path) 
              
         if len(df) < 3:
             raise ValueError("PolygonError: A LinearRing must have ",
@@ -3389,20 +3493,14 @@ class PolygonData(Structure):
             raise ValueError("The specified file structure is not supported, "
                              "the columns' headers should be defined as: "
                              "x, y, z(optional)")
-                             
-        self.data.result = data
-        
-        return
-     
+            
+        return data
+    
     @staticmethod
-    def auto_file_output(self):
+    def _write_table(path, polygon):
         
-        self.check_path()
-        
-        poly = self.data.result
-        data = []
-        if isinstance(poly, Polygon):
-            data = np.array(poly.exterior.coords[:])[:-1]
+        if isinstance(polygon, Polygon):
+            data = np.array(polygon.exterior.coords[:])[:-1]
         else:
             raise TypeError("The result does not contain valid",
                             " Polygon object.")
@@ -3417,22 +3515,68 @@ class PolygonData(Structure):
         
         df = pd.DataFrame(data, columns=columns)
         
-        if ".xls" in self._path:
-            df.to_excel(self._path, index=False)
-        elif ".csv" in self._path:
-            df.to_csv(self._path, index=False)
-        else:
-            raise TypeError("The specified file format is not supported.",
-                            "Supported format are {},{},{}".format('.csv',
-                                                                   '.xls',
-                                                                   '.xlsx'))
-                
+        if ".xls" in path:
+            df.to_excel(path, index=False)
+        elif ".csv" in path:
+            df.to_csv(path, index=False)
+        
         return
     
-    @staticmethod        
+    @staticmethod
+    def _read_shapefile(path):
+        
+        with shapefile.Reader(path) as shp:
+        
+            if shp.shapeType != shapefile.POLYGON:
+                
+                err_str = ("The imported shapefile must have POLYGON type. "
+                           "Given file has {} type").format(shp.shapeTypeName)
+                raise ValueError(err_str)
+            
+            shapes = shp.shapes()
+            
+            if len(shapes) != 1:
+                
+                err_str = ("Only one shape may be defined in the imported "
+                           "shapefile. Given file has {} "
+                           "shapes").format(len(shapes))
+                raise ValueError(err_str)
+            
+            s = shapes[0]
+            
+            if len(s.parts) != 1:
+                
+                err_str = ("Only polygons with exterior coordinates may be "
+                           "defined in the imported shapefile. Given file has "
+                           "{} parts").format(len(s.parts))
+                raise ValueError(err_str)
+            
+            points = s.points
+            
+        data = Polygon(points)
+            
+        return data
+    
+    @staticmethod
+    def _write_shapefile(path, polygon):
+        
+        if isinstance(polygon, Polygon):
+            data = zip(*polygon.exterior.xy)
+        else:
+            raise TypeError("Data is not a valid Polygon object.")
+            
+        with shapefile.Writer(path) as shp:
+
+            shp.field('name', 'C')
+            shp.poly([data])
+            shp.record('polygon1')
+        
+        return
+    
+    @staticmethod
     def get_valid_extensions(cls):
         
-        return [".csv", ".xls", ".xlsx"]
+        return [".csv", ".shp", ".xls", ".xlsx"]
 
     
 class PolygonDataColumn(PolygonData):

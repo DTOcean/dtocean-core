@@ -19,6 +19,7 @@ psycopg2
 pyproj
 python-dateutil
 pyyaml
+pyshp
 scipy
 setuptools
 shapely
