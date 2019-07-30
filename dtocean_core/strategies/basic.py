@@ -28,21 +28,21 @@ class BasicStrategy(Strategy):
     """A basic strategy which will run all selected modules and themes in
     sequence."""
         
-    @classmethod         
+    @classmethod
     def get_name(cls):
-
-        return "Basic"
         
+        return "Basic"
+    
     def configure(self, kwargs=None):
         
         """Does nothing in this case"""
-
-        return
         
+        return
+    
     def get_variables(self):
         
         return None
-        
+    
     def execute(self, core, project):
         
         # Check the project is active and record the simulation number
@@ -52,7 +52,7 @@ class BasicStrategy(Strategy):
             
             errStr = "Project has not been activated."
             raise RuntimeError(errStr)
-            
+        
         self.add_simulation_index(sim_index)
         
         current_mod = self._module_menu.get_current(core, project)
@@ -63,6 +63,6 @@ class BasicStrategy(Strategy):
                                               project,
                                               allow_unavailable=True)
             current_mod = self._module_menu.get_current(core, project)
-            
-        return
         
+        return
+

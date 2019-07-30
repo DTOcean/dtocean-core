@@ -44,7 +44,7 @@ class Strategy(object):
         self._module_menu = ModuleMenu()
         self._theme_menu = ThemeMenu()
         self._tree = Tree()
-
+        
         # Record the simulation indexes used in the strategy
         self._sim_record = []
         
@@ -57,65 +57,65 @@ class Strategy(object):
         self.sim_details = None
         
         return
-
+    
     @abstractclassmethod
     def get_name(cls):
-
+        
         '''A class method for the common name of the strategy.
-
+        
         Returns:
           str: A unique string
         '''
-
-        return cls()
         
+        return cls()
+    
     @abc.abstractmethod
     def configure(self):
-
+    
         '''The configure method is collect information required for executing
         the strategy.
         '''
-
+        
         return
         
     @abc.abstractmethod
     def get_variables(self):
-
+        
         '''The get_variables method returns the list of any variables that
         will be set by the strategy
         '''
-
+        
         return
         
     @abc.abstractmethod
     def execute(self, core, project):
-
+        
         '''The execute method is used to execute the strategy. It should always
         take a Core and a Project class as the only inputs.
         '''
-
-        return
         
+        return
+    
     def get_config(self):
         
         return deepcopy(self._config)
-        
+    
     def set_config(self, config_dict):
         
         self._config = config_dict
         
         return
-        
+    
     def add_simulation_index(self, sim_index):
         
         self._sim_record.append(sim_index)
         
         return
-        
+    
     def get_simulation_record(self):
         
         return self._sim_record[:]
-        
+    
     def restart(self):
         
         self._sim_record = []
