@@ -27,7 +27,7 @@ class BasicStrategy(Strategy):
     
     """A basic strategy which will run all selected modules and themes in
     sequence."""
-        
+    
     @classmethod
     def get_name(cls):
         
