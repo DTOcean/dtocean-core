@@ -130,8 +130,7 @@ class PositionIterator(cma.Iterator):
 
 def main(config_path, core=None, project=None):
     
-    with open(config_path) as stream:
-        config = yaml.load(stream, Loader=yaml.CLoader)
+    config = get_config(config_path)
     
     run_number = config["run_number"]
     root_project_path = config['root_project_path']
@@ -257,3 +256,11 @@ def get_interp_range(irange, delta):
     f = lambda x: nearest(np.arange(irange[0], irange[1] + extend, delta), x)
     
     return f
+
+
+def get_config(config_path):
+    
+    with open(config_path) as stream:
+        config = yaml.load(stream, Loader=yaml.CLoader)
+    
+    return config
