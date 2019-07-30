@@ -144,7 +144,7 @@ setup(name='dtocean-core',
       license="GPLv3",
       packages=find_packages(),
       install_requires=[
-        'aneris==0.10.2',
+        'aneris>=0.10',
         'basemap',
         'cmocean',
         'contours',
@@ -183,7 +183,9 @@ setup(name='dtocean-core',
                'dtocean-core-config = '
                     'dtocean_core.utils.config:init_config_interface',
                'dtocean-database = '
-                    'dtocean_core.utils.database:database_convert_interface'
+                    'dtocean_core.utils.database:database_convert_interface',
+               '_dtocean-optim-pos = dtocean_core.strategies.'
+                                       'position_optimiser.iterator:interface'
                ]},
       package_data={'dtocean_core': ['data/yaml/*.yaml',
                                      'config/*.ini',

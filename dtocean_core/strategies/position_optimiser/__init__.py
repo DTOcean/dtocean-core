@@ -79,8 +79,7 @@ class PositionIterator(cma.Iterator):
     def get_popen_args(self, worker_project_path, *args):
         "Return the arguments to create a new process thread using Popen"
         
-        popen_args = ["python",
-                      "position_optimiser\\iterator.py",
+        popen_args = ["_dtocean-optim-pos",
                       worker_project_path]
         popen_args += [str(x) for x in args]
         popen_args += [str(self._base_penalty)]

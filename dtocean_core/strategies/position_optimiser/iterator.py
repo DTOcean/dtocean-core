@@ -9,8 +9,9 @@ import sys
 
 import numpy as np
 
-from dtocean_core.extensions import StrategyManager
-from dtocean_core.pipeline import Tree
+from ...core import Core
+from ...extensions import StrategyManager
+from ...pipeline import Tree
 
 from positioner import ParaPositioner
 
@@ -227,9 +228,7 @@ def write_result_file(dat_file_path,
     return
 
 
-if __name__ == "__main__":
-    
-    from dtocean_core.core import Core
+def interface():
     
     core = Core()
     
