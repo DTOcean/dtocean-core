@@ -141,7 +141,8 @@ def main(config_path, core=None, project=None):
     if core is None: core = Core()
     if project is None: project = core.load_project(root_project_path)
     
-    base_root_project_path, _ = os.path.splitext(root_project_path)
+    _, root_project_name = os.path.split(root_project_path)
+    root_project_base_name, _ = os.path.splitext(root_project_name)
     
     ranges, nearest_ops = get_param_ranges_interp(config,
                                                   core,
@@ -154,7 +155,7 @@ def main(config_path, core=None, project=None):
                                     for x, scaler in zip(ranges, scaled_vars)]
     
     counter = PositionCounter()
-    iterator = PositionIterator(base_root_project_path,
+    iterator = PositionIterator(root_project_base_name,
                                 worker_directory,
                                 project,
                                 counter,

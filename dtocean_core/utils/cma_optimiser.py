@@ -128,7 +128,7 @@ class Iterator(object):
     
     __metaclass__ = abc.ABCMeta
     
-    def __init__(self, base_root_project_path,
+    def __init__(self, root_project_base_name,
                        worker_directory,
                        base_project,
                        counter,
@@ -137,7 +137,7 @@ class Iterator(object):
                        clean_existing_dir=False):
         
         self._counter = counter
-        self._base_root_project_path = base_root_project_path
+        self._root_project_base_name = root_project_base_name
         self._worker_directory = worker_directory
         self._base_project = base_project
         self._base_penalty = base_penalty
@@ -190,7 +190,7 @@ class Iterator(object):
         
         iteration = self._counter.get_iteration()
     
-        worker_file_root_path = "{}_{}".format(self._base_root_project_path,
+        worker_file_root_path = "{}_{}".format(self._root_project_base_name,
                                                iteration)
         worker_project_name = "{}.prj".format(worker_file_root_path)
         worker_results_name = "{}.dat".format(worker_file_root_path)
