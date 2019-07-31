@@ -6,6 +6,8 @@ import glob
 import pickle
 import logging
 
+import pandas as pd
+
 from . import Strategy
 from .position_optimiser import get_config, main
 
@@ -165,3 +167,61 @@ class AdvancedPosition(Strategy):
         module_logger.info(msg_str)
         
         return
+    
+    def get_results_table(self):
+        
+        key_order = ["sim_number",
+                     "array_orientation",
+                     "delta_row",
+                     "delta_col",
+                     "n_nodes",
+                     "t1",
+                     "t2",
+                     "project.number_of_devices",
+                     "project.annual_energy",
+                     "project.q_factor",
+                     "project.lcoe_mode",
+                     "project.capex_total",
+                     "project.capex_breakdown",
+                     "project.lifetime_opex_mode",
+                     "project.lifetime_energy_mode"]
+        
+        config = get_config(self._config["config_path"])
+        
+        root_project_path = config['root_project_path']
+        sim_dir = config["worker_dir"]
+        
+        _, root_project_name = os.path.split(root_project_path)
+        root_project_base_name, _ = os.path.splitext(root_project_name)
+        
+        pickle_name = "{}_results.pkl".format(root_project_base_name)
+        pickle_path = os.path.join(sim_dir, pickle_name)
+        
+        pickle_dict = pickle.load(open(pickle_path, 'rb'))
+        
+        table_dict = {}
+        table_cols = []
+        
+        for key in key_order:
+            
+            value = pickle_dict[key]
+            
+            if isinstance(value[0], dict):
+                
+                ref_dict = value[0]
+                template = "{} [{}]"
+                
+                for ref_key in ref_dict:
+                    
+                    col_name = template.format(key, ref_key)
+                    val_list = [x[ref_key] for x in value]
+                    
+                    table_cols.append(col_name)
+                    table_dict[col_name] = val_list
+                
+            else:
+                
+                table_cols.append(key)
+                table_dict[key] = value
+        
+        return pd.DataFrame(table_dict, columns=table_cols)
