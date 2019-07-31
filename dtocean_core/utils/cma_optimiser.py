@@ -346,12 +346,18 @@ def main(run_number,
          scaled_vars,
          nearest_ops,
          num_threads=5,
+         max_simulations=None,
          logging="module"):
     
     opts = {'bounds': [low_bound, high_bound],
             'verbose': -3}
     
+    if max_simulations is not None:
+        opts["maxfevals"] = max_simulations
+    
     es = cma.CMAEvolutionStrategy(x0, NormScaler.sigma, opts)
+    
+    _store_outputs(es, iterator, run_number)
     
     thread_queue = queue.Queue()
     
@@ -401,8 +407,6 @@ def main(run_number,
             module_logger.info(msg_str)
         
         _store_outputs(es, iterator, run_number)
-    
-    _store_outputs(es, iterator, run_number)
     
     return es
 

@@ -142,8 +142,21 @@ def main(config_path, core=None, project=None):
     root_project_path = config['root_project_path']
     worker_directory = config["worker_dir"]
     base_penalty = config["base_penalty"]
-    logging = config["logging"]
-    clean_existing_dir = config["clean_existing_dir"]
+    n_threads = config["n_threads"]
+    
+    # Defaults
+    clean_existing_dir = False
+    max_simulations = None
+    logging="module"
+    
+    if "clean_existing_dir" in config:
+        clean_existing_dir = config["clean_existing_dir"]
+    
+    if "max_simulations" in config:
+        max_simulations = config["max_simulations"]
+    
+    if "logging" in config:
+        logging = config["logging"]
     
     if core is None: core = Core()
     if project is None: project = core.load_project(root_project_path)
@@ -176,7 +189,10 @@ def main(config_path, core=None, project=None):
                   low_bound,
                   high_bound,
                   scaled_vars,
-                  nearest_ops)
+                  nearest_ops,
+                  num_threads=n_threads,
+                  max_simulations=max_simulations,
+                  logging=logging)
     
     return es
 
