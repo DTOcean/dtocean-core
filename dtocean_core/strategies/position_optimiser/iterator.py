@@ -13,7 +13,7 @@ from ...core import Core
 from ...extensions import StrategyManager
 from ...pipeline import Tree
 
-from positioner import ParaPositioner
+from .positioner import ParaPositioner
 
 
 def main(core,
@@ -45,7 +45,7 @@ def main(core,
     e = None
     
     try:
-    
+        
         project = core.load_project(prj_file_path)
         
         positioner = get_positioner(core, project)
@@ -61,27 +61,6 @@ def main(core,
                        t2)
         
         flag = "Success"
-
-        
-#        import time
-#        time.sleep(5)
-#        
-#        raise SystemError("Stupid")
-#        
-#        timeout = time.time() + 10   # 5 minutes from now
-#        test = 0
-#    
-#        while True:
-#            
-#            if time.time() > timeout: break
-#            test *= test
-#        
-#        core.dump_project(project, prj_file_path)
-#        
-#        import random
-#        
-#        lcoe = random.random()
-#        flag = "Success"
     
     except Exception as e:
         

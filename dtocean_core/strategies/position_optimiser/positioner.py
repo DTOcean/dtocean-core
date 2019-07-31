@@ -23,6 +23,7 @@
 """
 
 import abc
+
 import numpy as np
 from polylabel import polylabel
 from scipy.spatial import Delaunay
@@ -612,9 +613,6 @@ def _nearest_n_nodes(nodes, start_coords, number_of_nodes):
 def _parametric_point_in_polygon(poly, t1, t2):
     
     tparam = lambda x0, x1, x2: x0 + t1 * (x1 - x0) + t2 * (x2 - x0)
-    
-    print poly
-    print poly.minimum_rotated_rectangle
     
     coords = poly.minimum_rotated_rectangle.exterior.coords
     p0_idx = _get_p0_index(coords)
