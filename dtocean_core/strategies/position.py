@@ -117,8 +117,6 @@ class AdvancedPosition(Strategy):
         
         for i in range(n_sims):
             
-            pickle_dict["sim_number"].append(i)
-            
             if (i + 1) % log_interval == 0:
                 
                 msg_str = "Processed {} of {} simulations".format(i + 1,
@@ -144,6 +142,8 @@ class AdvancedPosition(Strategy):
             project = core.load_project(prj_file_path)
             
             if core.has_data(project, "project.lcoe_mode"):
+                
+                pickle_dict["sim_number"].append(i)
                 
                 for param in read_params:
                     param_value = param_values[param_map[param]]
