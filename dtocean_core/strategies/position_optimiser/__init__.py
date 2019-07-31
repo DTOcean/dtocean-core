@@ -136,6 +136,8 @@ class PositionIterator(cma.Iterator):
 
 def main(config_path, core=None, project=None):
     
+    module_logger.info("Beginning position optimisation")
+    
     config = get_config(config_path)
     
     run_number = config["run_number"]
@@ -193,6 +195,8 @@ def main(config_path, core=None, project=None):
                   num_threads=n_threads,
                   max_simulations=max_simulations,
                   logging=logging)
+    
+    module_logger.info("Position optimisation complete")
     
     return es
 
