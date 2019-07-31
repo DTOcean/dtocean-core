@@ -9,6 +9,7 @@ import abc
 import sys
 import queue
 import pickle
+import logging
 import threading
 import traceback
 from subprocess import Popen
@@ -17,6 +18,9 @@ import cma
 import numpy as np
 
 from ..core import Core
+
+# Set up logging
+module_logger = logging.getLogger(__name__)
 
 
 class NormScaler(object):
@@ -133,7 +137,7 @@ class Iterator(object):
                        base_project,
                        counter,
                        base_penalty=1.,
-                       logging="print",
+                       logging="module",
                        clean_existing_dir=False):
         
         self._counter = counter
@@ -180,6 +184,19 @@ class Iterator(object):
         
         return
     
+    def _log_exception(self, e, flag):
+        
+        module_logger.debug(e)
+        module_logger.debug(flag)
+        
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        msg_str = traceback.format_exception(exc_type,
+                                             exc_value,
+                                             exc_traceback)
+        module_logger.debug(msg_str)
+        
+        return
+    
     def _iterate(self, results_queue, *args):
         
         previous_cost = self._counter.get_cost(*args)
@@ -212,7 +229,9 @@ class Iterator(object):
             worker_results_path = None
             
             if self._logging == "print":
-                self._print_exception( e, flag)
+                self._print_exception(e, flag)
+            elif self._logging == "module":
+                self._log_exception(e, flag)
         
         try:
             
@@ -235,7 +254,9 @@ class Iterator(object):
             worker_results_path = None
             
             if self._logging == "print":
-                self._print_exception( e, flag)
+                self._print_exception(e, flag)
+            elif self._logging == "module":
+                self._log_exception(e, flag)
         
         if "Fail" not in flag:
             
@@ -253,7 +274,9 @@ class Iterator(object):
                 worker_results_path = None
             
                 if self._logging == "print":
-                    self._print_exception( e, flag)
+                    self._print_exception(e, flag)
+                elif self._logging == "module":
+                    self._log_exception(e, flag)
         
         self.set_counter_params(iteration,
                                 worker_project_path,
@@ -285,7 +308,7 @@ def _get_scale_factor(range_min, range_max, sigma, n_sigmas):
     return scaled_range / init_range
 
 
-def _clean_directory(dir_name, clean_existing=False, logging="print"):
+def _clean_directory(dir_name, clean_existing=False, logging="module"):
     
     if not os.path.exists(dir_name):
         
@@ -307,7 +330,10 @@ def _clean_directory(dir_name, clean_existing=False, logging="print"):
                     os.unlink(file_path)
                 #elif os.path.isdir(file_path): shutil.rmtree(file_path)
             except Exception as e:
-                if logging == "print": print(e)
+                if logging == "print":
+                    print(e)
+                elif logging == "module":
+                    module_logger.debug(e)
     
     return
 
@@ -320,7 +346,7 @@ def main(run_number,
          scaled_vars,
          nearest_ops,
          num_threads=5,
-         logging="print"):
+         logging="module"):
     
     opts = {'bounds': [low_bound, high_bound],
             'verbose': -3}
@@ -368,7 +394,11 @@ def main(run_number,
         es.tell(scaled_solutions, costs)
         
         if logging == "print":
-            es.disp(10)
+            es.disp()
+        elif logging == "module":
+            msg_str = ('Minimum fitness for iteration {}: '
+                       '{:.15e}').format(es.countiter, min(es.fit.fit))
+            module_logger.info(msg_str)
         
         _store_outputs(es, iterator, run_number)
     

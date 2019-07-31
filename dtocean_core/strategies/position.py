@@ -68,7 +68,12 @@ class AdvancedPosition(Strategy):
         
         return es
     
-    def _post_process(self, core, extra_vars=None):
+    def _post_process(self, core,
+                            extra_vars=None,
+                            log_interval=100):
+        
+        msg_str = "Beginning post-processing of simulations"
+        module_logger.info(msg_str)
         
         pickle_dict = {}
         
@@ -118,7 +123,11 @@ class AdvancedPosition(Strategy):
             
             pickle_dict["sim_number"].append(i)
             
-            print "{} of {}".format(i, n_sims - 1)
+            if (i + 1) % log_interval == 0:
+                
+                msg_str = "Processed {} of {} simulations".format(i + 1,
+                                                                  n_sims)
+                module_logger.info(msg_str)
             
             dat_file_path = path_template.format(i, 'dat')
             
@@ -155,5 +164,8 @@ class AdvancedPosition(Strategy):
         pickle_name = "{}_results.pkl".format(root_project_base_name)
         pickle_path = os.path.join(sim_dir, pickle_name)
         pickle.dump(pickle_dict, open(pickle_path, 'wb'))
+        
+        msg_str = "Post-processing complete"
+        module_logger.info(msg_str)
         
         return

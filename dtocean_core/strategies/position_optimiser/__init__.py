@@ -5,6 +5,7 @@
 """
 
 import os
+import logging
 from bisect import bisect_left
 from collections import namedtuple
 
@@ -13,6 +14,9 @@ import numpy as np
 
 from ...core import Core
 from ...utils import cma_optimiser as cma
+
+# Set up logging
+module_logger = logging.getLogger(__name__)
 
 
 PositionParams = namedtuple('PositionParams', ['array_orientation',
@@ -100,6 +104,9 @@ class PositionIterator(cma.Iterator):
             if self._logging == "print":
                 print flag
                 print details
+            elif self._logging == "module":
+                module_logger.debug(flag)
+                module_logger.debug(details)
 
             if "Expected number of nodes not found." in details:
 
