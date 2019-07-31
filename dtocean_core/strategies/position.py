@@ -69,7 +69,6 @@ class AdvancedPosition(Strategy):
         return es
     
     def _post_process(self, core,
-                            extra_vars=None,
                             log_interval=100):
         
         msg_str = "Beginning post-processing of simulations"
@@ -92,9 +91,6 @@ class AdvancedPosition(Strategy):
                         "project.capex_breakdown",
                         "project.lifetime_opex_mode",
                         "project.lifetime_energy_mode"]
-        
-        if extra_vars is not None:
-            extract_vars.extend(extra_vars)
         
         for var in extract_vars:
             pickle_dict[var] = []
