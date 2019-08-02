@@ -400,6 +400,23 @@ class Project(object):
         
         return
     
+    def remove_simulation(self, index=None, title=None, active_index=None):
+        
+        if index is None and title is None:
+            
+            errStr = "Either an index or simulation title is required"
+            raise ValueError(errStr)
+            
+        if index is None:
+            index = self._get_index(title)
+        
+        if active_index is None: active_index = 0
+        
+        simulation = self._simulations.pop(index)
+        self._set_active_index(active_index)
+        
+        return simulation
+    
     def get_simulation_indexes(self, titles):
         
         sim_indexes = [self._get_index(x) for x in titles]
@@ -909,7 +926,22 @@ class Core(object):
                                    set_active)
         
         return
+    
+    def remove_simulation(self, project,
+                                sim_index=None,
+                                sim_title=None,
+                                active_index=None):
         
+        pool = project.get_pool()
+        simulation = project.remove_simulation(sim_index,
+                                               sim_title,
+                                               active_index)
+        
+        self.control.remove_simulation(pool,
+                                       simulation)
+        
+        return
+    
     def new_hub(self, project):
 
         # For DTOcean the hubs are assumed to come one after another, but this
