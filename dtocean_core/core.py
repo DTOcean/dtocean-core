@@ -877,6 +877,38 @@ class Core(object):
                                set_active)
         
         return
+    
+    def import_simulation(self, src_project,
+                                dst_project,
+                                src_sim_index=None,
+                                src_sim_title=None,
+                                dst_sim_title=None,
+                                set_active=True):
+        
+        src_pool = src_project.get_pool()
+        dst_pool = dst_project.get_pool()
+        
+        src_simulation = src_project.get_simulation(src_sim_index,
+                                                    src_sim_title)
+        
+        force_title = None
+        null_title = False
+        
+        if dst_sim_title is None:
+            null_title = True
+        else:
+            force_title = dst_sim_title
+        
+        dst_simulation = self.control.import_simulation(src_pool,
+                                                        dst_pool,
+                                                        src_simulation,
+                                                        force_title,
+                                                        null_title)
+        
+        dst_project.add_simulation(dst_simulation,
+                                   set_active)
+        
+        return
         
     def new_hub(self, project):
 
