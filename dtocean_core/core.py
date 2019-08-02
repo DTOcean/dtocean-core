@@ -375,7 +375,7 @@ class Project(object):
         if index is None:
             index = self._get_index(title)
             
-        n_sims = len(self._simulations)         
+        n_sims = len(self._simulations)
     
         if index is None or index > n_sims or index < 0:
             
@@ -422,7 +422,7 @@ class Project(object):
         sim_indexes = [self._get_index(x) for x in titles]
         
         return sim_indexes
-
+    
     def get_simulation_titles(self):
         
         if not self.is_active(): return None
@@ -584,7 +584,7 @@ class Project(object):
             self._simulations[index] = simulation
         
         return index
-        
+    
     def __len__(self):
         
         return len(self._simulations)
@@ -843,9 +843,9 @@ class Core(object):
             self.set_interface_status(load_project, simulation)
                 
         return load_project
-
+    
     def new_simulation(self, project, title=None):
-                
+        
         # If given, check if the title is unique
         if title is not None:
             
@@ -865,9 +865,9 @@ class Core(object):
         self.register_level(project,
                             self._markers["initial"],
                             None)
-                                                    
-        return
         
+        return
+    
     def clone_simulation(self, project,
                                title=None,
                                sim_index=None,
@@ -943,36 +943,36 @@ class Core(object):
         return
     
     def new_hub(self, project):
-
+        
         # For DTOcean the hubs are assumed to come one after another, but this
         # is not a requirement of aneris. To facilitate this we consume the
         # _hub_queue attribute of the Project object
         simulation = project.get_simulation()
         
         hub_definition = simulation.next_hub_definition()
-                                                                    
+        
         if hub_definition["type"] == "Hub":
-
+            
             self.control.create_new_hub(simulation,
                                         hub_definition["interface"],
                                         hub_definition["name"],
                                         hub_definition["no complete"])
-                                                
+        
         elif hub_definition["type"] == "Pipeline":
             
             self.control.create_new_pipeline(simulation,
                                              hub_definition["interface"],
                                              hub_definition["name"],
                                              hub_definition["no complete"])
-                                                    
+            
         else:
             
             raise ValueError
         
         return
-        
+    
     def get_metadata(self, identifier):
-
+        
         self.check_valid_variable(identifier)
         metadata = self.data_catalog.get_metadata(identifier)
 
