@@ -1,6 +1,6 @@
 
 #    Copyright (C) 2016 Mathew Topper, David Bould, Rui Duarte, Francesco Ferri
-#    Copyright (C) 2017-2018 Mathew Topper
+#    Copyright (C) 2017-2019 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -60,15 +60,15 @@ class UnknownData(Structure):
 
 
 class SeriesData(Structure):
-
+    
     '''Structure represented in a series of some sort'''
-
+    
     def get_data(self, raw, meta_data):
-
+        
         series = pd.Series(raw)
-
+        
         return series
-
+    
     def get_value(self, data):
         
         result = None
@@ -77,7 +77,12 @@ class SeriesData(Structure):
             result = data.copy()
             
         return result
+    
+    @classmethod
+    def equals(cls, left, right): 
         
+        return left.equals(right)
+    
     @staticmethod
     def auto_file_input(self):
         
@@ -252,14 +257,14 @@ class TimeSeriesColumn(TimeSeries):
 
 
 class TableData(Structure):
-
+    
     '''Structure represented in a pandas dataframe. Note the labels are 
     order sensitive, so care should be taken when defining them. When adding
     labels using the argument 'add_labels' to pass a list, by default they are
     added to the back of the meta data labels. They can be added to the front
     of the labels if the argument 'add_labels_pos' is set to "front".
     '''
-
+    
     def get_data(self, raw,
                        meta_data,
                        add_labels=None,
@@ -270,7 +275,7 @@ class TableData(Structure):
             
             errStr = "Labels must be set for TableData column names"
             raise ValueError(errStr)
-             
+            
         if (meta_data.units is not None and
             len(meta_data.units) != len(meta_data.labels)):
             
@@ -287,11 +292,11 @@ class TableData(Structure):
                 
                 add_labels.extend(req_cols)
                 req_cols = add_labels
-                
+            
             elif add_labels_pos == "back":
                 
                 req_cols.extend(add_labels)
-                
+            
             else:
                 
                 errStr = ("Argument add_labels_pos may only have value "
@@ -302,12 +307,12 @@ class TableData(Structure):
             
             raw_cols = raw.keys()
             columns = None
-                
+        
         elif isinstance(raw, pd.DataFrame):
             
             raw_cols = raw.columns.values
             columns = None
-                
+        
         else:
             
             raw_cols = req_cols
@@ -316,7 +321,7 @@ class TableData(Structure):
         # Covert req_cols and raw_cols into sets
         req_set = set(req_cols)
         raw_set = set(raw_cols)
-            
+        
         if not relax_cols and raw_set != req_set:
             
             missing = req_set - raw_set
@@ -328,14 +333,14 @@ class TableData(Structure):
                 safe_missing = [str(x) for x in missing]
                 missing_str = ", ".join(safe_missing)
                 errStr += " Missing are '{}'.".format(missing_str)
-                
+            
             if extra:
                 safe_extra = [str(x) for x in extra]
                 extra_str = ", ".join(safe_extra)
                 errStr += " Erroneous are '{}'.".format(extra_str)
             
             raise ValueError(errStr)
-
+        
         dataframe = pd.DataFrame(raw, columns=columns)
         
         # Order the columns
@@ -358,9 +363,9 @@ class TableData(Structure):
                     dataframe[c] = dataframe[c].astype(t)
                 except:
                     pass
-
+        
         return dataframe
-
+    
     def get_value(self, data):
         
         result = None
@@ -369,7 +374,12 @@ class TableData(Structure):
             result = data.copy()
             
         return result
+    
+    @classmethod
+    def equals(cls, left, right): 
         
+        return left.equals(right)
+    
     @staticmethod
     def auto_file_input(self):
         
@@ -383,12 +393,12 @@ class TableData(Structure):
              raise TypeError("The specified file format is not supported.",
                              "Supported format are {},{},{}".format('.csv',
                                                                     '.xls',
-                                                                    '.xlsx'))  
+                                                                    '.xlsx'))
         
         self.data.result = df
         
         return
-        
+    
     @staticmethod
     def auto_file_output(self):
         
@@ -407,12 +417,12 @@ class TableData(Structure):
                                                                    '.xlsx'))
         
         return
-        
+    
     @staticmethod
     def get_valid_extensions(cls):
         
         return [".csv", ".xls", ".xlsx"]
-        
+
 
 class TableDataColumn(TableData):
 
@@ -832,22 +842,27 @@ class TriStateIndexTable(IndexTable):
         
 
 class NumpyND(Structure):
-
+    
     '''Numpy array. This structure is too general for most applications and so
     the get_value method deliberately raises an error. Subclasses of this class
     should be used instead.'''
-
+    
     def get_data(self, raw, meta_data):
-
+        
         array = np.array(raw)
-
+        
         return array
-
+    
     def get_value(self, data):
-
+        
         errStr = "Only subclasses of NumpyND may be used."
-
+        
         raise NotImplementedError(errStr)
+    
+    @classmethod
+    def equals(cls, left, right): 
+        
+        return np.array_equal(left, right)
 
 
 class Numpy2D(NumpyND):
@@ -1336,32 +1351,32 @@ class NumpyBar(NumpyLine):
     def _auto_plot(self):
         
         return
-    
+
 
 class Histogram(Structure):
-
+    
     """Structure to store histogram data. The input is a tuple of bin values
     and the bins separators. The final structure is a dictionary with keys
     "values" and "bins".
     """
-
+    
     def get_data(self, raw, meta_data):
-
+        
         if len(raw[1]) != len(raw[0]) + 1:
-
+            
             errStr = ("The bin separators must contain one more item than the "
                       "bin values. Given data contains {} values and {} "
                       "bin separators").format(len(raw[0]),
                                                len(raw[1]))
             raise ValueError(errStr)
-
+        
         histogram = {"values": raw[0],
                      "bins"  : raw[1]}
-
+        
         return histogram
-
+    
     def get_value(self, data):
-
+        
         return deepcopy(data)
     
     @staticmethod
@@ -1390,7 +1405,7 @@ class Histogram(Structure):
         data = data[np.argsort(data[:, 0])]  # is this needed?
         #check bin consistency
         n_bins = data.shape[0]
-
+        
         for ib in range(1, n_bins):
             if not data[ib-1,1] == data[ib,0]:
                 raise ValueError("The data format is incorrect. ",
@@ -1403,7 +1418,7 @@ class Histogram(Structure):
                            )
         
         return
-
+    
     @staticmethod
     def auto_file_output(self):
         
@@ -1414,7 +1429,6 @@ class Histogram(Structure):
         data = {"bin start": data_["bins"][:-1],
                 "bin end": data_["bins"][1:],
                 "bin value": data_["values"]}
-                
         
         df = pd.DataFrame(data)
         
@@ -1427,31 +1441,31 @@ class Histogram(Structure):
                             "Supported format are {},{},{}".format('.csv',
                                                                    '.xls',
                                                                    '.xlsx'))
-                
+        
         return
     
     @staticmethod
     def get_valid_extensions(cls):
         
         return [".csv", ".xls", ".xlsx"]
-
+    
     @staticmethod
     def auto_plot(self):
-
+        
         hist = self.data.result
         bins = hist['bins']
         values = hist['values']
         nvalues = len(values)
         width = np.ediff1d(bins)
         x = bins[:nvalues]
-
+        
         plt.figure()
         plt.bar(x, values, width, align = 'edge')
         
         plt.title(self.meta.result.title)
-
+        
         self.fig_handle = plt.gcf()
-
+        
         return
 
 
@@ -2261,11 +2275,11 @@ class CartesianListDictColumn(CartesianListDict):
 
 
 class SimpleData(Structure):
-
+    
     '''Simple single value data such as a bool, str, int or float'''
-
+    
     def get_data(self, raw, meta_data):
-
+        
         simple = self._check_types(raw, meta_data.types)
                 
         if meta_data.valid_values is not None:
@@ -2276,17 +2290,17 @@ class SimpleData(Structure):
                 errStr = ("Raw data '{}' does not match any valid value from: "
                           "{}").format(simple, valid_str)
                 raise ValueError(errStr)
-
-        return simple
-
-    def get_value(self, data):
-
-        return deepcopy(data)
         
-    def _check_types(self, raw, type_list):
+        return simple
     
+    def get_value(self, data):
+        
+        return deepcopy(data)
+    
+    def _check_types(self, raw, type_list):
+        
         if type_list is not None:
-
+            
             try:
                 simple_type = getattr(__builtin__, type_list[0])
                 simple = simple_type(raw)
@@ -2295,15 +2309,15 @@ class SimpleData(Structure):
                           "{}, but is {}.").format(type_list,
                                                    type(raw))
                 raise TypeError(errStr)
-                
+        
         else:
             
             errStr = "SimpleData structures require types meta data to be set"
             raise ValueError(errStr)
-            
+        
         return simple
-        
-        
+
+
 class PathData(SimpleData):
     
     """A SimpleData subclass for retrieving path strings. Should be used as
