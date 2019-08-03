@@ -102,10 +102,8 @@ class AdvancedPosition(Strategy):
         root_project_path = config['root_project_path']
         sim_dir = config["worker_dir"]
         
-        _, root_project_name = os.path.split(root_project_path)
-        root_project_base_name, _ = os.path.splitext(root_project_name)
-        sim_name_template = root_project_base_name + "_{}.{}"
-        path_template = os.path.join(sim_dir, sim_name_template)
+        root_project_base_name = _get_root_project_base_name(root_project_path)
+        path_template = _get_sim_path_template(root_project_base_name, sim_dir)
         
         read_params = config["parameters"].keys()
         
@@ -191,8 +189,7 @@ class AdvancedPosition(Strategy):
         root_project_path = config['root_project_path']
         sim_dir = config["worker_dir"]
         
-        _, root_project_name = os.path.split(root_project_path)
-        root_project_base_name, _ = os.path.splitext(root_project_name)
+        root_project_base_name = _get_root_project_base_name(root_project_path)
         
         pickle_name = "{}_results.pkl".format(root_project_base_name)
         pickle_path = os.path.join(sim_dir, pickle_name)
@@ -225,3 +222,52 @@ class AdvancedPosition(Strategy):
                 table_dict[key] = value
         
         return pd.DataFrame(table_dict, columns=table_cols)
+    
+    def load_simulations(self, core,
+                               project,
+                               sim_numbers,
+                               sim_names=None):
+        
+        self.restart()
+        
+        config = get_config(self._config["config_path"])
+        
+        root_project_path = config['root_project_path']
+        sim_dir = config["worker_dir"]
+        
+        root_project_base_name = _get_root_project_base_name(root_project_path)
+        path_template = _get_sim_path_template(root_project_base_name, sim_dir)
+        
+        for i, n in enumerate(sim_numbers):
+            
+            prj_file_path = path_template.format(n, 'prj')
+            src_project = core.load_project(prj_file_path)
+            
+            if sim_names is not None:
+                sim_name = sim_names[i]
+            else:
+                sim_name = "Simulation {}".format(n)
+            
+            core.import_simulation(src_project,
+                                   project,
+                                   dst_sim_title=sim_name)
+            
+            sim_index = project.get_active_index()
+            self.add_simulation_index(sim_index)
+        
+        return
+
+def _get_root_project_base_name(root_project_path):
+    
+    _, root_project_name = os.path.split(root_project_path)
+    root_project_base_name, _ = os.path.splitext(root_project_name)
+    
+    return root_project_base_name
+
+
+def _get_sim_path_template(root_project_base_name, sim_dir):
+    
+    sim_name_template = root_project_base_name + "_{}.{}"
+    sim_path_template = os.path.join(sim_dir, sim_name_template)
+    
+    return sim_path_template
