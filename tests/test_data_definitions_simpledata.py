@@ -1,8 +1,10 @@
 
-import numpy as np
+import pytest
 
-from dtocean_core.core import Core
-from dtocean_core.data.definitions import SimpleData
+from aneris.control.factory import InterfaceFactory
+from dtocean_core.core import AutoQuery, Core
+from dtocean_core.data import CoreMetaData
+from dtocean_core.data.definitions import SimpleData, SimpleDataColumn
 
 
 def test_SimpleData_available():
@@ -12,17 +14,156 @@ def test_SimpleData_available():
     
     assert "SimpleData" in all_objs.keys()
 
-
-def test_SimpleData_get_data():
+@pytest.mark.parametrize("tinput, ttype", [(1, "int"),
+                                           ("hello", "str"),
+                                           (True, "bool"),
+                                           (0.5, "float")])
+def test_SimpleData(tinput, ttype):
     
-    assert False
-
-
-def test_SimpleData_equals():
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test",
+                         "types": [ttype]})
     
-    assert False
-
-
-def test_SimpleData_not_equals():
+    test = SimpleData()
     
-    assert not True
+    a = test.get_data(tinput, meta)
+    b = test.get_value(a)
+    
+    assert b == tinput
+
+
+@pytest.mark.parametrize("tinput, ttype", [(1., "int"),
+                                           (True, "str"),
+                                           ("False", "bool"),
+                                           (2, "float")])
+def test_SimpleData_get_data_error(tinput, ttype):
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test",
+                         "types": [ttype]})
+    
+    test = SimpleData()
+    
+    with pytest.raises(TypeError):
+        test.get_data(tinput, meta)
+
+
+def test_SimpleData_get_value_None():
+    
+    test = SimpleData()
+    result = test.get_value(None)
+    
+    assert result is None
+
+
+@pytest.mark.parametrize("left, right", [(1, 1),
+                                         ("a", "a"),
+                                         (False, False),
+                                         (2.1, 2.1)])
+def test_SimpleData_equals(left, right):
+    
+    assert SimpleData.equals(left, right)
+
+
+@pytest.mark.parametrize("left, right", [(1, 2),
+                                         ("a", "b"),
+                                         (False, True),
+                                         (2.1, 2.101)])
+def test_SimpleData_not_equals(left, right):
+    
+    assert not SimpleData.equals(left, right)
+
+
+def test_SimpleDataColumn_available():
+    
+    new_core = Core()
+    all_objs = new_core.control._store._structures
+    
+    assert "SimpleDataColumn" in all_objs.keys()
+
+
+@pytest.mark.parametrize("tinput, ttype", [(1, "int"),
+                                           ("hello", "str"),
+                                           (True, "bool"),
+                                           (0.5, "float")])
+def test_SimpleDataColumn_auto_db(mocker, tinput, ttype):
+    
+    mock_list = [tinput]
+    
+    mocker.patch('dtocean_core.data.definitions.get_one_from_column',
+                 return_value=mock_list,
+                 autospec=True)
+
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test",
+                         "tables": ["mock.mock", "value"],
+                         "types": [ttype]})
+    
+    test = SimpleDataColumn()
+    
+    query_factory = InterfaceFactory(AutoQuery)
+    QueryCls = query_factory(meta, test)
+    
+    query = QueryCls()
+    query.meta.result = meta
+    
+    query.connect()
+    result = test.get_data(query.data.result, meta)
+    
+    assert result == tinput
+
+
+def test_SimpleDataColumn_auto_db_empty(mocker):
+    
+    mock_list = None
+    
+    mocker.patch('dtocean_core.data.definitions.get_one_from_column',
+                 return_value=mock_list,
+                 autospec=True)
+
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test",
+                         "tables": ["mock.mock", "value"],
+                         "types": ["float"]})
+
+    test = SimpleDataColumn()
+    
+    query_factory = InterfaceFactory(AutoQuery)
+    QueryCls = query_factory(meta, test)
+    
+    query = QueryCls()
+    query.meta.result = meta
+    
+    query.connect()
+        
+    assert query.data.result is None
+
+
+def test_SimpleDataColumn_auto_db_none(mocker):
+    
+    mock_list = [None]
+        
+    mocker.patch('dtocean_core.data.definitions.get_one_from_column',
+                 return_value=mock_list,
+                 autospec=True)
+
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test",
+                         "tables": ["mock.mock", "value"]})
+    
+    test = SimpleDataColumn()
+    
+    query_factory = InterfaceFactory(AutoQuery)
+    QueryCls = query_factory(meta, test)
+    
+    query = QueryCls()
+    query.meta.result = meta
+    
+    query.connect()
+        
+    assert query.data.result is None

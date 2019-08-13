@@ -51,3 +51,19 @@ def test_get_None():
     result = test.get_value(None)
     
     assert result is None
+
+
+def test_DateTimeData_equals():
+    
+    left = datetime.datetime(1979, 9, 25)
+    right = datetime.datetime(1979, 9, 25)
+    
+    assert DateTimeData.equals(left, right)
+
+
+def test_DateTimeData_not_equals():
+    
+    left = datetime.datetime(1979, 9, 25)
+    right = datetime.datetime(1980, 8, 5)
+    
+    assert not DateTimeData.equals(left, right)

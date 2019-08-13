@@ -10,41 +10,56 @@ from dtocean_core.core import (AutoFileInput,
                                AutoQuery,
                                Core)
 from dtocean_core.data import CoreMetaData
-from dtocean_core.data.definitions import SimpleDict, SimpleDictColumn
+from dtocean_core.data.definitions import SimpleList, SimpleListColumn
 
 
-def test_SimpleDict_available():
+def test_SimpleList_available():
     
     new_core = Core()
     all_objs = new_core.control._store._structures
     
-    assert "SimpleDict" in all_objs.keys()
+    assert "SimpleList" in all_objs.keys()
 
 
 @pytest.mark.parametrize("tinput, ttype", [([1, 2], "int"),
                                            (["hello", "world"], "str"),
                                            ([True, False], "bool"),
                                            ([0.5, 0.6], "float")])
-def test_SimpleDict(tinput, ttype):
+def test_SimpleList(tinput, ttype):
 
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
                          "title": "test",
                          "types": [ttype]})
     
-    test = SimpleDict()
+    test = SimpleList()
     
-    raw = {"a": tinput[0], "b": tinput[1]}
-    a = test.get_data(raw, meta)
+    a = test.get_data(tinput, meta)
     b = test.get_value(a)
     
-    assert b["a"] == tinput[0]
-    assert b["b"] == tinput[1]
+    assert b == tinput
 
 
-def test_SimpleDict_get_value_None():
+@pytest.mark.parametrize("tinput, ttype", [([1, 2.1], "int"),
+                                           (["hello", True], "str"),
+                                           ([True, "False"], "bool"),
+                                           ([0.5, 1], "float")])
+def test_SimpleList_get_data_error(tinput, ttype):
     
-    test = SimpleDict()
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test",
+                         "types": [ttype]})
+    
+    test = SimpleList()
+    
+    with pytest.raises(TypeError):
+        test.get_data(tinput, meta)
+
+
+def test_SimpleList_get_value_None():
+    
+    test = SimpleList()
     result = test.get_value(None)
     
     assert result is None
@@ -55,12 +70,9 @@ def test_SimpleDict_get_value_None():
                                           ["hello", "world"]),
                                          ([True, False], [True, False]),
                                          ([0.5, 0.6], [0.5, 0.6])])
-def test_SimpleDict_equals(left, right):
+def test_SimpleList_equals(left, right):
     
-    left_dict = {"a": left[0], "b": left[1]}
-    right_dict = {"a": right[0], "b": right[1]}
-    
-    assert SimpleDict.equals(left_dict, right_dict)
+    assert SimpleList.equals(left, right)
 
 
 @pytest.mark.parametrize("left, right", [([1, 2], [1, 3]),
@@ -68,28 +80,25 @@ def test_SimpleDict_equals(left, right):
                                           ["world", "hello"]),
                                          ([True, False], [True, True]),
                                          ([0.5, 0.6], [0.5, -0.6])])
-def test_SimpleDict_not_equals(left, right):
+def test_SimpleList_not_equals(left, right):
     
-    left_dict = {"a": left[0], "b": left[1]}
-    right_dict = {"a": right[0], "b": right[1]}
-    
-    assert not SimpleDict.equals(left_dict, right_dict)
+    assert not SimpleList.equals(left, right)
 
 
 @pytest.mark.parametrize("fext", [".csv", ".xls", ".xlsx"])
-def test_SimpleDict_auto_file(tmpdir, fext):
-    
+def test_SimpleList_auto_file(tmpdir, fext):
+
     test_path = tmpdir.mkdir("sub").join("test{}".format(fext))
     test_path_str = str(test_path)
-    
-    raw = {"a": 0., "b": 1.}
-    
+           
+    raw = [1., 2., 3.]
+        
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
                          "title": "test",
                          "types": ["float"]})
-    
-    test = SimpleDict()
+
+    test = SimpleList()
     
     fout_factory = InterfaceFactory(AutoFileOutput)
     FOutCls = fout_factory(meta, test)
@@ -97,14 +106,14 @@ def test_SimpleDict_auto_file(tmpdir, fext):
     fout = FOutCls()
     fout._path = test_path_str
     fout.data.result = test.get_data(raw, meta)
-    
+
     fout.connect()
     
     assert len(tmpdir.listdir()) == 1
-    
+              
     fin_factory = InterfaceFactory(AutoFileInput)
     FInCls = fin_factory(meta, test)
-    
+              
     fin = FInCls()
     fin._path = test_path_str
     fin.meta.result = meta
@@ -112,48 +121,19 @@ def test_SimpleDict_auto_file(tmpdir, fext):
     fin.connect()
     result = test.get_data(fin.data.result, meta)
     
-    assert result["a"] == 0.
-    assert result["b"] == 1.
+    assert result == raw
 
 
-def test_SimpleDict_auto_file_input_bad_header(mocker):
+def test_SimpleList_auto_plot():
     
-    df_dict = {"Wrong": [1],
-               "Headers": [1]}
-    df = pd.DataFrame(df_dict)
-    
-    mocker.patch('dtocean_core.data.definitions.pd.read_excel',
-                 return_value=df,
-                 autospec=True)
+    raw = [1., 2., 3.]
     
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
                          "title": "test",
-                         "types": ["int"]})
-    
-    test = SimpleDict()
-    
-    fin_factory = InterfaceFactory(AutoFileInput)
-    FInCls = fin_factory(meta, test)
-    
-    fin = FInCls()
-    fin._path = "file.xlsx"
-    fin.meta.result = meta
-    
-    with pytest.raises(ValueError):
-        fin.connect()
+                         "types": ["float"]})
 
-
-def test_SimpleDict_auto_plot():
-    
-    raw = {"a": 0, "b": 1}
-    
-    meta = CoreMetaData({"identifier": "test",
-                         "structure": "test",
-                         "title": "test",
-                         "types": ["int"]})
-
-    test = SimpleDict()
+    test = SimpleList()
     
     fout_factory = InterfaceFactory(AutoPlot)
     PlotCls = fout_factory(meta, test)
@@ -168,19 +148,18 @@ def test_SimpleDict_auto_plot():
     plt.close("all")
 
 
-def test_SimpleDictColumn_available():
+def test_SimpleListColumn_available():
     
     new_core = Core()
     all_objs = new_core.control._store._structures
 
-    assert "SimpleDictColumn" in all_objs.keys()
+    assert "SimpleListColumn" in all_objs.keys()
     
 
-def test_SimpleDictColumn_auto_db(mocker):
+def test_SimpleListColumn_auto_db(mocker):
     
-    raw = {"a": 0, "b": 1}
-    
-    mock_lists = [raw.keys(), raw.values()]
+    raw = [1., 2., 3.]
+    mock_lists = [raw]
     
     mocker.patch('dtocean_core.data.definitions.get_all_from_columns',
                  return_value=mock_lists,
@@ -190,9 +169,9 @@ def test_SimpleDictColumn_auto_db(mocker):
                          "structure": "test",
                          "title": "test",
                          "tables": ["mock.mock", "name", "position"],
-                         "types": ["int"]})
+                         "types": ["float"]})
     
-    test = SimpleDictColumn()
+    test = SimpleListColumn()
     
     query_factory = InterfaceFactory(AutoQuery)
     QueryCls = query_factory(meta, test)
@@ -203,13 +182,12 @@ def test_SimpleDictColumn_auto_db(mocker):
     query.connect()
     result = test.get_data(query.data.result, meta)
     
-    assert result["a"] == 0
-    assert result["b"] == 1
+    assert result == raw
 
 
-def test_SimpleDictColumn_auto_db_empty(mocker):
+def test_SimpleListColumn_auto_db_empty(mocker):
     
-    mock_lists = [[], []]
+    mock_lists = [[]]
     
     mocker.patch('dtocean_core.data.definitions.get_all_from_columns',
                  return_value=mock_lists,
@@ -221,7 +199,7 @@ def test_SimpleDictColumn_auto_db_empty(mocker):
                          "tables": ["mock.mock", "position"],
                          "types": ["float"]})
 
-    test = SimpleDictColumn()
+    test = SimpleListColumn()
     
     query_factory = InterfaceFactory(AutoQuery)
     QueryCls = query_factory(meta, test)
@@ -234,9 +212,9 @@ def test_SimpleDictColumn_auto_db_empty(mocker):
     assert query.data.result is None
 
 
-def test_SimpleDictColumn_auto_db_none(mocker):
+def test_SimpleListColumn_auto_db_none(mocker):
     
-    mock_lists = [[None, None], [None, None]]
+    mock_lists = [[None, None]]
     
     mocker.patch('dtocean_core.data.definitions.get_all_from_columns',
                  return_value=mock_lists,
@@ -248,7 +226,7 @@ def test_SimpleDictColumn_auto_db_none(mocker):
                          "tables": ["mock.mock", "position"],
                          "types": ["float"]})
     
-    test = SimpleDictColumn()
+    test = SimpleListColumn()
     
     query_factory = InterfaceFactory(AutoQuery)
     QueryCls = query_factory(meta, test)
@@ -259,4 +237,3 @@ def test_SimpleDictColumn_auto_db_none(mocker):
     query.connect()
         
     assert query.data.result is None
-

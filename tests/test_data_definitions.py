@@ -1,15 +1,10 @@
 
-import pytest
-
 from datetime import datetime
 
 import numpy as np
 
 from dtocean_core.data import CoreMetaData
-from dtocean_core.data.definitions import (TriStateData,
-                                           XSet2D,
-                                           XSet3D
-                                           )
+from dtocean_core.data.definitions import XSet2D, XSet3D
 
 
 def test_XSet2D():
@@ -56,31 +51,3 @@ def test_XSet3D():
     assert b["a"].shape == (2, 3, 1)
     assert b["a"].units == 'POWER!'
     assert b.t.units == 's'
-    
-
-@pytest.mark.parametrize("raw", ["true", "false", "unknown"])
-def test_TriStateData(raw):
-           
-    meta = CoreMetaData({"identifier": "test",
-                         "structure": "test",
-                         "title": "test"
-                         })
-    
-    test = TriStateData()
-    a = test.get_data(raw, meta)
-    b = test.get_value(a)
-    
-    assert b == raw
-
-
-def test_TriStateData_bad_input():
-           
-    meta = CoreMetaData({"identifier": "test",
-                         "structure": "test",
-                         "title": "test"
-                         })
-    
-    test = TriStateData()
-    
-    with pytest.raises(ValueError):
-        test.get_data("bad", meta)

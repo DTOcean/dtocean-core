@@ -1,4 +1,6 @@
+
 import pytest
+import numpy as np
 
 from aneris.control.factory import InterfaceFactory
 from dtocean_core.core import (AutoFileInput,
@@ -55,7 +57,37 @@ def test_get_None():
     result = test.get_value(None)
     
     assert result is None
+
+
+def test_CartesianListDict_equals():
     
+    left = {"a": np.array([(0, 1, -1), (1, 2, -2)]),
+            "b": np.array([(3, 4, -3), (4, 5, -5)])}
+    right = {"a": np.array([(0, 1, -1), (1, 2, -2)]),
+             "b": np.array([(3, 4, -3), (4, 5, -5)])}
+    
+    assert CartesianListDict.equals(left, right)
+
+
+def test_CartesianListDict_not_equal_values():
+    
+    left = {"a": np.array([(0, 1, -1), (1, 2, -2)]),
+            "b": np.array([(3, 4, -3), (4, 5, -5)])}
+    right = {"a": np.array([(0, 1, -1), (1, 2, -2)]),
+             "b": np.array([(3, 4, -3), (4, 1, -5)])}
+    
+    assert not CartesianListDict.equals(left, right)
+
+
+def test_CartesianListDict_not_equal_keys():
+    
+    left = {"a": np.array([(0, 1, -1), (1, 2, -2)]),
+            "b": np.array([(3, 4, -3), (4, 5, -5)])}
+    right = {"a": np.array([(0, 1, -1), (1, 2, -2)]),
+             "d": np.array([(3, 4, -3), (4, 5, -5)])}
+    
+    assert not CartesianListDict.equals(left, right)
+
 
 @pytest.mark.parametrize("fext", [".csv", ".xls", ".xlsx"])
 def test_CartesianListDict_auto_file(tmpdir, fext):

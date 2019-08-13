@@ -2,6 +2,7 @@ import pytest
 
 import matplotlib.pyplot as plt
 from geoalchemy2.elements import WKTElement
+from shapely.geometry import Point
 
 from aneris.control.factory import InterfaceFactory
 from dtocean_core.core import (AutoFileInput,
@@ -56,7 +57,27 @@ def test_get_None():
     result = test.get_value(None)
     
     assert result is None
+
+
+@pytest.mark.parametrize("left, right", [([0, 1], [0, 1]),
+                                         ([0, 1, 1], [0, 1, 1])])
+def test_PointData_equals(left, right):
     
+    left_point = Point(*left)
+    right_point = Point(*right)
+    
+    assert PointData.equals(left_point, right_point)
+
+
+@pytest.mark.parametrize("left, right", [([0, 1], [0, 2]),
+                                         ([0, 1, 1], [1, 1, 1])])
+def test_PointData_not_equals(left, right):
+    
+    left_point = Point(*left)
+    right_point = Point(*right)
+    
+    assert not PointData.equals(left_point, right_point)
+
 
 @pytest.mark.parametrize("fext", [".csv", ".xls", ".xlsx"])
 def test_PointData_auto_file(tmpdir, fext):

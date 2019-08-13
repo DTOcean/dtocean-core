@@ -1,5 +1,6 @@
 import pytest
 
+import numpy as np
 import matplotlib.pyplot as plt
 
 from aneris.control.factory import InterfaceFactory
@@ -55,7 +56,31 @@ def test_get_None():
     result = test.get_value(None)
     
     assert result is None
+
+
+def test_CartesianDict_equals():
     
+    left = {"a": np.array([0, 1, -1]), "b": np.array([1, 2, -2])}
+    right = {"a": np.array([0, 1, -1]), "b": np.array([1, 2, -2])}
+    
+    assert CartesianDict.equals(left, right)
+
+
+def test_CartesianDict_not_equal_values():
+    
+    left = {"a": np.array([0, 1, -1]), "b": np.array([1, 2, -2])}
+    right = {"a": np.array([0, 1, -1]), "b": np.array([1, 2, 2])}
+    
+    assert not CartesianDict.equals(left, right)
+
+
+def test_CartesianDict_not_equal_keys():
+    
+    left = {"a": np.array([0, 1, -1]), "b": np.array([1, 2, -2])}
+    right = {"a": np.array([0, 1, -1]), "c": np.array([1, 2, -2])}
+    
+    assert not CartesianDict.equals(left, right)
+
 
 @pytest.mark.parametrize("fext", [".csv", ".xls", ".xlsx"])
 def test_CartesianDict_auto_file(tmpdir, fext):

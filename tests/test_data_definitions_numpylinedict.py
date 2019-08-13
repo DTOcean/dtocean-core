@@ -1,4 +1,6 @@
 
+from copy import deepcopy
+
 import pytest
 import numpy as np
 import matplotlib.pyplot as plt
@@ -53,7 +55,56 @@ def test_get_None():
     result = test.get_value(None)
     
     assert result is None
+
+
+def test_NumpyLineDict_equals():
     
+    coarse_sample = np.linspace(0., 2*np.pi, num=5)
+    fine_sample = np.linspace(0., 2*np.pi, num=9)
+    
+    coarse_sin = zip(coarse_sample, np.sin(coarse_sample))
+    fine_cos = zip(fine_sample, np.cos(fine_sample))
+    
+    raw = {"Sin(x)" : np.array(coarse_sin),
+           "Cos(x)" : np.array(fine_cos)}
+    
+    left = deepcopy(raw)
+    right = deepcopy(raw)
+    
+    assert NumpyLineDict.equals(left, right)
+
+
+def test_NumpyLineDict_not_equal_values():
+    
+    coarse_sample = np.linspace(0., 2*np.pi, num=5)
+    fine_sample = np.linspace(0., 2*np.pi, num=9)
+    
+    coarse_sin = zip(coarse_sample, np.sin(coarse_sample))
+    fine_cos = zip(fine_sample, np.cos(fine_sample))
+    
+    left = {"Sin(x)" : np.array(coarse_sin),
+            "Cos(x)" : np.array(fine_cos)}
+    right = {"Sin(x)" : np.array(fine_cos),
+             "Cos(x)" : np.array(coarse_sin)}
+    
+    assert not NumpyLineDict.equals(left, right)
+
+
+def test_NumpyLineDict_not_equal_keys():
+    
+    coarse_sample = np.linspace(0., 2*np.pi, num=5)
+    fine_sample = np.linspace(0., 2*np.pi, num=9)
+    
+    coarse_sin = zip(coarse_sample, np.sin(coarse_sample))
+    fine_cos = zip(fine_sample, np.cos(fine_sample))
+    
+    left = {"Sin(x)" : np.array(coarse_sin),
+            "Cos(x)" : np.array(fine_cos)}
+    right = {"Sin(x)" : np.array(coarse_sin),
+             "Cosh(x)" : np.array(fine_cos)}
+    
+    assert not NumpyLineDict.equals(left, right)
+
 
 @pytest.mark.parametrize("fext", [".xls", ".xlsx"])
 def test_NumpyLine_auto_file(tmpdir, fext):

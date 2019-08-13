@@ -9,19 +9,8 @@ def test_NumpyND_available():
     
     new_core = Core()
     all_objs = new_core.control._store._structures
-
+    
     assert "NumpyND" in all_objs.keys()
-
-
-def test_NumpyND_get_data():
-    
-    raw = list(np.random.rand(100))
-    
-    test = NumpyND()
-    a = test.get_data(raw, None)
-    
-    assert isinstance(a, np.ndarray)
-    assert list(a) == raw
 
 
 def test_NumpyND_equals():

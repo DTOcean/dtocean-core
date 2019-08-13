@@ -2,6 +2,8 @@ import pytest
 
 import matplotlib.pyplot as plt
 from geoalchemy2.elements import WKTElement
+from shapely.geometry import Polygon
+
 
 from aneris.control.factory import InterfaceFactory
 from dtocean_core.core import (AutoFileInput,
@@ -66,7 +68,47 @@ def test_get_None():
     result = test.get_value(None)
     
     assert result is None
+
+
+@pytest.mark.parametrize("left, right", [([(0., 0.),
+                                           (1., 1.),
+                                           (2., 2.)],
+                                          [(0., 0.),
+                                           (1., 1.),
+                                           (2., 2.)]),
+                                         ([(0., 0., 0.),
+                                           (1., 1., 1.),
+                                           (2., 2., 2.)],
+                                          [(0., 0., 0.),
+                                           (1., 1., 1.),
+                                           (2., 2., 2.)])])
+def test_PolygonData_equals(left, right):
     
+    left_poly = Polygon(left)
+    right_poly = Polygon(right)
+    
+    assert PolygonData.equals(left_poly, right_poly)
+
+
+@pytest.mark.parametrize("left, right", [([(0., 0.),
+                                           (1., 1.),
+                                           (2., 2.)],
+                                          [(0., 0.),
+                                           (1., 0.),
+                                           (2., 2.)]),
+                                         ([(0., 0., 0.),
+                                           (1., 1., 1.),
+                                           (2., 2., 2.)],
+                                          [(0., 0., 0.),
+                                           (1., 1., 1.),
+                                           (2., 0., 2.)])])
+def test_PolygonData_not_equals(left, right):
+    
+    left_poly = Polygon(left)
+    right_poly = Polygon(right)
+    
+    assert not PolygonData.equals(left_poly, right_poly)
+
 
 @pytest.mark.parametrize("fext", [".csv", ".xls", ".xlsx"])
 def test_PolygonData_auto_file(tmpdir, fext):

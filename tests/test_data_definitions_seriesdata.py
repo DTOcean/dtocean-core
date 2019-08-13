@@ -41,6 +41,22 @@ def test_get_None():
     assert result is None
 
 
+def test_SeriesData_equals():
+    
+    a = pd.Series([1, 2, 3])
+    b = pd.Series([1, 2, 3])
+    
+    assert SeriesData.equals(a, b)
+
+
+def test_SeriesData_not_equals():
+    
+    a = pd.Series([1, 2, 3])
+    b = pd.Series()
+    
+    assert not SeriesData.equals(a, b)
+
+
 def test_SeriesData_auto_file(tmpdir):
         
     raw = np.random.rand(100)
@@ -76,19 +92,3 @@ def test_SeriesData_auto_file(tmpdir):
     result = test.get_data(fin.data.result, meta)
     
     assert len(result) == len(raw)
-
-
-def test_SeriesData_equals():
-    
-    a = pd.Series([1, 2, 3])
-    b = pd.Series([1, 2, 3])
-    
-    assert SeriesData.equals(a, b)
-
-
-def test_SeriesData_not_equals():
-    
-    a = pd.Series([1, 2, 3])
-    b = pd.Series()
-    
-    assert not SeriesData.equals(a, b)
