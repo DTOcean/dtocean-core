@@ -2751,7 +2751,7 @@ class SimpleListColumn(SimpleList):
         
         result = col_lists[0]
         
-        if result or set(result) != set([None]):
+        if result and set(result) != set([None]):
             self.data.result = result
 
         return
