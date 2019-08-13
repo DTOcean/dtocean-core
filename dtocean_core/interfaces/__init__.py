@@ -41,7 +41,7 @@ class ThemeInterface(WeightedInterface, MetaInterface):
     '''MapInterface subclass for the thematic assessement modules'''
 
 
-class FileInputInterface(FileInterface):
+class FileInputInterface(FileInterface, MetaInterface):
     
     '''FileInterface subclass for inputting data through files'''
     
@@ -56,7 +56,7 @@ class FileInputInterface(FileInterface):
         return None
 
 
-class FileOutputInterface(FileInterface):
+class FileOutputInterface(FileInterface, MetaInterface):
     
     '''FileInterface subclass for outputting data through files'''
     
