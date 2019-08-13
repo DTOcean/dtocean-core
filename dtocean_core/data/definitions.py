@@ -150,9 +150,10 @@ class TimeSeries(SeriesData):
         
         dt_index = pd.DatetimeIndex(dates)
         time_series = pd.Series(values, index=dt_index)
-
-        return time_series
+        time_series = time_series.sort_index()
         
+        return time_series
+    
     @staticmethod
     def auto_plot(self):
 
@@ -709,9 +710,10 @@ class TimeTable(TableData):
             raise ValueError(errStr)
         
         dataframe = dataframe.set_index(["DateTime"])
-
-        return dataframe
+        dataframe = dataframe.sort_index()
         
+        return dataframe
+    
     @staticmethod
     def auto_plot(self):
         

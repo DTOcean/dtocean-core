@@ -2123,6 +2123,10 @@ class InstallationInterface(ModuleInterface):
         tidal_series = data.tidal_series
         wind_series = data.wind_series
         
+        wave_series_df = wave_series_df.sort_index()
+        tidal_series = tidal_series.sort_index()
+        wind_series = wind_series.sort_index()
+        
         tidal_series_df = tidal_series.to_frame(name="Cs")
         wind_series_df = wind_series.to_frame(name="Ws")
         
