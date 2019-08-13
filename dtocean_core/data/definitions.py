@@ -2324,18 +2324,18 @@ class SimpleData(Structure):
     
     def get_data(self, raw, meta_data):
         
-        simple = self._check_types(raw, meta_data.types)
+        self._check_types(raw, meta_data.types)
                 
         if meta_data.valid_values is not None:
             
-            if simple not in meta_data.valid_values:
+            if raw not in meta_data.valid_values:
                 
                 valid_str = ", ".join(meta_data.valid_values)
                 errStr = ("Raw data '{}' does not match any valid value from: "
-                          "{}").format(simple, valid_str)
+                          "{}").format(raw, valid_str)
                 raise ValueError(errStr)
         
-        return simple
+        return raw
     
     def get_value(self, data):
         
@@ -2344,22 +2344,15 @@ class SimpleData(Structure):
     def _check_types(self, raw, type_list):
         
         if type_list is not None:
-            
-            try:
-                simple_type = getattr(__builtin__, type_list[0])
-                simple = simple_type(raw)
-            except TypeError:
-                errStr = ("Raw data is of incorrect type. Should be "
-                          "{}, but is {}.").format(type_list,
-                                                   type(raw))
-                raise TypeError(errStr)
+        
+            _check_types(raw, type_list)
         
         else:
             
             errStr = "SimpleData structures require types meta data to be set"
             raise ValueError(errStr)
         
-        return simple
+        return
 
 
 class PathData(SimpleData):
@@ -2369,11 +2362,11 @@ class PathData(SimpleData):
     
     def _check_types(self, raw, type_list):
         
-        simple = super(PathData, self)._check_types(raw, ["str"])
+        super(PathData, self)._check_types(raw, ["str"])
         
-        return simple
-        
-        
+        return
+
+
 class DirectoryData(PathData):
     
     """A PathData subclass for retrieving path strings to directories."""
@@ -2392,19 +2385,10 @@ class SimpleList(Structure):
             simple_list = []
             
             for item in raw_list:
-
-                try:
-                    simple_type = getattr(__builtin__,
-                                          meta_data._types[0])
-                    simple_item = simple_type(item)
-                except TypeError:
-                    errStr = ("Raw data is of incorrect type. Should be "
-                              "{}, but is {}.").format(meta_data._types[0],
-                                                       type(item))
-                    raise TypeError(errStr)
-
-                simple_list.append(simple_item)
-
+                
+                _check_types(item, meta_data.types)
+                simple_list.append(item)
+        
         else:
             
             errStr = "SimpleList structures require types meta data to be set"
@@ -2502,30 +2486,22 @@ class SimpleDict(Structure):
         raw_dict = raw
         
         if meta_data.types is not None:
-
-            simple_type = getattr(__builtin__, meta_data._types[0])
-            typed_dict = deepcopy(raw_dict)
-
+            
+            typed_dict = {}
+            
             try:
                 
                 for key, value in raw_dict.iteritems():
                     
-                    simple_item = simple_type(value)
-                    typed_dict[key] = simple_item
-
+                    _check_types(value, meta_data.types)
+                    typed_dict[key] = value
+            
             except AttributeError:
                 
                 errStr = ("Raw data may not be a dictionary. Type is actually "
                           "{}.").format(type(raw_dict))
                 raise AttributeError(errStr)
-
-            except TypeError:
-
-                errStr = ("Raw data is of incorrect type. Should be "
-                          "{}, but is {}.").format(meta_data._types,
-                                                   type(value))
-                raise TypeError(errStr)
-
+        
         else:
             
             errStr = "SimpleDict structures require types meta data to be set"
@@ -4602,3 +4578,22 @@ class RecommendationDict(Structure):
         
         return SimpleDict.get_valid_extensions(cls)
 
+
+def _check_types(raw, type_list):
+    
+    test_types = type_list[:1]
+    
+    # Allow long type as int, and unicode as str
+    if test_types[0] == "int": test_types.append("long")
+    if test_types[0] == "str": test_types.append("unicode")
+    
+    simple_types = [getattr(__builtin__, x) for x in test_types]
+    
+    if not isinstance(raw, tuple(simple_types)):
+        
+        errStr = ("Raw data is of incorrect type. Should be "
+                  "{}, but is {}.").format(type_list,
+                                           type(raw))
+        raise TypeError(errStr)
+    
+    return
