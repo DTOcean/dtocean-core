@@ -167,9 +167,10 @@ def test_environmental_interface_entry(theme_menu,
     interface = connector.get_interface(core,
                                         project,
                                         theme_name)
-                                        
-    interface.connect(debug_entry=True)
-                                        
+    
+    interface.connect(debug_entry=True,
+                      export_data=True)
+    
     debugdir = config_tmpdir.join("..", "debug")
     
     assert len(debugdir.listdir()) == 1

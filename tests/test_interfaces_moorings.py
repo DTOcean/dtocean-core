@@ -165,9 +165,10 @@ def test_moorings_interface_entry(module_menu,
     interface = connector.get_interface(core,
                                         project,
                                         mod_name)
-                                        
-    interface.connect(debug_entry=True)
-                                        
+    
+    interface.connect(debug_entry=True,
+                      export_data=True)
+    
     debugdir = config_tmpdir.join("..", "debug")
     
     assert len(debugdir.listdir()) == 1

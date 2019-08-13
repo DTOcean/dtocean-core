@@ -159,14 +159,15 @@ def test_installation_interface_entry(module_menu,
         inputs = installation_branch.get_input_status(core, project)
         pprint(inputs)
         assert can_execute
-        
+    
     connector = _get_connector(project, "modules")
     interface = connector.get_interface(core,
                                         project,
                                         mod_name)
-                                        
-    interface.connect(debug_entry=True)
-                                        
+    
+    interface.connect(debug_entry=True,
+                      export_data=True)
+    
     debugdir = config_tmpdir.join("..", "debug")
     
     assert len(debugdir.listdir()) == 1

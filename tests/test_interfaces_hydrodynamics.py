@@ -179,8 +179,9 @@ def test_wave_interface_entry(module_menu,
                                         project,
                                         mod_name)
                                         
-    interface.connect(debug_entry=True)
-                                        
+    interface.connect(debug_entry=True,
+                      export_data=True)
+    
     debugdir = config_tmpdir.join("..", "debug")
     
     assert len(debugdir.listdir()) == 1
@@ -275,8 +276,9 @@ def test_tidal_interface_entry(module_menu,
                                         project,
                                         mod_name)
                                         
-    interface.connect(debug_entry=True)
-                                        
+    interface.connect(debug_entry=True,
+                      export_data=True)
+    
     debugdir = config_tmpdir.join("..", "debug")
     
     assert len(debugdir.listdir()) == 1
