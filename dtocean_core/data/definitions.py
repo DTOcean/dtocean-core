@@ -2409,9 +2409,14 @@ class SimpleList(Structure):
         return simple_list
     
     def get_value(self, data):
-
-        return data[:]
-
+        
+        result = None
+        
+        if data is not None:
+            result = data[:]
+        
+        return result
+    
     @staticmethod
     def auto_plot(self):
 
