@@ -1633,7 +1633,7 @@ class MaintenanceInterface(ModuleInterface):
             pkl_path = debugdir.get_path("oandm_outputs.pkl")
             pickle.dump(outputWP6, open(pkl_path, "wb"))
         
-        self.data.capex_oandm = outputWP6["CapexOfArray [Euro]"]
+        self.data.capex_oandm = float(outputWP6["CapexOfArray [Euro]"])
         
         # Store the metrics table 
         name_map = {"lifetimeOpex [Euro]": 'Lifetime OPEX',
@@ -1737,9 +1737,13 @@ class MaintenanceInterface(ModuleInterface):
         downtime_table = outputWP6["downtimePerDevice [hour]"]
         best_downtime = downtime_table.ix[:, lcoe_best_idx]
         worst_downtime = downtime_table.ix[:, lcoe_worst_idx]
+        best_downtime = best_downtime.to_dict()
+        worst_downtime = worst_downtime.to_dict()
+        best_downtime = {k: float(v) for k, v in best_downtime.items()}
+        worst_downtime = {k: float(v) for k, v in worst_downtime.items()}
         
-        self.data.device_downtime_best = best_downtime.to_dict()
-        self.data.device_downtime_worst = worst_downtime.to_dict()
+        self.data.device_downtime_best = best_downtime
+        self.data.device_downtime_worst = worst_downtime
 
         # Build events tables
         best_strategies = outputWP6['eventTables [-]'][lcoe_best_idx]
