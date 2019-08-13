@@ -68,22 +68,22 @@ hs_olc_values = [0.75,
                  1.75,
                  1.75,
                  1.75,
-                 2,
-                 2,
+                 2.,
+                 2.,
                  2.25,
-                 2,
-                 2,
+                 2.,
+                 2.,
                  1.5,
-                 2,
-                 2,
-                 2,
-                 2,
-                 2]
+                 2.,
+                 2.,
+                 2.,
+                 2.,
+                 2.]
 
 hs_olc_dict = {k: v for k, v in zip(hs_olc_names, hs_olc_values)}
     
-tp_olc_dict = {"Seafloor & equipment preparation": 15}
-ws_olc_dict = {"Seafloor & equipment preparation": 15}
+tp_olc_dict = {"Seafloor & equipment preparation": 15.}
+ws_olc_dict = {"Seafloor & equipment preparation": 15.}
 cs_olc_dict = {"Seafloor & equipment preparation": 1.5}
 
 
@@ -285,18 +285,19 @@ wind_series = [(x, float(y)) for x, y in wind_series]
 
 ### Device
 device = xls_file.parse('device', index_col = 0)
+device = device.apply(pd.to_numeric, errors='ignore')
 
 system_type = device['type'].values.item()
-system_length = device['length'].values.item()
-system_width = device['width'].values.item()
-system_height = device['height'].values.item()
-system_mass = device['dry mass'].values.item()
-assembly_duration = device['assembly duration'].values.item()
+system_length = float(device['length'].values.item())
+system_width = float(device['width'].values.item())
+system_height = float(device['height'].values.item())
+system_mass = float(device['dry mass'].values.item())
+assembly_duration = float(device['assembly duration'].values.item())
 load_out_method = device['load out'].values.item()
 transportation_method = device['transportation method'].values.item()
-bollard_pull = device['bollard pull'].values.item()
-connect_duration = device['connect duration'].values.item()
-disconnect_duration = device['disconnect duration'].values.item()
+bollard_pull = float(device['bollard pull'].values.item())
+connect_duration = float(device['connect duration'].values.item())
+disconnect_duration = float(device['disconnect duration'].values.item())
 
 start_date_str = device['Project start date'].values.item()
 project_start_date = parse(start_date_str)

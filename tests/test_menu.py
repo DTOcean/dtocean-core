@@ -107,7 +107,7 @@ class MockTheme(ThemeInterface):
     def connect(self, debug_entry=False,
                       export_data=True):
         
-        self.data.dummy2 = 1
+        self.data.dummy2 = 1.
         
         return
     
@@ -156,7 +156,7 @@ class MockTheme2(ThemeInterface):
     def connect(self, debug_entry=False,
                       export_data=True):
         
-        self.data.dummy2 = 2
+        self.data.dummy2 = 2.
         
         return
 

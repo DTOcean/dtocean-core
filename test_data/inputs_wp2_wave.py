@@ -77,7 +77,7 @@ FixedArrayLayout = np.array(pos)
 lease_area = np.array([[50., 50.],[950., 50.],[950., 250.],[50., 250.]],dtype=float)
 power_law_exponent = np.array([7.])
 nogo_areas = {"a": np.array([[0, 0],[.1, 0],[.1, .1],[0, .1]])}
-rated_array_power = 5
+rated_array_power = 5.
 main_direction = None
 blockage_ratio = 1.
 spectrum_type_farm = 'JONSWAP'
@@ -95,8 +95,8 @@ max_install = 0.
 min_dist_x = 40.
 min_dist_y = 40.
 yaw_angle = 0.
-rated_power_device = 1
-op_threshold = 0
+rated_power_device = 1.
+op_threshold = 0.
 
 landing_point = (0.,0.)
 

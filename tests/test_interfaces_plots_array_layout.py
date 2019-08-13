@@ -160,7 +160,7 @@ def test_ArrayLeasePlot(core, project, tree):
 
     # Force addition of lease area and padding
     lease_area = Polygon([(0, 0), (10, 0), (10, 10), (0, 10)])
-    padding = 1
+    padding = 1.
     core.add_datastate(project,
                        identifiers=["site.lease_boundary",
                                     "options.boundary_padding"],

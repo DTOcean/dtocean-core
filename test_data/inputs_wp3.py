@@ -132,7 +132,7 @@ mean_power_hist_per_device = {
                              }
 network_configuration = "Radial"
 
-target_burial_depth = 10
+target_burial_depth = 10.
 devices_per_string = 10
 corridor_current_dir = 0.
 corridor_nogo_areas = {"a": [(40.,40.),(40.,110.),(110.,110.), (110.,40.)]}
