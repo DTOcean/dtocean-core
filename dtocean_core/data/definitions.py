@@ -4085,9 +4085,11 @@ class XGridND(Structure):
     to an integer value.'''
     
     def get_n_dims(self):
-
-        return None
-
+        
+        errStr = "Only subclasses of XGridND may be used."
+        
+        raise NotImplementedError(errStr)
+    
     def get_data(self, raw, meta_data):
         
         """
