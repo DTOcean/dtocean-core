@@ -1201,6 +1201,20 @@ class NumpyLineDict(NumpyLine):
         
         return copy_dict
     
+    @classmethod
+    def equals(cls, left, right):
+        
+        if set(left.keys()) != set(right.keys()): return False
+        
+        value_check = []
+        
+        for lkey, lvalue in left.iteritems():
+            
+            rvalue = right[lkey]
+            value_check.append(np.array_equal(lvalue, rvalue))
+        
+        return all(value_check)
+    
     @staticmethod
     def auto_file_input(self):
         
@@ -1945,6 +1959,20 @@ class CartesianDict(CartesianData):
         
         return new_dict
     
+    @classmethod
+    def equals(cls, left, right):
+        
+        if set(left.keys()) != set(right.keys()): return False
+        
+        value_check = []
+        
+        for lkey, lvalue in left.iteritems():
+            
+            rvalue = right[lkey]
+            value_check.append(np.array_equal(lvalue, rvalue))
+        
+        return all(value_check)
+    
     @staticmethod
     def auto_file_input(self):
         
@@ -2091,8 +2119,9 @@ class CartesianDictColumn(CartesianDict):
         
         return
 
-class CartesianListDict(CartesianList):
 
+class CartesianListDict(CartesianList):
+    
     '''Dictionary of 2D arrays with second dimension of length 2 or 3.'''
     
     def get_data(self, raw, meta_data):
@@ -2116,6 +2145,20 @@ class CartesianListDict(CartesianList):
                                                     for k, v in data.items()}
             
         return new_dict
+    
+    @classmethod
+    def equals(cls, left, right):
+        
+        if set(left.keys()) != set(right.keys()): return False
+        
+        value_check = []
+        
+        for lkey, lvalue in left.iteritems():
+            
+            rvalue = right[lkey]
+            value_check.append(np.array_equal(lvalue, rvalue))
+        
+        return all(value_check)
     
     @staticmethod
     def auto_file_input(self):
@@ -4088,7 +4131,12 @@ class XGridND(Structure):
             result = data.copy(deep=True)
         
         return result
-
+    
+    @classmethod
+    def equals(cls, left, right):
+        
+        return left.identical(right)
+    
     @staticmethod
     def auto_file_input(self):
         
