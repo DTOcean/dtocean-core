@@ -321,6 +321,3 @@ def test_tidal_interface_entry_fail(module_menu,
     
     with pytest.raises(ValueError):
         interface.connect(debug_entry=True)
-                                        
-    
-

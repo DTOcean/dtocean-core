@@ -123,12 +123,12 @@ class SeriesData(Structure):
 
 
 class TimeSeries(SeriesData):
-
+    
     '''List of tuples expected with the first entries being datetime.datetime
     objects.'''
-
+    
     def get_data(self, raw, meta_data):
-
+        
         if isinstance(raw, pd.Series):
             
             if not isinstance(raw.index, pd.DatetimeIndex):
@@ -141,13 +141,13 @@ class TimeSeries(SeriesData):
             return raw
         
         dates, values = zip(*raw)
-
+        
         if not all(isinstance(x, datetime) for x in dates):
-
+            
             errStr = ("TimeSeries requires a datetime.datetime object as first"
                       "index of all given tuples.")
             raise ValueError(errStr)
-
+        
         dt_index = pd.DatetimeIndex(dates)
         time_series = pd.Series(values, index=dt_index)
 
@@ -206,14 +206,14 @@ class TimeSeries(SeriesData):
         self.data.result = s
         
         return
-        
-        
+
+
 class TimeSeriesColumn(TimeSeries):
     
     """The first two entries of the tables key of the DDS entry should refer
     to the date and time columns within the database. These do not need to be
     specified in the labels key, but all other columns should be labelled."""
-
+    
     @staticmethod
     def auto_db(self):
         
@@ -223,7 +223,7 @@ class TimeSeriesColumn(TimeSeries):
                           schema,
                           table,
                           self.meta.result.tables[1:])
-                                       
+        
         if df.empty:
             
             result = None
@@ -240,19 +240,19 @@ class TimeSeriesColumn(TimeSeries):
             
             # Don't allow Date to have any null
             if pd.isnull(df["Date"]).any(): return
-    
+            
             dtstrs = [datetime.combine(date, time) for
                         date, time in zip(df["Date"], df["Time"])]
-    
+            
             df["DateTime"] = dtstrs
             df = df.drop("Date", 1)
             df = df.drop("Time", 1)
             df = df.set_index("DateTime")
             
             result = df.to_records(convert_datetime64=True)
-            
+        
         self.data.result = result
-
+        
         return
 
 
@@ -684,11 +684,11 @@ class LineTableColumn(LineTable):
         
 
 class TimeTable(TableData):
-
+    
     '''Structure represented in a pandas dataframe with a datetime index. One
     key in the raw data should be named "DateTime". If non-indexed raw data
     is given then the datetimes should be in the first column.'''
-
+    
     def get_data(self, raw, meta_data):
                 
         dataframe = super(TimeTable, self).get_data(raw,
@@ -697,7 +697,7 @@ class TimeTable(TableData):
                                                     add_labels_pos="front")
         
         if "DateTime" not in dataframe.columns:
-
+            
             errStr = ("TimeTable structure requires one column "
                       "to have value 'DateTime'")
             raise ValueError(errStr)
@@ -860,7 +860,7 @@ class NumpyND(Structure):
         raise NotImplementedError(errStr)
     
     @classmethod
-    def equals(cls, left, right): 
+    def equals(cls, left, right):
         
         return np.array_equal(left, right)
 
@@ -1179,16 +1179,16 @@ class NumpyLineColumn(NumpyLine):
 
 
 class NumpyLineDict(NumpyLine):
-
+    
     """Collection of NumpyLine structures on matching axes."""
-
+    
     def get_data(self, raw, meta_data):
-
+        
         valid_dict = {k: super(NumpyLineDict, self).get_data(v, meta_data) for
                                                         k, v in raw.items()}
-
+        
         return valid_dict
-
+    
     def get_value(self, data):
         
         copy_dict = None
@@ -1196,7 +1196,7 @@ class NumpyLineDict(NumpyLine):
         if data is not None:
             copy_dict = {k: super(NumpyLineDict, self).get_value(v) for
                                                         k, v in data.items()}
-
+        
         return copy_dict
     
     @staticmethod
@@ -1919,20 +1919,20 @@ class CartesianListColumn(CartesianList):
 
 
 class CartesianDict(CartesianData):
-
+    
     '''Dictionary of arrays with single dimension of length 2 or 3.'''
-
+    
     def get_data(self, raw, meta_data):
         
         safe_data = {}
         
         for key, value in raw.iteritems():
-
+            
             safe_value = super(CartesianDict, self).get_data(value, meta_data)
             safe_data[key] = safe_value
-
+        
         return safe_data
-
+    
     def get_value(self, data):
         
         new_dict = None
@@ -1940,7 +1940,7 @@ class CartesianDict(CartesianData):
         if data is not None:
             new_dict = {k: super(CartesianDict, self).get_value(v)
                                                     for k, v in data.items()}
-
+        
         return new_dict
     
     @staticmethod
@@ -2087,25 +2087,24 @@ class CartesianDictColumn(CartesianDict):
         
         if result_dict: self.data.result = result_dict
         
-        return        
-    
+        return
 
 class CartesianListDict(CartesianList):
 
     '''Dictionary of 2D arrays with second dimension of length 2 or 3.'''
-
+    
     def get_data(self, raw, meta_data):
         
         safe_data = {}
         
         for key, value in raw.iteritems():
-
+            
             safe_value = super(CartesianListDict, self).get_data(value,
                                                                  meta_data)
             safe_data[key] = safe_value
             
         return safe_data
-
+    
     def get_value(self, data):
         
         new_dict = None
@@ -2113,7 +2112,7 @@ class CartesianListDict(CartesianList):
         if data is not None:
             new_dict = {k: super(CartesianListDict, self).get_value(v)
                                                     for k, v in data.items()}
-
+            
         return new_dict
     
     @staticmethod
@@ -2336,17 +2335,17 @@ class DirectoryData(PathData):
 
 
 class SimpleList(Structure):
-
+    
     '''Simple list of value data such as a bool, str, int or float'''
-
+    
     def get_data(self, raw, meta_data):
-
+        
         raw_list = raw
-
+        
         if meta_data.types is not None:
-
+            
             simple_list = []
-
+            
             for item in raw_list:
 
                 try:
@@ -2362,10 +2361,10 @@ class SimpleList(Structure):
                 simple_list.append(simple_item)
 
         else:
-
+            
             errStr = "SimpleList structures require types meta data to be set"
             raise ValueError(errStr)
-            
+        
         if meta_data.valid_values is not None:
             
             for simple_item in simple_list:
@@ -2377,9 +2376,9 @@ class SimpleList(Structure):
                               "value from: {}").format(simple_item,
                                                        valid_str)
                     raise ValueError(errStr)
-
+        
         return simple_list
-
+    
     def get_value(self, data):
 
         return data[:]
@@ -2417,6 +2416,7 @@ class SimpleList(Structure):
         if not "data" in df.columns:
             raise TypeError("The file does not contain the correct header.",
                             "The data column needs to have the header: 'data'")
+        
         self.data.result = list(df.data)
         
         return
@@ -2448,28 +2448,28 @@ class SimpleList(Structure):
 
 
 class SimpleDict(Structure):
-
+    
     '''Dictionary containing a named variable as a key and a simple
     single valued str, float, int, bool as the value.'''
-
+    
     def get_data(self, raw, meta_data):
-
+        
         raw_dict = raw
-
+        
         if meta_data.types is not None:
 
             simple_type = getattr(__builtin__, meta_data._types[0])
             typed_dict = deepcopy(raw_dict)
 
             try:
-
+                
                 for key, value in raw_dict.iteritems():
                     
                     simple_item = simple_type(value)
                     typed_dict[key] = simple_item
 
             except AttributeError:
-
+                
                 errStr = ("Raw data may not be a dictionary. Type is actually "
                           "{}.").format(type(raw_dict))
                 raise AttributeError(errStr)
@@ -2482,7 +2482,7 @@ class SimpleDict(Structure):
                 raise TypeError(errStr)
 
         else:
-
+            
             errStr = "SimpleDict structures require types meta data to be set"
             raise ValueError(errStr)
         
@@ -2498,11 +2498,11 @@ class SimpleDict(Structure):
                               "value from: {}").format(key,
                                                        valid_str)
                     raise ValueError(errStr)
-
+        
         return typed_dict
-
+    
     def get_value(self, data):
-
+        
         return deepcopy(data)
     
     @staticmethod
@@ -2514,7 +2514,7 @@ class SimpleDict(Structure):
             df = pd.read_excel(self._path)
         elif ".csv" in self._path:
             df = pd.read_csv(self._path)
-
+        
         if not ("data" in df.columns 
                 and "ID" in df.columns):
             raise ValueError("The file does not contain the correct header.",
@@ -2524,7 +2524,7 @@ class SimpleDict(Structure):
         self.data.result = dict(zip(df.ID, df.data))
         
         return
-        
+    
     @staticmethod
     def auto_file_output(self):
         
@@ -2866,28 +2866,28 @@ class DateTimeDict(DateTimeData):
     def get_valid_extensions(cls):
         
         return [".csv", ".xls", ".xlsx"]
-        
-        
-class TriStateData(Structure):
 
+
+class TriStateData(Structure):
+    
     '''Data that can be "true", "false" or "unknown". Must be provided as
     a string'''
-
+    
     def get_data(self, raw, meta_data):
-
+        
         if isinstance(raw, basestring):
             
             if raw in ["true", "false", "unknown"]:
                 
                 return raw
-                
+        
         errStr = ('Given raw value is incorrectly formatted. It must be '
                   'a string with value "true", "false" or "unknown". '
                   'Given was: {}').format(raw)
         raise ValueError(errStr)
-
+    
     def get_value(self, data):
-
+        
         return deepcopy(data)
 
 
@@ -3105,24 +3105,24 @@ class PointData(Structure):
 
 
 class PointList(PointData):
-
+    
     '''A list containing shapely Point variables as values'''
-
+    
     def get_data(self, raw, meta_data):
-
+        
         point_list = [super(PointList, self).get_data(xy, meta_data)
                                                             for xy in raw]
-
+        
         return point_list
-
+    
     def get_value(self, data):
         
         new_point_list = None
-
+        
         if data is not None:
             new_point_list = [
                             super(PointList, self).get_value(p) for p in data]
-
+        
         return new_point_list
     
     @staticmethod
@@ -3186,6 +3186,7 @@ class PointDict(PointData):
     
     @staticmethod
     def auto_file_input(self):
+        
         self.check_path()
         
         if ".xls" in self._path:
@@ -3964,28 +3965,28 @@ class PolygonDictColumn(PolygonDict):
 
 
 class XGridND(Structure):
-
+    
     '''xrarray DataArray object. See xarray.pydata.org
-
+    
     Note: This class should not be used directly, subclass and set get_n_dims
     to an integer value.'''
-
+    
     def get_n_dims(self):
 
         return None
 
     def get_data(self, raw, meta_data):
-
+        
         """
         Add raw data.
-
+        
         Args:
             data (dict): dictionary with following keys:
                 values (numpy.ndarray): The data to store.
                 coords (list): List of arrays or lists with the coordinates for
                     each dimension. They are ordered by the dimensions of the
                     array.
-
+        
         Note:
             The "labels" key in the DDS files is used to provide dimension
                 and data dimension names. The number of labels should match
@@ -3994,57 +3995,57 @@ class XGridND(Structure):
                 to the dimensions and the data. The first n entries matches
                 the dimesnions and the last matches the data.
         """
-
+        
         coords = raw["coords"]
         n_dims = self.get_n_dims()
-
+        
         if meta_data.labels is None:
-
+            
             errStr = ("Labels metadata must be set for {} data "
                       "structures").format(self.__class__.__name__)
             raise ValueError(errStr)
-
+        
         dims = meta_data.labels[:]
-
+        
         if len(dims) != n_dims:
-
+            
             errStr = ("Given number of labels is incorrect. The data has {} "
                       "dimensions but {} labels are given").format(len(dims),
                                                                    n_dims)
             raise ValueError(errStr)
-
+        
         if meta_data.units is not None:
             units = meta_data.units[:]
         else:
             units = None
-
+        
         coords, attrs = self._get_coords_attrs(dims,
                                                coords,
                                                units)
-
+        
         data_array = xr.DataArray(raw["values"],
                                   coords=coords,
                                   attrs=attrs)
-
+        
         return data_array
-
+    
     def _get_coords_attrs(self, dims, coords, units):
-
+        
         if len(dims) != len(coords):
-
+            
             errStr = ("The number of coordinate lists must match the number "
                       "of labels.")
             raise ValueError(errStr)
-
+        
         if units is not None and len(units) != len(dims) + 1:
-
+            
             errStr = ("The number of units must match the number "
                       "of labels plus one.")
             raise ValueError(errStr)
-
+        
         attrs = None
         coord_tuples = []
-
+        
         for dim, coord_list in zip(dims, coords):
 
             coord_item = coord_tuples.append((dim, coord_list))
@@ -4055,35 +4056,35 @@ class XGridND(Structure):
             
             if data_unit is not None:
                 attrs = {'units': data_unit}
-                
+            
             new_tuples = []
-
+            
             for coord_item, unit in zip(coord_tuples, units):
-
+                
                 if unit is not None:
-
+                    
                     coord_attrs = {'units': unit}
                     new_coord_item = (coord_item[0],
                                       coord_item[1],
                                       coord_attrs)
-
+                
                 else:
-
+                    
                     new_coord_item = coord_item
-
+                
                 new_tuples.append(new_coord_item)
-
+            
             coord_tuples = new_tuples
-
+        
         return coord_tuples, attrs
-
+    
     def get_value(self, data):
         
         result = None
         
         if data is not None:
             result = data.copy(deep=True)
-            
+        
         return result
 
     @staticmethod
@@ -4550,6 +4551,4 @@ class RecommendationDict(Structure):
     def get_valid_extensions(cls):
         
         return SimpleDict.get_valid_extensions(cls)
-        
-
 

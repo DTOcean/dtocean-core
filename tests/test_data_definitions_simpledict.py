@@ -17,7 +17,7 @@ def test_SimpleDict_available():
     
     new_core = Core()
     all_objs = new_core.control._store._structures
-
+    
     assert "SimpleDict" in all_objs.keys()
 
 
@@ -48,7 +48,7 @@ def test_get_None():
 
 @pytest.mark.parametrize("fext", [".csv", ".xls", ".xlsx"])
 def test_SimpleDict_auto_file(tmpdir, fext):
-
+    
     test_path = tmpdir.mkdir("sub").join("test{}".format(fext))
     test_path_str = str(test_path)
            
@@ -58,7 +58,7 @@ def test_SimpleDict_auto_file(tmpdir, fext):
                          "structure": "test",
                          "title": "test",
                          "types": ["float"]})
-
+    
     test = SimpleDict()
     
     fout_factory = InterfaceFactory(AutoFileOutput)
@@ -67,14 +67,14 @@ def test_SimpleDict_auto_file(tmpdir, fext):
     fout = FOutCls()
     fout._path = test_path_str
     fout.data.result = test.get_data(raw, meta)
-
+    
     fout.connect()
     
     assert len(tmpdir.listdir()) == 1
-              
+    
     fin_factory = InterfaceFactory(AutoFileInput)
     FInCls = fin_factory(meta, test)
-              
+    
     fin = FInCls()
     fin._path = test_path_str
     
@@ -100,10 +100,10 @@ def test_SimpleDict_auto_file_input_bad_header(mocker):
                          "title": "test"})
 
     test = SimpleDict()
-              
+    
     fin_factory = InterfaceFactory(AutoFileInput)
     FInCls = fin_factory(meta, test)
-              
+    
     fin = FInCls()
     fin._path = "file.xlsx"
     

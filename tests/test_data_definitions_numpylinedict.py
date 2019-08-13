@@ -45,8 +45,8 @@ def test_NumpyLineDict():
     assert "Sin(x)" in b
     assert max(b["Sin(x)"][:,1]) == 1
     assert b["Cos(x)"][0,1] == b["Cos(x)"][-1,1]
-    
-    
+
+
 def test_get_None():
     
     test = NumpyLineDict()

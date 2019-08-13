@@ -47,8 +47,8 @@ def test_CartesianListDict():
     
     with pytest.raises(ValueError):
         test.get_data(raw, meta)
-        
-        
+
+
 def test_get_None():
     
     test = CartesianListDict()

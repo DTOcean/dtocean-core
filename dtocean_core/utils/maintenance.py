@@ -1448,20 +1448,20 @@ def get_electrical_system_cost(component_data, system_names, db):
 def get_mandf_system_cost(mandf_bom, system_names, db):
     
     '''Get cost of each moorings or foundations subsystem in system_names.
-
+    
     Args:
         mandf_bom (pd.DataFrame) [-]: Table of costs used in the moorings
             and foundations networks.
         system_names (list) [-]: List of subsystems in the given network.
         db (Object) [-]: Component database object.
-
+    
     Attributes:
         cost_dict (dict) [E]: Cost of each subsystem;
             key = subsystem, val = total cost.
-
+    
     Returns:
         cost_dict
-
+    
     '''
     
     subsytem_map = {'drag anchor': 'Foundations',
@@ -1475,31 +1475,31 @@ def get_mandf_system_cost(mandf_bom, system_names, db):
                     "swivel": 'Mooring Lines'}
     
     cost_dict = {key: 0 for key in system_names}
-
+    
     for _, component in mandf_bom.iterrows():
         
-        component_id = int(component['Key Identifier'])
+        component_key = component['Key Identifier']
         
         # Catch 'n/a'
-        if component_id == "n/a":
+        if component_key == "n/a":
             
             subsytem_type = "Foundations"
             cost = component['Cost']
-            
+        
         else:
             
             # Get the component dictionary
-            component_dict = db[str(component_id)]
+            component_dict = db[component_key]
             
             # Pick up the component type
             component_type = component_dict['item2']
-    
+            
             if component_type not in subsytem_map.keys():
                 
                 errStr = ("Component type '{}' is not "
                           "recognised").format(component_type)
                 raise ValueError(errStr)
-        
+            
             subsytem_type = subsytem_map[component_type]
             cost = component_dict['item11'] * component['Quantity']
         
@@ -1507,9 +1507,9 @@ def get_mandf_system_cost(mandf_bom, system_names, db):
             
             errStr = "I would like to have seen Montana..."
             raise RuntimeError(errStr)
-            
-        cost_dict[subsytem_type] += cost
         
+        cost_dict[subsytem_type] += cost
+    
     return cost_dict
 
 
