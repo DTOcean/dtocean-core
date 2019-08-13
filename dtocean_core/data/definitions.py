@@ -2438,8 +2438,13 @@ class SimpleList(Structure):
         
         self.check_path()
         
+        # Disable integer conversion for float types
+        convert_float = True
+        
+        if self.meta.result.types[0] == "float": convert_float = False
+        
         if ".xls" in self._path:
-            df = pd.read_excel(self._path)
+            df = pd.read_excel(self._path, convert_float=convert_float)
         elif ".csv" in self._path:
             df = pd.read_csv(self._path)
         else:
@@ -2536,8 +2541,13 @@ class SimpleDict(Structure):
         
         self.check_path()
         
+        # Disable integer conversion for float types
+        convert_float = True
+        
+        if self.meta.result.types[0] == "float": convert_float = False
+        
         if ".xls" in self._path:
-            df = pd.read_excel(self._path)
+            df = pd.read_excel(self._path, convert_float=convert_float)
         elif ".csv" in self._path:
             df = pd.read_csv(self._path)
         
