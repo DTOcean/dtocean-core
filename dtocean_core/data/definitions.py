@@ -2983,12 +2983,12 @@ class PointData(Structure):
         
         self.check_path()
         
-        poly = self.data.result
+        point = self.data.result
         
         if ".xls" in self._path or ".csv" in self._path:
-            PointData._write_table(self._path, poly)
+            PointData._write_table(self._path, point)
         elif ".shp" in self._path:
-            PointData._write_shapefile(self._path, poly)
+            PointData._write_shapefile(self._path, point)
         else:
              raise TypeError("The specified file format is not supported. ",
                              "Supported format are {},{},{}".format('.csv',
@@ -3017,12 +3017,7 @@ class PointData(Structure):
                              "the columns' headers shuld be defined as: "
                              "x, y, z(optional))")
         
-        result = None
-        
-        if len(data) == 1:
-            result = Point(data[0])
-        else:
-            result = [Point(coord) for coord in data]
+        result = Point(data[0])
         
         return result
     
