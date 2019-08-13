@@ -1435,7 +1435,7 @@ def get_electrical_system_cost(component_data, system_names, db):
             errStr = "Where's the bloody air force?"
             raise RuntimeError(errStr)
         
-        component_id = int(component['Key Identifier'])
+        component_id = component['Key Identifier']
         
         cost_dict[subsytem_type] += _get_elec_db_cost(component_id,
                                                       component.Quantity,
@@ -1547,6 +1547,8 @@ def _get_elec_db_cost(component_key, quantity, db, type_):
     
     if is_string_dtype(component_db.id):
         component_key = str(component_key)
+    else:
+        component_key = int(component_key)
     
     cost = component_db[component_db.id == component_key].cost.values[0]
     val = quantity * cost
