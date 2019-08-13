@@ -691,6 +691,12 @@ class TimeTable(TableData):
     is given then the datetimes should be in the first column.'''
     
     def get_data(self, raw, meta_data):
+        
+        if not all(isinstance(x, datetime) for x in raw["DateTime"]):
+            
+            errStr = ("TimeTable requires 'DateTime' key to be all "
+                      "datetime.datetime objects")
+            raise ValueError(errStr)
                 
         dataframe = super(TimeTable, self).get_data(raw,
                                                     meta_data,
@@ -701,12 +707,6 @@ class TimeTable(TableData):
             
             errStr = ("TimeTable structure requires one column "
                       "to have value 'DateTime'")
-            raise ValueError(errStr)
-            
-        if not all(isinstance(x, datetime) for x in dataframe["DateTime"]):
-            
-            errStr = ("TimeTable requires a datetime.datetime object "
-                      "as first index of all given entries.")
             raise ValueError(errStr)
         
         dataframe = dataframe.set_index(["DateTime"])
