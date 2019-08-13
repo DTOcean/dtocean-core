@@ -3157,6 +3157,88 @@ class PointList(PointData):
         return new_point_list
     
     @staticmethod
+    def auto_file_input(self):
+        
+        self.check_path()
+        
+        if ".xls" in self._path or ".csv" in self._path:
+            data = PointList._read_table(self._path)
+        else:
+             raise TypeError("The specified file format is not supported. ",
+                             "Supported format are {},{},{}".format('.csv',
+                                                                    '.xls',
+                                                                    '.xlsx'))
+        
+        self.data.result = data
+        
+        return
+     
+    @staticmethod
+    def auto_file_output(self):
+        
+        self.check_path()
+        
+        points = self.data.result
+        
+        if ".xls" in self._path or ".csv" in self._path:
+            PointList._write_table(self._path, points)
+        else:
+             raise TypeError("The specified file format is not supported. ",
+                             "Supported format are {},{},{}".format('.csv',
+                                                                    '.xls',
+                                                                    '.xlsx'))
+        
+        return
+    
+    @staticmethod
+    def _read_table(path):
+        
+        if ".xls" in path:
+            df = pd.read_excel(path)
+        elif ".csv" in path:
+            df = pd.read_csv(path) 
+        
+        if "x" in df.columns and "y" in df.columns:
+            
+            data = np.c_[df.x,df.y]
+            if "z" in df.columns: data = np.c_[data, df.z]
+        
+        else:
+            
+            raise ValueError("The specified file structure is not supported, "
+                             "the columns' headers shuld be defined as: "
+                             "x, y, z(optional))")
+        
+        result = [Point(coord) for coord in data]
+        
+        return result
+    
+    @staticmethod
+    def _write_table(path, points):
+        
+        for point in points:
+            if not isinstance(point, Point):
+                raise TypeError("Data type not understood: type for a "
+                                "PointData subclass is shapely Point")
+        
+        data_ = np.array([np.array(point) for point in points])
+        
+        data = {"x": data_[:, 0],
+                "y": data_[:, 1]}
+        
+        if data_.shape[1] == 3:
+            data["z"] = data_[:, 2]
+        
+        df = pd.DataFrame(data)
+        
+        if ".xls" in path:
+            df.to_excel(path, index=False)
+        elif ".csv" in path:
+            df.to_csv(path, index=False)
+        
+        return
+    
+    @staticmethod
     def auto_plot(self):
 
         x = []
