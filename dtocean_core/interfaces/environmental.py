@@ -1226,7 +1226,7 @@ class EnvironmentalInterface(ThemeInterface):
         if (self.data.number_vessels is not None and 
                 self.data.average_size_vessels_inst is not None):
             surface_covered = self.data.number_vessels * \
-                        np.pi * (0.5 * self.data.average_size_vessels_inst)^2 
+                    np.pi * (0.5 * self.data.average_size_vessels_inst) ** 2
         else:
             surface_covered = None
         
