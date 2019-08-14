@@ -28,7 +28,6 @@ import datetime as dt
 from collections import Counter
 
 import pandas as pd
-from pandas.api.types import is_string_dtype
 from scipy.interpolate import RegularGridInterpolator
 
 from .reliability import get_component_dict
@@ -1544,11 +1543,6 @@ def _get_elec_db_cost(component_key, quantity, db, type_):
     
     converted_type = convert_map[type_]
     component_db = getattr(db, converted_type)
-    
-    if is_string_dtype(component_db.id):
-        component_key = str(component_key)
-    else:
-        component_key = int(component_key)
     
     cost = component_db[component_db.id == component_key].cost.values[0]
     val = quantity * cost
