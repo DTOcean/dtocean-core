@@ -37,7 +37,7 @@ def test_SimpleData(tinput, ttype):
                                            (True, "str"),
                                            ("False", "bool"),
                                            (2, "float")])
-def test_SimpleData_get_data_error(tinput, ttype):
+def test_SimpleData_get_data_coerce(tinput, ttype):
     
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
@@ -45,9 +45,9 @@ def test_SimpleData_get_data_error(tinput, ttype):
                          "types": [ttype]})
     
     test = SimpleData()
+    a = test.get_data(tinput, meta)
     
-    with pytest.raises(TypeError):
-        test.get_data(tinput, meta)
+    assert str(type(a)) == "<type '{}'>".format(ttype)
 
 
 def test_SimpleData_get_value_None():

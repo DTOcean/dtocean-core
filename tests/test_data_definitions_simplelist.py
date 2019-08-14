@@ -44,7 +44,7 @@ def test_SimpleList(tinput, ttype):
                                            (["hello", True], "str"),
                                            ([True, "False"], "bool"),
                                            ([0.5, 1], "float")])
-def test_SimpleList_get_data_error(tinput, ttype):
+def test_SimpleList_get_data_coerce(tinput, ttype):
     
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
@@ -52,9 +52,9 @@ def test_SimpleList_get_data_error(tinput, ttype):
                          "types": [ttype]})
     
     test = SimpleList()
+    a = test.get_data(tinput, meta)
     
-    with pytest.raises(TypeError):
-        test.get_data(tinput, meta)
+    assert str(type(a[0])) == "<type '{}'>".format(ttype)
 
 
 def test_SimpleList_get_value_None():
