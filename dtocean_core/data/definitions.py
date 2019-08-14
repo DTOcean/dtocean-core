@@ -1186,8 +1186,16 @@ class NumpyLineDict(NumpyLine):
     
     def get_data(self, raw, meta_data):
         
-        valid_dict = {k: super(NumpyLineDict, self).get_data(v, meta_data) for
-                                                        k, v in raw.items()}
+        valid_dict = {}
+        
+        for key, value in raw.items():
+        
+            value = super(NumpyLineDict, self).get_data(value, meta_data)
+            
+            if meta_data.types:
+                key = _assign_type(key, meta_data.types)
+            
+            valid_dict[key] = value
         
         return valid_dict
     
@@ -1945,6 +1953,10 @@ class CartesianDict(CartesianData):
         for key, value in raw.iteritems():
             
             safe_value = super(CartesianDict, self).get_data(value, meta_data)
+            
+            if meta_data.types:
+                key = _assign_type(key, meta_data.types)
+            
             safe_data[key] = safe_value
         
         return safe_data
@@ -2132,6 +2144,10 @@ class CartesianListDict(CartesianList):
             
             safe_value = super(CartesianListDict, self).get_data(value,
                                                                  meta_data)
+            
+            if meta_data.types:
+                key = _assign_type(key, meta_data.types)
+            
             safe_data[key] = safe_value
             
         return safe_data

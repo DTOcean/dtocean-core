@@ -24,17 +24,21 @@ def test_CartesianListDict():
 
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
-                         "title": "test"})
+                         "title": "test",
+                         "types": ["str"]})
     
     test = CartesianListDict()
     
-    raw = {"a": [(0, 1), (1, 2)], "b": [(3, 4), (4, 5)]}
+    raw = {"a": [(0, 1), (1, 2)],
+           "b": [(3, 4), (4, 5)],
+           1: [(6, 7), (7, 8)]}
     a = test.get_data(raw, meta)
     b = test.get_value(a)
     
-    assert len(b) == 2
+    assert len(b) == 3
     assert b["a"][0][0] == 0
     assert b["a"][0][1] == 1
+    assert "1" in b
             
     raw = {"a": [(0, 1, -1), (1, 2, -2)], "b": [(3, 4, -3), (4, 5, -5)]}
     a = test.get_data(raw, meta)

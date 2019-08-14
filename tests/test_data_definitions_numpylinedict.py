@@ -32,13 +32,15 @@ def test_NumpyLineDict():
     coarse_sin = zip(coarse_sample, np.sin(coarse_sample))
     fine_cos = zip(fine_sample, np.cos(fine_sample))
     
-    raw = {"Sin(x)" : coarse_sin,
-           "Cos(x)" : fine_cos}
+    raw = {"Sin(x)": coarse_sin,
+           "Cos(x)": fine_cos,
+           1: coarse_sin}
 
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
                          "title": "test",
-                         "labels": ["x", "f(x)"]})
+                         "labels": ["x"],
+                         "types": ["str"]})
     
     test = NumpyLineDict()
     a = test.get_data(raw, meta)
@@ -47,6 +49,7 @@ def test_NumpyLineDict():
     assert "Sin(x)" in b
     assert max(b["Sin(x)"][:,1]) == 1
     assert b["Cos(x)"][0,1] == b["Cos(x)"][-1,1]
+    assert "1" in b
 
 
 def test_get_None():
