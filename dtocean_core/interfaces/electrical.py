@@ -993,7 +993,7 @@ class ElectricalInterface(ModuleInterface):
         static_cable_df = static_cable
         static_cable_df = static_cable_df.rename(columns=name_map)
         static_cable_df["colour"] = None
-                       
+        
         # Units to kg/km
         static_cable_df["dry_mass"] = static_cable_df["dry_mass"] * 1000.
         static_cable_df["wet_mass"] = static_cable_df["wet_mass"] * 1000.
@@ -1002,18 +1002,17 @@ class ElectricalInterface(ModuleInterface):
         array_cable_df = static_cable_df.copy()
         export_cable_df = static_cable_df.copy()
         
-                
         # Umbilical
         dynamic_cable_df = None
-                
-        if "floating" in system_type.lower():
         
+        if "floating" in system_type.lower():
+            
             dynamic_cable_df = dynamic_cable
             dynamic_cable_df.drop(["Environmental Impact"],
                                   1)
             dynamic_cable_df = dynamic_cable_df.rename(columns=name_map)
             dynamic_cable_df["colour"] = None
-    
+            
             # Units to kg/km
             dynamic_cable_df["dry_mass"] = dynamic_cable_df["dry_mass"] * 1000.
             dynamic_cable_df["wet_mass"] = dynamic_cable_df["wet_mass"] * 1000.
@@ -1037,7 +1036,7 @@ class ElectricalInterface(ModuleInterface):
                      "Max Temperature": "max_temperature"}
                      
         wet_mate_connectors_df = wet_mate_connectors
-    
+        
         wet_mate_connectors_df.drop([
                             "Name",
                             "Wet Mass",
@@ -1075,7 +1074,7 @@ class ElectricalInterface(ModuleInterface):
                      "Min Temperature": "min_temperature",
                      "Max Temperature": "max_temperature",
                      "Impedance": "impedance" }
-                     
+        
         transformers_df = transformers
         transformers_df.drop(["Name",
                               "Wet Mass",
@@ -1111,7 +1110,7 @@ class ElectricalInterface(ModuleInterface):
                      "Dry Beam Area": "dry_beam_area",
                      "Orientation Angle": "orientation_angle"
                      }
-                     
+        
         collection_points_df = collection_points
         collection_points_df.drop(["Name", "Environmental Impact"], 1)
         
@@ -1124,13 +1123,13 @@ class ElectricalInterface(ModuleInterface):
         collection_points_df["cooling"] = None
         collection_points_df["operating_environment"] = None
         collection_points_df["foundation"] = None
-
+        
         # Build in centre of gravity
         cog_dict = collection_point_cog
         cog_df = pd.DataFrame(cog_dict.items(),
                               columns=["id", "gravity_centre"])
         cog_df = cog_df.set_index("id")
-                              
+        
         # Build in foundation locations
         found_dict = collection_point_foundations
         found_df = pd.DataFrame(found_dict.items(),
@@ -1146,7 +1145,7 @@ class ElectricalInterface(ModuleInterface):
         
         switchgear_df = None
         power_quality_df = None
-
+        
         database = ElectricalComponentDatabase(array_cable_df,
                                                export_cable_df,
                                                dynamic_cable_df,
@@ -1158,4 +1157,3 @@ class ElectricalInterface(ModuleInterface):
                                                power_quality_df)
         
         return database
-

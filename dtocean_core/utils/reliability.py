@@ -67,10 +67,11 @@ def get_component_dict(component_type,
     else:
         
         system_type = "mooring system"
-        
+    
     compdict = {}
+    
     if check_keys is None: check_keys = []
-        
+    
     key_ids = data_table_cfr["Key Identifier"]
     
     for key_id in key_ids:
