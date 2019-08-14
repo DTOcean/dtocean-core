@@ -238,7 +238,7 @@ def set_connectors(component_data_df, db):
 
     for _, connector in connectors.iterrows():
 
-        index = int(connector['Key Identifier'])
+        index = connector['Key Identifier']
 
         mass.append(
                 db[db['Key Identifier'] == index]['Dry Mass'].item())

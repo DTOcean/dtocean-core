@@ -1139,8 +1139,10 @@ class ElectricalInterface(ModuleInterface):
         collection_points_df = pd.concat([collection_points_df,
                                           cog_df,
                                           found_df],
-                                          axis=1)
-                                         
+                                          axis=1,
+                                          sort=True)
+        
+        collection_points_df.index.name = 'id'
         collection_points_df = collection_points_df.reset_index()
         
         switchgear_df = None
