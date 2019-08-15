@@ -25,9 +25,9 @@ from ..pipeline import Tree
 
 
 class Strategy(object):
-
+    
     '''The base abstract class for all strategy classes'''
-
+    
     __metaclass__ = abc.ABCMeta
     
     def __init__(self):

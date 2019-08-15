@@ -337,9 +337,9 @@ class StrategyManager(ExtensionManager):
             errStr = ("Argument 'scope' must have value 'global' or 'local', "
                       "not {}").format(scope)
             raise ValueError(errStr)
-                                        
-        all_modules = self._module_menu.get_active(core, project)                                        
-                                        
+        
+        all_modules = self._module_menu.get_active(core, project)
+        
         # Determine at which module to carry out the comparison
         if module is None:
             
@@ -526,7 +526,7 @@ class StrategyManager(ExtensionManager):
             
             errStr = ("Argument load_path must be a file with .pkl extension")
             raise ValueError(errStr)
-            
+        
         # Load the strategy file
         with open(load_path, 'rb') as fstream:
             stg_dict = pickle.load(fstream)
@@ -556,7 +556,7 @@ class StrategyManager(ExtensionManager):
         new_strategy._sim_record = stg_dict["sim_record"]
         new_strategy._config = stg_dict["config"]
         new_strategy.sim_details = stg_dict["sim_details"]
-
+        
         return new_strategy
 
 
