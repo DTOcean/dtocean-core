@@ -423,17 +423,20 @@ class Project(object):
         
         return sim_indexes
     
-    def get_simulation_titles(self):
+    def get_simulation_titles(self, indexes=None):
         
         if not self.is_active(): return None
         
-        sim_titles = [x.get_title() for x in self._simulations
+        if indexes is None:
+            sim_titles = [x.get_title() for x in self._simulations
                                                 if x.get_title() is not None]
-                                                    
+        else:
+            sim_titles = [self.get_simulation_title(index=x) for x in indexes]
+        
         if not sim_titles: sim_titles = None
         
         return sim_titles
-        
+    
     def get_simulation_title(self, index=None, title=None):
         
         simulation = self._get_simulation(index, title)
