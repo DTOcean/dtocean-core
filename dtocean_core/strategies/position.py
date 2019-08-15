@@ -256,6 +256,28 @@ class AdvancedPosition(Strategy):
             self.add_simulation_index(sim_index)
         
         return
+    
+    @classmethod
+    def remove_simulations(cls, core,
+                                project,
+                                sim_titles=None,
+                                exclude_default=True):
+        
+        """Convenience method for removing either all simulations in a project,
+        excluding the 'Default' simulation (by default - hah), or removing
+        the simulations with titles given in sim_titles.
+        """
+        
+        if sim_titles is None:
+            
+            sim_titles = project.get_simulation_titles()
+            if exclude_default: sim_titles.remove("Default")
+        
+        for sim_title in sim_titles:
+            core.remove_simulation(project, sim_title=sim_title)
+        
+        return
+
 
 def _get_root_project_base_name(root_project_path):
     
