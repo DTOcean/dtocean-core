@@ -417,9 +417,9 @@ class Project(object):
         
         return simulation
     
-    def get_simulation_indexes(self, titles):
+    def get_simulation_indexes(self, titles, raise_if_missing=True):
         
-        sim_indexes = [self._get_index(x) for x in titles]
+        sim_indexes = [self._get_index(x, raise_if_missing) for x in titles]
         
         return sim_indexes
     
@@ -490,8 +490,8 @@ class Project(object):
         result = check_integrity(self._pool, self._simulations)
         
         return result
-        
-    def _get_index(self, title):
+    
+    def _get_index(self, title, raise_if_missing=True):
         
         sim_index = None
         
@@ -501,9 +501,9 @@ class Project(object):
             
             if title == sim_title:
                 sim_index = i
-                break           
-            
-        if sim_index is None:
+                break
+        
+        if sim_index is None and raise_if_missing:
             
             errStr = "Simualtion {} not found".format(title)
             raise ValueError(errStr)
