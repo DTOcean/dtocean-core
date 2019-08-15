@@ -45,7 +45,7 @@ class BasicStrategy(Strategy):
     
     def execute(self, core, project):
         
-        # Check the project is active and record the simulation number
+        # Check the project is active and record the simulation title
         sim_index = project.get_active_index()
         
         if sim_index is None:
@@ -53,7 +53,8 @@ class BasicStrategy(Strategy):
             errStr = "Project has not been activated."
             raise RuntimeError(errStr)
         
-        self.add_simulation_index(sim_index)
+        sim_title = project.get_simulation_title(index=sim_index)
+        self.add_simulation_title(sim_title)
         
         current_mod = self._module_menu.get_current(core, project)
         

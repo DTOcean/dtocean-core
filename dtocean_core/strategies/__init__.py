@@ -45,7 +45,7 @@ class Strategy(object):
         self._theme_menu = ThemeMenu()
         self._tree = Tree()
         
-        # Record the simulation indexes used in the strategy
+        # Record the simulation titles used in the strategy
         self._sim_record = []
         
         # Record the configuration dictionary of the strategy (assume this
@@ -106,9 +106,9 @@ class Strategy(object):
         
         return
     
-    def add_simulation_index(self, sim_index):
+    def add_simulation_title(self, sim_title):
         
-        self._sim_record.append(sim_index)
+        self._sim_record.append(sim_title)
         
         return
     

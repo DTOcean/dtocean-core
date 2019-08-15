@@ -226,7 +226,7 @@ class AdvancedPosition(Strategy):
     def load_simulations(self, core,
                                project,
                                sim_numbers,
-                               sim_names=None):
+                               sim_titles=None):
         
         self.restart()
         
@@ -243,17 +243,17 @@ class AdvancedPosition(Strategy):
             prj_file_path = path_template.format(n, 'prj')
             src_project = core.load_project(prj_file_path)
             
-            if sim_names is not None:
-                sim_name = sim_names[i]
+            if sim_titles is not None:
+                sim_title = sim_titles[i]
             else:
-                sim_name = "Simulation {}".format(n)
+                sim_title = "Simulation {}".format(n)
             
             core.import_simulation(src_project,
                                    project,
-                                   dst_sim_title=sim_name)
+                                   dst_sim_title=sim_title)
             
             sim_index = project.get_active_index()
-            self.add_simulation_index(sim_index)
+            self.add_simulation_title(sim_title)
         
         return
     

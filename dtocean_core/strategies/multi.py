@@ -134,7 +134,7 @@ class MultiSensitivity(Strategy):
             # Create a new simulation clone and move to the required branch
             if success_flag:
                 
-                self.add_simulation_index(sim_index)
+                self.add_simulation_title(sim_title)
                 sim_keys.append(sim_title)
                 sim_frames.append(sim_df)
                 
@@ -155,7 +155,7 @@ class MultiSensitivity(Strategy):
         
         if success_flag:
             
-            self.add_simulation_index(sim_index)
+            self.add_simulation_title(sim_title)
             sim_keys.append(sim_title)
             sim_frames.append(sim_df)
         

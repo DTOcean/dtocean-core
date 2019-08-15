@@ -140,7 +140,7 @@ class UnitSensitivity(Strategy):
             # Move to the required branch and create a new simulation clone
             if success_flag:
                 
-                self.add_simulation_index(sim_index)
+                self.add_simulation_title(new_title)
                 core.clone_simulation(project)
                 sim_index = project.get_active_index()
             
@@ -163,7 +163,7 @@ class UnitSensitivity(Strategy):
         success_flag = self._safe_exe(core, project, new_title)
         
         if success_flag:
-            self.add_simulation_index(sim_index)
+            self.add_simulation_title(new_title)
         
         return
     

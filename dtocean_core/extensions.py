@@ -138,20 +138,25 @@ class StrategyManager(ExtensionManager):
         force_masks = ["local", "global"]
         
         if strategy is not None:
-            sim_indexes = strategy.get_simulation_record()
-        elif sim_titles is not None:
-            sim_indexes = project.get_simulation_indexes(sim_titles)
-        else:
-            sim_indexes = range(len(project))
-                        
+            sim_titles = strategy.get_simulation_record()
+        
         if sim_titles is None:
+            
+            sim_indexes = range(len(project))
             sim_titles = [project.get_simulation_title(index=x)
                                                     for x in sim_indexes]
-                                                        
+            
+        else:
+            
+            sim_indexes = project.get_simulation_indexes(
+                                                        sim_titles,
+                                                        raise_if_missing=False)
+        
         sim_levels = OrderedDict()
         
         for sim_title, sim_index in zip(sim_titles, sim_indexes):
             
+            if sim_index is None: continue
             if sim_title is None: sim_title = sim_index
             
             level_values = core.get_level_values(project,
@@ -352,7 +357,8 @@ class StrategyManager(ExtensionManager):
         if strategy is None:
             sim_indexes = None
         else:
-            sim_indexes = strategy.get_simulation_record()
+            sim_titles = strategy.get_simulation_record()
+            sim_indexes = project.get_simulation_indexes(sim_titles)
         
         var_one_values = core.get_project_values(project,
                                                  var_one_id,
