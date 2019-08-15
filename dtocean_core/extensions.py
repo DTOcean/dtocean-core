@@ -518,8 +518,8 @@ class StrategyManager(ExtensionManager):
             pickle.dump(stg_dict, fstream, -1)
         
         return
-        
-    def load_strategy(self, load_path):
+    
+    def load_strategy(self, load_path, project=None):
         
         # OK need to consider if we have a pkl file
         if not os.path.isfile(load_path) and not ".pkl" in load_path:
@@ -530,11 +530,18 @@ class StrategyManager(ExtensionManager):
         # Load the strategy file
         with open(load_path, 'rb') as fstream:
             stg_dict = pickle.load(fstream)
-                    
-        new_strategy = self._set_load_dict(stg_dict)
+        
+        # Now deserialise the data
+        if "version" not in stg_dict and project is None:
+            
+            err_msg = ("A project object is required for loading strategies "
+                       "with the old sim_record type")
+            raise ValueError(err_msg)
+        
+        new_strategy = self._set_load_dict(stg_dict, project=project)
         
         return new_strategy
-        
+    
     def _get_dump_dict(self, strategy):
         
         # Now store the strategy information
@@ -543,17 +550,33 @@ class StrategyManager(ExtensionManager):
         stg_dict = {"name": stg_name_str,
                     "sim_record": strategy._sim_record,
                     "config": strategy._config,
-                    "sim_details": strategy.sim_details}    
-                    
-        return stg_dict
+                    "sim_details": strategy.sim_details,
+                    "version": 2.1}
         
-    def _set_load_dict(self, stg_dict):
+        return stg_dict
+    
+    def _set_load_dict(self, stg_dict, project=None):
         
         # Now build the strategy
         new_strategy = self.get_strategy(stg_dict["name"])
         
         # Now deserialise the data
-        new_strategy._sim_record = stg_dict["sim_record"]
+        if "version" not in stg_dict:
+            
+            if project is None:
+                
+                err_msg = ("A project object is required for deserialising "
+                           "strategies with the old sim_record type")
+                raise ValueError(err_msg)
+            
+            sim_indexes = stg_dict["sim_record"]
+            sim_titles = project.get_simulation_titles(sim_indexes)
+        
+        else:
+            
+            sim_titles = stg_dict["sim_record"]
+        
+        new_strategy._sim_record = sim_titles
         new_strategy._config = stg_dict["config"]
         new_strategy.sim_details = stg_dict["sim_details"]
         
