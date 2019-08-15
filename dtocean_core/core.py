@@ -494,7 +494,7 @@ class Project(object):
     def _get_index(self, title):
         
         sim_index = None
-            
+        
         for i, simulation in enumerate(self._simulations):
             
             sim_title = simulation.get_title()
@@ -507,9 +507,9 @@ class Project(object):
             
             errStr = "Simualtion {} not found".format(title)
             raise ValueError(errStr)
-            
-        return sim_index
         
+        return sim_index
+    
     def _set_active_index(self, index):
         
         n_sims = len(self._simulations)
@@ -702,13 +702,13 @@ class Core(object):
         pool_dir = os.path.join(prj_dir_path, "pool")
         
         if os.path.exists(pool_dir): shutil.rmtree(pool_dir)
-        os.makedirs(pool_dir)        
+        os.makedirs(pool_dir)
         
         pool = project_copy.get_pool()
         data_store.serialise_pool(pool, pool_dir, root_dir=prj_dir_path)
         
         # Now iterate through the simulations
-        sim_boxes = []        
+        sim_boxes = []
         
         for i, simulation in enumerate(project_copy._simulations):
             

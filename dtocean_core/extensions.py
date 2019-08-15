@@ -122,7 +122,7 @@ class StrategyManager(ExtensionManager):
                                strategy=None,
                                sim_titles=None,
                                scope="global"):
-                                   
+        
         if scope not in ["global", "local"]:
             
             errStr = ("Argument 'scope' must have value 'global' or 'local', "
@@ -132,7 +132,7 @@ class StrategyManager(ExtensionManager):
         chosen_modules = self._module_menu.get_active(core, project)
         output_levels = ["{} {} output".format(x, scope).lower()
                                                     for x in chosen_modules]
-                                                        
+        
         # Mask all the global and local output levels before getting the
         # required output level
         force_masks = ["local", "global"]
@@ -149,11 +149,11 @@ class StrategyManager(ExtensionManager):
                                                     for x in sim_indexes]
                                                         
         sim_levels = OrderedDict()
-                                                        
+        
         for sim_title, sim_index in zip(sim_titles, sim_indexes):
             
             if sim_title is None: sim_title = sim_index
-        
+            
             level_values = core.get_level_values(project,
                                                  var_id,
                                                  output_levels,
@@ -161,9 +161,9 @@ class StrategyManager(ExtensionManager):
                                                  sim_index=sim_index)
             
             sim_levels[sim_title] = level_values
-            
+        
         return sim_levels
-                
+    
     def get_level_values_df(self, core,
                                   project,
                                   var_id,
@@ -326,7 +326,7 @@ class StrategyManager(ExtensionManager):
                                     strategy=None,
                                     scope="global",
                                     sort=True):
-                                        
+        
         if scope not in ["global", "local"]:
             
             errStr = ("Argument 'scope' must have value 'global' or 'local', "
@@ -339,13 +339,13 @@ class StrategyManager(ExtensionManager):
         if module is None:
             
             module = all_modules[-1]
-            
+        
         elif module not in all_modules:
             
             errStr = ("Module '{}' is not in the list of active "
                       "modules").format(module)
             raise ValueError(errStr)
-            
+        
         output_level = "{} {} output".format(module, scope).lower()
         
         # If a strategy is given then just use its simulation indexes
@@ -359,7 +359,7 @@ class StrategyManager(ExtensionManager):
                                                  output_level,
                                                  force_indexes=sim_indexes,
                                                  allow_none=True)
-
+        
         var_two_values = core.get_project_values(project,
                                                  var_two_id,
                                                  output_level,
@@ -372,9 +372,9 @@ class StrategyManager(ExtensionManager):
         else:
             x = [v for (n,v) in var_one_values]
             y = [v for (n,v) in var_two_values]
-            
+        
         if not sort: return x, y
-            
+        
         # Sort by the x value
         points = zip(x, y)
         sorted_points = sorted(points)
@@ -382,7 +382,7 @@ class StrategyManager(ExtensionManager):
         new_y = [point[1] for point in sorted_points]
         
         return new_x, new_y
-        
+    
     def get_comparison_values_df(self, core,
                                        project,
                                        var_one_id,
