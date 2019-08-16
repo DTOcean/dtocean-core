@@ -2,8 +2,8 @@
 # Required
 root_project_path:
 worker_dir:
-base_penalty: 1.
 n_threads:
+base_penalty: 1.
 
 # Optional
 # clean_existing_dir: true # 'true' will empty the worker_dir if it exists

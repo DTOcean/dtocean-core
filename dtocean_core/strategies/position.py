@@ -304,8 +304,6 @@ class AdvancedPosition(Strategy):
                          "n_threads",
                          "parameters"]
         
-        print config.keys()
-        
         required_filled = [bool(config[x]) for x in required_keys]
         
         if not all(required_filled):
