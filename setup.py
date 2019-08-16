@@ -167,6 +167,7 @@ setup(name='dtocean-core',
         # 'PyQt4',
         'python-dateutil',
         'pyyaml',
+        'ruamel.yaml',
         'scipy',
         'setuptools',
         'shapely',
@@ -189,7 +190,8 @@ setup(name='dtocean-core',
                ]},
       package_data={'dtocean_core': ['data/yaml/*.yaml',
                                      'config/*.ini',
-                                     'config/*.yaml']
+                                     'config/*.yaml',
+                                     'strategies/position_optimiser/*.yaml']
                     },
       zip_safe=False, # Important for reading config files
       # scripts=['post-install.py'],

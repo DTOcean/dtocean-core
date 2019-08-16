@@ -5,11 +5,12 @@
 """
 
 import os
+import shutil
 import logging
 from bisect import bisect_left
 from collections import namedtuple
 
-import yaml
+from ruamel.yaml import YAML
 import numpy as np
 
 from ...core import Core
@@ -17,6 +18,9 @@ from ...utils import cma_optimiser as cma
 
 # Set up logging
 module_logger = logging.getLogger(__name__)
+
+# Get this directory
+THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
 PositionParams = namedtuple('PositionParams', ['array_orientation',
@@ -282,9 +286,29 @@ def get_interp_range(irange, delta):
     return f
 
 
-def get_config(config_path):
+def load_config(config_path):
     
-    with open(config_path) as stream:
-        config = yaml.load(stream, Loader=yaml.CLoader)
+    yaml = YAML()
+    
+    with open(config_path, "r") as stream:
+        config = yaml.load(stream)
     
     return config
+
+
+def load_config_template(config_name="config.yaml"):
+    
+    config_path = os.path.join(THIS_DIR, config_name)
+    config = load_config(config_path)
+    
+    return config
+
+
+def dump_config(config, config_path):
+    
+    yaml = YAML()
+    
+    with open(config_path, 'w') as stream:
+        yaml.dump(config, stream)
+    
+    return

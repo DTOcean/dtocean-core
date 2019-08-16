@@ -1,0 +1,64 @@
+---
+# Required
+root_project_path:
+worker_dir:
+base_penalty: 1.
+n_threads:
+
+# Optional
+# clean_existing_dir: true # 'true' will empty the worker_dir if it exists
+# max_simulations: 8       # quit after n simulations (following an iteration)
+logging: module          # 'module' or 'print'
+
+# Parameter specification
+parameters:
+    array_orientation:
+      range:
+        type: fixed
+        min: -90.
+        max: 90.
+      interp:
+        type: range
+        delta: 1.
+    delta_row:
+      range:
+        type: multiplier
+        variable: device.minimum_distance_x
+        min_multiplier: 1.
+        max_multiplier: 2.
+      interp:
+        type: range
+        delta: 2.
+    delta_col:
+      range:
+        type: multiplier
+        variable: device.minimum_distance_y
+        min_multiplier: 1.
+        max_multiplier: 2.
+      interp:
+        type: range
+        delta: 2.
+    n_nodes:
+      range:
+        type: fixed
+        min: 1
+        max: 20
+      interp:
+        type: range
+        delta: 1
+    t1:
+      range:
+        type: fixed
+        min: 0.
+        max: 1.
+      interp:
+        type: fixed
+        values: [0., 0.5, 1]
+    t2:
+      range:
+        type: fixed
+        min: 0.
+        max: 1.
+      interp:
+        type: fixed
+        values: [0., 0.5, 1]

@@ -9,7 +9,10 @@ import logging
 import pandas as pd
 
 from . import Strategy
-from .position_optimiser import get_config, main
+from .position_optimiser import (dump_config,
+                                 load_config,
+                                 load_config_template,
+                                 main)
 
 # Set up logging
 module_logger = logging.getLogger(__name__)
@@ -246,7 +249,6 @@ class AdvancedPosition(Strategy):
                                    project,
                                    dst_sim_title=sim_title)
             
-            sim_index = project.get_active_index()
             self.add_simulation_title(sim_title)
         
         return
@@ -271,6 +273,52 @@ class AdvancedPosition(Strategy):
             core.remove_simulation(project, sim_title=sim_title)
         
         return
+    
+    @classmethod
+    def load_config(cls, config_path):
+        
+        config = load_config(config_path)
+        
+        return config
+    
+    def dump_config(self, config_path):
+        
+        dump_config(self._config, config_path)
+        
+        return
+    
+    @classmethod
+    def export_config_template(cls, export_path):
+        
+        config = load_config_template()
+        dump_config(config, export_path)
+        
+        return
+    
+    @classmethod
+    def get_config_status(self, config):
+        
+        required_keys = ["root_project_path",
+                         "worker_dir",
+                         "base_penalty",
+                         "n_threads",
+                         "parameters"]
+        
+        print config.keys()
+        
+        required_filled = [bool(config[x]) for x in required_keys]
+        
+        if not all(required_filled):
+            
+            status_str = "Configuration incomplete"
+            status_code = 0
+        
+        else:
+            
+            status_str = "Configuration complete"
+            status_code = 1
+        
+        return status_str, status_code
 
 
 def _get_root_project_base_name(root_project_path):
