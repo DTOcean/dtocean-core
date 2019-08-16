@@ -25,9 +25,9 @@ class AdvancedPosition(Strategy):
         
         return "Advanced Positioning"
     
-    def configure(self, config_path):
+    def configure(self, **config_dict):
         
-        config_dict = {"config_path": config_path}
+        # TODO: Add some validation of config_dict here
         self.set_config(config_dict)
         
         return
@@ -62,7 +62,7 @@ class AdvancedPosition(Strategy):
             
             project.set_active_index(title="Default")
         
-        es = main(self._config["config_path"],
+        es = main(self._config,
                   core=core,
                   project=project)
         
@@ -97,15 +97,13 @@ class AdvancedPosition(Strategy):
         for var in extract_vars:
             pickle_dict[var] = []
         
-        config = get_config(self._config["config_path"])
-        
-        root_project_path = config['root_project_path']
-        sim_dir = config["worker_dir"]
+        root_project_path = self._config['root_project_path']
+        sim_dir = self._config["worker_dir"]
         
         root_project_base_name = _get_root_project_base_name(root_project_path)
         path_template = _get_sim_path_template(root_project_base_name, sim_dir)
         
-        read_params = config["parameters"].keys()
+        read_params = self._config["parameters"].keys()
         
         for param in read_params:
             pickle_dict[param] = []
@@ -184,10 +182,8 @@ class AdvancedPosition(Strategy):
                      "project.lifetime_opex_mode",
                      "project.lifetime_energy_mode"]
         
-        config = get_config(self._config["config_path"])
-        
-        root_project_path = config['root_project_path']
-        sim_dir = config["worker_dir"]
+        root_project_path = self._config['root_project_path']
+        sim_dir = self._config["worker_dir"]
         
         root_project_base_name = _get_root_project_base_name(root_project_path)
         
@@ -230,10 +226,8 @@ class AdvancedPosition(Strategy):
         
         self.restart()
         
-        config = get_config(self._config["config_path"])
-        
-        root_project_path = config['root_project_path']
-        sim_dir = config["worker_dir"]
+        root_project_path = self._config['root_project_path']
+        sim_dir = self._config["worker_dir"]
         
         root_project_base_name = _get_root_project_base_name(root_project_path)
         path_template = _get_sim_path_template(root_project_base_name, sim_dir)

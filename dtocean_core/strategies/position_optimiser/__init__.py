@@ -134,13 +134,10 @@ class PositionIterator(cma.Iterator):
         return
 
 
-def main(config_path, core=None, project=None):
+def main(config, core=None, project=None):
     
     module_logger.info("Beginning position optimisation")
     
-    config = get_config(config_path)
-    
-    run_number = config["run_number"]
     root_project_path = config['root_project_path']
     worker_directory = config["worker_dir"]
     base_penalty = config["base_penalty"]
