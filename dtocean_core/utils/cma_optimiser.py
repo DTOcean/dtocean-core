@@ -338,7 +338,7 @@ def _clean_directory(dir_name, clean_existing=False, logging="module"):
     return
 
 
-def main(run_number,
+def main(worker_directory,
          iterator,
          x0,
          low_bound,
@@ -357,7 +357,7 @@ def main(run_number,
     
     es = cma.CMAEvolutionStrategy(x0, NormScaler.sigma, opts)
     
-    _store_outputs(es, iterator, run_number)
+    _store_outputs(es, iterator, worker_directory)
     
     thread_queue = queue.Queue()
     
@@ -406,7 +406,7 @@ def main(run_number,
                        '{:.15e}').format(es.countiter, min(es.fit.fit))
             module_logger.info(msg_str)
         
-        _store_outputs(es, iterator, run_number)
+        _store_outputs(es, iterator, worker_directory)
     
     return es
 
@@ -453,12 +453,13 @@ def _rebuild_input(values, run_idxs, match_dict, input_length):
     return rebuild
 
 
-def _store_outputs(es, iterator, run_number):
+def _store_outputs(es, iterator, worker_directory):
     
     counter_dict = iterator._counter._search_dict
     
-    es_fname = 'saved-cma-object-{}.pkl'.format(run_number)
-    counter_dict_fname = 'saved-counter-search-dict-{}.pkl'.format(run_number)
+    es_fname = os.path.join(worker_directory, 'saved-cma-object.pkl')
+    counter_dict_fname = os.path.join(worker_directory,
+                                      'saved-counter-search-dict.pkl')
     
     pickle.dump(es, open(es_fname, 'wb'))
     pickle.dump(counter_dict, open(counter_dict_fname, 'wb'))

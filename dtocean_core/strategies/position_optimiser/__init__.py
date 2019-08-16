@@ -185,7 +185,7 @@ def main(config_path, core=None, project=None):
                                 logging=logging,
                                 clean_existing_dir=clean_existing_dir)
     
-    es = cma.main(run_number,
+    es = cma.main(worker_directory,
                   iterator,
                   x0,
                   low_bound,
