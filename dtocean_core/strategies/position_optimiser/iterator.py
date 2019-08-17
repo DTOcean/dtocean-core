@@ -15,6 +15,14 @@ from ...pipeline import Tree
 
 from .positioner import ParaPositioner
 
+try:
+    import dtocean_hydro
+    import dtocean_maintenance
+except ImportError:
+    err_msg = ("The DTOcean hydrodynamics and maintenance modules must be "
+               "installed in order to use this module")
+    raise ImportError(err_msg)
+
 
 def main(core,
          prj_file_path,
