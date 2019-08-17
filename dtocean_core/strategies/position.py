@@ -13,6 +13,7 @@ from .position_optimiser import (dump_config,
                                  load_config,
                                  load_config_template,
                                  main)
+from ..menu import ModuleMenu
 
 # Set up logging
 module_logger = logging.getLogger(__name__)
@@ -52,18 +53,12 @@ class AdvancedPosition(Strategy):
     def execute(self, core, project):
         
         # Check the project is active and record the simulation number
-        sim_index = project.get_active_index()
+        status_strs, status_code = self.get_project_status(core,
+                                                           project)
         
-        if sim_index is None:
-            
-            errStr = "Project has not been activated"
-            raise RuntimeError(errStr)
-        
-        if "Default" not in project.get_simulation_titles():
-            
-            err_msg = ('The posisiton optimiser requires a simulation with '
-                       'title "Default"')
-            raise RuntimeError(err_msg)
+        if status_code == 0:
+            status_str = "\n".join(status_strs)
+            raise RuntimeError(status_str)
         
         if project.get_simulation_title() != "Default":
             
@@ -324,7 +319,46 @@ class AdvancedPosition(Strategy):
             status_code = 1
         
         return status_str, status_code
-
+    
+    @classmethod
+    def get_project_status(self, core, project):
+        
+        module_menu = ModuleMenu()
+        
+        sim_index = project.get_active_index()
+        active_modules = module_menu.get_active(core, project)
+        required_modules = ["Hydrodynamics",
+                            "Operations and Maintenance"]
+        
+        if sim_index is None:
+            
+            status_strs = ["Project has not been activated"]
+            status_code = 0
+        
+        elif not set(required_modules) <= set(active_modules):
+            
+            status_strs = []
+            
+            for missing in set(required_modules) - set(active_modules):
+                
+                status_str = ("Project does not contain the {} "
+                              "module").format(missing)
+                status_strs.append(status_str)
+                
+            status_code = 0
+        
+        elif "Default" not in project.get_simulation_titles():
+            
+            status_strs = [('The position optimiser requires a simulation'
+                           ' with title "Default"')]
+            status_code = 0
+        
+        else:
+            
+            status_strs = ["Project ready"]
+            status_code = 1
+        
+        return status_strs, status_code
 
 def _get_root_project_base_name(root_project_path):
     
