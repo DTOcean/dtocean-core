@@ -6,8 +6,8 @@ n_threads:
 base_penalty: 1.
 
 # Optional
-# clean_existing_dir: true # 'true' will empty the worker_dir if it exists
-# max_simulations: 8       # quit after n simulations (following an iteration)
+clean_existing_dir:      # 'true' will empty the worker_dir if it exists
+max_simulations:         # quit after n simulations (following an iteration)
 logging: module          # 'module' or 'print'
 
 # Parameter specification
