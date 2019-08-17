@@ -14,6 +14,7 @@ from .position_optimiser import (dump_config,
                                  load_config_template,
                                  main)
 from ..menu import ModuleMenu
+from ..pipeline import Tree
 
 # Set up logging
 module_logger = logging.getLogger(__name__)
@@ -66,6 +67,13 @@ class AdvancedPosition(Strategy):
             module_logger.info(log_str)
             
             project.set_active_index(title="Default")
+        
+        log_str = 'Attempting to reset simulation level'
+        module_logger.info(log_str)
+        
+        tree = Tree()
+        hydro_branch = tree.get_branch(core, project, "Hydrodynamics")
+        hydro_branch.reset(core, project)
         
         es = main(self._config,
                   core=core,
