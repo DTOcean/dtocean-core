@@ -30,7 +30,14 @@ class AdvancedPosition(Strategy):
     
     def configure(self, **config_dict):
         
-        # TODO: Add some validation of config_dict here
+        _, status = self.get_config_status(config_dict)
+        
+        if status == 0:
+            
+            err_msg = ("Required keys are missing from the configuration "
+                       "dictionary.")
+            raise ValueError(err_msg)
+        
         self.set_config(config_dict)
         
         return
