@@ -177,9 +177,11 @@ class AdvancedPosition(Strategy):
         
         return
     
-    def get_results_table(self):
+    @classmethod
+    def get_results_table(cls, config):
         
         key_order = ["sim_number",
+                     "project.lcoe_mode",
                      "array_orientation",
                      "delta_row",
                      "delta_col",
@@ -189,14 +191,13 @@ class AdvancedPosition(Strategy):
                      "project.number_of_devices",
                      "project.annual_energy",
                      "project.q_factor",
-                     "project.lcoe_mode",
                      "project.capex_total",
                      "project.capex_breakdown",
                      "project.lifetime_opex_mode",
                      "project.lifetime_energy_mode"]
         
-        root_project_path = self._config['root_project_path']
-        sim_dir = self._config["worker_dir"]
+        root_project_path = config['root_project_path']
+        sim_dir = config["worker_dir"]
         
         root_project_base_name = _get_root_project_base_name(root_project_path)
         
