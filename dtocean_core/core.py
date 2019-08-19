@@ -439,6 +439,8 @@ class Project(object):
     
     def get_simulation_title(self, index=None, title=None):
         
+        if not self.is_active(): return None
+        
         simulation = self._get_simulation(index, title)
         sim_title = simulation.get_title()
         
@@ -517,8 +519,12 @@ class Project(object):
         
         n_sims = len(self._simulations)
         
-        if index is None or index > n_sims or index < 0:
-                            
+        if n_sims == 0:
+            self._active_index = None
+            return
+        
+        if index > n_sims or index < 0:
+            
             errStr = "Index {} is out of range".format(index)
             raise ValueError(errStr)
         
