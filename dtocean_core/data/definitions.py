@@ -2640,7 +2640,19 @@ class SimplePie(SimpleDict):
 
         num_dict = self.data.result
         labels = num_dict.keys()
-        sizes = np.array(num_dict.values())
+        sizes = num_dict.values()
+        
+        filter_sizes = []
+        filter_labels = []
+        
+        for label, size in zip(labels, sizes):
+            
+            if size > 0.:
+                filter_sizes.append(size)
+                filter_labels.append(label)
+        
+        labels = filter_labels
+        sizes = np.array(filter_sizes)
         
         # Don't allow negative values
         if (sizes < 0).any(): return
