@@ -431,10 +431,10 @@ class EconomicInterface(ThemeInterface):
             costs = [self.data.externalities_capex]
             years = [0]
             
-            capex_oandm_bom = make_phase_bom(quantities,
-                                             costs,
-                                             years,
-                                             "Externalities")
+            externalities_bom = make_phase_bom(quantities,
+                                               costs,
+                                               years,
+                                               "Externalities")
             
         # Combine the capex dataframes
         capex_bom = pd.concat([device_bom,
