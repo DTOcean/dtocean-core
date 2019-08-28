@@ -3,6 +3,7 @@
 import os
 import ast
 import glob
+import math
 import pickle
 import logging
 
@@ -196,6 +197,8 @@ class AdvancedPosition(Strategy):
                      "project.lifetime_opex_mode",
                      "project.lifetime_energy_mode"]
         
+        conversion_map = {"array_orientation": math.degrees}
+        
         root_project_path = config['root_project_path']
         sim_dir = config["worker_dir"]
         
@@ -223,10 +226,16 @@ class AdvancedPosition(Strategy):
                     col_name = template.format(key, ref_key)
                     val_list = [x[ref_key] for x in value]
                     
+                    if key in conversion_map:
+                        val_list = [conversion_map[key](x) for x in val_list]
+                    
                     table_cols.append(col_name)
                     table_dict[col_name] = val_list
                 
             else:
+                
+                if key in conversion_map:
+                    value = [conversion_map[key](x) for x in value]
                 
                 table_cols.append(key)
                 table_dict[key] = value
