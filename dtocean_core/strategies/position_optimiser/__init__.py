@@ -167,9 +167,9 @@ def main(config, core=None, project=None):
     _, root_project_name = os.path.split(root_project_path)
     root_project_base_name, _ = os.path.splitext(root_project_name)
     
-    ranges, nearest_ops = get_param_ranges_interp(config,
-                                                  core,
-                                                  project)
+    fixed_params, ranges, nearest_ops = get_param_control(config,
+                                                          core,
+                                                          project)
     
     scaled_vars = [cma.NormScaler(*x) for x in ranges]
     x0 = [scaled.x0 for scaled in scaled_vars]
@@ -193,6 +193,7 @@ def main(config, core=None, project=None):
                   high_bound,
                   scaled_vars,
                   nearest_ops,
+                  fixed_index_map=fixed_params,
                   num_threads=n_threads,
                   max_simulations=max_simulations,
                   logging=logging)
@@ -202,10 +203,11 @@ def main(config, core=None, project=None):
     return es
 
 
-def get_param_ranges_interp(config, core, project):
+def get_param_control(config, core, project):
     
     ranges = []
     nearest_ops = []
+    fixed_params = {}
     
     param_names = ["array_orientation",
                    "delta_row",
@@ -214,9 +216,13 @@ def get_param_ranges_interp(config, core, project):
                    "t1",
                    "t2"]
     
-    for param_name in param_names:
+    for i, param_name in enumerate(param_names):
         
         parameter = config["parameters"][param_name]
+        
+        if "fixed" in parameter:
+            fixed_params[i] = parameter["fixed"]
+            continue
         
         crange = parameter["range"]
         
@@ -239,7 +245,9 @@ def get_param_ranges_interp(config, core, project):
         ranges.append(prange)
         nearest_ops.append(nearest_op)
     
-    return ranges, nearest_ops
+    if not fixed_params: fixed_params = None
+    
+    return fixed_params, ranges, nearest_ops
 
 
 def nearest(a, value):
