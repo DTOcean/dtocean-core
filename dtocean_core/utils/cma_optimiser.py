@@ -12,6 +12,7 @@ import pickle
 import logging
 import threading
 import traceback
+from collections import OrderedDict
 from subprocess import Popen
 
 import cma
@@ -345,6 +346,7 @@ def main(worker_directory,
          high_bound,
          scaled_vars,
          nearest_ops,
+         fixed_index_map=None,
          num_threads=5,
          max_simulations=None,
          logging="module"):
@@ -369,14 +371,11 @@ def main(worker_directory,
         worker.start()
     
     while not es.stop() and not os.path.isfile('pause_optimiser.txt'):
-    
+        
         result_queue = queue.Queue()
-        
         scaled_solutions = es.ask()
-        
         descaled_solutions = []
-        costs = []
-    
+        
         for solution in scaled_solutions:
             
             new_solution = [scaler.inverse(x) for x, scaler
@@ -384,7 +383,16 @@ def main(worker_directory,
             nearest_solution = [snap(x) for x, snap
                                             in zip(new_solution, nearest_ops)]
             descaled_solutions.append(nearest_solution)
+        
+        if fixed_index_map is not None:
             
+            ordered_index_map = OrderedDict(sorted(fixed_index_map.items(),
+                                                   key=lambda t: t[0]))
+            
+            for solution in descaled_solutions:
+                for idx, val in ordered_index_map.iteritems():
+                    solution.insert(idx, val)
+        
         run_idxs, match_dict = _get_match_process(descaled_solutions)
         
         for i in run_idxs:
@@ -419,7 +427,7 @@ def _get_match_process(values):
     for i in range(len(values) - 1):
         
         if i in all_matches: continue
-            
+        
         key = i
         base = values[i]
         match_list = []
