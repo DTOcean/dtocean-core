@@ -79,19 +79,21 @@ def make_tide_statistics(dictinput,
     u_bins = np.linspace(umin, umax, u_samples)
     v_bins = np.linspace(vmin, vmax, v_samples)
     
-    (uv_pdf,
-     u_bin_centers,
-     v_bin_centers) = _get_pdf_and_centers(u,
-                                           v,
-                                           du,
-                                           dv,
-                                           u_samples,
-                                           v_samples,
-                                           u_bins,
-                                           v_bins)
+    du_bins = (u_bins[1:] - u_bins[:-1]) / 2
+    dv_bins = (v_bins[1:] - v_bins[:-1]) / 2
     
-    u_range = umax - umin 
-    v_range = vmax - vmin 
+    u_bin_centers = u_bins[:-1] + du_bins
+    v_bin_centers = v_bins[:-1] + dv_bins
+    
+    uv_pdf = _get_uv_pdf(u,
+                         v,
+                         u_samples,
+                         v_samples,
+                         u_bins,
+                         v_bins)
+    
+    u_range = umax - umin
+    v_range = vmax - vmin
     
     if u_range > v_range:
         
@@ -201,19 +203,12 @@ def _get_n_samples(range_min, range_max, interval):
     return n_samples
 
 
-def _get_pdf_and_centers(u, v, du, dv, u_samples, v_samples, u_bins, v_bins):
+def _get_uv_pdf(u, v, u_samples, v_samples, u_bins, v_bins):
     
     pdf = np.zeros((u_samples - 1, v_samples - 1))
-    u_bin_centers = np.zeros(u_samples - 1)
-    v_bin_centers = np.zeros(v_samples - 1)
     
     for iu in range(u_samples - 1):
-        
-        u_bin_centers[iu] = (u_bins[iu] + u_bins[iu + 1]) / 2.
-        
         for iv in range(v_samples - 1):
-            
-            v_bin_centers[iv] = (v_bins[iv] + v_bins[iv + 1]) / 2.
             
             uv_in_bin = ((u > u_bins[iu]) &
                          (u <= u_bins[iu + 1]) & 
@@ -227,7 +222,7 @@ def _get_pdf_and_centers(u, v, du, dv, u_samples, v_samples, u_bins, v_bins):
     
     assert np.isclose(np.sum(pdf), 1)
     
-    return pdf, u_bin_centers, v_bin_centers
+    return pdf
 
 
 def _get_samples(prime_axis,
@@ -276,7 +271,7 @@ def _get_samples(prime_axis,
         max_bin_idx = (np.abs(prime_bin_centers -
                                           sample_bins[i + 1])).argmin()
         
-        # Ensure that the whole pdf is used.
+        # Ensure that the whole pdf is used
         if i == 0: min_bin_idx = 0
         if i == (ns - 1): max_bin_idx = len(prime_bin_centers)
         
