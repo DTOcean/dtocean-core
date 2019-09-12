@@ -78,12 +78,8 @@ def make_tide_statistics(dictinput,
     
     u_bins = np.linspace(umin, umax, u_samples)
     v_bins = np.linspace(vmin, vmax, v_samples)
-    
-    du_bins = (u_bins[1:] - u_bins[:-1]) / 2
-    dv_bins = (v_bins[1:] - v_bins[:-1]) / 2
-    
-    u_bin_centers = u_bins[:-1] + du_bins
-    v_bin_centers = v_bins[:-1] + dv_bins
+    u_bin_centers = _get_bin_centers(u_bins)
+    v_bin_centers = _get_bin_centers(v_bins)
     
     uv_pdf = _get_uv_pdf(u,
                          v,
@@ -203,6 +199,14 @@ def _get_n_samples(range_min, range_max, interval):
     return n_samples
 
 
+def _get_bin_centers(bins):
+    
+    delta = (bins[1:] - bins[:-1]) / 2
+    bin_centers = bins[:-1] + delta
+    
+    return bin_centers
+
+
 def _get_uv_pdf(u, v, u_samples, v_samples, u_bins, v_bins):
     
     pdf = np.zeros((u_samples - 1, v_samples - 1))
@@ -242,8 +246,7 @@ def _get_samples(prime_axis,
                               np.max(prime_max),
                               ns + 1)
     
-    ds = (sample_bins[1:] - sample_bins[:-1]) / 2
-    sample_centres = sample_bins[:-1] + ds
+    sample_centres = _get_bin_centers(sample_bins)
     
     for i in range(ns):
         
