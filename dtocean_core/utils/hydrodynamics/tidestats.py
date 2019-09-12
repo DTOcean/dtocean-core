@@ -243,12 +243,12 @@ def _get_samples(prime_axis,
     sample_secondary_value = np.zeros(ns)
     sample_probability = np.zeros(ns)
     
-    scenario_samples = np.linspace(np.min(prime_min),
-                                   np.max(prime_max),
-                                   ns + 1)
+    sample_bins = np.linspace(np.min(prime_min),
+                              np.max(prime_max),
+                              ns + 1)
     
-    ds = ((scenario_samples + 1) - scenario_samples) / 2.
-    sample_centres = (scenario_samples + ds)[:-1]
+    ds = (sample_bins[1:] - sample_bins[:-1]) / 2
+    sample_centres = sample_bins[:-1] + ds
     
     for i in range(ns):
         
@@ -272,9 +272,9 @@ def _get_samples(prime_axis,
         sample_secondary_value[i] = secondary_value
         
         min_bin_idx = (np.abs(prime_bin_centers -
-                                          scenario_samples[i])).argmin()
+                                          sample_bins[i])).argmin()
         max_bin_idx = (np.abs(prime_bin_centers -
-                                          scenario_samples[i + 1])).argmin()
+                                          sample_bins[i + 1])).argmin()
         
         # Ensure that the whole pdf is used.
         if i == 0: min_bin_idx = 0
