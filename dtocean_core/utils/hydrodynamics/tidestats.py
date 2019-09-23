@@ -18,6 +18,8 @@
 
 from __future__ import division
 
+from decimal import Decimal
+
 import numpy as np
 
 
@@ -70,9 +72,19 @@ def make_tide_statistics(dictinput,
     yc = dictinput['yc']
     ns = dictinput['ns']
     
-    u, v = _get_nearest_uv(uf, vf, x, y, xc, yc)
-    umin, umax = _get_range(u, du)
-    vmin, vmax = _get_range(v, dv)
+    nearest_x_idx, nearest_y_idx = _get_nearest_xy_idx(x, y, xc, yc)
+    
+    u = uf[nearest_x_idx, nearest_y_idx, :]
+    v = vf[nearest_x_idx, nearest_y_idx, :]
+    
+    if np.isnan(u).any() or np.isnan(v).any():
+        
+        errStr = ("Time series at extraction point is not valid. Does the "
+                  "given point lie within the lease area?")
+        raise ValueError(errStr)
+    
+    umin, umax = _get_range_at_interval(u, du)
+    vmin, vmax = _get_range_at_interval(v, dv)
     u_samples = _get_n_samples(umin, umax, du)
     v_samples = _get_n_samples(vmin, vmax, dv)
     
@@ -167,34 +179,47 @@ def make_tide_statistics(dictinput,
     return dictoutput
 
 
-def _get_nearest_uv(U, V, x, y, xc, yc):
+def _get_nearest_xy_idx(x, y, xc, yc):
     
     nearest_x_idx = (np.abs(x - xc)).argmin()
     nearest_y_idx = (np.abs(y - yc)).argmin()
     
-    u = U[nearest_x_idx, nearest_y_idx, :]
-    v = V[nearest_x_idx, nearest_y_idx, :]
-    
-    if np.isnan(u).any() or np.isnan(v).any():
-        
-        errStr = ("Time series at extraction point is not valid. Does the "
-                  "given point lie within the lease area?")
-        raise ValueError(errStr)
-    
-    return u, v
+    return nearest_x_idx, nearest_y_idx
 
 
-def _get_range(v, padding=0):
+def _get_range_at_interval(v, interval):
     
-    range_max = np.max(v) + padding
-    range_min = np.min(v) - padding
+    """Adjust the range of the data to fit a given interval"""
+    
+    range_max = np.max(v)
+    range_min = np.min(v)
+    
+    numerator = Decimal(str(range_max - range_min))
+    denominator = Decimal(str(interval))
+    
+    remainder = numerator % denominator
+    adjust = float(denominator - remainder)
+    
+    range_max = range_max + 0.5 * adjust
+    range_min = range_min - 0.5 * adjust
     
     return range_min, range_max
 
 
 def _get_n_samples(range_min, range_max, interval):
     
-    n_samples = int(np.ceil((range_max - range_min) / interval)) + 1
+    numerator = Decimal(str(range_max - range_min))
+    denominator = Decimal(str(interval))
+    
+    quotient, remainder = divmod(numerator, denominator)
+    
+    if remainder != 0:
+        
+        err_msg = ("Given interval does not divide range exactly. Remainder "
+                   "of {} detected.").format(remainder)
+        raise ValueError(err_msg)
+    
+    n_samples = int(quotient) + 1
     
     return n_samples
 
