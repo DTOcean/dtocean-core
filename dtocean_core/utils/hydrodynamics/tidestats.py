@@ -110,7 +110,6 @@ def make_tide_statistics(dictinput,
         prime_max = umax
         prime_bin_centers = u_bin_centers
         secondary_bin_centers = v_bin_centers
-        secondary_interval = dv
     
     else:
         
@@ -119,7 +118,6 @@ def make_tide_statistics(dictinput,
         prime_max = vmax
         prime_bin_centers = v_bin_centers
         secondary_bin_centers = u_bin_centers
-        secondary_interval = du
     
     (sample_prime_value,
      sample_secondary_value,
@@ -128,7 +126,6 @@ def make_tide_statistics(dictinput,
                                         prime_max,
                                         prime_bin_centers,
                                         secondary_bin_centers,
-                                        secondary_interval,
                                         uv_pdf,
                                         ns)
     
@@ -259,7 +256,6 @@ def _get_samples(prime_axis,
                  prime_max,
                  prime_bin_centers,
                  secondary_bin_centers,
-                 secondary_interval,
                  pdf,
                  ns):
     
@@ -267,32 +263,13 @@ def _get_samples(prime_axis,
     sample_secondary_value = np.zeros(ns)
     sample_probability = np.zeros(ns)
     
-    sample_bins = np.linspace(np.min(prime_min),
-                              np.max(prime_max),
+    sample_bins = np.linspace(prime_min,
+                              prime_max,
                               ns + 1)
     
     sample_centres = _get_bin_centers(sample_bins)
     
     for i in range(ns):
-        
-        prime_idx = (np.abs(prime_bin_centers - sample_centres[i])).argmin()
-        secondary_pdf = pdf.take(indices=prime_idx, axis=prime_axis)
-        
-        # Avoid division by 0
-        if np.sum(secondary_pdf) == 0.:
-            
-            secondary_value = 0.
-        
-        else:
-            
-            numerator = np.sum(secondary_bin_centers * secondary_pdf *
-                                                         secondary_interval)
-            denominator = np.sum(secondary_pdf * secondary_interval)
-            
-            secondary_value = numerator / denominator
-        
-        sample_prime_value[i] = prime_bin_centers[prime_idx]
-        sample_secondary_value[i] = secondary_value
         
         min_bin_idx = (np.abs(prime_bin_centers -
                                           sample_bins[i])).argmin()
@@ -305,6 +282,24 @@ def _get_samples(prime_axis,
         
         slice_range = range(min_bin_idx, max_bin_idx)
         pdf_slice = pdf.take(indices=slice_range, axis=prime_axis)
+        secondary_pdf = pdf_slice.sum(axis=prime_axis)
+        
+        # Avoid division by 0
+        if np.sum(secondary_pdf) == 0.:
+            
+            secondary_value = 0.
+        
+        else:
+            
+            numerator = np.sum(secondary_bin_centers * secondary_pdf)
+            denominator = np.sum(secondary_pdf)
+            
+            secondary_value = numerator / denominator
+        
+        prime_idx = (np.abs(prime_bin_centers - sample_centres[i])).argmin()
+        
+        sample_prime_value[i] = prime_bin_centers[prime_idx]
+        sample_secondary_value[i] = secondary_value
         sample_probability[i] = np.sum(pdf_slice)
     
     assert np.isclose(np.sum(sample_probability), 1)
