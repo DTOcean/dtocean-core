@@ -18,14 +18,14 @@
 
 from __future__ import division
 
+import operator
 from decimal import Decimal
 
 import numpy as np
 
 
 def make_tide_statistics(dictinput,
-                         du=0.01,
-                         dv=0.01):
+                         ds=0.01):
     
     '''
      Function that selects the subset of current fields to be run, based on the
@@ -47,8 +47,7 @@ def make_tide_statistics(dictinput,
          yc: north-east coordinate of the location of interest (where the time
          series for the statistical analysis will be extracted, len(xc)=1).
          ns number of scenarii to be played (len(ns)=1).
-    du: 2D PDF bin width for u component
-    dv: 2D PDF bin width for v component
+    ds: 2D PDF bin width for secondary component velocity
     
      function output:
     
@@ -83,61 +82,51 @@ def make_tide_statistics(dictinput,
                   "given point lie within the lease area?")
         raise ValueError(errStr)
     
-    umin, umax = _get_range_at_interval(u, du)
-    vmin, vmax = _get_range_at_interval(v, dv)
-    u_samples = _get_n_samples(umin, umax, du)
-    v_samples = _get_n_samples(vmin, vmax, dv)
-    
-    u_bins = np.linspace(umin, umax, u_samples)
-    v_bins = np.linspace(vmin, vmax, v_samples)
-    u_bin_centers = _get_bin_centers(u_bins)
-    v_bin_centers = _get_bin_centers(v_bins)
-    
-    uv_pdf = _get_uv_pdf(u,
-                         v,
-                         u_samples,
-                         v_samples,
-                         u_bins,
-                         v_bins)
-    
-    u_range = umax - umin
-    v_range = vmax - vmin
+    u_range = u.max() - u.min()
+    v_range = v.max() - v.min()
     
     if u_range > v_range:
         
-        prime_axis = 0
-        prime_min = umin
-        prime_max = umax
-        prime_bin_centers = u_bin_centers
-        secondary_bin_centers = v_bin_centers
+        principal = u
+        secondary = v
     
     else:
         
-        prime_axis = 1
-        prime_min = vmin
-        prime_max = vmax
-        prime_bin_centers = v_bin_centers
-        secondary_bin_centers = u_bin_centers
+        principal = v
+        secondary = u
     
-    (sample_prime_value,
-     sample_secondary_value,
-     sample_probability) = _get_samples(prime_axis,
-                                        prime_min,
-                                        prime_max,
-                                        prime_bin_centers,
-                                        secondary_bin_centers,
-                                        uv_pdf,
+    pmin, pmax = principal.min(), principal.max()
+    smin, smax = _get_range_at_interval(secondary, ds)
+    
+    p_samples = ns + 1
+    s_samples = _get_n_samples(smin, smax, ds)
+    
+    p_bins = np.linspace(pmin, pmax, p_samples)
+    s_bins = np.linspace(smin, smax, s_samples)
+    p_bin_centers = _get_bin_centers(p_bins)
+    s_bin_centers = _get_bin_centers(s_bins)
+    
+    ps_pdf = _get_ps_pdf(principal,
+                         secondary,
+                         p_samples,
+                         s_samples,
+                         p_bins,
+                         s_bins)
+    
+    (sample_secondary_value,
+     sample_probability) = _get_samples(s_bin_centers,
+                                        ps_pdf,
                                         ns)
     
     if u_range > v_range:
         
-        sample_u_values = sample_prime_value
+        sample_u_values = p_bin_centers
         sample_v_values = sample_secondary_value
     
     else:
         
         sample_u_values = sample_secondary_value
-        sample_v_values = sample_prime_value
+        sample_v_values = p_bin_centers
     
     inds = _get_time_series_indexes(u,
                                     v,
@@ -229,65 +218,54 @@ def _get_bin_centers(bins):
     return bin_centers
 
 
-def _get_uv_pdf(u, v, u_samples, v_samples, u_bins, v_bins):
+def _get_ps_pdf(p, s, p_samples, s_samples, p_bins, s_bins):
     
-    pdf = np.zeros((u_samples - 1, v_samples - 1))
+    pdf = np.zeros((p_samples - 1, s_samples - 1))
     
-    for iu in range(u_samples - 1):
-        for iv in range(v_samples - 1):
+    for idxp in range(p_samples - 1):
+        for idxs in range(s_samples - 1):
             
-            uv_in_bin = ((u > u_bins[iu]) &
-                         (u <= u_bins[iu + 1]) & 
-                         (v > v_bins[iv]) & 
-                         (v <= v_bins[iv + 1]))
+            if idxp == p_samples - 2:
+                p_upper_op = operator.le
+            else:
+                p_upper_op = operator.lt
             
-            n_in_bin = uv_in_bin.astype(int)
-            pdf[iu, iv] = np.sum(n_in_bin)
+            if idxs == s_samples - 2:
+                s_upper_op = operator.le
+            else:
+                s_upper_op = operator.lt
+            
+            ps_in_bin = ((p >= p_bins[idxp]) &
+                         (p_upper_op(p, p_bins[idxp + 1])) & 
+                         (s >= s_bins[idxs]) & 
+                         (s_upper_op(s, s_bins[idxs + 1])))
+            
+            n_in_bin = ps_in_bin.astype(int)
+            pdf[idxp, idxs] = np.sum(n_in_bin)
     
-    pdf = pdf / len(u)
+    pdf = pdf / len(p)
     
     assert np.isclose(np.sum(pdf), 1)
     
     return pdf
 
 
-def _get_samples(prime_axis,
-                 prime_min,
-                 prime_max,
-                 prime_bin_centers,
-                 secondary_bin_centers,
+def _get_samples(secondary_bin_centers,
                  pdf,
                  ns):
     
-    sample_prime_value = np.zeros(ns)
     sample_secondary_value = np.zeros(ns)
     sample_probability = np.zeros(ns)
     
-    sample_bins = np.linspace(prime_min,
-                              prime_max,
-                              ns + 1)
-    
-    sample_centres = _get_bin_centers(sample_bins)
-    
     for i in range(ns):
         
-        min_bin_idx = (np.abs(prime_bin_centers -
-                                          sample_bins[i])).argmin()
-        max_bin_idx = (np.abs(prime_bin_centers -
-                                          sample_bins[i + 1])).argmin()
-        
-        # Ensure that the whole pdf is used
-        if i == 0: min_bin_idx = 0
-        if i == (ns - 1): max_bin_idx = len(prime_bin_centers)
-        
-        slice_range = range(min_bin_idx, max_bin_idx)
-        pdf_slice = pdf.take(indices=slice_range, axis=prime_axis)
-        secondary_pdf = pdf_slice.sum(axis=prime_axis)
+        secondary_pdf = pdf.take(indices=i, axis=0)
         
         # Avoid division by 0
         if np.sum(secondary_pdf) == 0.:
             
             secondary_value = 0.
+            denominator = 0.
         
         else:
             
@@ -296,15 +274,12 @@ def _get_samples(prime_axis,
             
             secondary_value = numerator / denominator
         
-        prime_idx = (np.abs(prime_bin_centers - sample_centres[i])).argmin()
-        
-        sample_prime_value[i] = prime_bin_centers[prime_idx]
         sample_secondary_value[i] = secondary_value
-        sample_probability[i] = np.sum(pdf_slice)
+        sample_probability[i] = denominator
     
     assert np.isclose(np.sum(sample_probability), 1)
     
-    return sample_prime_value, sample_secondary_value, sample_probability
+    return sample_secondary_value, sample_probability
 
 
 def _get_time_series_indexes(u,
