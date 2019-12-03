@@ -115,10 +115,6 @@ class HydroInterface(ModuleInterface):
 
         input_list  =  ['site.lease_boundary',
                         'bathymetry.layers',
-                        
-                        MaskVariable('bathymetry.mannings',
-                                     "device.system_type",
-                                     ["Tidal Fixed", "Tidal Floating"]),
                                      
                         "corridor.landing_point",
                         'farm.nogo_areas',
@@ -317,7 +313,6 @@ class HydroInterface(ModuleInterface):
                     "cut_out": "device.cut_out_velocity",
                     "device_position": "project.layout",
                     "ext_forces": "device.external_forces",
-                    "geophysics": "bathymetry.mannings",
                     "hub_height": "device.turbine_hub_height",
                     "lease_area": "site.lease_boundary",
                     "main_direction": "project.main_direction",
@@ -406,15 +401,12 @@ class HydroInterface(ModuleInterface):
     #										'x' (numpy.ndarray)[m]: Vector containing the easting coordinate of the grid nodes
     #										'y' (numpy.ndarray)[m]: Vector containing the northing coordinate of the grid nodes
     #										'SSH' (numpy.ndarray)[m]: Sea Surface Height wrt the bathymetry datum 
-    #									
-    #									
-    #		VelocityShear (numpy.ndarray) [-]: Tidal velocity shear formula (power law), used to evaluate the vertical velocity profile
+    #       Beta (float, optional if None): TIDAL ONLY bed roughness (default = 0.4)
+    #       Alpha (float, optional if None): TIDAL ONLY power law exponent (default = 7.)
     #		Main_Direction (numpy.ndarray, optional) [m]: xy vector defining the main orientation of the array. If not provided it will be 
     #														assessed from the Metocean conditions.
     #		Bathymetry (numpy.ndarray) [m]: Describes the vertical profile of the sea bottom at each (given) UTM coordinate. 
     #										Expressed as [X,Y,Z]
-    #		Geophysics (numpy.ndarray) [?]: Describes the sea bottom geophysic characteristic at each (given) UTM coordinate. 
-    #										Expressed as [X,Y,Geo]
     #		BR (float) [-]: describes the ratio between the lease area surface over the site area surface enclosed in a channel. 
     #						1. - closed channel
     #						0. - open sea
@@ -463,22 +455,11 @@ class HydroInterface(ModuleInterface):
                            "coords": occurrence_matrix_coords}
                            
             self.data.tidal_occurrence = matrix_xset
-            
-            x = self.data.geophysics.coords["UTM x"]
-            y = self.data.geophysics.coords["UTM y"]
-            
-            # Flatten mannings number
-            xgrid, ygrid = np.meshgrid(x.values,
-                                       y.values)
-            geogrid = self.data.geophysics.values.T
-            geoflat = np.array(zip(xgrid.flatten(),
-                                   ygrid.flatten(),
-                                   geogrid.flatten()))
-                
+        
         else:
-                        
+            
             occurrence_matrix = make_wave_statistics(self.data.wave_series)
-                        
+            
             p_total = occurrence_matrix['p'].sum()
             
             if not np.isclose(p_total, 1.):
@@ -512,8 +493,6 @@ class HydroInterface(ModuleInterface):
             
             occurrence_matrix["SSH"] = 0. # Datum is mean sea level
             occurrence_matrix["specType"] = spectrum_list
-                             
-            geoflat = None
         
         # Snap lease area to bathymetry
         bathy_x = self.data.bathymetry["x"]
@@ -554,10 +533,10 @@ class HydroInterface(ModuleInterface):
         Site = WP2_SiteData(numpy_lease,
                             numpy_nogo,
                             occurrence_matrix,
-                            7.,
+                            None,
+                            None,
                             main_direction_vec,
                             safe_xyz,
-                            geoflat,
                             self.data.blockage_ratio,
                             numpy_landing,
                             self.data.boundary_padding)
