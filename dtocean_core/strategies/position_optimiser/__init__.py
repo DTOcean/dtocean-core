@@ -252,13 +252,15 @@ def get_param_control(config, core, project):
 
 def nearest(a, value):
     
+    # Round half towards positive infinity
+    
     i = bisect_left(a, value)
         
     if i == 0:
         return a[i]
     elif i == len(a):
         return a[i - 1]
-    elif abs(a[i - 1] - value) <= abs(a[i] - value):
+    elif value - a[i - 1] < a[i] - value:
         return a[i - 1]
     else:
         return a[i]
