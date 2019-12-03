@@ -572,13 +572,13 @@ class LineTable(TableData):
         dataframe = dataframe.set_index(index_key)
 
         return dataframe
-
+    
     @staticmethod
     def auto_plot(self):
         
         # Get number of columns for legend
         ncol = len(self.data.result.columns) / 20 + 1
-
+        
         fig = plt.figure()
         ax = fig.gca()
         
@@ -586,25 +586,15 @@ class LineTable(TableData):
         lgd = ax.legend(bbox_to_anchor=(1.04, 1),
                         loc="upper left",
                         ncol=ncol)
-
+        
         xlabel = self.meta.result.labels[0]
-        ylabel = None
         
-        if len(self.meta.result.labels) > 1:
-            ylabel = self.meta.result.labels[1]
-
-        if self.meta.result.units is not None:
+        if (self.meta.result.units is not None and
+            self.meta.result.units[0] is not None):
             
-            if self.meta.result.units[0] is not None:
-                xlabel = "{} [${}$]".format(xlabel, self.meta.result.units[0])
-                
-            if (len(self.meta.result.units) > 1 and 
-                self.meta.result.units[1] is not None):
-                ylabel = "{} [${}$]".format(ylabel, self.meta.result.units[1])
-
-        plt.xlabel(xlabel)
-        if ylabel is not None: plt.ylabel(ylabel)
+            xlabel = "{} [${}$]".format(xlabel, self.meta.result.units[0])
         
+        plt.xlabel(xlabel)
         plt.title(self.meta.result.title)
         
         # Auto adjust canvas for legend
@@ -622,11 +612,11 @@ class LineTable(TableData):
         
         shift = ax_xmax / lgd_xmax
         plt.gcf().tight_layout(rect=(0, 0, shift, 1))
-
-        self.fig_handle = plt.gcf()
-
-        return
         
+        self.fig_handle = plt.gcf()
+        
+        return
+    
     @staticmethod
     def auto_file_output(self):
         
