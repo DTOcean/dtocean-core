@@ -654,13 +654,13 @@ def _get_para_points(coords, p0_idx):
     
     if _clockwise(coords.xy[0][:-1], coords.xy[1][:-1]):
         
-        p1_idx = next_idx()
-        p2_idx = prev_idx()
+        p1_idx = prev_idx()
+        p2_idx = next_idx()
         
     else:
         
-        p1_idx = prev_idx()
-        p2_idx = next_idx()
+        p1_idx = next_idx()
+        p2_idx = prev_idx()
         
     p0 = coords.xy[0][p0_idx],  coords.xy[1][p0_idx]
     p1 = coords.xy[0][p1_idx],  coords.xy[1][p1_idx]
