@@ -3181,9 +3181,12 @@ class PointList(PointData):
         
         if ".xls" in self._path or ".csv" in self._path:
             data = PointList._read_table(self._path)
+        elif ".shp" in self._path:
+            data = PointList._read_shapefile(self._path)
         else:
              raise TypeError("The specified file format is not supported. ",
                              "Supported format are {},{},{}".format('.csv',
+                                                                    '.shp',
                                                                     '.xls',
                                                                     '.xlsx'))
         
@@ -3200,9 +3203,12 @@ class PointList(PointData):
         
         if ".xls" in self._path or ".csv" in self._path:
             PointList._write_table(self._path, points)
+        elif ".shp" in self._path:
+            PointList._write_shapefile(self._path, points)
         else:
              raise TypeError("The specified file format is not supported. ",
                              "Supported format are {},{},{}".format('.csv',
+                                                                    '.shp',
                                                                     '.xls',
                                                                     '.xlsx'))
         
@@ -3255,6 +3261,55 @@ class PointList(PointData):
             df.to_csv(path, index=False)
         
         return
+    
+    @staticmethod
+    def _read_shapefile(path):
+        
+        with shapefile.Reader(path) as shp:
+        
+            if shp.shapeType != shapefile.MULTIPOINT:
+                
+                err_str = ("The imported shapefile must have MULTIPOINT type. "
+                           "Given file has {} type").format(shp.shapeTypeName)
+                raise ValueError(err_str)
+            
+            shapes = shp.shapes()
+            
+            if len(shapes) != 1:
+                
+                err_str = ("Only one shape may be defined in the imported "
+                           "shapefile. Given file has {} "
+                           "shapes").format(len(shapes))
+                raise ValueError(err_str)
+            
+            s = shapes[0]
+        
+        result = [Point(point) for point in s.points]
+        
+        return result
+    
+    @staticmethod
+    def _write_shapefile(path, points):
+        
+        for point in points:
+            if not isinstance(point, Point):
+                raise TypeError("Data type not understood: type for a "
+                                "PointData subclass is shapely Point")
+        
+        data = np.array([np.array(point) for point in points])
+        
+        with shapefile.Writer(path) as shp:
+            
+            shp.field('name', 'C')
+            shp.multipoint(data)
+            shp.record('multipoint1')
+        
+        return
+    
+    @staticmethod
+    def get_valid_extensions(cls):
+        
+        return [".csv", ".shp", ".xls", ".xlsx"]
     
     @staticmethod
     def auto_plot(self):
