@@ -730,7 +730,7 @@ class HydroInterface(ModuleInterface):
         pow_per_device = {}
         pmf_per_device = {}
         layout = {}
-        q_factor_per_device={}
+        q_factor_per_device = {}
         dev_ids = []
         
         # Layout
@@ -751,7 +751,7 @@ class HydroInterface(ModuleInterface):
                                                 self.data.rated_power_device)
         self.data.array_efficiency = self.data.AEP_array / ideal_energy
         
-        # Annual energy per device (convert to MWh)             
+        # Annual energy per device (convert to MWh)
         for dev_id, AEP in zip(dev_ids, result.Annual_Energy_Production_perD):
             AEP_per_device[dev_id] = float(AEP) / 1e6  #SimpleDIct
             
@@ -762,13 +762,13 @@ class HydroInterface(ModuleInterface):
             pow_per_device[dev_id] = float(power) / 1e6  #SimpleDIct
         
         self.data.pow_per_device = pow_per_device
-            
+        
         for dev_id, pow_per_state in zip(dev_ids, result.power_prod_perD_perS):
             
             # Power probability mass function (convert to MW)
             flat_prob = occurrence_matrix['p'].flatten("F")
             pow_list = pow_per_state / 1e6
-
+            
             assert np.isclose(flat_prob.sum(), 1.)
             assert len(flat_prob) == len(pow_list)
             
@@ -820,12 +820,12 @@ class HydroInterface(ModuleInterface):
         # Resource modification
         self.data.q_factor_per_device = q_factor_per_device
         self.data.q_factor_array = result.q_factor_Array
-    
+        
         self.data.resource_reduction = float(result.Resource_Reduction)
         
-        for dev_id, q_factor in zip(dev_ids, result.q_factor_Per_Device):            
+        for dev_id, q_factor in zip(dev_ids, result.q_factor_Per_Device):
             q_factor_per_device[dev_id] = q_factor
-            
+        
         # Main Direction
         self.data.main_direction = vector_to_bearing(*result.main_direction)
         
@@ -836,7 +836,7 @@ class HydroInterface(ModuleInterface):
             fex_dict = result.Hydrodynamic_Parameters
             modes = np.array(fex_dict["mode_def"])
             freqs = np.array(fex_dict["wave_fr"])
-
+            
             # Convert directions to bearings
             bearings = [radians_to_bearing(x) for x in fex_dict["wave_dir"]]
             dirs = np.array(bearings)
@@ -870,5 +870,5 @@ class HydroInterface(ModuleInterface):
                             "coords": occurrence_matrix_coords}
             
             self.data.power_matrix = matrix_xgrid
-
+        
         return

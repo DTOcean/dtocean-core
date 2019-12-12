@@ -21,11 +21,11 @@ Created on Fri Jul 29 17:44:49 2016
 .. moduleauthor:: Mathew Topper <mathew.topper@dataonlygreater.com>
 """
 
+from aneris.boundary.interface import QueryInterface
+
 from ..utils.database import (init_bathy_records,
                               bathy_records_to_strata,
                               tidal_series_records_to_xset)
-                              
-from aneris.boundary.interface import QueryInterface
 
 
 class LeaseBathyInterface(QueryInterface):
@@ -43,8 +43,8 @@ class LeaseBathyInterface(QueryInterface):
         '''
         
         return "Lease Area Bathymetry Filtering Interface"
-
-    @classmethod         
+    
+    @classmethod
     def declare_inputs(cls):
         
         '''A class method to declare all the variables required as inputs by
@@ -61,12 +61,12 @@ class LeaseBathyInterface(QueryInterface):
                         "My:second:variable",
                        ]
         '''
-
+        
         input_list  =  ["site.lease_boundary"]
-                                                
+        
         return input_list
-
-    @classmethod        
+    
+    @classmethod
     def declare_outputs(cls):
         
         '''A class method to declare all the output variables provided by
@@ -88,7 +88,7 @@ class LeaseBathyInterface(QueryInterface):
         
         return outputs
         
-    @classmethod        
+    @classmethod
     def declare_optional(cls):
         
         '''A class method to declare all the variables which should be flagged
@@ -111,9 +111,9 @@ class LeaseBathyInterface(QueryInterface):
         '''
         
         option_list = None
-                        
-        return option_list
         
+        return option_list
+    
     @classmethod 
     def declare_id_map(self):
         
@@ -135,13 +135,13 @@ class LeaseBathyInterface(QueryInterface):
                        }
         
         '''
-                  
+        
         id_map = {"bathymetry": "bathymetry.layers",
                   "lease_poly": "site.lease_boundary"
                   }
-                  
+        
         return id_map
-                 
+    
     def connect(self):
         
         '''The connect method is used to execute the external program and 
@@ -154,7 +154,7 @@ class LeaseBathyInterface(QueryInterface):
           self.data.my_output_variable = value
         
         '''
-                        
+        
         # Manipulate wkt string for function requirements
         poly_wkt = self.data.lease_poly.to_wkt()
         func_poly_str = poly_wkt.replace("POLYGON ((", "")[:-2]
@@ -170,7 +170,6 @@ class LeaseBathyInterface(QueryInterface):
         self.data.bathymetry = raw_strata
         
         return
-        
 
 class CorridorBathyInterface(QueryInterface):
     

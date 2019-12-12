@@ -2582,24 +2582,24 @@ class SimpleDict(Structure):
             df.to_csv(self._path, index=False)
         
         return
-        
+    
     @staticmethod
     def get_valid_extensions(cls):
         
         return [".csv", ".xls", ".xlsx"]
-
+    
     @staticmethod
     def auto_plot(self):
         
         if not self.meta.result.types[0] in ["int", "float"]: return
-
+        
         num_dict = self.data.result
         
         labels = num_dict.keys()
         labels = natsorted(labels)
         
         sizes = np.array([num_dict[x] for x in labels])
-
+        
         plt.figure()
         plt.bar(range(len(sizes)),
                 sizes,
