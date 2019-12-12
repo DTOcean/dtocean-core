@@ -3431,8 +3431,12 @@ class PointDict(PointData):
                                                                    '.xlsx'))
                 
         return
-
-
+    
+    @staticmethod
+    def get_valid_extensions(cls):
+        
+        return [".csv", ".xls", ".xlsx"]
+    
     @staticmethod
     def auto_plot(self):
 
