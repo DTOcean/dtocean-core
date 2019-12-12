@@ -1266,7 +1266,7 @@ class NumpyLineDict(NumpyLine):
         
         # Sort the keys
         keys = data_dict.keys()
-        keys.sort()
+        keys = natsorted(keys)
         
         for key in keys:
             
@@ -1607,7 +1607,7 @@ class HistogramDict(Histogram):
         
         # Sort the keys
         keys = data_dict.keys()
-        keys.sort()
+        keys = natsorted(keys)
         
         for key in keys:
             
@@ -2596,7 +2596,7 @@ class SimpleDict(Structure):
         num_dict = self.data.result
         
         labels = num_dict.keys()
-        labels.sort()
+        labels = natsorted(labels)
         
         sizes = np.array([num_dict[x] for x in labels])
 
