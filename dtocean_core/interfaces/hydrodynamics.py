@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2016-2018 Mathew Topper
+#    Copyright (C) 2016-2019 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@ import pkg_resources
 from packaging.version import Version
 
 import numpy as np
+from natsort import natsorted
 from shapely.geometry import box
 
 from polite.paths import Directory, ObjDirectory, UserDataDirectory
@@ -738,7 +739,9 @@ class HydroInterface(ModuleInterface):
             dev_id = dev_id.lower()
             layout[dev_id] = np.array(coords)
             dev_ids.append(dev_id)
-            
+        
+        dev_ids = natsorted(dev_ids)
+        
         self.data.device_position = layout
         self.data.n_bodies = int(result.Nbodies)
         
