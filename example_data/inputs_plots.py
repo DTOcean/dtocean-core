@@ -28,13 +28,6 @@ strata = {"values": {'depth': depths,
                      'sediment': sediments},
           "coords": [x, y, ["layer 1"]]}
 
-# Mannings
-#geoxyz = np.vstack((X.ravel(),Y.ravel(),G.ravel())).T
-###G = np.zeros((nx, ny)) + 0.3
-G = np.random.rand(nx, ny)
-geo_raw = {"values": G,
-           "coords": [x, y]}
-
 # Machine data
 X = np.array([   0.        ,   0.1010101 ,   0.2020202 ,   0.3030303 ,
                  0.4040404 ,   0.50505051,   0.60606061,   0.70707071,
@@ -230,7 +223,6 @@ test_data = {'bathymetry.layers': strata,
              'device.turbine_performance': tidal_performance,
              'device.yaw': yaw_angle,
              'farm.blockage_ratio': blockage_ratio,
-             'bathymetry.mannings': geo_raw,
              'site.lease_boundary': lease_area,
              'project.main_direction': main_direction,
              'farm.nogo_areas': nogo_areas,

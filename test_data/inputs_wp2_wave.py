@@ -31,12 +31,6 @@ strata = {"values": {'depth': depths,
                      'sediment': sediments},
           "coords": [x, y, ["layer 1"]]}
 
-# Mannings
-#geoxyz = np.vstack((X.ravel(),Y.ravel(),G.ravel())).T
-G = np.zeros((nx, ny)) + 0.3
-geo_raw = {"values": G,
-           "coords": [x, y]}
-
 sample_size = 1000
 
 dates = []
@@ -111,7 +105,6 @@ test_data = {'bathymetry.layers': strata,
              'device.wave_data_directory': wave_data_directory,
              'device.yaw': yaw_angle,
              'farm.blockage_ratio': blockage_ratio,
-             'bathymetry.mannings': geo_raw,
              'site.lease_boundary': lease_area,
              'project.main_direction': main_direction,
              'farm.nogo_areas': nogo_areas,

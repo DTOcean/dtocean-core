@@ -23,7 +23,6 @@ Created on Fri Jul 29 17:44:49 2016
 
 from ..utils.database import (init_bathy_records,
                               bathy_records_to_strata,
-                              bathy_records_to_mannings,
                               tidal_series_records_to_xset)
                               
 from aneris.boundary.interface import QueryInterface
@@ -85,9 +84,8 @@ class LeaseBathyInterface(QueryInterface):
                         ]
         '''
         
-        outputs = ["bathymetry.layers",
-                   "bathymetry.mannings"]
-                
+        outputs = ["bathymetry.layers"]
+        
         return outputs
         
     @classmethod        
@@ -139,8 +137,7 @@ class LeaseBathyInterface(QueryInterface):
         '''
                   
         id_map = {"bathymetry": "bathymetry.layers",
-                  "lease_poly": "site.lease_boundary",
-                  "mannings": "bathymetry.mannings"
+                  "lease_poly": "site.lease_boundary"
                   }
                   
         return id_map
@@ -172,9 +169,6 @@ class LeaseBathyInterface(QueryInterface):
         raw_strata = bathy_records_to_strata(pre_bathy=pre_bathy)
         self.data.bathymetry = raw_strata
         
-        raw_mannings = bathy_records_to_mannings(pre_bathy=pre_bathy)
-        self.data.mannings = raw_mannings
-            
         return
         
 
