@@ -181,6 +181,7 @@ setup(name='dtocean-core',
           'console_scripts':
               [
                'add-Te = dtocean_core.utils.hydrodynamics:add_Te_interface',
+               'dtocean-core = dtocean_core.utils.execute:main_interface',
                'dtocean-core-config = '
                     'dtocean_core.utils.config:init_config_interface',
                'dtocean-database = '

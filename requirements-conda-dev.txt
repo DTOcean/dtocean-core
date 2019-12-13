@@ -20,6 +20,8 @@ pyproj
 python-dateutil
 pyyaml
 pyshp
+ruamel.yaml
+ruamel.yaml.clib
 scipy
 setuptools
 shapely
