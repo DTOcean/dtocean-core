@@ -159,12 +159,18 @@ class LeaseBathyInterface(QueryInterface):
         poly_wkt = self.data.lease_poly.to_wkt()
         func_poly_str = poly_wkt.replace("POLYGON ((", "")[:-2]
         
-        query_str = ("SELECT * FROM "
+        query_str = ("SELECT "
+                     "utm_point, "
+                     "depth, "
+                     "layer_order, "
+                     "initial_depth, "
+                     "sediment_type "
+                     "FROM "
                      "filter.sp_select_bathymetry_by_polygon"
                      "('{}')").format(func_poly_str)
-                                     
+        
         result = self._db.server_execute_query(query_str)
-        pre_bathy = init_bathy_records(result, True)
+        pre_bathy = init_bathy_records(result)
         
         raw_strata = bathy_records_to_strata(pre_bathy=pre_bathy)
         self.data.bathymetry = raw_strata
@@ -303,7 +309,13 @@ class CorridorBathyInterface(QueryInterface):
         func_poly_str = poly_wkt.replace("POLYGON ((", "")[:-2]
         
         query_str = (
-             "SELECT * FROM "
+             "SELECT "
+             "utm_point, "
+             "depth, "
+             "layer_order, "
+             "initial_depth, "
+             "sediment_type "
+             "FROM "
              "filter.sp_select_cable_corridor_bathymetry_by_polygon"
              "('{}')").format(func_poly_str)
                                      
@@ -448,7 +460,15 @@ class TidalEnergyInterface(QueryInterface):
         func_poly_str = poly_wkt.replace("POLYGON ((", "")[:-2]
         
         query_str = (
-                "SELECT * FROM "
+                "SELECT "
+                "utm_point, "
+                "measure_date, "
+                "measure_time, "
+                "u, "
+                "v, "
+                "turbulence_intensity, "
+                "ssh "
+                "FROM "
                 "filter.sp_select_tidal_energy_time_series_by_polygon"
                 "('{}')").format(func_poly_str)
                                      
