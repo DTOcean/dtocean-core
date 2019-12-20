@@ -483,9 +483,9 @@ class MooringsInterface(ModuleInterface):
                     'apply_fex': 'options.apply_fex',
                     "use_max_thrust": "options.use_max_thrust"
                     }
-                  
+        
         return id_map
-                 
+    
     def connect(self, debug_entry=False,
                       export_data=False):
         
