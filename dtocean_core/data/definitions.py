@@ -2447,7 +2447,8 @@ class SimpleList(Structure):
         # Disable integer conversion for float types
         convert_float = True
         
-        if self.meta.result.types[0] == "float": convert_float = False
+        if (self.meta.result.types is not None and
+            self.meta.result.types[0] == "float"): convert_float = False
         
         if ".xls" in self._path:
             df = pd.read_excel(self._path, convert_float=convert_float)
