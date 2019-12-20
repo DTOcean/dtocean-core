@@ -265,9 +265,13 @@ class MooringsInterface(ModuleInterface):
                  'constants.grout_compressive_strength',
                  
                  'options.repeat_foundations',
-                 'options.apply_fex'
+                 'options.apply_fex',
+                 
+                 MaskVariable("options.use_max_thrust",
+                              "device.system_type",
+                              ["Tidal Fixed", "Tidal Floating"])
                  ]
-                                                
+        
         return input_list
 
     @classmethod        
@@ -335,7 +339,8 @@ class MooringsInterface(ModuleInterface):
                        'project.substation_cog',
                        'project.substation_foundation_location',
                        'options.repeat_foundations',
-                       'options.apply_fex'
+                       'options.apply_fex',
+                        "options.use_max_thrust"
                        ]
                 
         return option_list
@@ -475,7 +480,8 @@ class MooringsInterface(ModuleInterface):
                     "line_data": "project.moorings_line_data",
                     "dimensions_data": "project.moorings_dimensions",
                     'repeat_foundations': 'options.repeat_foundations',
-                    'apply_fex': 'options.apply_fex'
+                    'apply_fex': 'options.apply_fex',
+                    "use_max_thrust": "options.use_max_thrust"
                     }
                   
         return id_map
@@ -578,7 +584,9 @@ class MooringsInterface(ModuleInterface):
                          'Wave Floating': 'wavefloat'}
         systype = dev_translate[self.data.system_type]
         
-        # Build tidal device characteristics              
+        # Build tidal device characteristics
+        use_max_thrust = False
+        
         if 'Tidal' in self.data.system_type:
             
             Clen = (self.data.rotor_diam, self.data.turbine_interdist)
@@ -591,6 +599,10 @@ class MooringsInterface(ModuleInterface):
             if "floating" in self.data.system_type.lower():
                 hubheight += self.data.sysdraft
             
+            # Check for max thrust option
+            if self.data.use_max_thrust is not None:
+                use_max_thrust = self.data.use_max_thrust
+        
         else:
             
             Clen = None
@@ -1025,7 +1037,12 @@ class MooringsInterface(ModuleInterface):
 #                                                                                    inertia coefficients [-] 
 #        preline (list) [-]: predefined mooring component list
 #        fabcost (float) [-]: optional fabrication cost factor
-
+#        maxlines (int, optional) [-]: maximum number of lines per device.
+#                                      Defaults to 12.
+#        use_max_thrust (bool, optional) [-]:
+#            Use the maximum thrust coefficient when calculating tidal turbine
+#            loads. Defaults to False.
+            
         input_data = Variables(
                            devices,
                            self.data.gravity,
@@ -1110,7 +1127,8 @@ class MooringsInterface(ModuleInterface):
                            self.data.sysdraft,
                            self.data.waveinertiacoefrect.reset_index().values,
                            self.data.preline,
-                           self.data.fabcost
+                           self.data.fabcost,
+                           use_max_thrust=use_max_thrust
                            )
         
         if export_data:
