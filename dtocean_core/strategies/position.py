@@ -216,7 +216,12 @@ class AdvancedPosition(Strategy):
             
             value = pickle_dict[key]
             
-            if isinstance(value[0], dict):
+            if not value:
+                
+                table_cols.append(key)
+                table_dict[key] = value
+                
+            elif isinstance(value[0], dict):
                 
                 ref_dict = value[0]
                 template = "{} [{}]"
