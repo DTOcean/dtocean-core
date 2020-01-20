@@ -121,7 +121,9 @@ class DevicePositioner(object):
                                delta_row,
                                delta_col,
                                beta,
-                               psi):
+                               psi,
+                               add_rows=0,
+                               add_cols=0):
         
         if not self.is_grid_valid(delta_row, delta_col, beta, psi):
             
@@ -156,23 +158,25 @@ class DevicePositioner(object):
         if n_rows_psi % 2 == 0: n_rows_psi += 1
         if n_cols_psi % 2 == 0: n_cols_psi += 1
         
-        n_rows = max(n_rows_beta, n_rows_psi)
-        n_cols = max(n_cols_beta, n_cols_psi)
+        n_rows = max(n_rows_beta, n_rows_psi) + add_rows
+        n_cols = max(n_cols_beta, n_cols_psi) + add_cols
         
         # Initiate the grid vertices
-        i, j = np.meshgrid(np.arange(n_rows), np.arange(n_cols))
+        i, j = np.meshgrid(np.arange(n_cols), np.arange(n_rows))
         
         # Centre indicies
-        i -= n_rows / 2
-        j -= n_cols / 2
+        i = i - n_rows / 2
+        j = j - n_cols / 2
         
         # Apply skew and scaling
-        x = delta_row * cos_beta * i + delta_col * cos_psi * j
-        y = delta_row * sin_beta * i + delta_col * sin_psi * j
+        x = delta_col * cos_beta * i + delta_row * cos_psi * j
+        y = delta_col * sin_beta * i + delta_row * sin_psi * j
         
         # 2D rotation matrix to apply array orientation rotation
-        cos_array = np.cos(array_orientation)
-        sin_array = np.sin(array_orientation)
+        rot_angle = array_orientation - np.pi / 2.
+        
+        cos_array = np.cos(rot_angle)
+        sin_array = np.sin(rot_angle)
         
         Rz = np.array([[cos_array, -1 * sin_array],
                        [sin_array, cos_array]])
@@ -221,11 +225,34 @@ class DevicePositioner(object):
          beta,
          psi) = args[:5]
         
+        combos = np.array([[0, 0],
+                           [0, 1],
+                           [1, 0],
+                           [1, 1]])
+        n_nodes = np.zeros(4)
+        
+        for i, combo in enumerate(combos):
+            
+            nodes = self._make_grid_nodes(array_orientation,
+                                      delta_row,
+                                      delta_col,
+                                      beta,
+                                      psi,
+                                      combo[0],
+                                      combo[1])
+            nodes = self._get_valid_nodes(nodes)
+            n_nodes[i] = len(nodes)
+        
+        most_devs_idx = np.argmax(n_nodes)
+        bost_combo = combos[most_devs_idx]
+        
         nodes = self._make_grid_nodes(array_orientation,
                                       delta_row,
                                       delta_col,
                                       beta,
-                                      psi)
+                                      psi,
+                                      bost_combo[0],
+                                      bost_combo[1])
         nodes = self._get_valid_nodes(nodes)
         nodes = self._select_nodes(nodes, *args, **kwargs)
         
