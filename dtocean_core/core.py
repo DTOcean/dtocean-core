@@ -594,6 +594,17 @@ class Project(object):
         
         return index
     
+    def _to_project(self):
+        
+        new_project = Project(self.title)
+        
+        new_project._pool = deepcopy(self._pool)
+        new_project._simulations = deepcopy(self._simulations)
+        new_project._active_index = self._active_index
+        new_project._db_cred = deepcopy(self._db_cred)
+        
+        return new_project
+    
     def __len__(self):
         
         return len(self._simulations)
@@ -704,8 +715,8 @@ class Core(object):
         
         prj_dir_path = tempfile.mkdtemp()
         
-        # Copy the project before editing
-        project_copy = deepcopy(project)
+        # Copy the project before editing and ensure type Project
+        project_copy = project._to_project()
         
         # Serialise the pool
         pool_dir = os.path.join(prj_dir_path, "pool")
