@@ -237,7 +237,7 @@ class Iterator(object):
         try:
             
             popen_args = self.get_popen_args(worker_project_path, *args)
-            process = Popen(popen_args)
+            process = Popen(popen_args, close_fds=True)
             exit_code = process.wait()
             
             if exit_code != 0:
