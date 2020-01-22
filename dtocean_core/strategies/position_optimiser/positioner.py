@@ -131,18 +131,18 @@ class DevicePositioner(object):
         n_cols = max(n_cols_beta, n_cols_psi) + add_cols
         
         # Initiate the grid vertices
-        i, j = np.meshgrid(np.arange(n_cols), np.arange(n_rows))
+        j, i = np.meshgrid(np.arange(n_rows), np.arange(n_cols))
         
         # Centre indicies
-        i = i - n_rows / 2
-        j = j - n_cols / 2
+        i = i - (n_cols - 1) / 2.
+        j = j - (n_rows - 1) / 2.
         
         # Apply skew and scaling
         x = delta_col * cos_beta * i + delta_row * cos_psi * j
         y = delta_col * sin_beta * i + delta_row * sin_psi * j
         
         # 2D rotation matrix to apply array orientation rotation
-        rot_angle = array_orientation - np.pi / 2.
+        rot_angle = array_orientation
         
         cos_array = np.cos(rot_angle)
         sin_array = np.sin(rot_angle)
