@@ -213,15 +213,15 @@ class DevicePositioner(object):
             n_nodes[i] = len(nodes)
         
         most_devs_idx = np.argmax(n_nodes)
-        bost_combo = combos[most_devs_idx]
+        best_combo = combos[most_devs_idx]
         
         nodes = self._make_grid_nodes(array_orientation,
                                       delta_row,
                                       delta_col,
                                       beta,
                                       psi,
-                                      bost_combo[0],
-                                      bost_combo[1])
+                                      best_combo[0],
+                                      best_combo[1])
         nodes = self._get_valid_nodes(nodes)
         nodes = self._select_nodes(nodes, *args, **kwargs)
         
