@@ -163,10 +163,6 @@ def get_positioner(core, project):
                                              'device.installation_depth_max')
     installation_depth_min = core.get_data_value(project,
                                              'device.installation_depth_min')
-    minimum_distance_x = core.get_data_value(project,
-                                             'device.minimum_distance_x')
-    minimum_distance_y = core.get_data_value(project,
-                                             'device.minimum_distance_y')
     
     nogo_areas = None
     boundary_padding = None
@@ -184,13 +180,10 @@ def get_positioner(core, project):
                                                 project,
                                                 'device.turbine_interdistance')
     
-    min_separation = [minimum_distance_x, minimum_distance_y]
-    
     positioner = ParaPositioner(lease_boundary,
                                 bathymetry,
                                 min_depth=installation_depth_min,
                                 max_depth=installation_depth_max,
-                                min_separation=min_separation,
                                 nogo_polygons=nogo_areas,
                                 lease_padding=boundary_padding,
                                 turbine_separation=turbine_interdistance)
