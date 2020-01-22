@@ -100,9 +100,10 @@ class PositionIterator(cma.Iterator):
         
         lcoe = float(lines[1])
         flag = lines[2]
-
+        
         if flag == "Exception":
-
+            
+            multiplier = 1.
             details = lines[3]
             
             if self._logging == "print":
@@ -111,12 +112,19 @@ class PositionIterator(cma.Iterator):
             elif self._logging == "module":
                 module_logger.debug(flag)
                 module_logger.debug(details)
-
+            
             if "Expected number of nodes not found." in details:
-
+                
                 words = details.split()
                 multiplier = int(words[-4]) - int(words[-1])
-                lcoe *= multiplier
+                
+            
+            if "Violation of the minimum distance constraint" in details:
+                
+                words = details.split()
+                multiplier = 1 + float(words[-1])
+            
+            lcoe *= multiplier
         
         return lcoe
     
