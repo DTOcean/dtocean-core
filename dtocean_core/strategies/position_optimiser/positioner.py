@@ -51,7 +51,6 @@ class DevicePositioner(object):
                        layer_depths=None,
                        min_depth=None,
                        max_depth=None,
-                       min_separation=None,
                        nogo_polygons=None,
                        lease_padding=None,
                        turbine_separation=None):
@@ -63,34 +62,9 @@ class DevicePositioner(object):
         self._layer_depths = layer_depths
         self._min_depth = min_depth
         self._max_depth = max_depth
-        self._min_separation = min_separation
         self._nogo_polygons = nogo_polygons
         
         return
-    
-    def is_grid_valid(self, delta_row, delta_col, beta, psi):
-        
-        """Check validity of inputs and check if the grid violates the 
-        minimum distance constraint, using an ellipse rotated to the 
-        array orientation.
-        """
-        
-        self._check_grid_dims(delta_row, delta_col, beta, psi)
-        
-        p1 = [delta_row * np.cos(beta), delta_row * np.sin(beta)]
-        p2 = [delta_col * np.cos(psi), delta_col * np.sin(psi)]
-        p3 = (p2[0] - p1[0], p2[1] - p1[1])
-        p4 = (p1[0] + p2[0], p1[1] + p2[1])
-        
-        minx = self._min_separation[0]
-        miny = self._min_separation[1]
-        
-        tests = ((p1[0] / minx) ** 2 + (p1[1] / miny) ** 2 >= 1,
-                 (p2[0] / minx) ** 2 + (p2[1] / miny) ** 2 >= 1,
-                 (p3[0] / minx) ** 2 + (p3[1] / miny) ** 2 >= 1,
-                 (p4[0] / minx) ** 2 + (p4[1] / miny) ** 2 >= 1)
-        
-        return all(tests)
     
     def _get_valid_nodes(self, nodes):
         
@@ -124,11 +98,6 @@ class DevicePositioner(object):
                                psi,
                                add_rows=0,
                                add_cols=0):
-        
-        if not self.is_grid_valid(delta_row, delta_col, beta, psi):
-            
-            err_str = "Grid spacing violates minimum distance constraint"
-            raise RuntimeError(err_str)
         
         # Estimate number of rows and cols using bounding box
         minx, miny, maxx, maxy = self._bounding_box.bounds
