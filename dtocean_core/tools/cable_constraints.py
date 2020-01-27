@@ -25,7 +25,7 @@ from . import Tool
 from ..interfaces.electrical import ElectricalInterface
 
 
-class ConstraintsTool(Tool):
+class CableConstraintsTool(Tool):
     
     """Generate a plot showing the constraints encountered by the 
     electrical subsystems module."""
@@ -33,7 +33,7 @@ class ConstraintsTool(Tool):
     @classmethod         
     def get_name(cls):
 
-        return "Constraints Plot"
+        return "Cable Constraints Plot"
         
     @classmethod         
     def declare_inputs(cls):
