@@ -174,6 +174,11 @@ class Iterator(object):
         """Update the counter object with new data."""
         return
     
+    @abc.abstractmethod
+    def cleanup(self, worker_project_path, flag, lines):
+        """Hook to clean up simulation files as required"""
+        return
+    
     def _print_exception(self, e, flag):
         
         print e
@@ -218,7 +223,8 @@ class Iterator(object):
                                            worker_results_name)
         
         flag = ""
-    
+        lines = None
+        
         try:
             
             self._core.dump_project(self._base_project, worker_project_path)
@@ -285,6 +291,7 @@ class Iterator(object):
                                 cost,
                                 flag,
                                 *args)
+        self.cleanup(worker_project_path, flag, lines)
         
         results_queue.put(cost)
         

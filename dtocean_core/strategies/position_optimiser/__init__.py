@@ -144,6 +144,18 @@ class PositionIterator(cma.Iterator):
                                  *args)
         
         return
+    
+    def cleanup(self, worker_project_path, flag, lines):
+        """Hook to clean up simulation files as required"""
+        
+        if lines is None: return
+        
+        dat_flag = lines[2]
+        
+        if dat_flag == "Exception":
+            remove_retry(worker_project_path)
+        
+        return
 
 
 def main(config, core=None, project=None):
