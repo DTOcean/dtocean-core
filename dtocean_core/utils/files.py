@@ -132,32 +132,48 @@ def onerror(func, path, exc_info):
         raise
 
 
-def rmtree_retry(src_path,
-                 max_attempts=60,
-                 sleep_seconds=1,
-                 fail_silent=False):
+def os_retry(func):
     
-    file_locked = True
-    n_attempts = 0
-    
-    while file_locked:
-    
-        n_attempts += 1
+    def wrapper(src_path,
+                max_attempts=60,
+                sleep_seconds=1,
+                fail_silent=False):
         
-        if n_attempts > max_attempts:
-            
-            if fail_silent: return
-            
-            total_seconds = max_attempts * sleep_seconds
-            
-            err_str = ("shutil.rmtree failed for over {} seconds: "
-                       "{}").format(total_seconds, src_path)
-            raise OSError(err_str)
+        file_locked = True
+        n_attempts = 0
         
-        try:
-            shutil.rmtree(src_path)
-            file_locked = False
-        except OSError:
-            time.sleep(sleep_seconds)
+        while file_locked:
+        
+            n_attempts += 1
+            
+            if n_attempts > max_attempts:
+                
+                if fail_silent: return
+                
+                total_seconds = max_attempts * sleep_seconds
+                
+                err_str = ("shutil.rmtree failed for over {} seconds: "
+                           "{}").format(total_seconds, src_path)
+                raise OSError(err_str)
+            
+            try:
+                func(src_path)
+                file_locked = False
+            except OSError:
+                time.sleep(sleep_seconds)
+        
+        return
     
+    return wrapper
+
+
+@os_retry
+def rmtree_retry(src_path):
+    shutil.rmtree(src_path)
+    return
+
+
+@os_retry
+def remove_retry(src_path):
+    os.remove(src_path)
     return
