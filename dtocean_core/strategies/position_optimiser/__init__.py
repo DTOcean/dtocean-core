@@ -5,7 +5,6 @@
 """
 
 import os
-import shutil
 import logging
 from bisect import bisect_left
 from collections import namedtuple
@@ -13,8 +12,12 @@ from collections import namedtuple
 from ruamel.yaml import YAML
 import numpy as np
 
+from .iterator import get_positioner
 from ...core import Core
+from ...extensions import ToolManager
 from ...utils import cma_optimiser as cma
+from ...utils.files import remove_retry
+
 
 # Set up logging
 module_logger = logging.getLogger(__name__)
@@ -84,6 +87,28 @@ class PositionCounter(cma.Counter):
 
 class PositionIterator(cma.Iterator):
     
+    def __init__(self, root_project_base_name,
+                       worker_directory,
+                       base_project,
+                       counter,
+                       base_penalty=1.,
+                       logging="module",
+                       clean_existing_dir=False):
+        
+        super(PositionIterator, self).__init__(root_project_base_name,
+                                               worker_directory,
+                                               base_project,
+                                               counter,
+                                               base_penalty,
+                                               logging,
+                                               clean_existing_dir)
+        
+        tool_name = "Device Minimum Spacing Check"
+        self._tool_man = ToolManager()
+        self._spacing_tool = self._tool_man.get_tool(tool_name)
+        
+        return
+    
     def get_popen_args(self, worker_project_path, *args):
         "Return the arguments to create a new process thread using Popen"
         
@@ -94,6 +119,64 @@ class PositionIterator(cma.Iterator):
         
         return popen_args
     
+    def pre_constraints_hook(self, *args):
+        
+        positioner = get_positioner(self._core, self._base_project)
+        
+        (array_orientation_deg,
+         delta_row,
+         delta_col,
+         n_nodes,
+         t1,
+         t2) = args
+        
+        array_orientation = float(array_orientation_deg) * np.pi / 180
+        beta = 90 * np.pi / 180
+        psi = 0 * np.pi / 180
+        
+        try:
+            
+            positions = positioner(array_orientation,
+                                   delta_row,
+                                   delta_col,
+                                   beta,
+                                   psi,
+                                   int(n_nodes),
+                                   t1,
+                                   t2)
+        
+        except RuntimeError as e:
+            
+            details = str(e)
+            
+            if "Expected number of nodes not found" in details:
+                
+                words = details.split()
+                multiplier = int(words[-4]) - int(words[-1])
+                
+                return self._base_penalty * multiplier
+        
+        self._spacing_tool.configure(positions)
+        
+        try:
+            
+            self._tool_man.execute_tool(self._core,
+                                        self._base_project,
+                                        self._spacing_tool)
+        
+        except RuntimeError as e:
+            
+            details = str(e)
+            
+            if "Violation of the minimum distance constraint" in details:
+                
+                words = details.split()
+                multiplier = 1 + float(words[-1])
+                
+                return self._base_penalty * multiplier
+        
+        return
+    
     def get_worker_cost(self, lines):
         """Return the function cost based on the lines read from the worker
         results file."""
@@ -103,7 +186,6 @@ class PositionIterator(cma.Iterator):
         
         if flag == "Exception":
             
-            multiplier = 1.
             details = lines[3]
             
             if self._logging == "print":
@@ -112,19 +194,6 @@ class PositionIterator(cma.Iterator):
             elif self._logging == "module":
                 module_logger.debug(flag)
                 module_logger.debug(details)
-            
-            if "Expected number of nodes not found." in details:
-                
-                words = details.split()
-                multiplier = int(words[-4]) - int(words[-1])
-                
-            
-            if "Violation of the minimum distance constraint" in details:
-                
-                words = details.split()
-                multiplier = 1 + float(words[-1])
-            
-            lcoe *= multiplier
         
         return lcoe
     

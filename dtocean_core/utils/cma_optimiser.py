@@ -159,6 +159,12 @@ class Iterator(object):
         return
     
     @abc.abstractmethod
+    def pre_constraints_hook(self, *args):
+        """Allows checking of constraints prior to execution. Should return
+        None if not violated otherwise return cost"""
+        return
+    
+    @abc.abstractmethod
     def get_worker_cost(self, lines):
         """Return the function cost based on the lines read from the worker
         results file."""
@@ -209,6 +215,12 @@ class Iterator(object):
         
         if previous_cost:
             results_queue.put(previous_cost)
+            return
+        
+        pre_constraint_cost = self.pre_constraints_hook(*args)
+        
+        if pre_constraint_cost is not None:
+            results_queue.put(pre_constraint_cost)
             return
         
         iteration = self._counter.get_iteration()
