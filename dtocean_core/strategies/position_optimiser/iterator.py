@@ -69,16 +69,16 @@ def main(core,
                        t2)
         
         flag = "Success"
+        
+        try:
+            core.dump_project(project, prj_file_path)
+        except:
+            pass
     
     except Exception as e:
         
         lcoe = penalty
         flag = "Exception"
-    
-    try:
-        core.dump_project(project, prj_file_path)
-    except:
-        pass
     
     prj_base_path, _ = os.path.splitext(prj_file_path)
     dat_file_path = "{}.dat".format(prj_base_path)
