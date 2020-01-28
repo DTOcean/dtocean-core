@@ -103,9 +103,7 @@ class PositionIterator(cma.Iterator):
                                                logging,
                                                clean_existing_dir)
         
-        tool_name = "Device Minimum Spacing Check"
         self._tool_man = ToolManager()
-        self._spacing_tool = self._tool_man.get_tool(tool_name)
         
         return
     
@@ -156,13 +154,14 @@ class PositionIterator(cma.Iterator):
                 
                 return self._base_penalty * multiplier
         
-        self._spacing_tool.configure(positions)
+        spacing_tool = self._tool_man.get_tool("Device Minimum Spacing Check")
+        spacing_tool.configure(positions)
         
         try:
             
             self._tool_man.execute_tool(self._core,
                                         self._base_project,
-                                        self._spacing_tool)
+                                        spacing_tool)
         
         except RuntimeError as e:
             
