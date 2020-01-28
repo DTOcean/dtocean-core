@@ -217,14 +217,22 @@ class Iterator(object):
             results_queue.put(previous_cost)
             return
         
+        iteration = self._counter.get_iteration()
         pre_constraint_cost = self.pre_constraints_hook(*args)
         
         if pre_constraint_cost is not None:
+            
+            self.set_counter_params(iteration,
+                                    None,
+                                    None,
+                                    pre_constraint_cost,
+                                    "",
+                                    *args)
+            
             results_queue.put(pre_constraint_cost)
+            
             return
         
-        iteration = self._counter.get_iteration()
-    
         worker_file_root_path = "{}_{}".format(self._root_project_base_name,
                                                iteration)
         worker_project_name = "{}.prj".format(worker_file_root_path)
