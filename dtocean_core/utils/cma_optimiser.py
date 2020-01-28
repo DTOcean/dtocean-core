@@ -376,6 +376,7 @@ def main(worker_directory,
          fixed_index_map=None,
          num_threads=5,
          max_simulations=None,
+         popsize=None,
          logging="module"):
     
     opts = {'bounds': [low_bound, high_bound],
@@ -383,6 +384,9 @@ def main(worker_directory,
     
     if max_simulations is not None:
         opts["maxfevals"] = max_simulations
+    
+    if popsize is not None:
+        opts["popsize"] = popsize
     
     es = cma.CMAEvolutionStrategy(x0, NormScaler.sigma, opts)
     

@@ -237,6 +237,7 @@ def main(config, core=None, project=None):
     # Defaults
     clean_existing_dir = False
     max_simulations = None
+    popsize = None
     logging="module"
     
     if "clean_existing_dir" in config:
@@ -244,6 +245,9 @@ def main(config, core=None, project=None):
     
     if "max_simulations" in config:
         max_simulations = config["max_simulations"]
+    
+    if "popsize" in config:
+        popsize = config["popsize"]
     
     if "logging" in config:
         logging = config["logging"]
@@ -283,6 +287,7 @@ def main(config, core=None, project=None):
                   fixed_index_map=fixed_params,
                   num_threads=n_threads,
                   max_simulations=max_simulations,
+                  popsize=popsize,
                   logging=logging)
     
     module_logger.info("Position optimisation complete")
