@@ -104,6 +104,7 @@ class PositionIterator(cma.Iterator):
                                                clean_existing_dir)
         
         self._tool_man = ToolManager()
+        self._positioner = get_positioner(self._core, self._base_project)
         
         return
     
@@ -119,8 +120,6 @@ class PositionIterator(cma.Iterator):
     
     def pre_constraints_hook(self, *args):
         
-        positioner = get_positioner(self._core, self._base_project)
-        
         (array_orientation_deg,
          delta_row,
          delta_col,
@@ -134,14 +133,14 @@ class PositionIterator(cma.Iterator):
         
         try:
             
-            positions = positioner(array_orientation,
-                                   delta_row,
-                                   delta_col,
-                                   beta,
-                                   psi,
-                                   int(n_nodes),
-                                   t1,
-                                   t2)
+            positions = self._positioner(array_orientation,
+                                         delta_row,
+                                         delta_col,
+                                         beta,
+                                         psi,
+                                         int(n_nodes),
+                                         t1,
+                                         t2)
         
         except RuntimeError as e:
             
