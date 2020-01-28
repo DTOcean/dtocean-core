@@ -8,6 +8,7 @@ import pickle
 import logging
 
 import pandas as pd
+from natsort import natsorted
 
 from . import Strategy
 from .position_optimiser import (dump_config,
@@ -123,19 +124,18 @@ class AdvancedPosition(Strategy):
             pickle_dict[param] = []
         
         search_str = os.path.join(sim_dir, '*.dat')
-        n_sims = len(glob.glob(search_str))
+        dat_file_paths = natsorted(glob.glob(search_str))
+        n_sims = len(dat_file_paths)
         
         pickle_dict["sim_number"] = []
         
-        for i in range(n_sims):
+        for i, dat_file_path in enumerate(dat_file_paths):
             
             if (i + 1) % log_interval == 0:
                 
                 msg_str = "Processed {} of {} simulations".format(i + 1,
                                                                   n_sims)
                 module_logger.info(msg_str)
-            
-            dat_file_path = path_template.format(i, 'dat')
             
             with open(dat_file_path, "r") as f:
                 lines = f.read().splitlines()
@@ -150,12 +150,15 @@ class AdvancedPosition(Strategy):
                                 ast.literal_eval(b.split(":")[1].strip())
                                     for b in params_line.split(";")}
             
-            prj_file_path = path_template.format(i, 'prj')
+            sim_num_dat = dat_file_path.split("_")[-1]
+            sim_num = int(os.path.splitext(sim_num_dat)[0])
+            
+            prj_file_path = path_template.format(sim_num, 'prj')
             project = core.load_project(prj_file_path)
             
             if core.has_data(project, "project.lcoe_mode"):
                 
-                pickle_dict["sim_number"].append(i)
+                pickle_dict["sim_number"].append(sim_num)
                 
                 for param in read_params:
                     param_value = param_values[param_map[param]]
