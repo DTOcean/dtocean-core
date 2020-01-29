@@ -35,7 +35,7 @@ PositionParams = namedtuple('PositionParams', ['array_orientation',
                                                'lcoe',
                                                'flag',
                                                'prj_file_path',
-                                               'dat_file_path'])
+                                               'yaml_file_path'])
 
 
 class PositionCounter(cma.Counter):
@@ -91,6 +91,7 @@ class PositionIterator(cma.Iterator):
                        worker_directory,
                        base_project,
                        counter,
+                       objective_var,
                        base_penalty=1.,
                        logging="module",
                        clean_existing_dir=False):
@@ -105,6 +106,7 @@ class PositionIterator(cma.Iterator):
         
         self._tool_man = ToolManager()
         self._positioner = get_positioner(self._core, self._base_project)
+        self._objective_var = objective_var
         
         return
     
@@ -178,16 +180,15 @@ class PositionIterator(cma.Iterator):
         
         return
     
-    def get_worker_cost(self, lines):
-        """Return the function cost based on the lines read from the worker
+    def get_worker_cost(self, results):
+        """Return the function cost based on the data read from the worker
         results file."""
         
-        lcoe = float(lines[1])
-        flag = lines[2]
+        flag = results["status"]
         
         if flag == "Exception":
             
-            details = lines[3]
+            details = results["error"]
             
             if self._logging == "print":
                 print flag
@@ -195,6 +196,16 @@ class PositionIterator(cma.Iterator):
             elif self._logging == "module":
                 module_logger.debug(flag)
                 module_logger.debug(details)
+            
+            lcoe = self._base_penalty
+        
+        elif flag == "Success":
+            
+            lcoe = results["results"][self._objective_var]
+        
+        else:
+        
+            raise RuntimeError("Unrecognised flag '{}'".format(flag))
         
         return lcoe
     
@@ -218,12 +229,7 @@ class PositionIterator(cma.Iterator):
     def cleanup(self, worker_project_path, flag, lines):
         """Hook to clean up simulation files as required"""
         
-        if lines is None: return
-        
-        dat_flag = lines[2]
-        
-        if dat_flag == "Exception":
-            remove_retry(worker_project_path)
+        remove_retry(worker_project_path)
         
         return
 
@@ -236,6 +242,8 @@ def main(config, core=None, project=None):
     worker_directory = config["worker_dir"]
     base_penalty = config["base_penalty"]
     n_threads = config["n_threads"]
+    results_params = config["results_params"]
+    objective = config["objective"]
     
     # Defaults
     clean_existing_dir = False
@@ -276,9 +284,14 @@ def main(config, core=None, project=None):
                                 worker_directory,
                                 project,
                                 counter,
+                                objective,
                                 base_penalty=base_penalty,
                                 logging=logging,
                                 clean_existing_dir=clean_existing_dir)
+    
+    # Write the results params control file for workers
+    results_params = list(set(results_params).union([objective]))
+    dump_results_control(results_params, worker_directory)
     
     es = cma.main(worker_directory,
                   iterator,
@@ -415,5 +428,18 @@ def dump_config(config, config_path):
     
     with open(config_path, 'w') as stream:
         yaml.dump(config, stream)
+    
+    return
+
+
+def dump_results_control(params,
+                         worker_directory,
+                         fname='results_control.txt'):
+    
+    dump_str = '\n'.join(params)
+    fpath = os.path.join(worker_directory, fname)
+    
+    with open(fpath, 'w') as f:
+        f.write(dump_str)
     
     return

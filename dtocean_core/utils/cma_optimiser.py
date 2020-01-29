@@ -17,6 +17,7 @@ from subprocess import Popen
 
 import cma
 import numpy as np
+import yaml
 
 from ..core import Core
 
@@ -165,8 +166,8 @@ class Iterator(object):
         return
     
     @abc.abstractmethod
-    def get_worker_cost(self, lines):
-        """Return the function cost based on the lines read from the worker
+    def get_worker_cost(self, results):
+        """Return the function cost based on the data read from the worker
         results file."""
         return
     
@@ -181,7 +182,7 @@ class Iterator(object):
         return
     
     @abc.abstractmethod
-    def cleanup(self, worker_project_path, flag, lines):
+    def cleanup(self, worker_project_path, flag, results):
         """Hook to clean up simulation files as required"""
         return
     
@@ -236,14 +237,14 @@ class Iterator(object):
         worker_file_root_path = "{}_{}".format(self._root_project_base_name,
                                                iteration)
         worker_project_name = "{}.prj".format(worker_file_root_path)
-        worker_results_name = "{}.dat".format(worker_file_root_path)
+        worker_results_name = "{}.yaml".format(worker_file_root_path)
         worker_project_path = os.path.join(self._worker_directory,
                                            worker_project_name)
         worker_results_path = os.path.join(self._worker_directory,
                                            worker_results_name)
         
         flag = ""
-        lines = None
+        results = None
         
         try:
             
@@ -289,10 +290,10 @@ class Iterator(object):
             
             try:
                 
-                with open(worker_results_path, "r") as f:
-                    lines = f.read().splitlines()
+                with open(worker_results_path, "r") as stream:
+                    results = yaml.load(stream, Loader=yaml.FullLoader)
                 
-                cost = self.get_worker_cost(lines)
+                cost = self.get_worker_cost(results)
             
             except Exception as e:
                 
@@ -311,7 +312,7 @@ class Iterator(object):
                                 cost,
                                 flag,
                                 *args)
-        self.cleanup(worker_project_path, flag, lines)
+        self.cleanup(worker_project_path, flag, results)
         
         results_queue.put(cost)
         
@@ -379,8 +380,8 @@ def main(worker_directory,
          popsize=None,
          logging="module"):
     
-    opts = {'bounds': [low_bound, high_bound],
-            'verbose': -3}
+    opts = {'bounds': [low_bound, high_bound]}#,
+#            'verbose': -3}
     
     if max_simulations is not None:
         opts["maxfevals"] = max_simulations
@@ -437,6 +438,8 @@ def main(worker_directory,
                                len(descaled_solutions))
         
         es.tell(scaled_solutions, costs)
+        es.logger.add()
+        es.disp()
         
         if logging == "print":
             es.disp()

@@ -8,6 +8,7 @@ import os
 import sys
 
 import numpy as np
+import yaml
 
 from ...core import Core
 from ...extensions import StrategyManager
@@ -42,13 +43,12 @@ def main(core,
     t2 = float(t2)
     penalty = float(penalty)
     
-    params_template = "theta: {}; dr: {}; dc: {}; n_nodes: {}; t1: {}; t2: {}"
-    params_str = params_template.format(array_orientation,
-                                        delta_row,
-                                        delta_col,
-                                        n_nodes,
-                                        t1,
-                                        t2)
+    params_dict = {"theta": array_orientation,
+                   "dr": delta_row,
+                   "dc": delta_col,
+                   "n_nodes": n_nodes,
+                   "t1": t1,
+                   "t2": t2}
     
     e = None
     
@@ -58,36 +58,30 @@ def main(core,
         
         positioner = get_positioner(core, project)
         
-        lcoe = iterate(core,
-                       project,
-                       positioner,
-                       array_orientation,
-                       delta_row,
-                       delta_col,
-                       n_nodes,
-                       t1,
-                       t2)
+        iterate(core,
+                project,
+                positioner,
+                array_orientation,
+                delta_row,
+                delta_col,
+                n_nodes,
+                t1,
+                t2)
         
         flag = "Success"
-        
-        try:
-            core.dump_project(project, prj_file_path)
-        except:
-            pass
     
     except Exception as e:
         
-        lcoe = penalty
         flag = "Exception"
     
     prj_base_path, _ = os.path.splitext(prj_file_path)
-    dat_file_path = "{}.dat".format(prj_base_path)
     
-    write_result_file(dat_file_path,
-                      params_str,
-                      lcoe,
+    write_result_file(core,
+                      project,
+                      prj_base_path,
+                      params_dict,
                       flag,
-                      str(e))
+                      e)
     
     return
 
@@ -134,9 +128,7 @@ def iterate(core,
     basic_strategy = _get_basic_strategy()
     basic_strategy.execute(core, project)
     
-    lcoe = core.get_data_value(project, "project.lcoe_mode")
-
-    return lcoe
+    return
 
 
 def _get_branch(core, project, branch_name):
@@ -191,19 +183,45 @@ def get_positioner(core, project):
     return positioner
 
 
-def write_result_file(dat_file_path,
-                      params_str,
-                      lcoe,
+def write_result_file(core,
+                      project,
+                      prj_base_path,
+                      params_dict,
                       flag,
-                      e):
+                      e,
+                      control_fname='results_control.txt'):
     
-    data = [params_str, str(lcoe), flag]
-    if e is not None: data.append(e)
+    yaml_path = "{}.yaml".format(prj_base_path)
+    worker_dir = os.path.dirname(prj_base_path)
+    control_path = os.path.join(worker_dir, control_fname)
     
-    lines = "\n".join(data)
+    yaml_dict = {"params": params_dict,
+                 "status": flag}
     
-    with open(dat_file_path, "w") as f:
-        f.write(lines)
+    if flag == "Success":
+        
+        results_dict = {}
+        
+        # Get the required variables
+        with open(control_path, 'r') as f:
+            var_strs = f.read().splitlines()
+        
+        for var_str in var_strs:
+            var_value = core.get_data_value(project, var_str)
+            results_dict[var_str] = var_value
+        
+        yaml_dict["results"] = results_dict
+    
+    elif flag == "Exception":
+        
+        yaml_dict["error"] = str(e)
+    
+    else:
+        
+        raise RuntimeError("Unrecognised flag '{}'".format(flag))
+    
+    with open(yaml_path, 'w') as stream:
+        yaml.dump(yaml_dict, stream, default_flow_style=False)
     
     return
 

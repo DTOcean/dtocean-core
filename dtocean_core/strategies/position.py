@@ -8,6 +8,7 @@ import pickle
 import logging
 
 import pandas as pd
+import yaml
 from natsort import natsorted
 
 from . import Strategy
@@ -81,124 +82,31 @@ class AdvancedPosition(Strategy):
                   core=core,
                   project=project)
         
-        self._post_process(core)
+        self._post_process()
         
         return es
     
-    def _post_process(self, core,
-                            log_interval=100):
+    def _post_process(self, log_interval=100):
         
-        msg_str = "Beginning post-processing of simulations"
-        module_logger.info(msg_str)
-        
-        pickle_dict = {}
-        
-        param_map = {"array_orientation": "theta",
-                     "delta_row": "dr",
-                     "delta_col": "dc",
-                     "n_nodes": "n_nodes",
-                     "t1": "t1",
-                     "t2": "t2"}
-        
-        extract_vars = ["project.number_of_devices",
-                        "project.annual_energy",
-                        "project.q_factor",
-                        "project.lcoe_mode",
-                        "project.capex_total",
-                        "project.capex_breakdown",
-                        "project.lifetime_opex_mode",
-                        "project.lifetime_energy_mode"]
-        
-        for var in extract_vars:
-            pickle_dict[var] = []
-        
-        root_project_path = self._config['root_project_path']
-        sim_dir = self._config["worker_dir"]
-        
-        root_project_base_name = _get_root_project_base_name(root_project_path)
-        path_template = _get_sim_path_template(root_project_base_name, sim_dir)
-        
-        read_params = self._config["parameters"].keys()
-        
-        for param in read_params:
-            pickle_dict[param] = []
-        
-        search_str = os.path.join(sim_dir, '*.dat')
-        dat_file_paths = natsorted(glob.glob(search_str))
-        n_sims = len(dat_file_paths)
-        
-        pickle_dict["sim_number"] = []
-        
-        for i, dat_file_path in enumerate(dat_file_paths):
-            
-            if (i + 1) % log_interval == 0:
-                
-                msg_str = "Processed {} of {} simulations".format(i + 1,
-                                                                  n_sims)
-                module_logger.info(msg_str)
-            
-            with open(dat_file_path, "r") as f:
-                lines = f.read().splitlines()
-            
-            flag = lines[2]
-            
-            if flag == "Exception": continue
-            
-            params_line = lines[0]
-            
-            param_values = {b.split(":")[0].strip():
-                                ast.literal_eval(b.split(":")[1].strip())
-                                    for b in params_line.split(";")}
-            
-            sim_num_dat = dat_file_path.split("_")[-1]
-            sim_num = int(os.path.splitext(sim_num_dat)[0])
-            
-            prj_file_path = path_template.format(sim_num, 'prj')
-            project = core.load_project(prj_file_path)
-            
-            if core.has_data(project, "project.lcoe_mode"):
-                
-                pickle_dict["sim_number"].append(sim_num)
-                
-                for param in read_params:
-                    param_value = param_values[param_map[param]]
-                    pickle_dict[param].append(param_value)
-                
-                for var_name in extract_vars:
-                    data_value = core.get_data_value(project, var_name)
-                    pickle_dict[var_name].append(data_value)
-            
-            else:
-                
-                continue
-        
-        pickle_name = "{}_results.pkl".format(root_project_base_name)
-        pickle_path = os.path.join(sim_dir, pickle_name)
-        pickle.dump(pickle_dict, open(pickle_path, 'wb'))
-        
-        msg_str = "Post-processing complete"
-        module_logger.info(msg_str)
+        _post_process(self._config, log_interval)
         
         return
     
     @classmethod
     def get_results_table(cls, config):
         
-        key_order = ["sim_number",
-                     "project.lcoe_mode",
-                     "array_orientation",
-                     "delta_row",
-                     "delta_col",
-                     "n_nodes",
-                     "t1",
-                     "t2",
-                     "project.number_of_devices",
-                     "project.annual_energy",
-                     "project.q_factor",
-                     "project.capex_total",
-                     "project.capex_breakdown",
-                     "project.lifetime_opex_mode",
-                     "project.lifetime_energy_mode"]
+        key_order = ["sim_number"]
+        key_order.append(config["objective"])
+        key_order.extend(["array_orientation",
+                          "delta_row",
+                          "delta_col",
+                          "n_nodes",
+                          "t1",
+                          "t2"])
+        
+        params_set = set(config["results_params"])
+        params_set = params_set.difference([config["objective"]])
+        key_order.extend(list(params_set))
         
         conversion_map = {"array_orientation": math.degrees}
         
@@ -259,6 +167,7 @@ class AdvancedPosition(Strategy):
         
         root_project_path = self._config['root_project_path']
         sim_dir = self._config["worker_dir"]
+        positioner = None
         
         root_project_base_name = _get_root_project_base_name(root_project_path)
         path_template = _get_sim_path_template(root_project_base_name, sim_dir)
@@ -330,7 +239,9 @@ class AdvancedPosition(Strategy):
                          "worker_dir",
                          "base_penalty",
                          "n_threads",
-                         "parameters"]
+                         "parameters",
+                         "objective",
+                         "results_params"]
         
         required_filled = [bool(config[x]) for x in required_keys]
         
@@ -400,3 +311,179 @@ def _get_sim_path_template(root_project_base_name, sim_dir):
     sim_path_template = os.path.join(sim_dir, sim_name_template)
     
     return sim_path_template
+
+
+def _post_process(config, log_interval=100):
+    
+    msg_str = "Beginning post-processing of simulations"
+    module_logger.info(msg_str)
+    
+    pickle_dict = {}
+    
+    param_map = {"array_orientation": "theta",
+                 "delta_row": "dr",
+                 "delta_col": "dc",
+                 "n_nodes": "n_nodes",
+                 "t1": "t1",
+                 "t2": "t2"}
+    
+    sim_dir = config["worker_dir"]
+    root_project_path = config['root_project_path']
+    root_project_base_name = _get_root_project_base_name(root_project_path)
+    
+    search_str = os.path.join(sim_dir, '*.yaml')
+    yaml_file_paths = natsorted(glob.glob(search_str))
+    n_sims = len(yaml_file_paths)
+    
+    read_params = config["parameters"].keys()
+    
+    for param in read_params:
+        pickle_dict[param] = []
+    
+    extract_vars = set(config["results_params"])
+    extract_vars = extract_vars.union([config["objective"]])
+    extract_vars = list(extract_vars)
+    
+    for var in extract_vars:
+        pickle_dict[var] = []
+    
+    pickle_dict["sim_number"] = []
+    
+    for i, yaml_file_path in enumerate(yaml_file_paths):
+        
+        if (i + 1) % log_interval == 0:
+            
+            msg_str = "Processed {} of {} simulations".format(i + 1,
+                                                              n_sims)
+            module_logger.info(msg_str)
+        
+        with open(yaml_file_path, "r") as stream:
+            results = yaml.load(stream, Loader=yaml.FullLoader)
+        
+        flag = results["status"]
+        
+        if flag == "Exception": continue
+        
+        param_values = results["params"]
+        
+        sim_num_dat = yaml_file_path.split("_")[-1]
+        sim_num = int(os.path.splitext(sim_num_dat)[0])
+        
+        data_values = results["results"]
+        
+        if set(data_values) != set(extract_vars): continue
+        
+        pickle_dict["sim_number"].append(sim_num)
+        
+        for param in read_params:
+            param_value = param_values[param_map[param]]
+            pickle_dict[param].append(param_value)
+        
+        for var_name in extract_vars:
+            data_value = data_values[var_name]
+            pickle_dict[var_name].append(data_value)
+    
+    pickle_name = "{}_results.pkl".format(root_project_base_name)
+    pickle_path = os.path.join(sim_dir, pickle_name)
+    pickle.dump(pickle_dict, open(pickle_path, 'wb'))
+    
+    msg_str = "Post-processing complete"
+    module_logger.info(msg_str)
+    
+    return
+
+
+def _post_process_legacy(core, config, log_interval=100):
+    
+    msg_str = "Beginning post-processing of simulations"
+    module_logger.info(msg_str)
+    
+    pickle_dict = {}
+    
+    param_map = {"array_orientation": "theta",
+                 "delta_row": "dr",
+                 "delta_col": "dc",
+                 "n_nodes": "n_nodes",
+                 "t1": "t1",
+                 "t2": "t2"}
+    
+    extract_vars = ["project.number_of_devices",
+                    "project.annual_energy",
+                    "project.q_factor",
+                    "project.lcoe_mode",
+                    "project.capex_total",
+                    "project.capex_breakdown",
+                    "project.lifetime_opex_mode",
+                    "project.lifetime_energy_mode"]
+    
+    for var in extract_vars:
+        pickle_dict[var] = []
+    
+    root_project_path = config['root_project_path']
+    sim_dir = config["worker_dir"]
+    
+    root_project_base_name = _get_root_project_base_name(root_project_path)
+    path_template = _get_sim_path_template(root_project_base_name, sim_dir)
+    
+    read_params = config["parameters"].keys()
+    
+    for param in read_params:
+        pickle_dict[param] = []
+    
+    search_str = os.path.join(sim_dir, '*.dat')
+    dat_file_paths = natsorted(glob.glob(search_str))
+    n_sims = len(dat_file_paths)
+    
+    pickle_dict["sim_number"] = []
+    
+    for i, dat_file_path in enumerate(dat_file_paths):
+        
+        if (i + 1) % log_interval == 0:
+            
+            msg_str = "Processed {} of {} simulations".format(i + 1,
+                                                              n_sims)
+            module_logger.info(msg_str)
+        
+        with open(dat_file_path, "r") as f:
+            lines = f.read().splitlines()
+        
+        flag = lines[2]
+        
+        if flag == "Exception": continue
+        
+        params_line = lines[0]
+        
+        param_values = {b.split(":")[0].strip():
+                            ast.literal_eval(b.split(":")[1].strip())
+                                for b in params_line.split(";")}
+        
+        sim_num_dat = dat_file_path.split("_")[-1]
+        sim_num = int(os.path.splitext(sim_num_dat)[0])
+        
+        prj_file_path = path_template.format(sim_num, 'prj')
+        project = core.load_project(prj_file_path)
+        
+        if core.has_data(project, "project.lcoe_mode"):
+            
+            pickle_dict["sim_number"].append(sim_num)
+            
+            for param in read_params:
+                param_value = param_values[param_map[param]]
+                pickle_dict[param].append(param_value)
+            
+            for var_name in extract_vars:
+                data_value = core.get_data_value(project, var_name)
+                pickle_dict[var_name].append(data_value)
+        
+        else:
+            
+            continue
+    
+    pickle_name = "{}_results.pkl".format(root_project_base_name)
+    pickle_path = os.path.join(sim_dir, pickle_name)
+    pickle.dump(pickle_dict, open(pickle_path, 'wb'))
+    
+    msg_str = "Post-processing complete"
+    module_logger.info(msg_str)
+    
+    return

@@ -62,3 +62,14 @@ parameters:
       interp:
         type: fixed
         values: [0., 0.5, 1]
+
+# Hidden (required)
+objective: "project.lcoe_mode"
+results_params:
+  - "project.number_of_devices"
+  - "project.annual_energy"
+  - "project.q_factor"
+  - "project.capex_total"
+  - "project.capex_breakdown"
+  - "project.lifetime_opex_mode"
+  - "project.lifetime_energy_mode"
