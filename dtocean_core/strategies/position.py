@@ -16,6 +16,7 @@ from .position_optimiser import (dump_config,
                                  load_config,
                                  load_config_template,
                                  main)
+from .position_optimiser.iterator import get_positioner, iterate
 from ..menu import ModuleMenu
 from ..pipeline import Tree
 
@@ -175,7 +176,44 @@ class AdvancedPosition(Strategy):
         for i, n in enumerate(sim_numbers):
             
             prj_file_path = path_template.format(n, 'prj')
-            src_project = core.load_project(prj_file_path)
+            
+            if not os.path.isfile(prj_file_path):
+                
+                if positioner is None:
+                    positioner = get_positioner(core, project)
+                
+                src_project = project._to_project()
+                
+                prj_base_path, _ = os.path.splitext(prj_file_path)
+                yaml_file_path = "{}.yaml".format(prj_base_path)
+                
+                with open(yaml_file_path, "r") as stream:
+                    results = yaml.load(stream, Loader=yaml.FullLoader)
+                
+                params = results["params"]
+                
+                array_orientation = params["theta"]
+                delta_row = params["dr"]
+                delta_col = params["dc"]
+                n_nodes = params["n_nodes"]
+                t1 = params["t1"]
+                t2 = params["t2"]
+                
+                iterate(core,
+                        src_project,
+                        positioner,
+                        array_orientation,
+                        delta_row,
+                        delta_col,
+                        n_nodes,
+                        t1,
+                        t2)
+                
+                core.dump_project(src_project, prj_file_path)
+            
+            else:
+                
+                src_project = core.load_project(prj_file_path)
             
             if sim_titles is not None:
                 sim_title = sim_titles[i]
