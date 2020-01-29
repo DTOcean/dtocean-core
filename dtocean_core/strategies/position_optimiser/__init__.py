@@ -413,10 +413,10 @@ def get_interp_range(irange, delta):
 
 def load_config(config_path):
     
-    yaml = YAML()
+    ruyaml = YAML()
     
     with open(config_path, "r") as stream:
-        config = yaml.load(stream)
+        config = ruyaml.load(stream)
     
     return config
 
@@ -431,10 +431,10 @@ def load_config_template(config_name="config.yaml"):
 
 def dump_config(config, config_path):
     
-    yaml = YAML()
+    ruyaml = YAML()
     
     with open(config_path, 'w') as stream:
-        yaml.dump(config, stream)
+        ruyaml.dump(config, stream)
     
     return
 
