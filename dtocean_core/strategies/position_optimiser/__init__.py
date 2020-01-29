@@ -149,7 +149,10 @@ class PositionIterator(cma.Iterator):
             if "Expected number of nodes not found" in details:
                 
                 words = details.split()
-                multiplier = int(words[-4]) - int(words[-1])
+                expected = int(words[-4])
+                actual = int(words[-1])
+                rel_diff = float(expected - actual) / expected
+                multiplier = np.exp(rel_diff)
                 
                 return self._base_penalty * multiplier
         
@@ -169,7 +172,7 @@ class PositionIterator(cma.Iterator):
             if "Violation of the minimum distance constraint" in details:
                 
                 words = details.split()
-                multiplier = 1 + float(words[-1])
+                multiplier = np.exp(float(words[-1]))
                 
                 return self._base_penalty * multiplier
         
