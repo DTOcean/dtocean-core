@@ -249,6 +249,7 @@ def main(config, core=None, project=None):
     clean_existing_dir = False
     max_simulations = None
     popsize = None
+    timeout = None
     logging="module"
     
     if "clean_existing_dir" in config:
@@ -259,6 +260,9 @@ def main(config, core=None, project=None):
     
     if "popsize" in config:
         popsize = config["popsize"]
+    
+    if "timeout" in config:
+        timeout = config["timeout"]
     
     if "logging" in config:
         logging = config["logging"]
@@ -304,6 +308,7 @@ def main(config, core=None, project=None):
                   num_threads=n_threads,
                   max_simulations=max_simulations,
                   popsize=popsize,
+                  timeout=timeout,
                   logging=logging)
     
     module_logger.info("Position optimisation complete")

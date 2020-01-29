@@ -391,9 +391,10 @@ def main(worker_directory,
          scaled_vars,
          nearest_ops,
          fixed_index_map=None,
-         num_threads=5,
+         num_threads=1,
          max_simulations=None,
          popsize=None,
+         timeout=None,
          logging="module"):
     
     opts = {'bounds': [low_bound, high_bound]}#,
@@ -404,6 +405,9 @@ def main(worker_directory,
     
     if popsize is not None:
         opts["popsize"] = popsize
+    
+    if timeout is not None:
+        opts["timeout"] = timeout
     
     es = cma.CMAEvolutionStrategy(x0, NormScaler.sigma, opts)
     
