@@ -30,13 +30,17 @@ class NormScaler(object):
     sigma = 1.
     range_n_sigmas = 3
     
-    def __init__(self, range_min, range_max):
+    def __init__(self, range_min, range_max, x0=None):
+        
+        if x0 is None:
+            x0 = 0.5 * (range_min + range_max)
         
         self._scale_factor = _get_scale_factor(range_min,
                                                range_max,
+                                               x0,
                                                self.sigma,
                                                self.range_n_sigmas)
-        self._x0 = self.scaled(0.5 * (range_min + range_max))
+        self._x0 = self.scaled(x0)
         
         return
     
@@ -329,12 +333,24 @@ class Iterator(object):
         return
 
 
-def _get_scale_factor(range_min, range_max, sigma, n_sigmas):
+def _get_scale_factor(range_min, range_max, x0, sigma, n_sigmas):
     
-    init_range = range_max - range_min
-    scaled_range = 2. * sigma * n_sigmas
+    if x0 < range_min or x0 > range_max:
+        err_str = "x0 must lie between range_min and range_max"
+        raise ValueError(err_str)
     
-    return scaled_range / init_range
+    if sigma <= 0:
+        err_str = "sigma must be positive"
+        raise ValueError(err_str)
+    
+    if n_sigmas % 1 != 0 or int(n_sigmas) <= 0:
+        err_str = "n_sigmas must a positive whole number"
+        raise ValueError(err_str)
+    
+    max_half_range = max(range_max - x0, x0 - range_min)
+    half_scaled_range = sigma * int(n_sigmas)
+    
+    return half_scaled_range / max_half_range
 
 
 def _clean_directory(dir_name, clean_existing=False, logging="module"):

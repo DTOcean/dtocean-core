@@ -269,11 +269,11 @@ def main(config, core=None, project=None):
     _, root_project_name = os.path.split(root_project_path)
     root_project_base_name, _ = os.path.splitext(root_project_name)
     
-    fixed_params, ranges, nearest_ops = get_param_control(config,
-                                                          core,
-                                                          project)
+    fixed_params, ranges, x0s, nearest_ops = get_param_control(config,
+                                                               core,
+                                                               project)
     
-    scaled_vars = [cma.NormScaler(*x) for x in ranges]
+    scaled_vars = [cma.NormScaler(x[0], x[1], y) for x, y in zip(ranges, x0s)]
     x0 = [scaled.x0 for scaled in scaled_vars]
     low_bound = [scaler.scaled(x[0]) for x, scaler in zip(ranges, scaled_vars)]
     high_bound = [scaler.scaled(x[1])
@@ -314,6 +314,7 @@ def main(config, core=None, project=None):
 def get_param_control(config, core, project):
     
     ranges = []
+    x0s = []
     nearest_ops = []
     fixed_params = {}
     
@@ -350,12 +351,18 @@ def get_param_control(config, core, project):
         elif  cinterp["type"] == "range":
             nearest_op = get_interp_range(prange, cinterp["delta"])
         
+        if "x0" in parameter:
+            x0 = parameter["x0"]
+        else:
+            x0 = None
+        
         ranges.append(prange)
+        x0s.append(x0)
         nearest_ops.append(nearest_op)
     
     if not fixed_params: fixed_params = None
     
-    return fixed_params, ranges, nearest_ops
+    return fixed_params, ranges, x0s, nearest_ops
 
 
 def nearest(a, value):
