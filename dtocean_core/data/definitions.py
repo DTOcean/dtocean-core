@@ -4674,7 +4674,7 @@ class Network(Structure):
         self.check_path(True)
         
         with open(self._path, 'r') as stream:
-            data = yaml.load(stream)
+            data = yaml.load(stream, Loader=yaml.FullLoader)
 
         self.data.result = data
         

@@ -34,11 +34,6 @@ import pandas as pd
 from shapely import geos, wkb
 from win32com.client import Dispatch
 
-try:
-    from yaml import CLoader as Loader
-except ImportError:
-    from yaml import Loader
-
 # DTOcean modules
 from aneris.utilities.database import PostgreSQL
 from polite.paths import ObjDirectory, UserDataDirectory
@@ -977,7 +972,7 @@ def get_table_map(map_name="table_map.yaml"):
     table_yaml = objdir.get_path(map_name)
     
     with open(table_yaml, "r") as f:
-        table_list = yaml.load(f, Loader=Loader)
+        table_list = yaml.load(f, Loader=yaml.FullLoader)
         
     return table_list
 
