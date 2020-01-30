@@ -192,8 +192,8 @@ class Iterator(object):
     
     def _print_exception(self, e, flag):
         
-        print e
         print flag
+        print e
         
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_traceback,
@@ -203,13 +203,14 @@ class Iterator(object):
     
     def _log_exception(self, e, flag):
         
-        module_logger.debug(e)
         module_logger.debug(flag)
+        module_logger.debug(e)
         
         exc_type, exc_value, exc_traceback = sys.exc_info()
-        msg_str = traceback.format_exception(exc_type,
-                                             exc_value,
-                                             exc_traceback)
+        msg_strs = traceback.format_exception(exc_type,
+                                              exc_value,
+                                              exc_traceback)
+        msg_str = ''.join(msg_strs)
         module_logger.debug(msg_str)
         
         return
@@ -287,7 +288,7 @@ class Iterator(object):
             
             if exit_code != 0:
                 
-                args_str = ",".join(popen_args)
+                args_str = ", ".join(popen_args)
                 err_str = ("External process failed to open. Arguments were: "
                            "{}").format(args_str)
                 
@@ -318,7 +319,7 @@ class Iterator(object):
                 cost = self._base_penalty
                 flag = "Fail Receive"
                 worker_results_path = None
-            
+                
                 if self._logging == "print":
                     self._print_exception(e, flag)
                 elif self._logging == "module":
@@ -337,7 +338,7 @@ class Iterator(object):
         return
     
     def __call__(self, q):
-    
+        
         while True:
             
             item = q.get()
