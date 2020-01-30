@@ -222,8 +222,23 @@ class Iterator(object):
             results_queue.put(previous_cost)
             return
         
+        flag = ""
         iteration = self._counter.get_iteration()
-        pre_constraint_cost = self.pre_constraints_hook(*args)
+        
+        try:
+            
+            pre_constraint_cost = self.pre_constraints_hook(*args)
+        
+        except Exception as e:
+            
+            pre_constraint_cost = self._base_penalty
+            flag = "Fail Constraints"
+            worker_results_path = None
+            
+            if self._logging == "print":
+                self._print_exception(e, flag)
+            elif self._logging == "module":
+                self._log_exception(e, flag)
         
         if pre_constraint_cost is not None:
             
@@ -247,7 +262,6 @@ class Iterator(object):
         worker_results_path = os.path.join(self._worker_directory,
                                            worker_results_name)
         
-        flag = ""
         results = None
         
         try:

@@ -157,6 +157,8 @@ class PositionIterator(cma.Iterator):
                 multiplier = np.exp(rel_diff)
                 
                 return self._base_penalty * multiplier
+            
+            raise RuntimeError(e)
         
         spacing_tool = self._tool_man.get_tool("Device Minimum Spacing Check")
         spacing_tool.configure(positions)
@@ -177,6 +179,8 @@ class PositionIterator(cma.Iterator):
                 multiplier = np.exp(float(words[-1]))
                 
                 return self._base_penalty * multiplier
+            
+            raise RuntimeError(e)
         
         return
     
