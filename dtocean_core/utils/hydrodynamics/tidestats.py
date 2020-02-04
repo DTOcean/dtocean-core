@@ -149,7 +149,7 @@ def make_tide_statistics(dictinput,
     p = np.delete(p, zero_pb)
     t = np.delete(t, zero_pb)
     ns = ns - np.array(zero_pb).size
-
+    
     # output
     dictoutput = {'U': U,
                   'V': V,

@@ -116,34 +116,34 @@ class HydroInterface(ModuleInterface):
 
         input_list  =  ['site.lease_boundary',
                         'bathymetry.layers',
-                                     
+                        
                         "corridor.landing_point",
                         'farm.nogo_areas',
                         
                         MaskVariable("farm.blockage_ratio",
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
-
-                        MaskVariable("farm.spectrum_name",   
+                        
+                        MaskVariable("farm.spectrum_name",
                                      "device.system_type",
                                      ["Wave Fixed", "Wave Floating"]),
-
-                        MaskVariable("farm.spec_gamma",   
+                        
+                        MaskVariable("farm.spec_gamma",
                                      "device.system_type",
                                      ["Wave Fixed", "Wave Floating"]),
-
-                        MaskVariable("farm.spec_spread",   
+                        
+                        MaskVariable("farm.spec_spread",
                                      "device.system_type",
                                      ["Wave Fixed", "Wave Floating"]),
-                                     
+                        
                         MaskVariable("farm.tidal_occurrence_point",
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
-
+                        
                         MaskVariable("farm.tidal_series",
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
-
+                        
                         MaskVariable("farm.wave_series",
                                      "device.system_type",
                                      ["Wave Fixed", "Wave Floating"]),
@@ -159,15 +159,15 @@ class HydroInterface(ModuleInterface):
                         MaskVariable("device.bidirection",
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
-
+                        
                         MaskVariable("device.cut_in_velocity",
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
-
+                        
                         MaskVariable("device.cut_out_velocity",
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
-
+                        
                         MaskVariable('device.turbine_hub_height',
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
@@ -175,33 +175,33 @@ class HydroInterface(ModuleInterface):
                         MaskVariable("device.turbine_diameter",
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
-
+                        
                         MaskVariable("device.turbine_interdistance",
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
-
+                        
                         MaskVariable("device.turbine_performance",
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
-
-                        MaskVariable("device.wave_data_directory",   
+                        
+                        MaskVariable("device.wave_data_directory",
                                      "device.system_type",
                                      ["Wave Fixed", "Wave Floating"]),
-                                     
+                        
                         'project.rated_power',
                         
                         MaskVariable("project.tidal_occurrence_nbins",
                                      "device.system_type",
-                                     ["Tidal Fixed", "Tidal Floating"]),  
-                                     
+                                     ["Tidal Fixed", "Tidal Floating"]),
+                        
                         'project.main_direction',
                         'options.boundary_padding',
                         'options.optimisation_threshold',
                         'options.power_bin_width',
                         'options.user_array_option',
                         'options.user_array_layout',
-
-                        MaskVariable("options.tidal_data_directory",   
+                        
+                        MaskVariable("options.tidal_data_directory",
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
                         
@@ -209,10 +209,10 @@ class HydroInterface(ModuleInterface):
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"])
                         ]
-                                                
+        
         return input_list
-
-    @classmethod        
+    
+    @classmethod
     def declare_outputs(cls):
         
         '''A class method to declare all the output variables provided by
@@ -251,7 +251,7 @@ class HydroInterface(ModuleInterface):
         
         return output_list
     
-    @classmethod        
+    @classmethod
     def declare_optional(cls):
         
         '''A class method to declare all the variables which should be flagged
@@ -278,15 +278,13 @@ class HydroInterface(ModuleInterface):
                     'options.boundary_padding',
                     "options.power_bin_width",
                     "options.user_array_layout",
-                    "options.tidal_data_directory"
-                    ]        
-                
-        return optional
                     "options.tidal_data_directory",
                     "options.tidal_use_all_steps"
                     ]
         
-    @classmethod 
+        return optional
+    
+    @classmethod
     def declare_id_map(cls):
         
         '''Declare the mapping for variable identifiers in the data description
@@ -360,11 +358,11 @@ class HydroInterface(ModuleInterface):
                     "wave_data_directory": "device.wave_data_directory",
                     "wave_occurrence": "farm.wave_occurrence",
                     "wave_series": "farm.wave_series",
-                    "yaw_angle": "device.yaw",
+                    "yaw_angle": "device.yaw"
                   }
-
+        
         return id_map
-                 
+    
     def connect(self, debug_entry=False, export_data=False):
         
         '''The connect method is used to execute the external program and 
@@ -431,14 +429,14 @@ class HydroInterface(ModuleInterface):
             x = self.data.tidal_series.coords["UTM x"]
             y = self.data.tidal_series.coords["UTM y"]
                         
-            tide_dict = {"U": self.data.tidal_series.U.values, 
-                         "V": self.data.tidal_series.V.values, 
-                         "SSH": self.data.tidal_series.SSH.values, 
-                         "TI": self.data.tidal_series.TI.values, 
-                         "x": x.values, 
+            tide_dict = {"U": self.data.tidal_series.U.values,
+                         "V": self.data.tidal_series.V.values,
+                         "SSH": self.data.tidal_series.SSH.values,
+                         "TI": self.data.tidal_series.TI.values,
+                         "x": x.values,
                          "y": y.values,
-                         "t": self.data.tidal_series.t.values,  
-                         "xc": self.data.tidal_occurrence_point.x, 
+                         "t": self.data.tidal_series.t.values,
+                         "xc": self.data.tidal_occurrence_point.x,
                          "yc": self.data.tidal_occurrence_point.y,
                          "ns": self.data.tidal_nbins
                          }
