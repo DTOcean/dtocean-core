@@ -203,6 +203,10 @@ class HydroInterface(ModuleInterface):
 
                         MaskVariable("options.tidal_data_directory",   
                                      "device.system_type",
+                                     ["Tidal Fixed", "Tidal Floating"]),
+                        
+                        MaskVariable("options.tidal_use_all_steps",
+                                     "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"])
                         ]
                                                 
@@ -278,6 +282,9 @@ class HydroInterface(ModuleInterface):
                     ]        
                 
         return optional
+                    "options.tidal_data_directory",
+                    "options.tidal_use_all_steps"
+                    ]
         
     @classmethod 
     def declare_id_map(cls):
@@ -347,6 +354,7 @@ class HydroInterface(ModuleInterface):
                     "tidal_series": "farm.tidal_series",
                     "turbine_interdist": "device.turbine_interdistance",
                     "type": "device.system_type",
+                    "use_all_steps": "options.tidal_use_all_steps",
                     "user_array_layout": "options.user_array_layout",
                     "user_array_option": "options.user_array_option",
                     "wave_data_directory": "device.wave_data_directory",
@@ -435,7 +443,22 @@ class HydroInterface(ModuleInterface):
                          "ns": self.data.tidal_nbins
                          }
             
-            occurrence_matrix = make_tide_statistics(tide_dict)
+            if (self.data.use_all_steps is not None and
+                self.data.use_all_steps):
+                
+                n_steps = len(self.data.tidal_series.t.values)
+                p = np.ones(n_steps) * (1. / n_steps)
+                
+                tide_dict.pop("xc")
+                tide_dict.pop("yc")
+                tide_dict["p"] = p
+                tide_dict["ns"] = n_steps
+                
+                occurrence_matrix = tide_dict
+            
+            else:
+                
+                occurrence_matrix = make_tide_statistics(tide_dict)
             
             p_total = sum(occurrence_matrix['p'])
             
