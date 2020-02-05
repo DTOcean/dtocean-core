@@ -243,172 +243,216 @@ class PositionIterator(cma.Iterator):
         return
 
 
-def start(config, core=None, project=None, config_fname="config.yaml"):
+class Main(object):
     
-    module_logger.info("Beginning position optimisation")
-    
-    root_project_path = config['root_project_path']
-    worker_directory = config["worker_dir"]
-    base_penalty = config["base_penalty"]
-    n_threads = config["n_threads"]
-    results_params = config["results_params"]
-    objective = config["objective"]
-    
-    # Defaults
-    clean_existing_dir = False
-    max_simulations = None
-    popsize = None
-    timeout = None
-    logging = "module"
-    
-    if "clean_existing_dir" in config:
-        clean_existing_dir = config["clean_existing_dir"]
-    
-    if "max_simulations" in config:
-        max_simulations = config["max_simulations"]
-    
-    if "popsize" in config:
-        popsize = config["popsize"]
-    
-    if "timeout" in config:
-        timeout = config["timeout"]
-    
-    if "logging" in config:
-        logging = config["logging"]
-    
-    if core is None: core = Core()
-    if project is None: project = core.load_project(root_project_path)
-    
-    _, root_project_name = os.path.split(root_project_path)
-    root_project_base_name, _ = os.path.splitext(root_project_name)
-    
-    fixed_params, ranges, x0s, nearest_ops = get_param_control(config,
-                                                               core,
-                                                               project)
-    
-    scaled_vars = [cma.NormScaler(x[0], x[1], y) for x, y in zip(ranges, x0s)]
-    x0 = [scaled.x0 for scaled in scaled_vars]
-    low_bound = [scaler.scaled(x[0]) for x, scaler in zip(ranges, scaled_vars)]
-    high_bound = [scaler.scaled(x[1])
-                                    for x, scaler in zip(ranges, scaled_vars)]
-    
-    es = cma.init_evolution_strategy(x0,
-                                     low_bound,
-                                     high_bound,
-                                     max_simulations=max_simulations,
-                                     popsize=popsize,
-                                     timeout=timeout)
-    
-    counter = PositionCounter()
-    iterator = PositionIterator(root_project_base_name,
-                                worker_directory,
-                                project,
-                                counter,
-                                objective,
-                                base_penalty=base_penalty,
-                                logging=logging,
-                                clean_existing_dir=clean_existing_dir)
-    
-    # Store copy of config in worker directory for potential restart
-    config_path = os.path.join(worker_directory, config_fname)
-    dump_config(config, config_path)
-    
-    # Store the es object and counter search dict for potential restart
-    cma.dump_outputs(es, iterator, worker_directory)
-    
-    # Write the results params control file for workers
-    results_params = list(set(results_params).union([objective]))
-    dump_results_control(results_params, worker_directory)
-    
-    es = cma.main(es,
-                  worker_directory,
-                  iterator,
-                  scaled_vars,
-                  nearest_ops,
-                  fixed_index_map=fixed_params,
-                  num_threads=n_threads,
-                  logging=logging)
-    
-    module_logger.info("Position optimisation complete")
-    
-    return es
-
-
-def restart(worker_directory,
-            core=None,
-            project=None,
-            config_fname="config.yaml"):
-    
-    module_logger.info("Restart position optimisation")
-    
-    # Reload the config in the worker directory
-    config_path = os.path.join(worker_directory, config_fname)
-    config = load_config(config_path)
-    
-    # Reload outputs
-    es, counter_dict = cma.load_outputs(worker_directory)
-
-    root_project_path = config['root_project_path']
-    worker_directory = config["worker_dir"]
-    base_penalty = config["base_penalty"]
-    n_threads = config["n_threads"]
-    objective = config["objective"]
-    
-    # Defaults
-    logging = "module"
-    
-    if "logging" in config:
-        logging = config["logging"]
-    
-    # Remove files above last recorded iteration
-    if counter_dict:
-        last_iter = max(counter_dict)
-    else:
-        last_iter = -1
+    def __init__(self, core=None,
+                       project=None,
+                       config_fname="config.yaml"):
         
-    _, root_project_name = os.path.split(root_project_path)
-    root_project_base_name, _ = os.path.splitext(root_project_name)
+        if core is None: core = Core()
+        
+        self.stop = False
+        self._core = core
+        self._project = project
+        self._config_fname = config_fname
+        self._worker_directory = None
+        self._cma_main = None
+        
+        return
     
-    yaml_pattern = '{}_*.yaml'.format(root_project_base_name)
-    prj_pattern = '{}_*.prj'.format(root_project_base_name)
+    def start(self, config):
+        
+        module_logger.info("Beginning position optimisation")
+        
+        self.stop = False
+        self._worker_directory = config["worker_dir"]
+        
+        root_project_path = config['root_project_path']
+        base_penalty = config["base_penalty"]
+        n_threads = config["n_threads"]
+        results_params = config["results_params"]
+        objective = config["objective"]
+        
+        # Defaults
+        clean_existing_dir = False
+        max_simulations = None
+        popsize = None
+        timeout = None
+        logging = "module"
+        
+        if "clean_existing_dir" in config:
+            clean_existing_dir = config["clean_existing_dir"]
+        
+        if "max_simulations" in config:
+            max_simulations = config["max_simulations"]
+        
+        if "popsize" in config:
+            popsize = config["popsize"]
+        
+        if "timeout" in config:
+            timeout = config["timeout"]
+        
+        if "logging" in config:
+            logging = config["logging"]
+        
+        if self._project is None:
+            project = self._core.load_project(root_project_path)
+        else:
+            project = self._project
+        
+        _, root_project_name = os.path.split(root_project_path)
+        root_project_base_name, _ = os.path.splitext(root_project_name)
+        
+        fixed_params, ranges, x0s, nearest_ops = get_param_control(config,
+                                                                   self._core,
+                                                                   project)
+        
+        scaled_vars = [cma.NormScaler(x[0], x[1], y)
+                                                for x, y in zip(ranges, x0s)]
+        x0 = [scaled.x0 for scaled in scaled_vars]
+        low_bound = [scaler.scaled(x[0])
+                                    for x, scaler in zip(ranges, scaled_vars)]
+        high_bound = [scaler.scaled(x[1])
+                                    for x, scaler in zip(ranges, scaled_vars)]
+        
+        es = cma.init_evolution_strategy(x0,
+                                         low_bound,
+                                         high_bound,
+                                         max_simulations=max_simulations,
+                                         popsize=popsize,
+                                         timeout=timeout)
+        
+        counter = PositionCounter()
+        iterator = PositionIterator(root_project_base_name,
+                                    self._worker_directory,
+                                    project,
+                                    counter,
+                                    objective,
+                                    base_penalty=base_penalty,
+                                    logging=logging,
+                                    clean_existing_dir=clean_existing_dir)
+        
+        # Store copy of config in worker directory for potential restart
+        config_path = os.path.join(self._worker_directory, self._config_fname)
+        dump_config(config, config_path)
+        
+        # Store the es object and counter search dict for potential restart
+        cma.dump_outputs(es, iterator, self._worker_directory)
+        
+        # Write the results params control file for workers
+        results_params = list(set(results_params).union([objective]))
+        dump_results_control(results_params, self._worker_directory)
+        
+        self._cma_main = cma.Main(es,
+                                  self._worker_directory,
+                                  iterator,
+                                  scaled_vars,
+                                  nearest_ops,
+                                  fixed_index_map=fixed_params,
+                                  num_threads=n_threads,
+                                  logging=logging)
+        
+        self._cma_main.init_threads()
+        
+        return
     
-    clean_numbered_files_above(worker_directory, yaml_pattern, last_iter)
-    clean_numbered_files_above(worker_directory, prj_pattern, last_iter)
+    def restart(self, worker_directory):
+        
+        module_logger.info("Restart position optimisation")
+        
+        self._worker_directory = worker_directory
+        self.stop = False
+        
+        # Reload the config in the worker directory
+        config_path = os.path.join(self._worker_directory, self._config_fname)
+        config = load_config(config_path)
+        
+        # Reload outputs
+        es, counter_dict = cma.load_outputs(self._worker_directory)
     
-    if core is None: core = Core()
-    if project is None: project = core.load_project(root_project_path)
+        root_project_path = config['root_project_path']
+        base_penalty = config["base_penalty"]
+        n_threads = config["n_threads"]
+        objective = config["objective"]
+        
+        # Defaults
+        logging = "module"
+        
+        if "logging" in config:
+            logging = config["logging"]
+        
+        # Remove files above last recorded iteration
+        if counter_dict:
+            last_iter = max(counter_dict)
+        else:
+            last_iter = -1
+            
+        _, root_project_name = os.path.split(root_project_path)
+        root_project_base_name, _ = os.path.splitext(root_project_name)
+        
+        yaml_pattern = '{}_*.yaml'.format(root_project_base_name)
+        prj_pattern = '{}_*.prj'.format(root_project_base_name)
+        
+        clean_numbered_files_above(self._worker_directory,
+                                   yaml_pattern,
+                                   last_iter)
+        clean_numbered_files_above(self._worker_directory,
+                                   prj_pattern,
+                                   last_iter)
+        
+        if self._project is None:
+            project = self._core.load_project(root_project_path)
+        else:
+            project = self._project
+        
+        _, root_project_name = os.path.split(root_project_path)
+        root_project_base_name, _ = os.path.splitext(root_project_name)
+        
+        fixed_params, ranges, x0s, nearest_ops = get_param_control(config,
+                                                                   self._core,
+                                                                   project)
+        
+        scaled_vars = [cma.NormScaler(x[0], x[1], y)
+                                                for x, y in zip(ranges, x0s)]
+        
+        counter = PositionCounter(counter_dict)
+        iterator = PositionIterator(root_project_base_name,
+                                    self._worker_directory,
+                                    project,
+                                    counter,
+                                    objective,
+                                    base_penalty=base_penalty,
+                                    logging=logging,
+                                    restart=True)
+        
+        self._cma_main = cma.Main(es,
+                                  self._worker_directory,
+                                  iterator,
+                                  scaled_vars,
+                                  nearest_ops,
+                                  fixed_index_map=fixed_params,
+                                  num_threads=n_threads,
+                                  logging=logging)
+        
+        self._cma_main.init_threads()
+        
+        return
     
-    _, root_project_name = os.path.split(root_project_path)
-    root_project_base_name, _ = os.path.splitext(root_project_name)
+    def next(self):
+        
+        if self._cma_main.stop:
+            module_logger.info("Position optimisation complete")
+            self.stop = True
+            return
+            
+        self._cma_main.next()
+        cma.dump_outputs(self._cma_main.es,
+                         self._cma_main.iterator,
+                         self._worker_directory)
     
-    fixed_params, ranges, x0s, nearest_ops = get_param_control(config,
-                                                               core,
-                                                               project)
-    
-    scaled_vars = [cma.NormScaler(x[0], x[1], y) for x, y in zip(ranges, x0s)]
-    
-    counter = PositionCounter(counter_dict)
-    iterator = PositionIterator(root_project_base_name,
-                                worker_directory,
-                                project,
-                                counter,
-                                objective,
-                                base_penalty=base_penalty,
-                                logging=logging,
-                                restart=True)
-    
-    es = cma.main(es,
-                  worker_directory,
-                  iterator,
-                  scaled_vars,
-                  nearest_ops,
-                  fixed_index_map=fixed_params,
-                  num_threads=n_threads,
-                  logging=logging)
-    
-    module_logger.info("Position optimisation complete")
-    
-    return es
+    def get_es(self):
+        
+        return self._cma_main.es
 
 
 def get_param_control(config, core, project):

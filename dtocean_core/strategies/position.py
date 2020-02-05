@@ -6,6 +6,7 @@ import glob
 import math
 import pickle
 import logging
+import threading
 
 import pandas as pd
 import yaml
@@ -15,8 +16,7 @@ from . import Strategy
 from .position_optimiser import (dump_config,
                                  load_config,
                                  load_config_template,
-                                 restart,
-                                 start)
+                                 Main)
 from .position_optimiser.iterator import get_positioner, iterate
 from ..menu import ModuleMenu
 from ..pipeline import Tree
@@ -24,6 +24,52 @@ from ..pipeline import Tree
 # Set up logging
 module_logger = logging.getLogger(__name__)
 
+
+class MainThread(threading.Thread):
+    
+    def __init__(self, main,
+                       config,
+                       log_interval=100,
+                       wait_interval=1):
+        
+        super(MainThread, self).__init__(name="MainThread")
+        self._main = main
+        self._config = config
+        self._log_interval = log_interval
+        self._wait_interval = wait_interval
+        self._stop_event = threading.Event()
+        
+        self.stopped = False
+    
+    def stop(self):
+        self._stop_event.set()
+    
+    def run(self):
+        
+        self._stop_event.clear()
+        self.stopped = False
+        
+        while not self._main.stop:
+            
+            if self._stop_event.is_set():
+                self.stopped = True
+                return
+            
+            self._main.next()
+        
+        _post_process(self._config, self._log_interval)
+        self.stopped = True
+        
+        return
+    
+    def get_es(self):
+        
+        if self.stopped:
+            result = self._main.get_es()
+        else:
+            result = None
+        
+        return result
 
 class AdvancedPosition(Strategy):
     
@@ -58,27 +104,8 @@ class AdvancedPosition(Strategy):
     
     def execute(self, core, project):
         
-        # Check the project is active and record the simulation number
-        status_strs, status_code = self.get_project_status(core,
-                                                           project)
-        
-        if status_code == 0:
-            status_str = "\n".join(status_strs)
-            raise RuntimeError(status_str)
-        
-        if project.get_simulation_title() != "Default":
-            
-            log_str = 'Setting active simulation to "Default"'
-            module_logger.info(log_str)
-            
-            project.set_active_index(title="Default")
-        
-        log_str = 'Attempting to reset simulation level'
-        module_logger.info(log_str)
-        
-        tree = Tree()
-        hydro_branch = tree.get_branch(core, project, "Hydrodynamics")
-        hydro_branch.reset(core, project)
+        self._prepare_project(core, project)
+        main = Main(core=core, project=project)
         
         _, work_dir_status = self.get_worker_directory_status(self._config)
         _, optim_status = self.get_optimiser_status(self._config)
@@ -88,19 +115,45 @@ class AdvancedPosition(Strategy):
             log_str = 'Attempting restart of incomplete strategy'
             module_logger.info(log_str)
             
-            es = restart(self._config["worker_dir"],
-                         core=core,
-                         project=project)
+            main.restart(self._config["worker_dir"])
         
         else:
             
-            es = start(self._config,
-                       core=core,
-                       project=project)
+            main.start(self._config)
         
+        while not main.stop:
+            main.next()
+        
+        es = main.get_es()
         self._post_process()
         
         return es
+    
+    def execute_threaded(self, core, project):
+        
+        self._prepare_project(core, project)
+        main = Main(core=core, project=project)
+        
+        _, work_dir_status = self.get_worker_directory_status(self._config)
+        _, optim_status = self.get_optimiser_status(self._config)
+        
+        if work_dir_status == 0 and optim_status == 2:
+            
+            log_str = 'Attempting restart of incomplete strategy'
+            module_logger.info(log_str)
+            
+            main.restart(self._config["worker_dir"])
+        
+        else:
+            
+            main.start(self._config)
+        
+        thread = MainThread(main,
+                            self._config)
+        
+        thread.start()
+        
+        return thread
     
     def _post_process(self, log_interval=100):
         
@@ -406,6 +459,32 @@ class AdvancedPosition(Strategy):
                 status_code = 2
         
         return status_str, status_code
+    
+    def _prepare_project(self, core, project):
+        
+        # Check the project is active and record the simulation number
+        status_strs, status_code = self.get_project_status(core,
+                                                           project)
+        
+        if status_code == 0:
+            status_str = "\n".join(status_strs)
+            raise RuntimeError(status_str)
+        
+        if project.get_simulation_title() != "Default":
+            
+            log_str = 'Setting active simulation to "Default"'
+            module_logger.info(log_str)
+            
+            project.set_active_index(title="Default")
+        
+        log_str = 'Attempting to reset simulation level'
+        module_logger.info(log_str)
+        
+        tree = Tree()
+        hydro_branch = tree.get_branch(core, project, "Hydrodynamics")
+        hydro_branch.reset(core, project)
+        
+        return
 
 
 def _get_root_project_base_name(root_project_path):

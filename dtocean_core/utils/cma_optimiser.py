@@ -372,6 +372,96 @@ class Iterator(object):
         return
 
 
+class Main(object):
+    
+    def __init__(self, es,
+                       worker_directory,
+                       iterator,
+                       scaled_vars,
+                       nearest_ops,
+                       fixed_index_map=None,
+                       num_threads=1,
+                       logging="module"):
+        
+        self.es = es
+        self.iterator = iterator
+        self.stop = False
+        self._worker_directory = worker_directory
+        self._scaled_vars = scaled_vars
+        self._nearest_ops = nearest_ops
+        self._fixed_index_map = fixed_index_map
+        self._num_threads = num_threads
+        self._logging = logging
+        self._thread_queue = None
+    
+    def init_threads(self):
+            
+        self._thread_queue = queue.Queue()
+        
+        for i in range(self._num_threads):
+            
+            worker = threading.Thread(target=self.iterator,
+                                      args=(self._thread_queue,))
+            worker.setDaemon(True)
+            worker.start()
+        
+        return
+    
+    def next(self):
+        
+        if self.es.stop():
+            self.stop = True
+            return
+            
+        result_queue = queue.Queue()
+        scaled_solutions = self.es.ask()
+        descaled_solutions = []
+        
+        for solution in scaled_solutions:
+            
+            new_solution = [scaler.inverse(x) for x, scaler
+                                        in zip(solution, self._scaled_vars)]
+            nearest_solution = [snap(x) for x, snap
+                                    in zip(new_solution, self._nearest_ops)]
+            descaled_solutions.append(nearest_solution)
+        
+        if self._fixed_index_map is not None:
+            
+            ordered_index_map = OrderedDict(
+                                    sorted(self._fixed_index_map.items(),
+                                           key=lambda t: t[0]))
+            
+            for solution in descaled_solutions:
+                for idx, val in ordered_index_map.iteritems():
+                    solution.insert(idx, val)
+        
+        run_idxs, match_dict = _get_match_process(descaled_solutions)
+        
+        for i in run_idxs:
+            self._thread_queue.put([result_queue] + descaled_solutions[i])
+        
+        self._thread_queue.join()
+        
+        costs = _rebuild_input(result_queue.queue,
+                               run_idxs,
+                               match_dict,
+                               len(descaled_solutions))
+        
+        self.es.tell(scaled_solutions, costs)
+        self.es.logger.add()
+        self.es.disp()
+        
+        if logging == "print":
+            self.es.disp()
+        elif logging == "module":
+            msg_str = ('Minimum fitness for iteration {}: '
+                       '{:.15e}').format(self.es.countiter,
+                        min(self.es.fit.fit))
+            module_logger.info(msg_str)
+        
+        return
+
+
 def _get_scale_factor(range_min, range_max, x0, sigma, n_sigmas):
     
     if x0 < range_min or x0 > range_max:
@@ -446,77 +536,6 @@ def init_evolution_strategy(x0,
     return es
 
 
-def main(es,
-         worker_directory,
-         iterator,
-         scaled_vars,
-         nearest_ops,
-         fixed_index_map=None,
-         num_threads=1,
-         logging="module"):
-    
-    thread_queue = queue.Queue()
-    
-    for i in range(num_threads):
-        
-        worker = threading.Thread(target=iterator,
-                                  args=(thread_queue,))
-        worker.setDaemon(True)
-        worker.start()
-    
-    while not es.stop() and not os.path.isfile('pause_optimiser.txt'):
-        
-        result_queue = queue.Queue()
-        scaled_solutions = es.ask()
-        descaled_solutions = []
-        
-        for solution in scaled_solutions:
-            
-            new_solution = [scaler.inverse(x) for x, scaler
-                                            in zip(solution, scaled_vars)]
-            nearest_solution = [snap(x) for x, snap
-                                            in zip(new_solution, nearest_ops)]
-            descaled_solutions.append(nearest_solution)
-        
-        if fixed_index_map is not None:
-            
-            ordered_index_map = OrderedDict(sorted(fixed_index_map.items(),
-                                                   key=lambda t: t[0]))
-            
-            for solution in descaled_solutions:
-                for idx, val in ordered_index_map.iteritems():
-                    solution.insert(idx, val)
-        
-        run_idxs, match_dict = _get_match_process(descaled_solutions)
-        
-        for i in run_idxs:
-            thread_queue.put([result_queue] + descaled_solutions[i])
-        
-        thread_queue.join()
-        
-        costs = _rebuild_input(result_queue.queue,
-                               run_idxs,
-                               match_dict,
-                               len(descaled_solutions))
-        
-        es.tell(scaled_solutions, costs)
-        es.logger.add()
-        es.disp()
-        
-        if logging == "print":
-            es.disp()
-        elif logging == "module":
-            msg_str = ('Minimum fitness for iteration {}: '
-                       '{:.15e}').format(es.countiter, min(es.fit.fit))
-            module_logger.info(msg_str)
-        
-        dump_outputs(es, iterator, worker_directory)
-    
-    return es
-
-
-
-
 def _get_match_process(values):
     
     match_dict = {}
@@ -567,8 +586,8 @@ def dump_outputs(es, iterator, worker_directory):
     counter_dict_fname = os.path.join(worker_directory,
                                       'saved-counter-search-dict.pkl')
     
-    pickle.dump(es, open(es_fname, 'wb'))
-    pickle.dump(counter_dict, open(counter_dict_fname, 'wb'))
+    pickle.dump(es, open(es_fname, 'wb'), -1)
+    pickle.dump(counter_dict, open(counter_dict_fname, 'wb'), -1)
     
     return
 
