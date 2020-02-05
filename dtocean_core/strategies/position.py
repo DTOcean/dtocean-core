@@ -15,7 +15,8 @@ from . import Strategy
 from .position_optimiser import (dump_config,
                                  load_config,
                                  load_config_template,
-                                 main)
+                                 restart,
+                                 start)
 from .position_optimiser.iterator import get_positioner, iterate
 from ..menu import ModuleMenu
 from ..pipeline import Tree
@@ -79,9 +80,23 @@ class AdvancedPosition(Strategy):
         hydro_branch = tree.get_branch(core, project, "Hydrodynamics")
         hydro_branch.reset(core, project)
         
-        es = main(self._config,
-                  core=core,
-                  project=project)
+        _, work_dir_status = self.get_worker_directory_status(self._config)
+        _, optim_status = self.get_optimiser_status(self._config)
+        
+        if work_dir_status == 0 and optim_status == 2:
+            
+            log_str = 'Attempting restart of incomplete strategy'
+            module_logger.info(log_str)
+            
+            es = restart(self._config["worker_dir"],
+                         core=core,
+                         project=project)
+        
+        else:
+            
+            es = start(self._config,
+                       core=core,
+                       project=project)
         
         self._post_process()
         
@@ -271,7 +286,7 @@ class AdvancedPosition(Strategy):
         return
     
     @classmethod
-    def get_config_status(self, config):
+    def get_config_status(cls, config):
         
         required_keys = ["root_project_path",
                          "worker_dir",
@@ -296,7 +311,7 @@ class AdvancedPosition(Strategy):
         return status_str, status_code
     
     @classmethod
-    def get_project_status(self, core, project):
+    def get_project_status(cls, core, project):
         
         module_menu = ModuleMenu()
         
@@ -334,6 +349,64 @@ class AdvancedPosition(Strategy):
             status_code = 1
         
         return status_strs, status_code
+    
+    @classmethod
+    def get_worker_directory_status(cls, config):
+        
+        worker_directory = config["worker_dir"]
+        
+        status_str = None
+        status_code = None
+        
+        if os.path.isdir(worker_directory):
+            
+            if len(os.listdir(worker_directory)) == 0:
+                
+                status_str = "Worker directory empty"
+                status_code = 1
+            
+            elif not config['clean_existing_dir']:
+                
+                status_str = "Worker directory contains files"
+                status_code = 0
+        
+        else:
+            
+            status_str = "Worker directory does not yet exist"
+            status_code = 1
+        
+        return status_str, status_code
+    
+    @classmethod
+    def get_optimiser_status(cls, config):
+        
+        root_project_path = config['root_project_path']
+        worker_directory = config["worker_dir"]
+        
+        status_str = None
+        status_code = None
+        
+        if os.path.isdir(worker_directory):
+            
+            _, root_project_name = os.path.split(root_project_path)
+            root_project_base_name, _ = os.path.splitext(root_project_name)
+            pickle_name = "{}_results.pkl".format(root_project_base_name)
+            
+            results_path = os.path.join(worker_directory, pickle_name)
+            
+            if os.path.isfile(results_path):
+                
+                status_str = "Optimisation complete"
+                status_code = 1
+            
+            else:
+                
+                status_str = ("Optimisation incomplete (restart may be "
+                              "possible)")
+                status_code = 2
+        
+        return status_str, status_code
+
 
 def _get_root_project_base_name(root_project_path):
     
@@ -369,7 +442,8 @@ def _post_process(config, log_interval=100):
     root_project_path = config['root_project_path']
     root_project_base_name = _get_root_project_base_name(root_project_path)
     
-    search_str = os.path.join(sim_dir, '*.yaml')
+    yaml_pattern = '{}_*.yaml'.format(root_project_base_name)
+    search_str = os.path.join(sim_dir, yaml_pattern)
     yaml_file_paths = natsorted(glob.glob(search_str))
     n_sims = len(yaml_file_paths)
     

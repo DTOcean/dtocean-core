@@ -13,6 +13,7 @@ import logging
 import threading
 import traceback
 from collections import OrderedDict
+from copy import deepcopy
 from subprocess import Popen
 
 import cma
@@ -59,10 +60,16 @@ class Counter(object):
     
     __metaclass__ = abc.ABCMeta
     
-    def __init__(self):
+    def __init__(self, search_dict=None):
         
-        self._iteration = 0
-        self._search_dict = {}
+        if search_dict is None or not search_dict:
+            iteration = 0
+            search_dict = {}
+        else:
+            iteration = max(search_dict) + 1
+        
+        self._iteration = iteration
+        self._search_dict = search_dict
         self._lock = threading.Lock()
         
         return
@@ -132,6 +139,17 @@ class Counter(object):
             self._lock.release()
         
         return result
+    
+    def copy_search_dict(self):
+        
+        self._lock.acquire()
+        
+        try:
+            result = deepcopy(self._search_dict)
+        finally:
+            self._lock.release()
+        
+        return result
 
 
 class Iterator(object):
@@ -144,6 +162,7 @@ class Iterator(object):
                        counter,
                        base_penalty=1.,
                        logging="module",
+                       restart=False,
                        clean_existing_dir=False):
         
         self._counter = counter
@@ -154,7 +173,8 @@ class Iterator(object):
         self._logging = logging
         self._core = Core()
         
-        _clean_directory(worker_directory, clean_existing_dir)
+        if not restart:
+            _clean_directory(worker_directory, clean_existing_dir)
         
         return
     
@@ -189,6 +209,10 @@ class Iterator(object):
     def cleanup(self, worker_project_path, flag, results):
         """Hook to clean up simulation files as required"""
         return
+    
+    def get_counter_search_dict(self):
+        
+        return self._counter.copy_search_dict()
     
     def _print_exception(self, e, flag):
         
@@ -398,19 +422,12 @@ def _clean_directory(dir_name, clean_existing=False, logging="module"):
     return
 
 
-def main(worker_directory,
-         iterator,
-         x0,
-         low_bound,
-         high_bound,
-         scaled_vars,
-         nearest_ops,
-         fixed_index_map=None,
-         num_threads=1,
-         max_simulations=None,
-         popsize=None,
-         timeout=None,
-         logging="module"):
+def init_evolution_strategy(x0,
+                            low_bound,
+                            high_bound,
+                            max_simulations=None,
+                            popsize=None,
+                            timeout=None):
     
     opts = {'bounds': [low_bound, high_bound]}#,
 #            'verbose': -3}
@@ -426,7 +443,17 @@ def main(worker_directory,
     
     es = cma.CMAEvolutionStrategy(x0, NormScaler.sigma, opts)
     
-    _store_outputs(es, iterator, worker_directory)
+    return es
+
+
+def main(es,
+         worker_directory,
+         iterator,
+         scaled_vars,
+         nearest_ops,
+         fixed_index_map=None,
+         num_threads=1,
+         logging="module"):
     
     thread_queue = queue.Queue()
     
@@ -483,9 +510,11 @@ def main(worker_directory,
                        '{:.15e}').format(es.countiter, min(es.fit.fit))
             module_logger.info(msg_str)
         
-        _store_outputs(es, iterator, worker_directory)
+        dump_outputs(es, iterator, worker_directory)
     
     return es
+
+
 
 
 def _get_match_process(values):
@@ -530,9 +559,9 @@ def _rebuild_input(values, run_idxs, match_dict, input_length):
     return rebuild
 
 
-def _store_outputs(es, iterator, worker_directory):
+def dump_outputs(es, iterator, worker_directory):
     
-    counter_dict = iterator._counter._search_dict
+    counter_dict = iterator.get_counter_search_dict()
     
     es_fname = os.path.join(worker_directory, 'saved-cma-object.pkl')
     counter_dict_fname = os.path.join(worker_directory,
@@ -542,3 +571,16 @@ def _store_outputs(es, iterator, worker_directory):
     pickle.dump(counter_dict, open(counter_dict_fname, 'wb'))
     
     return
+
+
+def load_outputs(worker_directory):
+    
+    es_fname = os.path.join(worker_directory, 'saved-cma-object.pkl')
+    counter_dict_fname = os.path.join(worker_directory,
+                                      'saved-counter-search-dict.pkl')
+    
+    es = pickle.load(open(es_fname, 'rb'))
+    counter_dict = pickle.load(open(counter_dict_fname, 'rb'))
+    
+    return es, counter_dict
+
