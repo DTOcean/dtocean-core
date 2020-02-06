@@ -38,27 +38,103 @@ class MainThread(threading.Thread):
         self._log_interval = log_interval
         self._wait_interval = wait_interval
         self._stop_event = threading.Event()
+        self._continue_event = threading.Event()
+        self._continue_event.set()
         
-        self.stopped = False
+        self._stopped = False
+        self._paused = False
+    
+    @property
+    def stopped(self):
+        return self._stopped
+    
+    @property
+    def paused(self):
+        return self._paused
+    
+    def _set_stopped(self, state=True):
+        
+        if not state:
+            err_msg = "Stopped state may only be set to True"
+            raise ValueError(err_msg)
+        
+        log_msg = "Thread stopped"
+        module_logger.info(log_msg)
+        
+        self._stopped = True
+        
+        return
+    
+    def _set_paused(self, state):
+        
+        if state:
+            state_msg = "paused"
+        else:
+            state_msg = "resumed"
+        
+        log_msg = "Thread {}".format(state_msg)
+        module_logger.info(log_msg)
+        
+        self._paused = state
+        
+        return
     
     def stop(self):
+        
+        log_msg = "Stopping thread..."
+        module_logger.info(log_msg)
+        
         self._stop_event.set()
+        if self.paused: self._continue_event.set()
+        
+        return
+    
+    def pause(self):
+        
+        log_msg = "Pausing thread..."
+        module_logger.info(log_msg)
+        
+        self._continue_event.clear()
+        
+        return
+    
+    def resume(self):
+        
+        log_msg = "Resuming thread..."
+        module_logger.info(log_msg)
+        
+        self._continue_event.set()
+        
+        return
     
     def run(self):
         
-        self._stop_event.clear()
-        self.stopped = False
+        continue_event_state = self._continue_event.is_set()
         
         while not self._main.stop:
             
+            if (self._continue_event.is_set() != continue_event_state and 
+                not self._continue_event.is_set()):
+                
+                self._set_paused(True)
+                continue_event_state = self._continue_event.is_set()
+            
+            self._continue_event.wait()
+            
+            if (self._continue_event.is_set() != continue_event_state and
+                self._continue_event.is_set()):
+                
+                self._set_paused(False)
+                continue_event_state = self._continue_event.is_set()
+            
             if self._stop_event.is_set():
-                self.stopped = True
+                self._set_stopped()
                 return
             
             self._main.next()
         
         _post_process(self._config, self._log_interval)
-        self.stopped = True
+        self._set_stopped()
         
         return
     
