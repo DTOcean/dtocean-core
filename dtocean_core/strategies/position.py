@@ -81,15 +81,22 @@ class MainThread(threading.Thread):
     
     def stop(self):
         
+        if self._stop_event.is_set(): return
+        
         log_msg = "Stopping thread..."
         module_logger.info(log_msg)
         
         self._stop_event.set()
-        if self.paused: self._continue_event.set()
+        
+        if not self._continue_event.is_set():
+            self._continue_event.set()
         
         return
     
     def pause(self):
+        
+        if (self._stop_event.is_set() or
+            not self._continue_event.is_set()): return
         
         log_msg = "Pausing thread..."
         module_logger.info(log_msg)
@@ -99,6 +106,9 @@ class MainThread(threading.Thread):
         return
     
     def resume(self):
+        
+        if (self._stop_event.is_set() or
+            self._continue_event.is_set()): return
         
         log_msg = "Resuming thread..."
         module_logger.info(log_msg)
