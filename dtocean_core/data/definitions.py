@@ -4600,6 +4600,9 @@ class Strata(XSet3D):
                 
         sediment_path = self._path.replace("depth", "sediment")
         sediment_data = xr.open_dataset(sediment_path)
+        sediment_data = sediment_data.where(
+                                        sediment_data["sediment"] != 'None')
+        sediment_data = sediment_data.fillna(None)
         
         strata["sediment"] = sediment_data["sediment"]
         
