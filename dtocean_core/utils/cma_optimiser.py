@@ -451,9 +451,9 @@ class Main(object):
         self.es.logger.add()
         self.es.disp()
         
-        if logging == "print":
+        if self._logging == "print":
             self.es.disp()
-        elif logging == "module":
+        elif self._logging == "module":
             msg_str = ('Minimum fitness for iteration {}: '
                        '{:.15e}').format(self.es.countiter,
                         min(self.es.fit.fit))
