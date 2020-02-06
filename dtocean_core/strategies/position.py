@@ -435,7 +435,8 @@ class AdvancedPosition(Strategy):
                          "objective",
                          "results_params"]
         
-        required_filled = [bool(config[x]) for x in required_keys]
+        required_filled = [bool(config[x]) if x in config else False
+                                                       for x in required_keys]
         
         if not all(required_filled):
             
