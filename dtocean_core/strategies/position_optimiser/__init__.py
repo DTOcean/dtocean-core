@@ -21,7 +21,6 @@ from ...extensions import ToolManager
 from ...utils import cma_optimiser as cma
 from ...utils.files import remove_retry
 
-
 # Set up logging
 module_logger = logging.getLogger(__name__)
 
@@ -444,7 +443,7 @@ class Main(object):
             module_logger.info("Position optimisation complete")
             self.stop = True
             return
-            
+        
         self._cma_main.next()
         cma.dump_outputs(self._cma_main.es,
                          self._cma_main.iterator,

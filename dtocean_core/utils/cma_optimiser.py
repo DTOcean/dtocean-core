@@ -462,6 +462,56 @@ class Main(object):
         return
 
 
+def init_evolution_strategy(x0,
+                            low_bound,
+                            high_bound,
+                            max_simulations=None,
+                            popsize=None,
+                            timeout=None):
+    
+    opts = {'bounds': [low_bound, high_bound]}#,
+#            'verbose': -3}
+    
+    if max_simulations is not None:
+        opts["maxfevals"] = max_simulations
+    
+    if popsize is not None:
+        opts["popsize"] = popsize
+    
+    if timeout is not None:
+        opts["timeout"] = timeout
+    
+    es = cma.CMAEvolutionStrategy(x0, NormScaler.sigma, opts)
+    
+    return es
+
+
+def dump_outputs(es, iterator, worker_directory):
+    
+    counter_dict = iterator.get_counter_search_dict()
+    
+    es_fname = os.path.join(worker_directory, 'saved-cma-object.pkl')
+    counter_dict_fname = os.path.join(worker_directory,
+                                      'saved-counter-search-dict.pkl')
+    
+    pickle.dump(es, open(es_fname, 'wb'), -1)
+    pickle.dump(counter_dict, open(counter_dict_fname, 'wb'), -1)
+    
+    return
+
+
+def load_outputs(worker_directory):
+    
+    es_fname = os.path.join(worker_directory, 'saved-cma-object.pkl')
+    counter_dict_fname = os.path.join(worker_directory,
+                                      'saved-counter-search-dict.pkl')
+    
+    es = pickle.load(open(es_fname, 'rb'))
+    counter_dict = pickle.load(open(counter_dict_fname, 'rb'))
+    
+    return es, counter_dict
+
+
 def _get_scale_factor(range_min, range_max, x0, sigma, n_sigmas):
     
     if x0 < range_min or x0 > range_max:
@@ -512,30 +562,6 @@ def _clean_directory(dir_name, clean_existing=False, logging="module"):
     return
 
 
-def init_evolution_strategy(x0,
-                            low_bound,
-                            high_bound,
-                            max_simulations=None,
-                            popsize=None,
-                            timeout=None):
-    
-    opts = {'bounds': [low_bound, high_bound]}#,
-#            'verbose': -3}
-    
-    if max_simulations is not None:
-        opts["maxfevals"] = max_simulations
-    
-    if popsize is not None:
-        opts["popsize"] = popsize
-    
-    if timeout is not None:
-        opts["timeout"] = timeout
-    
-    es = cma.CMAEvolutionStrategy(x0, NormScaler.sigma, opts)
-    
-    return es
-
-
 def _get_match_process(values):
     
     match_dict = {}
@@ -576,30 +602,3 @@ def _rebuild_input(values, run_idxs, match_dict, input_length):
         rebuild[copy_idxs] = rebuild[base_idx]
     
     return rebuild
-
-
-def dump_outputs(es, iterator, worker_directory):
-    
-    counter_dict = iterator.get_counter_search_dict()
-    
-    es_fname = os.path.join(worker_directory, 'saved-cma-object.pkl')
-    counter_dict_fname = os.path.join(worker_directory,
-                                      'saved-counter-search-dict.pkl')
-    
-    pickle.dump(es, open(es_fname, 'wb'), -1)
-    pickle.dump(counter_dict, open(counter_dict_fname, 'wb'), -1)
-    
-    return
-
-
-def load_outputs(worker_directory):
-    
-    es_fname = os.path.join(worker_directory, 'saved-cma-object.pkl')
-    counter_dict_fname = os.path.join(worker_directory,
-                                      'saved-counter-search-dict.pkl')
-    
-    es = pickle.load(open(es_fname, 'rb'))
-    counter_dict = pickle.load(open(counter_dict_fname, 'rb'))
-    
-    return es, counter_dict
-
