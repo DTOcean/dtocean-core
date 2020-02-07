@@ -33,7 +33,10 @@ def main(core,
          n_nodes,
          t1,
          t2,
-         penalty=1.):
+         penalty=1.,
+         raise_exc=False,
+         save_project=False,
+         write_results=True):
     
     array_orientation = float(array_orientation_deg) * np.pi / 180
     delta_row = float(delta_row)
@@ -73,6 +76,15 @@ def main(core,
     except Exception as e:
         
         flag = "Exception"
+        
+        if raise_exc:
+            t, v, tb = sys.exc_info()
+            raise t, v, tb
+    
+    if save_project:
+        core.dump_project(project, prj_file_path)
+    
+    if not write_results: return
     
     prj_base_path, _ = os.path.splitext(prj_file_path)
     
