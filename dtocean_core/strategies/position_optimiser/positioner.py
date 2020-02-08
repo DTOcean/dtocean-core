@@ -297,10 +297,14 @@ class ParaPositioner(DevicePositioner):
             concave_hull = concave_hull.union(MultiPoint(nodes))
         except QhullError:
             concave_hull = MultiPoint(nodes).convex_hull
-            
-        start_coords = _parametric_point_in_polygon(concave_hull, t1, t2)
-        nearest_nodes = _nearest_n_nodes(nodes, start_coords, n_nodes)
         
+        if isinstance(concave_hull, LineString):
+            interp_length = concave_hull.length * t1
+            start_coords = concave_hull.interpolate(interp_length)
+        else:
+            start_coords = _parametric_point_in_polygon(concave_hull, t1, t2)
+        
+        nearest_nodes = _nearest_n_nodes(nodes, start_coords, n_nodes)
         actual_n_nodes = len(nearest_nodes)
         
         if actual_n_nodes < n_nodes:
