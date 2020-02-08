@@ -27,6 +27,7 @@ import abc
 import numpy as np
 from polylabel import polylabel
 from scipy.spatial import Delaunay
+from scipy.spatial.qhull import QhullError
 from shapely.geometry import (LineString,
                               MultiLineString,
                               MultiPoint,
@@ -291,16 +292,14 @@ class ParaPositioner(DevicePositioner):
         else:
             alpha = kwargs["alpha"]
         
-        if len(nodes) < 4:
-            
-            nearest_nodes = nodes[:n_nodes]
-        
-        else:
-            
-            concave_hull, edge_points = _alpha_shape(nodes, alpha)
+        try:
+            concave_hull, _ = _alpha_shape(nodes, alpha)
             concave_hull = concave_hull.union(MultiPoint(nodes))
-            start_coords = _parametric_point_in_polygon(concave_hull, t1, t2)
-            nearest_nodes = _nearest_n_nodes(nodes, start_coords, n_nodes)
+        except QhullError:
+            concave_hull = MultiPoint(nodes).convex_hull
+            
+        start_coords = _parametric_point_in_polygon(concave_hull, t1, t2)
+        nearest_nodes = _nearest_n_nodes(nodes, start_coords, n_nodes)
         
         actual_n_nodes = len(nearest_nodes)
         
