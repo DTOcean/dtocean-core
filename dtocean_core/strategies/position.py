@@ -4,6 +4,7 @@ import os
 import ast
 import glob
 import math
+import types
 import pickle
 import logging
 import threading
@@ -61,6 +62,13 @@ class MainThread(threading.Thread):
         log_msg = "Thread stopped"
         module_logger.info(log_msg)
         
+        try:
+            self._exit_hook()
+        except Exception as e:
+            log_msg = ("Exit hook threw {}: "
+                       "{}").format(type(e).__name__, str(e))
+            module_logger.warning(log_msg)
+        
         self._stopped = True
         
         return
@@ -114,6 +122,26 @@ class MainThread(threading.Thread):
         module_logger.info(log_msg)
         
         self._continue_event.set()
+        
+        return
+    
+    def _exit_hook(self):
+        return
+    
+    def set_exit_hook(self, func):
+        
+        method = _method_decorator(func)
+        self._exit_hook = types.MethodType(method, self)
+        
+        return
+    
+    def clear_exit_hook(self):
+        
+        def empty():
+            return
+        
+        method = _method_decorator(empty)
+        self._exit_hook = types.MethodType(method, self)
         
         return
     
@@ -572,6 +600,14 @@ class AdvancedPosition(Strategy):
         hydro_branch.reset(core, project)
         
         return
+
+
+def _method_decorator(func):
+    
+    def wrapper(self):
+        func()
+    
+    return wrapper
 
 
 def _get_root_project_base_name(root_project_path):
