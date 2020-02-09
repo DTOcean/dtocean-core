@@ -153,14 +153,7 @@ class PositionIterator(cma.Iterator):
             details = str(e)
             
             if "Expected number of nodes not found" in details:
-                
-                words = details.split()
-                expected = int(words[-4])
-                actual = int(words[-1])
-                rel_diff = float(expected - actual) / expected
-                multiplier = np.exp(rel_diff)
-                
-                return self._base_penalty * multiplier
+                return True
             
             raise RuntimeError(e)
         
@@ -178,15 +171,11 @@ class PositionIterator(cma.Iterator):
             details = str(e)
             
             if "Violation of the minimum distance constraint" in details:
-                
-                words = details.split()
-                multiplier = np.exp(float(words[-1]))
-                
-                return self._base_penalty * multiplier
+                return True
             
             raise RuntimeError(e)
         
-        return
+        return False
     
     def get_worker_cost(self, results):
         """Return the function cost based on the data read from the worker
@@ -205,7 +194,7 @@ class PositionIterator(cma.Iterator):
                 module_logger.debug(flag)
                 module_logger.debug(details)
             
-            lcoe = self._base_penalty
+            lcoe = -1
         
         elif flag == "Success":
             

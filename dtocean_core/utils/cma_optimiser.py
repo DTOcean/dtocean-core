@@ -249,34 +249,7 @@ class Iterator(object):
         
         flag = ""
         iteration = self._counter.get_iteration()
-        
-        try:
-            
-            pre_constraint_cost = self.pre_constraints_hook(*args)
-        
-        except Exception as e:
-            
-            pre_constraint_cost = self._base_penalty
-            flag = "Fail Constraints"
-            worker_results_path = None
-            
-            if self._logging == "print":
-                self._print_exception(e, flag)
-            elif self._logging == "module":
-                self._log_exception(e, flag)
-        
-        if pre_constraint_cost is not None:
-            
-            self.set_counter_params(iteration,
-                                    None,
-                                    None,
-                                    pre_constraint_cost,
-                                    "",
-                                    *args)
-            
-            results_queue.put(pre_constraint_cost)
-            
-            return
+        cost = None
         
         worker_file_root_path = "{}_{}".format(self._root_project_base_name,
                                                iteration)
@@ -295,7 +268,7 @@ class Iterator(object):
             
         except Exception as e:
             
-            cost = self._base_penalty
+            cost = -1
             flag = "Fail Send"
             worker_results_path = None
             
@@ -320,7 +293,7 @@ class Iterator(object):
         
         except Exception as e:
             
-            cost = self._base_penalty
+            cost = -1
             flag = "Fail Execute"
             worker_results_path = None
             
@@ -340,7 +313,7 @@ class Iterator(object):
             
             except Exception as e:
                 
-                cost = self._base_penalty
+                cost = -1
                 flag = "Fail Receive"
                 worker_results_path = None
                 
@@ -412,42 +385,78 @@ class Main(object):
         if self.es.stop():
             self.stop = True
             return
-            
-        result_queue = queue.Queue()
-        scaled_solutions = self.es.ask()
-        descaled_solutions = []
         
-        for solution in scaled_solutions:
+        final_solutions = []
+        final_costs = []
+        
+        while len(final_solutions) < self.es.popsize:
             
-            new_solution = [scaler.inverse(x) for x, scaler
+            result_queue = queue.Queue()
+            needed_solutions = self.es.popsize - len(final_solutions)
+            run_solutions = []
+            run_descaled_solutions = []
+            
+            while len(run_solutions) < needed_solutions:
+                
+                ask_solutions = needed_solutions - len(run_solutions)
+                scaled_solutions = self.es.ask(ask_solutions)
+                descaled_solutions = []
+                
+                for solution in scaled_solutions:
+                    
+                    new_solution = [scaler.inverse(x) for x, scaler
                                         in zip(solution, self._scaled_vars)]
-            nearest_solution = [snap(x) for x, snap
+                    nearest_solution = [snap(x) for x, snap
                                     in zip(new_solution, self._nearest_ops)]
-            descaled_solutions.append(nearest_solution)
-        
-        if self._fixed_index_map is not None:
+                    descaled_solutions.append(nearest_solution)
+                
+                if self._fixed_index_map is not None:
+                    
+                    ordered_index_map = OrderedDict(
+                                        sorted(self._fixed_index_map.items(),
+                                               key=lambda t: t[0]))
+                    
+                    for solution in descaled_solutions:
+                        for idx, val in ordered_index_map.iteritems():
+                            solution.insert(idx, val)
+                
+                checked_solutions = []
+                checked_descaled_solutions = []
+                
+                for sol, des_sol in zip(scaled_solutions, descaled_solutions):
+                    if self.iterator.pre_constraints_hook(*des_sol): continue
+                    checked_solutions.append(sol)
+                    checked_descaled_solutions.append(des_sol)
+                
+                run_solutions.extend(checked_solutions)
+                run_descaled_solutions.extend(checked_descaled_solutions)
             
-            ordered_index_map = OrderedDict(
-                                    sorted(self._fixed_index_map.items(),
-                                           key=lambda t: t[0]))
+            run_idxs, match_dict = _get_match_process(run_descaled_solutions)
             
-            for solution in descaled_solutions:
-                for idx, val in ordered_index_map.iteritems():
-                    solution.insert(idx, val)
+            for i in run_idxs:
+                self._thread_queue.put([result_queue] +
+                                                   run_descaled_solutions[i])
+            
+            self._thread_queue.join()
+            
+            costs = _rebuild_input(result_queue.queue,
+                                   run_idxs,
+                                   match_dict,
+                                   len(run_descaled_solutions))
+            
+            valid_solutions = []
+            valid_costs = []
+            
+            for sol, cost in zip(run_solutions, costs):
+                
+                if cost < 0.: continue
+                valid_solutions.append(sol)
+                valid_costs.append(cost)
+            
+            final_solutions.extend(valid_solutions)
+            final_costs.extend(valid_costs)
         
-        run_idxs, match_dict = _get_match_process(descaled_solutions)
-        
-        for i in run_idxs:
-            self._thread_queue.put([result_queue] + descaled_solutions[i])
-        
-        self._thread_queue.join()
-        
-        costs = _rebuild_input(result_queue.queue,
-                               run_idxs,
-                               match_dict,
-                               len(descaled_solutions))
-        
-        self.es.tell(scaled_solutions, costs)
+        self.es.tell(final_solutions, final_costs)
         self.es.logger.add()
         self.es.disp()
         
