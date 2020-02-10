@@ -361,7 +361,7 @@ class Main(object):
         # Defaults
         if base_penalty is None: base_penalty = 1.
         if num_threads is None: num_threads = 1
-        if max_resample_loops is None: max_resample_loops = 5000
+        if max_resample_loops is None: max_resample_loops = 1000
         
         self.es = es
         self.iterator = iterator
