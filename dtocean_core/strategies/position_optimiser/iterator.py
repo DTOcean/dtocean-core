@@ -33,7 +33,6 @@ def main(core,
          n_nodes,
          t1,
          t2,
-         penalty=1.,
          raise_exc=False,
          save_project=False,
          write_results=True):
@@ -44,7 +43,6 @@ def main(core,
     n_nodes = int(float(n_nodes))
     t1 = float(t1)
     t2 = float(t2)
-    penalty = float(penalty)
     
     params_dict = {"theta": array_orientation,
                    "dr": delta_row,
@@ -248,8 +246,7 @@ def interface():
      delta_col,
      n_nodes,
      t1,
-     t2,
-     penalty) = sys.argv[1:]
+     t2) = sys.argv[1:]
     
     main(core,
          prj_file_path,
@@ -258,5 +255,4 @@ def interface():
          delta_col,
          n_nodes,
          t1,
-         t2,
-         penalty)
+         t2)

@@ -17,8 +17,9 @@ from copy import deepcopy
 from subprocess import Popen
 
 import cma
-import numpy as np
 import yaml
+import numpy as np
+from numpy.linalg import norm
 
 from ..core import Core
 
@@ -160,7 +161,6 @@ class Iterator(object):
                        worker_directory,
                        base_project,
                        counter,
-                       base_penalty=1.,
                        logging="module",
                        restart=False,
                        clean_existing_dir=False):
@@ -169,7 +169,6 @@ class Iterator(object):
         self._root_project_base_name = root_project_base_name
         self._worker_directory = worker_directory
         self._base_project = base_project
-        self._base_penalty = base_penalty
         self._logging = logging
         self._core = Core()
         
@@ -249,7 +248,7 @@ class Iterator(object):
         
         flag = ""
         iteration = self._counter.get_iteration()
-        cost = None
+        cost = np.nan
         
         worker_file_root_path = "{}_{}".format(self._root_project_base_name,
                                                iteration)
@@ -268,7 +267,6 @@ class Iterator(object):
             
         except Exception as e:
             
-            cost = -1
             flag = "Fail Send"
             worker_results_path = None
             
@@ -293,7 +291,6 @@ class Iterator(object):
         
         except Exception as e:
             
-            cost = -1
             flag = "Fail Execute"
             worker_results_path = None
             
@@ -313,7 +310,6 @@ class Iterator(object):
             
             except Exception as e:
                 
-                cost = -1
                 flag = "Fail Receive"
                 worker_results_path = None
                 
@@ -353,8 +349,19 @@ class Main(object):
                        scaled_vars,
                        nearest_ops,
                        fixed_index_map=None,
-                       num_threads=1,
+                       base_penalty=None,
+                       num_threads=None,
+                       max_resample_loops=None,
                        logging="module"):
+        
+        if max_resample_loops == 0:
+            err_msg = "Argument max_resample_loops may not be set to zero"
+            raise ValueError(err_msg)
+        
+        # Defaults
+        if base_penalty is None: base_penalty = 1.
+        if num_threads is None: num_threads = 1
+        if max_resample_loops is None: max_resample_loops = 5000
         
         self.es = es
         self.iterator = iterator
@@ -363,9 +370,12 @@ class Main(object):
         self._scaled_vars = scaled_vars
         self._nearest_ops = nearest_ops
         self._fixed_index_map = fixed_index_map
+        self._base_penalty = base_penalty
         self._num_threads = num_threads
+        self._max_resample_loops = max_resample_loops
         self._logging = logging
         self._thread_queue = None
+        self._sol_feasible = None
     
     def init_threads(self):
             
@@ -386,17 +396,65 @@ class Main(object):
             self.stop = True
             return
         
+        final_solutions, final_costs = self._get_solutions_costs()
+        
+        self.es.tell(final_solutions, final_costs)
+        self.es.logger.add()
+        self.es.disp()
+        
+        if self._logging == "print":
+            self.es.disp()
+        elif self._logging == "module":
+            msg_str = ('Minimum fitness for iteration {}: '
+                       '{:.15e}').format(self.es.countiter,
+                        min(self.es.fit.fit))
+            module_logger.info(msg_str)
+        
+        return
+    
+    def _get_solutions_costs(self):
+        
         final_solutions = []
         final_costs = []
         
         while len(final_solutions) < self.es.popsize:
-            
+        
             result_queue = queue.Queue()
             needed_solutions = self.es.popsize - len(final_solutions)
+            scaled_solutions = None
             run_solutions = []
             run_descaled_solutions = []
+            resample_loops = 0
             
-            while len(run_solutions) < needed_solutions:
+            while (len(run_solutions) < needed_solutions):
+                
+                # If the maximum number of resamples is reached apply a 
+                # penalty value to a new set of solutions based on a fixed 
+                # penalty and the distance to a previous best solution
+                if resample_loops == self._max_resample_loops:
+                    
+                    if self._sol_feasible is None:
+                        
+                        if self.es.countiter == 0:
+                            err_msg = ("There are no feasible solutions to "
+                                       "use for penalty calculation. Problem "
+                                       "is likely ill-posed.")
+                            raise RuntimeError(err_msg)
+                        
+                        self._sol_feasible = self.es.best.x.copy()
+                    
+                    log_msg = ("Maximum of {} resamples reached. Applying "
+                               "penalty values.").format(
+                                                   self._max_resample_loops)
+                    module_logger.info(log_msg)
+                    
+                    scaled_solutions = self.es.ask(self.es.popsize)
+                    
+                    costs = [self._base_penalty + norm(
+                                        sol - self._sol_feasible)
+                                                for sol in scaled_solutions]
+                    
+                    return scaled_solutions, costs
                 
                 ask_solutions = needed_solutions - len(run_solutions)
                 scaled_solutions = self.es.ask(ask_solutions)
@@ -430,6 +488,12 @@ class Main(object):
                 
                 run_solutions.extend(checked_solutions)
                 run_descaled_solutions.extend(checked_descaled_solutions)
+                
+                resample_loops += 1
+            
+            log_msg = ("{} resample loops required to generate population of "
+                       "{} solutions").format(resample_loops, self.es.popsize)
+            module_logger.debug(log_msg)
             
             run_idxs, match_dict = _get_match_process(run_descaled_solutions)
             
@@ -449,26 +513,15 @@ class Main(object):
             
             for sol, cost in zip(run_solutions, costs):
                 
-                if cost < 0.: continue
+                if np.isnan(cost): continue
                 valid_solutions.append(sol)
                 valid_costs.append(cost)
             
             final_solutions.extend(valid_solutions)
             final_costs.extend(valid_costs)
         
-        self.es.tell(final_solutions, final_costs)
-        self.es.logger.add()
-        self.es.disp()
-        
-        if self._logging == "print":
-            self.es.disp()
-        elif self._logging == "module":
-            msg_str = ('Minimum fitness for iteration {}: '
-                       '{:.15e}').format(self.es.countiter,
-                        min(self.es.fit.fit))
-            module_logger.info(msg_str)
-        
-        return
+        return final_solutions, final_costs
+
 
 
 def init_evolution_strategy(x0,

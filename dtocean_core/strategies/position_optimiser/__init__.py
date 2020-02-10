@@ -94,7 +94,6 @@ class PositionIterator(cma.Iterator):
                        base_project,
                        counter,
                        objective_var,
-                       base_penalty=1.,
                        logging="module",
                        restart=False,
                        clean_existing_dir=False):
@@ -103,7 +102,6 @@ class PositionIterator(cma.Iterator):
                                                worker_directory,
                                                base_project,
                                                counter,
-                                               base_penalty,
                                                logging,
                                                restart,
                                                clean_existing_dir)
@@ -120,7 +118,6 @@ class PositionIterator(cma.Iterator):
         popen_args = ["_dtocean-optim-pos",
                       worker_project_path]
         popen_args += [str(x) for x in args]
-        popen_args += [str(self._base_penalty)]
         
         return popen_args
     
@@ -194,7 +191,7 @@ class PositionIterator(cma.Iterator):
                 module_logger.debug(flag)
                 module_logger.debug(details)
             
-            lcoe = -1
+            lcoe = np.nan
         
         elif flag == "Success":
             
@@ -266,6 +263,7 @@ class Main(object):
         max_simulations = None
         popsize = None
         timeout = None
+        max_resample_loops = None
         logging = "module"
         
         if "clean_existing_dir" in config:
@@ -279,6 +277,9 @@ class Main(object):
         
         if "timeout" in config:
             timeout = config["timeout"]
+        
+        if "max_resamples" in config:
+            max_resample_loops = config["max_resamples"]
         
         if "logging" in config:
             logging = config["logging"]
@@ -316,7 +317,6 @@ class Main(object):
                                     project,
                                     counter,
                                     objective,
-                                    base_penalty=base_penalty,
                                     logging=logging,
                                     clean_existing_dir=clean_existing_dir)
         
@@ -337,7 +337,9 @@ class Main(object):
                                   scaled_vars,
                                   nearest_ops,
                                   fixed_index_map=fixed_params,
+                                  base_penalty=base_penalty,
                                   num_threads=n_threads,
+                                  max_resample_loops=max_resample_loops,
                                   logging=logging)
         
         self._cma_main.init_threads()
@@ -364,7 +366,11 @@ class Main(object):
         objective = config["objective"]
         
         # Defaults
+        max_resample_loops = None
         logging = "module"
+        
+        if "max_resamples" in config:
+            max_resample_loops = config["max_resamples"]
         
         if "logging" in config:
             logging = config["logging"]
@@ -409,7 +415,6 @@ class Main(object):
                                     project,
                                     counter,
                                     objective,
-                                    base_penalty=base_penalty,
                                     logging=logging,
                                     restart=True)
         
@@ -419,7 +424,9 @@ class Main(object):
                                   scaled_vars,
                                   nearest_ops,
                                   fixed_index_map=fixed_params,
+                                  base_penalty=base_penalty,
                                   num_threads=n_threads,
+                                  max_resample_loops=max_resample_loops,
                                   logging=logging)
         
         self._cma_main.init_threads()
