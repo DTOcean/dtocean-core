@@ -185,13 +185,13 @@ class Iterator(object):
     @abc.abstractmethod
     def pre_constraints_hook(self, *args):
         """Allows checking of constraints prior to execution. Should return
-        None if not violated otherwise return cost"""
+        True if violated otherwise False"""
         return
     
     @abc.abstractmethod
     def get_worker_cost(self, results):
         """Return the function cost based on the data read from the worker
-        results file."""
+        results file. Constraint violation should return np.nan"""
         return
     
     @abc.abstractmethod
@@ -521,7 +521,6 @@ class Main(object):
             final_costs.extend(valid_costs)
         
         return final_solutions, final_costs
-
 
 
 def init_evolution_strategy(x0,

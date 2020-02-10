@@ -176,7 +176,7 @@ class PositionIterator(cma.Iterator):
     
     def get_worker_cost(self, results):
         """Return the function cost based on the data read from the worker
-        results file."""
+        results file. Constraint violation should return np.nan"""
         
         flag = results["status"]
         
