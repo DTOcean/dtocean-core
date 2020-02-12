@@ -535,7 +535,8 @@ def init_evolution_strategy(x0,
                             high_bound,
                             max_simulations=None,
                             popsize=None,
-                            timeout=None):
+                            timeout=None,
+                            tolfun=None):
     
     opts = {'bounds': [low_bound, high_bound]}#,
 #            'verbose': -3}
@@ -548,6 +549,9 @@ def init_evolution_strategy(x0,
     
     if timeout is not None:
         opts["timeout"] = timeout
+    
+    if tolfun is not None:
+        opts["tolfun"] = tolfun
     
     es = cma.CMAEvolutionStrategy(x0, NormScaler.sigma, opts)
     

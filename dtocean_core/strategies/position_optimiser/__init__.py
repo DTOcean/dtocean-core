@@ -263,6 +263,7 @@ class Main(object):
         max_simulations = None
         popsize = None
         timeout = None
+        tolfun = None
         max_resample_loop_factor = None
         logging = "module"
         
@@ -277,6 +278,9 @@ class Main(object):
         
         if "timeout" in config:
             timeout = config["timeout"]
+        
+        if "tolfun" in config:
+            tolfun = config["tolfun"]
         
         if "max_resample_factor" in config:
             max_resample_loop_factor = config["max_resample_factor"]
@@ -309,7 +313,8 @@ class Main(object):
                                          high_bound,
                                          max_simulations=max_simulations,
                                          popsize=popsize,
-                                         timeout=timeout)
+                                         timeout=timeout,
+                                         tolfun=tolfun)
         
         counter = PositionCounter()
         iterator = PositionIterator(root_project_base_name,
