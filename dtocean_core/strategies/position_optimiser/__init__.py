@@ -263,7 +263,7 @@ class Main(object):
         max_simulations = None
         popsize = None
         timeout = None
-        max_resample_loops = None
+        max_resample_loop_factor = None
         logging = "module"
         
         if "clean_existing_dir" in config:
@@ -278,8 +278,8 @@ class Main(object):
         if "timeout" in config:
             timeout = config["timeout"]
         
-        if "max_resamples" in config:
-            max_resample_loops = config["max_resamples"]
+        if "max_resample_factor" in config:
+            max_resample_loop_factor = config["max_resample_factor"]
         
         if "logging" in config:
             logging = config["logging"]
@@ -331,16 +331,17 @@ class Main(object):
         results_params = list(set(results_params).union([objective]))
         dump_results_control(results_params, self._worker_directory)
         
-        self._cma_main = cma.Main(es,
-                                  self._worker_directory,
-                                  iterator,
-                                  scaled_vars,
-                                  nearest_ops,
-                                  fixed_index_map=fixed_params,
-                                  base_penalty=base_penalty,
-                                  num_threads=n_threads,
-                                  max_resample_loops=max_resample_loops,
-                                  logging=logging)
+        self._cma_main = cma.Main(
+                            es,
+                            self._worker_directory,
+                            iterator,
+                            scaled_vars,
+                            nearest_ops,
+                            fixed_index_map=fixed_params,
+                            base_penalty=base_penalty,
+                            num_threads=n_threads,
+                            max_resample_loop_factor=max_resample_loop_factor,
+                            logging=logging)
         
         self._cma_main.init_threads()
         
@@ -366,11 +367,11 @@ class Main(object):
         objective = config["objective"]
         
         # Defaults
-        max_resample_loops = None
+        max_resample_loop_factor = None
         logging = "module"
         
-        if "max_resamples" in config:
-            max_resample_loops = config["max_resamples"]
+        if "max_resample_factor" in config:
+            max_resample_loop_factor = config["max_resample_factor"]
         
         if "logging" in config:
             logging = config["logging"]
@@ -418,16 +419,17 @@ class Main(object):
                                     logging=logging,
                                     restart=True)
         
-        self._cma_main = cma.Main(es,
-                                  self._worker_directory,
-                                  iterator,
-                                  scaled_vars,
-                                  nearest_ops,
-                                  fixed_index_map=fixed_params,
-                                  base_penalty=base_penalty,
-                                  num_threads=n_threads,
-                                  max_resample_loops=max_resample_loops,
-                                  logging=logging)
+        self._cma_main = cma.Main(
+                            es,
+                            self._worker_directory,
+                            iterator,
+                            scaled_vars,
+                            nearest_ops,
+                            fixed_index_map=fixed_params,
+                            base_penalty=base_penalty,
+                            num_threads=n_threads,
+                            max_resample_loop_factor=max_resample_loop_factor,
+                            logging=logging)
         
         self._cma_main.init_threads()
         

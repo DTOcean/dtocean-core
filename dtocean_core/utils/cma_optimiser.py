@@ -14,6 +14,7 @@ import threading
 import traceback
 from collections import OrderedDict
 from copy import deepcopy
+from math import ceil
 from subprocess import Popen
 
 import cma
@@ -351,17 +352,20 @@ class Main(object):
                        fixed_index_map=None,
                        base_penalty=None,
                        num_threads=None,
-                       max_resample_loops=None,
+                       max_resample_loop_factor=None,
                        logging="module"):
-        
-        if max_resample_loops == 0:
-            err_msg = "Argument max_resample_loops may not be set to zero"
-            raise ValueError(err_msg)
         
         # Defaults
         if base_penalty is None: base_penalty = 1.
         if num_threads is None: num_threads = 1
-        if max_resample_loops is None: max_resample_loops = 1000
+        if max_resample_loop_factor is None: max_resample_loop_factor = 100
+        
+        if max_resample_loop_factor <= 0:
+            err_msg = ("Argument max_resample_loop_factor must be greater "
+                       "than zero")
+            raise ValueError(err_msg)
+        
+        max_resample_loops = int(ceil(max_resample_loop_factor * es.popsize))
         
         self.es = es
         self.iterator = iterator
@@ -491,8 +495,8 @@ class Main(object):
                 
                 resample_loops += 1
             
-            log_msg = ("{} resample loops required to generate population of "
-                       "{} solutions").format(resample_loops, self.es.popsize)
+            log_msg = ("{} resample loops required to generate {} "
+                       "solutions").format(resample_loops, needed_solutions)
             module_logger.debug(log_msg)
             
             run_idxs, match_dict = _get_match_process(run_descaled_solutions)
