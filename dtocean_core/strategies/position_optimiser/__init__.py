@@ -484,13 +484,19 @@ def get_param_control(config, core, project):
                                           crange["variable"],
                                           crange["min_multiplier"],
                                           crange["max_multiplier"])
-            
-        cinterp = parameter["interp"]
         
-        if cinterp["type"] == "fixed":
-            nearest_op = get_interp_fixed(cinterp["values"])
-        elif  cinterp["type"] == "range":
-            nearest_op = get_interp_range(prange, cinterp["delta"])
+        if "interp" in parameter:
+            
+            cinterp = parameter["interp"]
+            
+            if cinterp["type"] == "fixed":
+                nearest_op = get_interp_fixed(cinterp["values"])
+            elif  cinterp["type"] == "range":
+                nearest_op = get_interp_range(prange, cinterp["delta"])
+        
+        else:
+            
+            nearest_op = None
         
         if "x0" in parameter:
             x0 = parameter["x0"]

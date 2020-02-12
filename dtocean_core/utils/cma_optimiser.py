@@ -468,8 +468,11 @@ class Main(object):
                     
                     new_solution = [scaler.inverse(x) for x, scaler
                                         in zip(solution, self._scaled_vars)]
-                    nearest_solution = [snap(x) for x, snap
-                                    in zip(new_solution, self._nearest_ops)]
+                    nearest_solution = \
+                            [snap(x) if snap is not None else x
+                                     for x, snap in zip(new_solution,
+                                                        self._nearest_ops)]
+                    
                     descaled_solutions.append(nearest_solution)
                 
                 if self._fixed_index_map is not None:
