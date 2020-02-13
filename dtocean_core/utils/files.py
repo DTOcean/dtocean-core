@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2016-2018 Mathew Topper
+#    Copyright (C) 2016-2020 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -25,9 +25,13 @@ import os
 import time
 import shutil
 import pickle
+import logging
 import tarfile
 import zipfile
 import tempfile
+
+# Set up logging
+module_logger = logging.getLogger(__name__)
 
 
 def pickle_test_data(file_path, test_data_dict):
@@ -176,4 +180,34 @@ def rmtree_retry(src_path):
 @os_retry
 def remove_retry(src_path):
     os.remove(src_path)
+    return
+
+
+def init_dir(dir_name,
+             clean_existing=False):
+    
+    if not os.path.exists(dir_name):
+        os.makedirs(dir_name)
+        return
+        
+    if not clean_existing:
+        
+        err_msg = ("Directory {} already exists. Set clean_existing "
+                   "argument to True to delete the contents of the "
+                   "directory").format(dir_name)
+        raise IOError(err_msg)
+    
+    for entry_name in os.listdir(dir_name):
+        
+        entry_path = os.path.join(dir_name, entry_name)
+        
+        if os.path.isfile(entry_path):
+            remove_retry(entry_path)
+        elif os.path.isdir(entry_path):
+            rmtree_retry(entry_path)
+        else:
+            err_str = ("Path {} has unhandled filesystem "
+                       "type").format(entry_path)
+            raise RuntimeError(err_str)
+    
     return

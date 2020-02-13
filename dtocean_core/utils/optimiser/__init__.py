@@ -22,6 +22,7 @@ import yaml
 import numpy as np
 from numpy.linalg import norm
 
+from .files import init_dir
 from ..core import Core
 
 # Set up logging
@@ -174,7 +175,7 @@ class Iterator(object):
         self._core = Core()
         
         if not restart:
-            _clean_directory(worker_directory, clean_existing_dir)
+            init_dir(worker_directory, clean_existing_dir)
         
         return
     
@@ -604,34 +605,7 @@ def _get_scale_factor(range_min, range_max, x0, sigma, n_sigmas):
     return half_scaled_range / max_half_range
 
 
-def _clean_directory(dir_name, clean_existing=False, logging="module"):
-    
-    if not os.path.exists(dir_name):
-        
-        os.makedirs(dir_name)
-        
-    else:
-        
-        if not clean_existing:
-            
-            err_msg = ("Directory {} already exists. Set clean_existing "
-                       "argument to True to delete the contents of the "
-                       "directory").format(dir_name)
-            raise IOError(err_msg)
-        
-        for the_file in os.listdir(dir_name):
-            file_path = os.path.join(dir_name, the_file)
-            try:
-                if os.path.isfile(file_path):
-                    os.unlink(file_path)
-                #elif os.path.isdir(file_path): shutil.rmtree(file_path)
-            except Exception as e:
-                if logging == "print":
-                    print(e)
-                elif logging == "module":
-                    module_logger.debug(e)
-    
-    return
+
 
 
 def _get_match_process(values):

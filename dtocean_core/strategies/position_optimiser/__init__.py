@@ -18,7 +18,7 @@ from natsort import natsorted
 from .iterator import get_positioner
 from ...core import Core
 from ...extensions import ToolManager
-from ...utils import cma_optimiser as cma
+from ...utils import optimiser as opt
 from ...utils.files import remove_retry
 
 # Set up logging
@@ -40,7 +40,7 @@ PositionParams = namedtuple('PositionParams', ['array_orientation',
                                                'yaml_file_path'])
 
 
-class PositionCounter(cma.Counter):
+class PositionCounter(opt.Counter):
     
     def _set_params(self, worker_project_path,
                           worker_results_path,
@@ -87,7 +87,7 @@ class PositionCounter(cma.Counter):
         return
 
 
-class PositionIterator(cma.Iterator):
+class PositionIterator(opt.Iterator):
     
     def __init__(self, root_project_base_name,
                        worker_directory,
@@ -300,7 +300,7 @@ class Main(object):
                                                                    self._core,
                                                                    project)
         
-        scaled_vars = [cma.NormScaler(x[0], x[1], y)
+        scaled_vars = [opt.NormScaler(x[0], x[1], y)
                                                 for x, y in zip(ranges, x0s)]
         x0 = [scaled.x0 for scaled in scaled_vars]
         low_bound = [scaler.scaled(x[0])
@@ -308,7 +308,7 @@ class Main(object):
         high_bound = [scaler.scaled(x[1])
                                     for x, scaler in zip(ranges, scaled_vars)]
         
-        es = cma.init_evolution_strategy(x0,
+        es = opt.init_evolution_strategy(x0,
                                          low_bound,
                                          high_bound,
                                          max_simulations=max_simulations,
@@ -330,13 +330,13 @@ class Main(object):
         dump_config(config, config_path)
         
         # Store the es object and counter search dict for potential restart
-        cma.dump_outputs(es, iterator, self._worker_directory)
+        opt.dump_outputs(es, iterator, self._worker_directory)
         
         # Write the results params control file for workers
         results_params = list(set(results_params).union([objective]))
         dump_results_control(results_params, self._worker_directory)
         
-        self._cma_main = cma.Main(
+        self._cma_main = opt.Main(
                             es,
                             self._worker_directory,
                             iterator,
@@ -364,7 +364,7 @@ class Main(object):
         config = load_config(config_path)
         
         # Reload outputs
-        es, counter_dict = cma.load_outputs(self._worker_directory)
+        es, counter_dict = opt.load_outputs(self._worker_directory)
     
         root_project_path = config['root_project_path']
         base_penalty = config["base_penalty"]
@@ -412,7 +412,7 @@ class Main(object):
                                                                    self._core,
                                                                    project)
         
-        scaled_vars = [cma.NormScaler(x[0], x[1], y)
+        scaled_vars = [opt.NormScaler(x[0], x[1], y)
                                                 for x, y in zip(ranges, x0s)]
         
         counter = PositionCounter(counter_dict)
@@ -424,7 +424,7 @@ class Main(object):
                                     logging=logging,
                                     restart=True)
         
-        self._cma_main = cma.Main(
+        self._cma_main = opt.Main(
                             es,
                             self._worker_directory,
                             iterator,
@@ -448,7 +448,7 @@ class Main(object):
             return
         
         self._cma_main.next()
-        cma.dump_outputs(self._cma_main.es,
+        opt.dump_outputs(self._cma_main.es,
                          self._cma_main.iterator,
                          self._worker_directory)
     
