@@ -96,7 +96,8 @@ class PositionIterator(opt.Iterator):
                        objective_var,
                        logging="module",
                        restart=False,
-                       clean_existing_dir=False):
+                       clean_existing_dir=False,
+                       violation_log_name = "violations.txt"):
         
         super(PositionIterator, self).__init__(root_project_base_name,
                                                worker_directory,
@@ -109,6 +110,8 @@ class PositionIterator(opt.Iterator):
         self._tool_man = ToolManager()
         self._positioner = get_positioner(self._core, self._base_project)
         self._objective_var = objective_var
+        self._violation_log_path = os.path.join(self._worker_directory,
+                                                violation_log_name)
         
         return
     
@@ -150,6 +153,7 @@ class PositionIterator(opt.Iterator):
             details = str(e)
             
             if "Expected number of nodes not found" in details:
+                self._log_violation(details, *args)
                 return True
             
             raise RuntimeError(e)
@@ -168,6 +172,7 @@ class PositionIterator(opt.Iterator):
             details = str(e)
             
             if "Violation of the minimum distance constraint" in details:
+                self._log_violation(details, *args)
                 return True
             
             raise RuntimeError(e)
@@ -224,6 +229,17 @@ class PositionIterator(opt.Iterator):
         """Hook to clean up simulation files as required"""
         
         remove_retry(worker_project_path)
+        
+        return
+    
+    def _log_violation(self, details, *args):
+        
+        largs = list(args)
+        largs.insert()
+        log_str = ", ".join(largs) + "\n"
+        
+        with open(self._violation_log_path, "a") as f:
+            f.write(log_str)
         
         return
 
