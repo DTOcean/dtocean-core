@@ -321,6 +321,7 @@ class Main(object):
                                          popsize=popsize,
                                          timeout=timeout,
                                          tolfun=tolfun)
+        nh = opt.NoiseHandler(es.N, maxevals=[1, 1, 30])
         
         counter = PositionCounter()
         iterator = PositionIterator(root_project_base_name,
@@ -336,7 +337,7 @@ class Main(object):
         dump_config(config, config_path)
         
         # Store the es object and counter search dict for potential restart
-        opt.dump_outputs(es, iterator, self._worker_directory)
+        opt.dump_outputs(es, nh, iterator, self._worker_directory)
         
         # Write the results params control file for workers
         results_params = list(set(results_params).union([objective]))
@@ -344,6 +345,7 @@ class Main(object):
         
         self._cma_main = opt.Main(
                             es,
+                            nh,
                             self._worker_directory,
                             iterator,
                             scaled_vars,
@@ -368,7 +370,7 @@ class Main(object):
         config = load_config(config_path)
         
         # Reload outputs
-        es, counter_dict = opt.load_outputs(self._worker_directory)
+        es, nh, counter_dict = opt.load_outputs(self._worker_directory)
     
         root_project_path = config['root_project_path']
         base_penalty = config["base_penalty"]
@@ -430,6 +432,7 @@ class Main(object):
         
         self._cma_main = opt.Main(
                             es,
+                            nh,
                             self._worker_directory,
                             iterator,
                             scaled_vars,
@@ -451,6 +454,7 @@ class Main(object):
         
         self._cma_main.next()
         opt.dump_outputs(self._cma_main.es,
+                         self._cma_main.nh,
                          self._cma_main.iterator,
                          self._worker_directory)
     

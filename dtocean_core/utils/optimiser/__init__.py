@@ -22,9 +22,12 @@ import yaml
 import numpy as np
 from numpy.linalg import norm
 
-from .noisehandler import NoiseHandler
 from ..files import init_dir
 from ...core import Core
+
+# Convenience import
+from .noisehandler import NoiseHandler
+
 
 # Set up logging
 module_logger = logging.getLogger(__name__)
@@ -347,6 +350,7 @@ class Iterator(object):
 class Main(object):
     
     def __init__(self, es,
+                       nh,
                        worker_directory,
                        iterator,
                        scaled_vars,
@@ -370,6 +374,7 @@ class Main(object):
         max_resample_loops = int(ceil(max_resample_loop_factor * es.popsize))
         
         self.es = es
+        self.nh = nh #
         self.iterator = iterator
         self._stop = False
         self._worker_directory = worker_directory
@@ -382,7 +387,6 @@ class Main(object):
         self._logging = logging
         self._thread_queue = None
         self._sol_feasible = None
-        self._nh = NoiseHandler(es.N, maxevals=[1, 1, 30])
         
         self._init_threads()
         
@@ -400,16 +404,12 @@ class Main(object):
         
         (final_solutions,
          final_costs) = self._get_solutions_costs(self.es,
-                                                  self._nh.evaluations)
-        self.es.evaluations_per_f_value = int(self._nh.evaluations)
+                                                  self.nh.evaluations)
+        self.es.evaluations_per_f_value = int(self.nh.evaluations)
         self.es.tell(final_solutions, final_costs)
+        self._sigma_correction(final_solutions, final_costs)
         
-        self._nh.prepare(final_solutions,
-                         final_costs,
-                         self.es.ask)
-        self._sigma_correction()
-        
-        self.es.logger.add(more_data=[self._nh.evaluations, self._nh.noiseS])
+        self.es.logger.add(more_data=[self.nh.evaluations, self.nh.noiseS])
         self.es.disp()
         
         if self._logging == "print":
@@ -435,14 +435,18 @@ class Main(object):
         
         return
     
-    def _sigma_correction(self):
+    def _sigma_correction(self, final_solutions, final_costs):
         
-        while not self._nh.stop:
-            _, final_costs = self._get_solutions_costs(self._nh, 1)
-            self._nh.tell(final_costs)
+        self.nh.prepare(final_solutions,
+                        final_costs,
+                        self.es.ask)
         
-        self.es.sigma *= self._nh.sigma_fac
-        self.es.countevals += self._nh.evaluations_just_done
+        while not self.nh.stop:
+            _, final_costs = self._get_solutions_costs(self.nh, 1)
+            self.nh.tell(final_costs)
+        
+        self.es.sigma *= self.nh.sigma_fac
+        self.es.countevals += self.nh.evaluations_just_done
         
         return
     
@@ -589,15 +593,17 @@ def init_evolution_strategy(x0,
     return es
 
 
-def dump_outputs(es, iterator, worker_directory):
+def dump_outputs(es, nh, iterator, worker_directory):
     
     counter_dict = iterator.get_counter_search_dict()
     
     es_fname = os.path.join(worker_directory, 'saved-cma-object.pkl')
+    nh_fname = os.path.join(worker_directory, 'saved-nh-object.pkl')
     counter_dict_fname = os.path.join(worker_directory,
                                       'saved-counter-search-dict.pkl')
     
     pickle.dump(es, open(es_fname, 'wb'), -1)
+    pickle.dump(es, open(nh_fname, 'wb'), -1)
     pickle.dump(counter_dict, open(counter_dict_fname, 'wb'), -1)
     
     return
@@ -606,13 +612,15 @@ def dump_outputs(es, iterator, worker_directory):
 def load_outputs(worker_directory):
     
     es_fname = os.path.join(worker_directory, 'saved-cma-object.pkl')
+    nh_fname = os.path.join(worker_directory, 'saved-nh-object.pkl')
     counter_dict_fname = os.path.join(worker_directory,
                                       'saved-counter-search-dict.pkl')
     
     es = pickle.load(open(es_fname, 'rb'))
+    nh = pickle.load(open(nh_fname, 'rb'))
     counter_dict = pickle.load(open(counter_dict_fname, 'rb'))
     
-    return es, counter_dict
+    return es, nh, counter_dict
 
 
 def _get_scale_factor(range_min, range_max, x0, sigma, n_sigmas):
