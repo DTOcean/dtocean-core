@@ -154,6 +154,7 @@ class EconomicInterface(ThemeInterface):
                        "project.lcoe_interval_lower",
                        "project.lcoe_interval_upper",
                        "project.lcoe_mean",
+                       "project.lcoe_median",
                        "project.discounted_opex_mode",
                        "project.discounted_opex_interval_lower",
                        "project.discounted_opex_interval_upper",
@@ -273,6 +274,7 @@ class EconomicInterface(ThemeInterface):
                   "estimate_energy_record": 'project.estimate_energy_record',
                   
                   "economics_metrics": "project.economics_metrics",
+                  "lcoe_median": "project.lcoe_median",
                   "lcoe_mean": "project.lcoe_mean",
                   "lcoe_mode_opex": "project.lcoe_mode_opex",
                   "lcoe_mode_energy": "project.lcoe_mode_energy",
@@ -591,60 +593,82 @@ class EconomicInterface(ThemeInterface):
             self.data[arg_lower] = lower
             self.data[arg_upper] = upper
             
-        # Bivariate stats on LCOE and related variables
-        if (metrics_table["Discounted Energy"].isnull().any() or
-            len(metrics_table["Discounted Energy"])) < 3: return
+        if metrics_table["Discounted Energy"].isnull().any(): return
         
         opex = metrics_table["Discounted OPEX"] / 1000.
         energy = metrics_table["Discounted Energy"]
         
-        try:
-            distribution = BiVariateKDE(opex, energy)
-        except np.linalg.LinAlgError:
-            return
-        
-        mean_coords = distribution.mean()
-        self.data.lcoe_mean = (result["Discounted CAPEX"] / 1000. +
-                                             mean_coords[0]) / mean_coords[1]
-        
-        mode_coords = distribution.mode()
-        lcoe_mode = (result["Discounted CAPEX"] / 1000. +
-                                             mode_coords[0]) / mode_coords[1]
-        
-        self.data.lcoe_mode_opex = mode_coords[0] * 1000
-        self.data.lcoe_mode_energy = mode_coords[1]
-        self.data.lcoe_mode = lcoe_mode
-        
-        xx, yy, pdf = distribution.pdf()
-        clevels = pdf_confidence_densities(pdf)
-        cx, cy = pdf_contour_coords(xx, yy, pdf, clevels[0])
-        
-        lcoes = []
-
-        for discounted_opex, discounted_energy in zip(cx, cy):
+        if len(metrics_table["Discounted Energy"]) < 3:
             
-            lcoe = (result["Discounted CAPEX"] / 1000. +
-                                        discounted_opex) / discounted_energy
-            lcoes.append(lcoe)
+            mean_lcoe = (result["Discounted CAPEX"] / 1000. +
+                                         np.mean(opex)) / np.mean(energy)
+            
+            self.data.lcoe_mean = mean_lcoe
+            self.data.lcoe_median = mean_lcoe
+            
+            discounted_opex_base = np.mean(opex) * 1000.
+            discounted_energy_base = np.mean(energy) * 10.
         
-        self.data.confidence_density = clevels[0]
-        self.data.lcoe_lower = min(lcoes)
-        self.data.lcoe_upper = max(lcoes)
+        else:
+            
+            try:
+                distribution = BiVariateKDE(opex, energy)
+            except np.linalg.LinAlgError:
+                return
+            
+            mean_coords = distribution.mean()
+            self.data.lcoe_mean = (result["Discounted CAPEX"] / 1000. +
+                                           mean_coords[0]) / mean_coords[1]
+            
+            median_coords = distribution.median()
+            self.data.lcoe_median = (result["Discounted CAPEX"] / 1000. +
+                                           median_coords[0]) / median_coords[1]
+            
+            mode_coords = distribution.mode()
+            lcoe_mode = (result["Discounted CAPEX"] / 1000. +
+                                         mode_coords[0]) / mode_coords[1]
+            
+            self.data.lcoe_mode_opex = mode_coords[0] * 1000
+            self.data.lcoe_mode_energy = mode_coords[1]
+            self.data.lcoe_mode = lcoe_mode
+            
+            xx, yy, pdf = distribution.pdf()
+            clevels = pdf_confidence_densities(pdf)
+            cx, cy = pdf_contour_coords(xx, yy, pdf, clevels[0])
+            
+            lcoes = []
+            
+            for discounted_opex, discounted_energy in zip(cx, cy):
+                
+                lcoe = (result["Discounted CAPEX"] / 1000. +
+                                        discounted_opex) / discounted_energy
+                lcoes.append(lcoe)
+            
+            self.data.confidence_density = clevels[0]
+            self.data.lcoe_lower = min(lcoes)
+            self.data.lcoe_upper = max(lcoes)
+            
+            # LCOE distribution
+            raw = {"values": pdf,
+                   "coords": [xx, yy]}
+            
+            self.data.lcoe_pdf = raw
+            
+            discounted_opex_base = mode_coords[0] * 1000.
+            discounted_energy_base = mode_coords[1] * 10.
         
         # Calculate values using most likely OPEX / Energy combination
         
         # CAPEX vs OPEX Breakdown and OPEX Breakdown if externalities
-        discounted_opex_mode = mode_coords[0] * 1000
-                            
         breakdown = {"Discounted CAPEX": result["Discounted CAPEX"],
-                     "Discounted OPEX": discounted_opex_mode}
+                     "Discounted OPEX": discounted_opex_base}
         
         self.data.cost_breakdown = breakdown
-                    
+        
         if self.data.externalities_opex is None:
             
-            discounted_maintenance = discounted_opex_mode
-
+            discounted_maintenance = discounted_opex_base
+        
         else:
             
             years = range(1, len(opex_bom) + 1)
@@ -654,53 +678,46 @@ class EconomicInterface(ThemeInterface):
                                                            for i in years]
             
             discounted_external = np.array(discounted_externals).sum()
-            discounted_maintenance = discounted_opex_mode - \
+            discounted_maintenance = discounted_opex_base - \
                                                     discounted_external
             
             self.data.opex_breakdown = {
                                 "Maintenance": discounted_external,
                                 "Externalities": discounted_maintenance}
-                
+        
         # LCOE Breakdowns in cent/kWh
-        discounted_energy_mode = mode_coords[1] * 10.
-                    
+        
         if self.data.capex_breakdown is not None:
-    
+            
             capex_lcoe_breakdown = {}
             
             for k, v in self.data.capex_breakdown.iteritems():
                 
-                capex_lcoe_breakdown[k] = round(v / discounted_energy_mode,
+                capex_lcoe_breakdown[k] = round(v / discounted_energy_base,
                                                 2)
-                
-            self.data.capex_lcoe_breakdown = capex_lcoe_breakdown
             
+            self.data.capex_lcoe_breakdown = capex_lcoe_breakdown
+        
         lcoe_maintenance = round(
-                            discounted_maintenance / discounted_energy_mode,
+                            discounted_maintenance / discounted_energy_base,
                             2)
         
         if self.data.externalities_opex is None:
             
             lcoe_external = 0
-            
+        
         else:
-
-            lcoe_external = round(discounted_external / discounted_energy_mode,
+            
+            lcoe_external = round(discounted_external / discounted_energy_base,
                                   2)
                 
             self.data.opex_lcoe_breakdown = {"Maintenance": lcoe_maintenance,
                                              "Externalities": lcoe_external}
-            
+        
         total_capex = sum(capex_lcoe_breakdown.values())
         total_opex = lcoe_maintenance + lcoe_external
         
         self.data.lcoe_breakdown = {"CAPEX": total_capex,
                                     "OPEX": total_opex}
-
-        # LCOE distribution
-        raw = {"values": pdf,
-               "coords": [xx, yy]}
         
-        self.data.lcoe_pdf = raw
-
         return
