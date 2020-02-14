@@ -34,6 +34,7 @@ PositionParams = namedtuple('PositionParams', ['array_orientation',
                                                'n_nodes',
                                                't1',
                                                't2',
+                                               'n_evals',
                                                'lcoe',
                                                'flag',
                                                'prj_file_path',
@@ -51,7 +52,8 @@ class PositionCounter(opt.Counter):
                           delta_col,
                           n_nodes,
                           t1,
-                          t2):
+                          t2,
+                          n_evals):
         """Build a params (probably namedtuple) object to search against."""
         
         params = PositionParams(array_orientation_deg,
@@ -60,6 +62,7 @@ class PositionCounter(opt.Counter):
                                 n_nodes,
                                 t1,
                                 t2,
+                                n_evals,
                                 lcoe,
                                 flag,
                                 worker_project_path,
@@ -67,24 +70,11 @@ class PositionCounter(opt.Counter):
         
         return params
     
-    def _get_cost(self, params,
-                        array_orientation_deg,
-                        delta_row,
-                        delta_col,
-                        n_nodes,
-                        t1,
-                        t2):
+    def _get_cost(self, *args):
         """Return cost if parameters in params object match input args, else
         return None."""
         
-        if (params.array_orientation == array_orientation_deg and
-            params.delta_row == delta_row and
-            params.delta_col == delta_col and
-            params.n_nodes == n_nodes and
-            params.t1 == t1 and
-            params.t2 == t2): return params.lcoe
-        
-        return
+        return None
 
 
 class PositionIterator(opt.Iterator):
@@ -234,8 +224,8 @@ class PositionIterator(opt.Iterator):
     
     def _log_violation(self, details, *args):
         
-        largs = list(args)
-        largs.insert()
+        largs = [str(arg) for arg in args]
+        largs.insert(0, details)
         log_str = ", ".join(largs) + "\n"
         
         with open(self._violation_log_path, "a") as f:
@@ -364,8 +354,6 @@ class Main(object):
                             max_resample_loop_factor=max_resample_loop_factor,
                             logging=logging)
         
-        self._cma_main.init_threads()
-        
         return
     
     def restart(self, worker_directory):
@@ -451,8 +439,6 @@ class Main(object):
                             num_threads=n_threads,
                             max_resample_loop_factor=max_resample_loop_factor,
                             logging=logging)
-        
-        self._cma_main.init_threads()
         
         return
     

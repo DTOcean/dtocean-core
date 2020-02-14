@@ -33,6 +33,7 @@ def main(core,
          n_nodes,
          t1,
          t2,
+         n_evals,
          raise_exc=False,
          save_project=False,
          write_results=True):
@@ -43,13 +44,15 @@ def main(core,
     n_nodes = int(float(n_nodes))
     t1 = float(t1)
     t2 = float(t2)
+    n_evals = int(float(n_evals))
     
     params_dict = {"theta": array_orientation,
                    "dr": delta_row,
                    "dc": delta_col,
                    "n_nodes": n_nodes,
                    "t1": t1,
-                   "t2": t2}
+                   "t2": t2,
+                   "n_evals": n_evals}
     
     e = None
     
@@ -67,7 +70,8 @@ def main(core,
                 delta_col,
                 n_nodes,
                 t1,
-                t2)
+                t2,
+                n_evals)
         
         flag = "Success"
     
@@ -104,7 +108,8 @@ def iterate(core,
             delta_col,
             n_nodes,
             t1,
-            t2):
+            t2,
+            n_evals):
     
     beta = 90 * np.pi / 180
     psi = 0 * np.pi / 180
@@ -119,6 +124,7 @@ def iterate(core,
                            t2)
     
     hydro_branch = _get_branch(core, project, "Hydrodynamics")
+    oandm_branch = _get_branch(core, project, "Operations and Maintenance")
     
     user_array_layout = hydro_branch.get_input_variable(
                                         core,
@@ -134,6 +140,13 @@ def iterate(core,
                                                   'project.rated_power')
     rated_power.set_raw_interface(core, power_rating * n_nodes)
     rated_power.read(core, project)
+    
+    data_points = oandm_branch.get_input_variable(
+                                        core,
+                                        project,
+                                        'options.maintenance_data_points')
+    data_points.set_raw_interface(core, n_evals)
+    data_points.read(core, project)
     
     basic_strategy = _get_basic_strategy()
     basic_strategy.execute(core, project)
@@ -217,7 +230,12 @@ def write_result_file(core,
             var_strs = f.read().splitlines()
         
         for var_str in var_strs:
-            var_value = core.get_data_value(project, var_str)
+            
+            if not core.has_data(project, var_str):
+                var_value = None
+            else:
+                var_value = core.get_data_value(project, var_str)
+            
             results_dict[var_str] = var_value
         
         yaml_dict["results"] = results_dict
@@ -246,7 +264,8 @@ def interface():
      delta_col,
      n_nodes,
      t1,
-     t2) = sys.argv[1:]
+     t2,
+     n_evals) = sys.argv[1:]
     
     main(core,
          prj_file_path,
@@ -255,4 +274,5 @@ def interface():
          delta_col,
          n_nodes,
          t1,
-         t2)
+         t2,
+         n_evals)

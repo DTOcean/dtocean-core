@@ -22,8 +22,9 @@ import yaml
 import numpy as np
 from numpy.linalg import norm
 
-from .files import init_dir
-from ..core import Core
+from .noisehandler import NoiseHandler
+from ..files import init_dir
+from ...core import Core
 
 # Set up logging
 module_logger = logging.getLogger(__name__)
@@ -370,7 +371,7 @@ class Main(object):
         
         self.es = es
         self.iterator = iterator
-        self.stop = False
+        self._stop = False
         self._worker_directory = worker_directory
         self._scaled_vars = scaled_vars
         self._nearest_ops = nearest_ops
@@ -381,30 +382,34 @@ class Main(object):
         self._logging = logging
         self._thread_queue = None
         self._sol_feasible = None
-    
-    def init_threads(self):
-            
-        self._thread_queue = queue.Queue()
+        self._nh = NoiseHandler(es.N, maxevals=[1, 1, 30])
         
-        for i in range(self._num_threads):
-            
-            worker = threading.Thread(target=self.iterator,
-                                      args=(self._thread_queue,))
-            worker.setDaemon(True)
-            worker.start()
+        self._init_threads()
         
         return
+    
+    @property
+    def stop(self):
+        return self._stop
     
     def next(self):
         
         if self.es.stop():
-            self.stop = True
+            self._stop = True
             return
         
-        final_solutions, final_costs = self._get_solutions_costs()
-        
+        (final_solutions,
+         final_costs) = self._get_solutions_costs(self.es,
+                                                  self._nh.evaluations)
+        self.es.evaluations_per_f_value = int(self._nh.evaluations)
         self.es.tell(final_solutions, final_costs)
-        self.es.logger.add()
+        
+        self._nh.prepare(final_solutions,
+                         final_costs,
+                         self.es.ask)
+        self._sigma_correction()
+        
+        self.es.logger.add(more_data=[self._nh.evaluations, self._nh.noiseS])
         self.es.disp()
         
         if self._logging == "print":
@@ -417,15 +422,39 @@ class Main(object):
         
         return
     
-    def _get_solutions_costs(self):
+    def _init_threads(self):
+            
+        self._thread_queue = queue.Queue()
+        
+        for i in range(self._num_threads):
+            
+            worker = threading.Thread(target=self.iterator,
+                                      args=(self._thread_queue,))
+            worker.setDaemon(True)
+            worker.start()
+        
+        return
+    
+    def _sigma_correction(self):
+        
+        while not self._nh.stop:
+            _, final_costs = self._get_solutions_costs(self._nh, 1)
+            self._nh.tell(final_costs)
+        
+        self.es.sigma *= self._nh.sigma_fac
+        self.es.countevals += self._nh.evaluations_just_done
+        
+        return
+    
+    def _get_solutions_costs(self, asktell, n_evals):
         
         final_solutions = []
         final_costs = []
         
-        while len(final_solutions) < self.es.popsize:
+        while len(final_solutions) < asktell.popsize:
         
             result_queue = queue.Queue()
-            needed_solutions = self.es.popsize - len(final_solutions)
+            needed_solutions = asktell.popsize - len(final_solutions)
             scaled_solutions = None
             run_solutions = []
             run_descaled_solutions = []
@@ -453,7 +482,7 @@ class Main(object):
                                                    self._max_resample_loops)
                     module_logger.info(log_msg)
                     
-                    scaled_solutions = self.es.ask(self.es.popsize)
+                    scaled_solutions = asktell.ask(asktell.popsize)
                     
                     costs = [self._base_penalty + norm(
                                         sol - self._sol_feasible)
@@ -462,7 +491,7 @@ class Main(object):
                     return scaled_solutions, costs
                 
                 ask_solutions = needed_solutions - len(run_solutions)
-                scaled_solutions = self.es.ask(ask_solutions)
+                scaled_solutions = asktell.ask(ask_solutions)
                 descaled_solutions = []
                 
                 for solution in scaled_solutions:
@@ -507,7 +536,8 @@ class Main(object):
             
             for i in run_idxs:
                 self._thread_queue.put([result_queue] +
-                                                   run_descaled_solutions[i])
+                                       run_descaled_solutions[i] + 
+                                       [n_evals])
             
             self._thread_queue.join()
             

@@ -156,11 +156,11 @@ class NoiseHandler(object):
         ## meta_parameters.noise_aggregate == None
         self.f_aggregate = aggregate if not None else {1: np.median, 2: np.mean}[ None ]
         self.evaluations_just_done = 0  # actually conducted evals, only for documentation
+        self.popsize = None
         self.noiseS = 0
         self._idx_counter = 0
         self._ask = None
         self._X = None
-        self._evals = None
         self._fagg = None
         self._sigma_fac = None
         self._stop = False
@@ -212,15 +212,15 @@ class NoiseHandler(object):
         self.evaluations_just_done = 0
         
         if not self.maxevals or self.lam_reeval == 0:
-            self._stop = True
             self._sigma_fac =  1.0
+            self._stop = True
             return
         
         self.idx = self._indices(fit)
         
         if not len(self.idx):
-            self._stop = True
             self._sigma_fac =  1.0
+            self._stop = True
             return
         
         self._idx_counter = 0
@@ -229,30 +229,31 @@ class NoiseHandler(object):
         self._X = X
         self._ask = ask
         
-        self._evals = int(self.evaluations) if self.f_aggregate else 1
+        self.popsize = int(self.evaluations) if self.f_aggregate else 1
         self._fagg = np.median if self.f_aggregate is None \
                                                     else self.f_aggregate
         
         return
     
-    def ask(self):
+    def ask(self, number=None):
         """store two fitness lists, `fit` and ``fitre`` reevaluating some
         solutions in `X`.
         ``self.evaluations`` evaluations are done for each reevaluated
         fitness value.
-        See `__call__`, where `reeval` is called.
         """
         
         if self.stop: return
+        
+        if number is None:
+            number = self.popsize
         
         i  = self.idx[self._idx_counter]
         X_i = self._X[i]
         
         if self.epsilon:
-            sols = [self._ask(1, X_i, self.epsilon)[0]
-                                                for _k in range(self._evals)]
+            sols = [self._ask(1, X_i, self.epsilon)[0] for _k in range(number)]
         else:
-            sols = [X_i for _k in range(self._evalsevals)]
+            sols = [X_i for _k in range(number)]
         
         return sols
     
@@ -261,7 +262,6 @@ class NoiseHandler(object):
         solutions in `X`.
         ``self.evaluations`` evaluations are done for each reevaluated
         fitness value.
-        See `__call__`, where `reeval` is called.
         """
         
         if self.stop: return
@@ -272,10 +272,10 @@ class NoiseHandler(object):
         
         if self._idx_counter < len(self.idx): return
         
-        self._stop = True
-        self.evaluations_just_done = self._evals * len(self.idx)
+        self.evaluations_just_done = self.popsize * len(self.idx)
         self._update_measure()
         self._sigma_fac = self._treat()
+        self._stop = True
         
         return
     
