@@ -58,12 +58,14 @@ class UniVariateKDE(object):
         result = self._ppf(probabilities)
         
         if np.isnan(result).any(): result = None
-
-        return result
-
-    def mean(self):
         
+        return result
+    
+    def mean(self):
         return self._kde.dataset.mean()
+    
+    def median(self):
+        return np.median(self._kde.dataset)
     
     def mode(self, samples=1000):
         
@@ -151,17 +153,19 @@ class BiVariateKDE(object):
         return
     
     def mean(self):
-        
         return self.x.mean(), self.y.mean()
+    
+    def median(self):
+        return np.median(self.kernel.dataset, 1)
     
     def mode(self, xtol=0.0001, ftol=0.0001, disp=False):
         """Determine the ordinate of the most likely value of the given KDE"""
         
-        medians = np.median(self.kernel.dataset, 1)
+        median = self.median()
         
         neg_kde = lambda x: -1 * self.kernel(x)
         modal_coords = optimize.fmin(neg_kde,
-                                     medians,
+                                     median,
                                      xtol=xtol,
                                      ftol=ftol,
                                      disp=disp)
