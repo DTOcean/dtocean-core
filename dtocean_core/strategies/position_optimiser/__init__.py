@@ -337,7 +337,7 @@ class Main(object):
         dump_config(config, config_path)
         
         # Store the es object and counter search dict for potential restart
-        opt.dump_outputs(es, nh, iterator, self._worker_directory)
+        opt.dump_outputs(self._worker_directory, es, iterator, nh)
         
         # Write the results params control file for workers
         results_params = list(set(results_params).union([objective]))
@@ -345,11 +345,11 @@ class Main(object):
         
         self._cma_main = opt.Main(
                             es,
-                            nh,
                             self._worker_directory,
                             iterator,
                             scaled_vars,
                             nearest_ops,
+                            nh=nh,
                             fixed_index_map=fixed_params,
                             base_penalty=base_penalty,
                             num_threads=n_threads,
@@ -370,7 +370,7 @@ class Main(object):
         config = load_config(config_path)
         
         # Reload outputs
-        es, nh, counter_dict = opt.load_outputs(self._worker_directory)
+        es, counter_dict, nh = opt.load_outputs(self._worker_directory)
     
         root_project_path = config['root_project_path']
         base_penalty = config["base_penalty"]
@@ -432,11 +432,11 @@ class Main(object):
         
         self._cma_main = opt.Main(
                             es,
-                            nh,
                             self._worker_directory,
                             iterator,
                             scaled_vars,
                             nearest_ops,
+                            nh=nh,
                             fixed_index_map=fixed_params,
                             base_penalty=base_penalty,
                             num_threads=n_threads,
@@ -453,10 +453,10 @@ class Main(object):
             return
         
         self._cma_main.next()
-        opt.dump_outputs(self._cma_main.es,
-                         self._cma_main.nh,
+        opt.dump_outputs(self._worker_directory,
+                         self._cma_main.es,
                          self._cma_main.iterator,
-                         self._worker_directory)
+                         self._cma_main.nh)
     
     def get_es(self):
         

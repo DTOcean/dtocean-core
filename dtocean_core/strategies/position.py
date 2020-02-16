@@ -212,8 +212,7 @@ class AdvancedPosition(Strategy):
     def get_variables(self):
         
         set_vars = ['options.user_array_layout',
-                    'project.rated_power',
-                    'options.maintenance_data_points']
+                    'project.rated_power']
         
         return set_vars
     

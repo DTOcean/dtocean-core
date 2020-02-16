@@ -33,7 +33,7 @@ def main(core,
          n_nodes,
          t1,
          t2,
-         n_evals,
+         n_evals=None,
          raise_exc=False,
          save_project=False,
          write_results=True):
@@ -44,15 +44,18 @@ def main(core,
     n_nodes = int(float(n_nodes))
     t1 = float(t1)
     t2 = float(t2)
-    n_evals = int(float(n_evals))
     
     params_dict = {"theta": array_orientation,
                    "dr": delta_row,
                    "dc": delta_col,
                    "n_nodes": n_nodes,
                    "t1": t1,
-                   "t2": t2,
-                   "n_evals": n_evals}
+                   "t2": t2}
+    
+    if n_evals is not None:
+        
+        n_evals = int(float(n_evals))
+        params_dict["n_evals"] =  n_evals
     
     e = None
     
@@ -109,7 +112,7 @@ def iterate(core,
             n_nodes,
             t1,
             t2,
-            n_evals):
+            n_evals=None):
     
     beta = 90 * np.pi / 180
     psi = 0 * np.pi / 180
@@ -141,12 +144,14 @@ def iterate(core,
     rated_power.set_raw_interface(core, power_rating * n_nodes)
     rated_power.read(core, project)
     
-    data_points = oandm_branch.get_input_variable(
-                                        core,
-                                        project,
-                                        'options.maintenance_data_points')
-    data_points.set_raw_interface(core, n_evals)
-    data_points.read(core, project)
+    if n_evals is not None:
+        
+        data_points = oandm_branch.get_input_variable(
+                                            core,
+                                            project,
+                                            'options.maintenance_data_points')
+        data_points.set_raw_interface(core, n_evals)
+        data_points.read(core, project)
     
     basic_strategy = _get_basic_strategy()
     basic_strategy.execute(core, project)
@@ -264,8 +269,12 @@ def interface():
      delta_col,
      n_nodes,
      t1,
-     t2,
-     n_evals) = sys.argv[1:]
+     t2) = sys.argv[1:8]
+     
+    if len(sys.argv) == 9:
+        n_evals = sys.argv[8]
+    else:
+        n_evals = None
     
     main(core,
          prj_file_path,

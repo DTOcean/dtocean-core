@@ -350,11 +350,11 @@ class Iterator(object):
 class Main(object):
     
     def __init__(self, es,
-                       nh,
                        worker_directory,
                        iterator,
                        scaled_vars,
                        nearest_ops,
+                       nh=None,
                        fixed_index_map=None,
                        base_penalty=None,
                        num_threads=None,
@@ -374,7 +374,7 @@ class Main(object):
         max_resample_loops = int(ceil(max_resample_loop_factor * es.popsize))
         
         self.es = es
-        self.nh = nh #
+        self.nh = nh
         self.iterator = iterator
         self._stop = False
         self._worker_directory = worker_directory
@@ -402,14 +402,11 @@ class Main(object):
             self._stop = True
             return
         
-        (final_solutions,
-         final_costs) = self._get_solutions_costs(self.es,
-                                                  self.nh.evaluations)
-        self.es.evaluations_per_f_value = int(self.nh.evaluations)
-        self.es.tell(final_solutions, final_costs)
-        self._sigma_correction(final_solutions, final_costs)
+        if self.nh is None:
+            self._next()
+        else:
+            self._next_nh()
         
-        self.es.logger.add(more_data=[self.nh.evaluations, self.nh.noiseS])
         self.es.disp()
         
         if self._logging == "print":
@@ -422,6 +419,25 @@ class Main(object):
         
         return
     
+    def _next(self):
+        
+        final_solutions, final_costs = self._get_solutions_costs(self.es)
+        self.es.tell(final_solutions, final_costs)
+        self.es.logger.add()
+        
+        return
+    
+    def _next_nh(self):
+        
+        (final_solutions,
+         final_costs) = self._get_solutions_costs(self.es,
+                                                  self.nh.evaluations)
+        self.es.tell(final_solutions, final_costs)
+        self._sigma_correction(final_solutions, final_costs)
+        self.es.logger.add(more_data=[self.nh.evaluations, self.nh.noiseS])
+        
+        return
+        
     def _init_threads(self):
             
         self._thread_queue = queue.Queue()
@@ -440,17 +456,14 @@ class Main(object):
         self.nh.prepare(final_solutions,
                         final_costs,
                         self.es.ask)
-        
-        while not self.nh.stop:
-            _, final_costs = self._get_solutions_costs(self.nh, 1)
-            self.nh.tell(final_costs)
-        
+        nh_costs = self._get_nh_costs(self.nh, self.nh.n_evals)
+        self.nh.tell(nh_costs)
         self.es.sigma *= self.nh.sigma_fac
         self.es.countevals += self.nh.evaluations_just_done
         
         return
     
-    def _get_solutions_costs(self, asktell, n_evals):
+    def _get_solutions_costs(self, asktell, n_evals=None):
         
         final_solutions = []
         final_costs = []
@@ -563,6 +576,65 @@ class Main(object):
             final_costs.extend(valid_costs)
         
         return final_solutions, final_costs
+    
+    def _get_nh_costs(self, asktell, n_evals=None):
+        
+        result_queue = queue.Queue()
+        scaled_solutions = asktell.ask()
+        final_costs = np.zeros(asktell.popsize)
+        descaled_solutions = []
+        
+        for solution in scaled_solutions:
+            
+            new_solution = [scaler.inverse(x) for x, scaler
+                                in zip(solution, self._scaled_vars)]
+            nearest_solution = \
+                    [snap(x) if snap is not None else x
+                             for x, snap in zip(new_solution,
+                                                self._nearest_ops)]
+            
+            descaled_solutions.append(nearest_solution)
+        
+        if self._fixed_index_map is not None:
+            
+            ordered_index_map = OrderedDict(
+                                sorted(self._fixed_index_map.items(),
+                                       key=lambda t: t[0]))
+            
+            for solution in descaled_solutions:
+                for idx, val in ordered_index_map.iteritems():
+                    solution.insert(idx, val)
+        
+        run_descaled_solutions = []
+        run_descaled_solutions_idxs = []
+        
+        for i, des_sol in enumerate(descaled_solutions):
+            
+            if self.iterator.pre_constraints_hook(*des_sol): 
+                final_costs[i] = np.nan
+            else:
+                run_descaled_solutions.append(des_sol)
+                run_descaled_solutions_idxs.append(i)
+        
+        run_idxs, match_dict = _get_match_process(run_descaled_solutions)
+        
+        for i in run_idxs:
+            self._thread_queue.put([result_queue] +
+                                   run_descaled_solutions[i] + 
+                                   [n_evals])
+        
+        self._thread_queue.join()
+        
+        costs = _rebuild_input(result_queue.queue,
+                               run_idxs,
+                               match_dict,
+                               len(run_descaled_solutions))
+        
+        for i, cost in zip(run_descaled_solutions_idxs, costs):
+            final_costs[i] = cost
+        
+        return final_costs
+
 
 
 def init_evolution_strategy(x0,
@@ -593,34 +665,41 @@ def init_evolution_strategy(x0,
     return es
 
 
-def dump_outputs(es, nh, iterator, worker_directory):
+def dump_outputs(worker_directory, es, iterator, nh=None):
     
     counter_dict = iterator.get_counter_search_dict()
     
-    es_fname = os.path.join(worker_directory, 'saved-cma-object.pkl')
-    nh_fname = os.path.join(worker_directory, 'saved-nh-object.pkl')
-    counter_dict_fname = os.path.join(worker_directory,
+    es_path = os.path.join(worker_directory, 'saved-cma-object.pkl')
+    counter_dict_path = os.path.join(worker_directory,
                                       'saved-counter-search-dict.pkl')
     
-    pickle.dump(es, open(es_fname, 'wb'), -1)
-    pickle.dump(es, open(nh_fname, 'wb'), -1)
-    pickle.dump(counter_dict, open(counter_dict_fname, 'wb'), -1)
+    pickle.dump(es, open(es_path, 'wb'), -1)
+    pickle.dump(counter_dict, open(counter_dict_path, 'wb'), -1)
+    
+    if nh is None: return
+    
+    nh_path = os.path.join(worker_directory, 'saved-nh-object.pkl')
+    pickle.dump(es, open(nh_path, 'wb'), -1)
     
     return
 
 
 def load_outputs(worker_directory):
     
-    es_fname = os.path.join(worker_directory, 'saved-cma-object.pkl')
-    nh_fname = os.path.join(worker_directory, 'saved-nh-object.pkl')
-    counter_dict_fname = os.path.join(worker_directory,
+    es_path = os.path.join(worker_directory, 'saved-cma-object.pkl')
+    nh_path = os.path.join(worker_directory, 'saved-nh-object.pkl')
+    counter_dict_path = os.path.join(worker_directory,
                                       'saved-counter-search-dict.pkl')
     
-    es = pickle.load(open(es_fname, 'rb'))
-    nh = pickle.load(open(nh_fname, 'rb'))
-    counter_dict = pickle.load(open(counter_dict_fname, 'rb'))
+    es = pickle.load(open(es_path, 'rb'))
+    counter_dict = pickle.load(open(counter_dict_path, 'rb'))
     
-    return es, nh, counter_dict
+    if os.path.isfile(nh_path):
+        nh = None
+    else:
+        nh = pickle.load(open(nh_path, 'rb'))
+    
+    return es, counter_dict, nh
 
 
 def _get_scale_factor(range_min, range_max, x0, sigma, n_sigmas):
