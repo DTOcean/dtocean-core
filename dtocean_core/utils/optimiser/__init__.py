@@ -244,12 +244,12 @@ class Iterator(object):
         
         return
     
-    def _iterate(self, results_queue, *args):
+    def _iterate(self, idx, results_queue, *args):
         
         previous_cost = self._counter.get_cost(*args)
         
         if previous_cost:
-            results_queue.put(previous_cost)
+            results_queue.put((idx, previous_cost))
             return
         
         flag = ""
@@ -332,7 +332,7 @@ class Iterator(object):
                                 *args)
         self.cleanup(worker_project_path, flag, results)
         
-        results_queue.put(cost)
+        results_queue.put((idx, cost))
         
         return
     
@@ -552,14 +552,13 @@ class Main(object):
             run_idxs, match_dict = _get_match_process(run_descaled_solutions)
             
             for i in run_idxs:
-                self._thread_queue.put([result_queue] +
+                self._thread_queue.put([i, result_queue] +
                                        run_descaled_solutions[i] + 
                                        [n_evals])
             
             self._thread_queue.join()
             
             costs = _rebuild_input(result_queue.queue,
-                                   run_idxs,
                                    match_dict,
                                    len(run_descaled_solutions))
             
@@ -619,14 +618,13 @@ class Main(object):
         run_idxs, match_dict = _get_match_process(run_descaled_solutions)
         
         for i in run_idxs:
-            self._thread_queue.put([result_queue] +
+            self._thread_queue.put([i, result_queue] +
                                    run_descaled_solutions[i] + 
                                    [n_evals])
         
         self._thread_queue.join()
         
         costs = _rebuild_input(result_queue.queue,
-                               run_idxs,
                                match_dict,
                                len(run_descaled_solutions))
         
@@ -754,11 +752,11 @@ def _get_match_process(values):
     return list(process_set), match_dict
 
 
-def _rebuild_input(values, run_idxs, match_dict, input_length):
+def _rebuild_input(values, match_dict, input_length):
     
     rebuild = np.zeros(input_length)
     
-    for idx, res in zip(run_idxs, values):
+    for idx, res in values:
         rebuild[idx] = res
     
     for base_idx, copy_idxs in match_dict.iteritems():
