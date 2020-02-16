@@ -94,7 +94,6 @@ class NoiseHandler(object):
     # using kappa to get convergence (with unit sphere samples): noiseS=0 leads to a certain kappa increasing rate?
     def __init__(self, N,
                        maxevals=[1, 1, 1],
-                       aggregate=np.median,
                        reevals=None,
                        epsilon=1e-7):
         """Parameters are:
@@ -153,8 +152,8 @@ class NoiseHandler(object):
                 self.evaluations = self.minevals
             if len(maxevals) > 2:
                 self.evaluations = np.median(maxevals)
+        self.n_evals = int(self.evaluations)
         ## meta_parameters.noise_aggregate == None
-        self.f_aggregate = aggregate if not None else {1: np.median, 2: np.mean}[ None ]
         self.evaluations_just_done = 0  # actually conducted evals, only for documentation
         self.popsize = None
         self.noiseS = 0
@@ -209,6 +208,7 @@ class NoiseHandler(object):
         
         self._stop = False
         self._sigma_fac = None
+        self.n_evals = int(self.evaluations)
         self.evaluations_just_done = 0
         
         if not self.maxevals or self.lam_reeval == 0:
@@ -216,63 +216,49 @@ class NoiseHandler(object):
             self._stop = True
             return
         
-        self.idx = self._indices(fit)
+        self.idx = self._indices(list(fit))
+        self.popsize = len(self.idx)
         
         if not len(self.idx):
             self._sigma_fac =  1.0
             self._stop = True
             return
         
-        self._idx_counter = 0
         self.fit = list(fit)
         self.fitre = list(fit)
         self._X = X
         self._ask = ask
         
-        self.popsize = int(self.evaluations) if self.f_aggregate else 1
-        self._fagg = np.median if self.f_aggregate is None \
-                                                    else self.f_aggregate
-        
         return
     
-    def ask(self, number=None):
-        """store two fitness lists, `fit` and ``fitre`` reevaluating some
-        solutions in `X`.
-        ``self.evaluations`` evaluations are done for each reevaluated
-        fitness value.
+    def ask(self):
+        """Get solutions for re-evaluation.
         """
         
         if self.stop: return
         
-        if number is None:
-            number = self.popsize
-        
-        i  = self.idx[self._idx_counter]
-        X_i = self._X[i]
-        
         if self.epsilon:
-            sols = [self._ask(1, X_i, self.epsilon)[0] for _k in range(number)]
+            sols = [self._ask(1, self._X[i], self.epsilon)[0]
+                                                        for i in self.idx]
         else:
-            sols = [X_i for _k in range(number)]
+            sols = [self._X[i] for i in self.idx]
         
         return sols
     
     def tell(self, function_values):
-        """store two fitness lists, `fit` and ``fitre`` reevaluating some
-        solutions in `X`.
-        ``self.evaluations`` evaluations are done for each reevaluated
-        fitness value.
+        """Give function values for re-evaluated solutions.
         """
         
         if self.stop: return
         
-        i = self.idx[self._idx_counter]
-        self.fitre[i] = self._fagg(function_values)
-        self._idx_counter += 1
+        real_evals = 0
         
-        if self._idx_counter < len(self.idx): return
+        for j, i in enumerate(self.idx):
+            if np.isnan(function_values[j]): continue
+            self.fitre[i] = function_values[j]
+            real_evals += 1
         
-        self.evaluations_just_done = self.popsize * len(self.idx)
+        self.evaluations_just_done = real_evals * self.popsize
         self._update_measure()
         self._sigma_fac = self._treat()
         self._stop = True
@@ -319,7 +305,7 @@ class NoiseHandler(object):
         idx = np.argsort(self.fit + self.fitre)
         ranks = np.argsort(idx).reshape((2, lam))
         rankDelta = ranks[0] - ranks[1] - np.sign(ranks[0] - ranks[1])
-
+        
         # compute rank change limits using both ranks[0] and ranks[1]
         r = np.arange(1, 2 * lam)  # 2 * lam - 2 elements
         limits = [0.5 * (Mh.prctile(np.abs(r - (ranks[0, i] + 1 - (ranks[0, i] > ranks[1, i]))),
@@ -331,6 +317,7 @@ class NoiseHandler(object):
         #                               max: 1 rankchange in 2*lambda is always fine
         s = np.abs(rankDelta[self.idx]) - Mh.amax(limits, 1)  # lives roughly in 0..2*lambda
         self.noiseS += self.cum * (np.mean(s) - self.noiseS)
+        
         return self.noiseS, s
     
     def _treat(self):
