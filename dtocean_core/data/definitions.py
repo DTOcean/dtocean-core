@@ -28,6 +28,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 import shapefile
+from scipy import interpolate
 from natsort import natsorted
 import matplotlib.pyplot as plt
 import matplotlib.patheffects as PathEffects
@@ -4342,23 +4343,21 @@ class XGrid2D(XGridND):
             x = range(len(xuniques))
         else:
             xuniques, x = np.unique(xcoord, return_inverse=True)
-            xuniques = ['{0:.8g}'.format(tick) for tick in xuniques]
             
         if ycoord.values.dtype.kind in {'U', 'S'}:
             yuniques = ycoord.values
             y = range(len(yuniques))
         else:
             yuniques, y = np.unique(ycoord, return_inverse=True)
-            yuniques = ['{0:.8g}'.format(tick) for tick in yuniques]
-
+        
         fig = plt.figure()
         ax1 = fig.add_subplot(1, 1, 1, aspect='equal')
         plt.contourf(x, y, self.data.result.T)
         clb = plt.colorbar()
-
+        
         xlabel = self.meta.result.labels[0]
         ylabel = self.meta.result.labels[1]
-
+        
         if self.meta.result.units is not None:
             
             if self.meta.result.units[0] is not None:
@@ -4369,15 +4368,28 @@ class XGrid2D(XGridND):
             
             if self.meta.result.units[2] is not None:
                 clb.set_label("${}$".format(self.meta.result.units[2]))
-
+        
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
-                
-        ax1.set_xticklabels(xuniques)
-        ax1.set_yticklabels(yuniques)
+        
+        if xcoord.values.dtype.kind in {'U', 'S'}:
+            plt.xticks(x, xuniques)
+        else:
+            locs, _ = plt.xticks()
+            f = interpolate.interp1d(x, xuniques, fill_value="extrapolate")
+            new_labels = ['{0:.8g}'.format(tick) for tick in f(locs)]
+            plt.xticks(locs, new_labels)
+        
+        if ycoord.values.dtype.kind in {'U', 'S'}:
+            plt.yxticks(y, yuniques)
+        else:
+            locs, _ = plt.yticks()
+            f = interpolate.interp1d(y, yuniques, fill_value="extrapolate")
+            new_labels = ['{0:.8g}'.format(tick) for tick in f(locs)]
+            plt.yticks(locs, new_labels)
         
         plt.title(self.meta.result.title)
-
+        
         self.fig_handle = plt.gcf()
         
         return
