@@ -457,10 +457,14 @@ class Main(object):
                          self._cma_main.es,
                          self._cma_main.iterator,
                          self._cma_main.nh)
+        
+        return
     
     def get_es(self):
-        
         return self._cma_main.es
+    
+    def get_nhs(self):
+        return self._cma_main.nh
 
 
 def get_param_control(config, core, project):
