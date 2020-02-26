@@ -28,9 +28,15 @@ from ...core import Core
 # Convenience import
 from .noisehandler import NoiseHandler
 
-
 # Set up logging
 module_logger = logging.getLogger(__name__)
+
+
+class SafeCMAEvolutionStrategy(cma.CMAEvolutionStrategy):
+    
+    def plot(self):
+        cma.plot(self.logger.name_prefix)
+        return
 
 
 class NormScaler(object):
@@ -658,7 +664,7 @@ def init_evolution_strategy(x0,
     if tolfun is not None:
         opts["tolfun"] = tolfun
     
-    es = cma.CMAEvolutionStrategy(x0, NormScaler.sigma, opts)
+    es = SafeCMAEvolutionStrategy(x0, NormScaler.sigma, opts)
     
     return es
 
