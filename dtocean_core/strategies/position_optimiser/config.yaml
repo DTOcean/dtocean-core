@@ -10,6 +10,9 @@ clean_existing_dir:      # 'true' will empty the worker_dir if it exists
 popsize:                 # number of sample points per iteration
 max_simulations:         # quit after n simulations (following an iteration)
 timeout:                 # quit after t seconds (following an iteration)
+tolfun:                  # tolerance in function value for termination [default: 1e-11]
+min_evals:               # Minimum number of maintenance data points for noise handling
+max_evals:               # Maximum number of maintenance data points for noise handling [default: 8]
 logging: module          # 'module' or 'print'
 
 # Parameter specification

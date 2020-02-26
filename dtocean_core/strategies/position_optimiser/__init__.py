@@ -18,6 +18,7 @@ from natsort import natsorted
 from .iterator import get_positioner
 from ...core import Core
 from ...extensions import ToolManager
+from ...menu import ModuleMenu
 from ...utils import optimiser as opt
 from ...utils.files import remove_retry
 
@@ -265,6 +266,9 @@ class Main(object):
         self._worker_directory = None
         self._cma_main = None
         
+        menu = ModuleMenu()
+        self._available_modules = menu.get_available(core, project)
+        
         return
     
     def start(self, config):
@@ -286,28 +290,36 @@ class Main(object):
         popsize = None
         timeout = None
         tolfun = None
+        min_evals = None
+        max_evals = 8
         max_resample_loop_factor = None
         logging = "module"
         
-        if "clean_existing_dir" in config:
+        if is_option_set(config, "clean_existing_dir"):
             clean_existing_dir = config["clean_existing_dir"]
         
-        if "max_simulations" in config:
+        if is_option_set(config, "max_simulations"):
             max_simulations = config["max_simulations"]
         
-        if "popsize" in config:
+        if is_option_set(config, "popsize"):
             popsize = config["popsize"]
         
-        if "timeout" in config:
+        if is_option_set(config, "timeout"):
             timeout = config["timeout"]
         
-        if "tolfun" in config:
+        if is_option_set(config, "tolfun"):
             tolfun = config["tolfun"]
+            
+        if is_option_set(config, "min_evals"):
+            min_evals = config["min_evals"]
         
-        if "max_resample_factor" in config:
+        if is_option_set(config, "max_evals"):
+            max_evals = config["max_evals"]
+        
+        if is_option_set(config, "max_resample_factor"):
             max_resample_loop_factor = config["max_resample_factor"]
         
-        if "logging" in config:
+        if is_option_set(config, "logging"):
             logging = config["logging"]
         
         if self._project is None:
@@ -330,14 +342,35 @@ class Main(object):
         high_bound = [scaler.scaled(x[1])
                                     for x, scaler in zip(ranges, scaled_vars)]
         
-        es = opt.init_evolution_strategy(x0,
-                                         low_bound,
-                                         high_bound,
-                                         max_simulations=max_simulations,
-                                         popsize=popsize,
-                                         timeout=timeout,
-                                         tolfun=tolfun)
-        nh = opt.NoiseHandler(es.N, maxevals=[1, 1, 30])
+        es = opt.init_evolution_strategy(
+                                    x0,
+                                    low_bound,
+                                    high_bound,
+                                    max_simulations=max_simulations,
+                                    popsize=popsize,
+                                    timeout=timeout,
+                                    tolfun=tolfun,
+                                    logging_directory=self._worker_directory)
+        
+        if min_evals is None:
+            
+            complex_stats = ['interval_lower', 'interval_upper', 'mode']
+            simple_stats = ['mean', 'median']
+            
+            if any(word in objective for word in complex_stats):
+                min_evals = 4
+            elif any(word in objective for word in simple_stats):
+                min_evals = 1
+        
+        if min_evals is None or min_evals < 1: min_evals = 1
+        if max_evals < min_evals: max_evals = min_evals
+        
+        if ("Operations and Maintenance" in self._available_modules and
+            min_evals is not None):
+            nh = opt.NoiseHandler(es.N,
+                                  maxevals=[min_evals, min_evals, max_evals])
+        else:
+            nh = None
         
         counter = PositionCounter()
         iterator = PositionIterator(root_project_base_name,
@@ -397,10 +430,10 @@ class Main(object):
         max_resample_loop_factor = None
         logging = "module"
         
-        if "max_resample_factor" in config:
+        if is_option_set(config, "max_resample_factor"):
             max_resample_loop_factor = config["max_resample_factor"]
         
-        if "logging" in config:
+        if is_option_set(config, "logging"):
             logging = config["logging"]
         
         # Remove files above last recorded iteration
@@ -479,8 +512,9 @@ class Main(object):
     def get_es(self):
         return self._cma_main.es
     
-    def get_nhs(self):
+    def get_nh(self):
         return self._cma_main.nh
+
 
 
 def get_param_control(config, core, project):
@@ -648,3 +682,8 @@ def clean_numbered_files_above(directory, search_pattern, highest_valid):
 def extract_number(f):
     s = re.findall("(\d+).", f)
     return int(s[0]) if s else -1
+
+
+def is_option_set(config, key):
+    result = key in config and config[key] is not None
+    return result
