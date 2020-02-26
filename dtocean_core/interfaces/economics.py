@@ -561,7 +561,6 @@ class EconomicInterface(ThemeInterface):
             if len(data) == 1:
                 
                 mean = data[0]
-                mode = data[0]
                 
             elif len(data) == 2:
                 
