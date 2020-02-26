@@ -784,7 +784,7 @@ def dump_outputs(worker_directory, es, iterator, nh=None):
     if nh is None: return
     
     nh_path = os.path.join(worker_directory, 'saved-nh-object.pkl')
-    pickle.dump(es, open(nh_path, 'wb'), -1)
+    pickle.dump(nh, open(nh_path, 'wb'), -1)
     
     return
 
@@ -800,9 +800,9 @@ def load_outputs(worker_directory):
     counter_dict = pickle.load(open(counter_dict_path, 'rb'))
     
     if os.path.isfile(nh_path):
-        nh = None
-    else:
         nh = pickle.load(open(nh_path, 'rb'))
+    else:
+        nh = None
     
     return es, counter_dict, nh
 
