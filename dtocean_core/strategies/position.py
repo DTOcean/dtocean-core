@@ -329,7 +329,8 @@ class AdvancedPosition(Strategy):
                           "delta_col",
                           "n_nodes",
                           "t1",
-                          "t2"])
+                          "t2",
+                          "n_evals"])
         
         params_set = set(config["results_params"])
         params_set = params_set.difference([config["objective"]])
@@ -351,6 +352,8 @@ class AdvancedPosition(Strategy):
         table_cols = []
         
         for key in key_order:
+            
+            if not key in pickle_dict: continue
             
             value = pickle_dict[key]
             
@@ -642,7 +645,8 @@ def _post_process(config, log_interval=100):
                  "delta_col": "dc",
                  "n_nodes": "n_nodes",
                  "t1": "t1",
-                 "t2": "t2"}
+                 "t2": "t2",
+                 "n_evals": "n_evals"}
     
     sim_dir = config["worker_dir"]
     root_project_path = config['root_project_path']
@@ -654,6 +658,7 @@ def _post_process(config, log_interval=100):
     n_sims = len(yaml_file_paths)
     
     read_params = config["parameters"].keys()
+    read_params.append("n_evals")
     
     for param in read_params:
         pickle_dict[param] = []
@@ -694,12 +699,18 @@ def _post_process(config, log_interval=100):
         pickle_dict["sim_number"].append(sim_num)
         
         for param in read_params:
-            param_value = param_values[param_map[param]]
+            param_name = param_map[param]
+            if param_name not in param_values: continue
+            param_value = param_values[param_name]
             pickle_dict[param].append(param_value)
         
         for var_name in extract_vars:
             data_value = data_values[var_name]
             pickle_dict[var_name].append(data_value)
+    
+    # Clean empty items (like n_evals)
+    for key, item in pickle_dict.copy().iteritems():
+        if not item: pickle_dict.pop(key)
     
     pickle_name = "{}_results.pkl".format(root_project_base_name)
     pickle_path = os.path.join(sim_dir, pickle_name)
