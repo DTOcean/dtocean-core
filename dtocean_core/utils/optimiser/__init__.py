@@ -748,7 +748,8 @@ def init_evolution_strategy(x0,
                             max_simulations=None,
                             popsize=None,
                             timeout=None,
-                            tolfun=None):
+                            tolfun=None,
+                            logging_directory=None):
     
     opts = {'bounds': [low_bound, high_bound]}#,
 #            'verbose': -3}
@@ -764,6 +765,9 @@ def init_evolution_strategy(x0,
     
     if tolfun is not None:
         opts["tolfun"] = tolfun
+        
+    if logging_directory is not None:
+        opts['verb_filenameprefix'] = logging_directory + os.sep
     
     es = SafeCMAEvolutionStrategy(x0, NormScaler.sigma, opts)
     
