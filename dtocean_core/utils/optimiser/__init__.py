@@ -250,12 +250,12 @@ class Iterator(object):
         
         return
     
-    def _iterate(self, idx, results_queue, *args):
+    def _iterate(self, idx, category, sol, results_queue, *args):
         
         previous_cost = self._counter.get_cost(*args)
         
         if previous_cost:
-            results_queue.put((idx, previous_cost))
+            results_queue.put((idx, category, sol, previous_cost))
             return
         
         flag = ""
@@ -338,7 +338,7 @@ class Iterator(object):
                                 *args)
         self.cleanup(worker_project_path, flag, results)
         
-        results_queue.put((idx, cost))
+        results_queue.put((idx, category, sol, cost))
         
         return
     
@@ -370,14 +370,12 @@ class Main(object):
         # Defaults
         if base_penalty is None: base_penalty = 1.
         if num_threads is None: num_threads = 1
-        if max_resample_loop_factor is None: max_resample_loop_factor = 100
+        if max_resample_loop_factor is None: max_resample_loop_factor = 10
         
         if max_resample_loop_factor <= 0:
             err_msg = ("Argument max_resample_loop_factor must be greater "
                        "than zero")
             raise ValueError(err_msg)
-        
-        max_resample_loops = int(ceil(max_resample_loop_factor * es.popsize))
         
         self.es = es
         self.nh = nh
@@ -389,10 +387,13 @@ class Main(object):
         self._fixed_index_map = fixed_index_map
         self._base_penalty = base_penalty
         self._num_threads = num_threads
-        self._max_resample_loops = max_resample_loops
+        self._max_resample_loop_factor = max_resample_loop_factor
         self._logging = logging
         self._thread_queue = None
         self._sol_feasible = None
+        self._spare_sols = 2
+        self._sol_penalty = False
+        self._dirty_restart = False
         
         self._init_threads()
         
@@ -427,20 +428,48 @@ class Main(object):
     
     def _next(self):
         
-        final_solutions, final_costs = self._get_solutions_costs(self.es)
-        self.es.tell(final_solutions, final_costs)
+        default, _ = self._get_solutions_costs(self.es)
+        self.es.tell(default["solutions"], default["costs"])
         self.es.logger.add()
         
         return
     
     def _next_nh(self):
         
-        (final_solutions,
-         final_costs) = self._get_solutions_costs(self.es,
-                                                  self.nh.evaluations)
-        self.es.tell(final_solutions, final_costs)
-        self._sigma_correction(final_solutions, final_costs)
-        self.es.logger.add(more_data=[self.nh.evaluations, self.nh.noiseS])
+        # self._sol_penalty is set by self._get_solutions_costs
+        if self.es.countiter == 0 or self._sol_penalty or self._dirty_restart:
+            scaled_solutions_extra = None
+            last_n_evals = None
+            self._dirty_restart = False
+        else:
+            scaled_solutions_extra = self.nh.ask(self.es.ask)
+            last_n_evals = self.nh.last_n_evals
+        
+        default, extra = self._get_solutions_costs(self.es,
+                                                   scaled_solutions_extra,
+                                                   self.nh.n_evals,
+                                                   last_n_evals)
+        
+        self.es.tell(default["solutions"], default["costs"])
+        self.nh.tell(extra["solutions"], extra["costs"])
+        
+        self.es.sigma *= self.nh.sigma_fac
+        self.es.countevals += self.nh.evaluations_just_done
+        
+        noise = self.nh.get_predicted_noise()
+        
+        print "last true noise: {}".format(self.nh.noiseS)
+        print "predicted noise: {}".format(noise)
+        
+        if abs(noise) <= 1e-12:
+            log_noise = 1
+        elif noise <= -1e-12:
+            log_noise = 0.1
+        else:
+            log_noise = 10
+        
+        self.es.logger.add(more_data=[self.nh.evaluations, log_noise])
+        self.nh.prepare(default["solutions"], default["costs"])
         
         return
         
@@ -456,137 +485,220 @@ class Main(object):
             worker.start()
         
         return
-    
-    def _sigma_correction(self, final_solutions, final_costs):
+
+    def _get_solutions_costs(self, asktell,
+                                   scaled_solutions_extra=None,
+                                   n_evals=None,
+                                   n_evals_extra=None):
         
-        self.nh.prepare(final_solutions,
-                        final_costs,
-                        self.es.ask)
-        nh_costs = self._get_nh_costs(self.nh, self.nh.n_evals)
-        self.nh.tell(nh_costs)
-        self.es.sigma *= self.nh.sigma_fac
-        self.es.countevals += self.nh.evaluations_just_done
-        
-        return
-    
-    def _get_solutions_costs(self, asktell, n_evals=None):
+        self._sol_penalty = False
         
         final_solutions = []
         final_costs = []
+        final_solutions_extra = []
+        final_costs_extra = []
         
-        while len(final_solutions) < asktell.popsize:
+        result_default = {"solutions": final_solutions,
+                          "costs": final_costs}
+        result_extra = {"solutions": final_solutions_extra,
+                        "costs": final_costs_extra}
         
-            result_queue = queue.Queue()
-            needed_solutions = asktell.popsize - len(final_solutions)
-            scaled_solutions = None
-            run_solutions = []
-            run_descaled_solutions = []
-            resample_loops = 0
+        n_default = asktell.popsize
+        needed_solutions = self._spare_sols * n_default
+        xmean = None
+        
+        run_solutions = []
+        run_descaled_solutions = []
+        resample_loops = -1
+        max_resample_loops = int(ceil(self._max_resample_loop_factor *
+                                                          needed_solutions))
+        
+        while len(run_solutions) < needed_solutions:
             
-            while (len(run_solutions) < needed_solutions):
+            # If the maximum number of resamples is reached apply a 
+            # penalty value to a new set of solutions
+            if resample_loops == max_resample_loops:
                 
-                # If the maximum number of resamples is reached apply a 
-                # penalty value to a new set of solutions based on a fixed 
-                # penalty and the distance to a previous best solution
-                if resample_loops == self._max_resample_loops:
-                    
-                    if self._sol_feasible is None:
-                        
-                        if self.es.countiter == 0:
-                            err_msg = ("There are no feasible solutions to "
-                                       "use for penalty calculation. Problem "
-                                       "is likely ill-posed.")
-                            raise RuntimeError(err_msg)
-                        
-                        self._sol_feasible = self.es.best.x.copy()
-                    
-                    log_msg = ("Maximum of {} resamples reached. Applying "
-                               "penalty values.").format(
-                                                   self._max_resample_loops)
-                    module_logger.info(log_msg)
-                    
-                    scaled_solutions = asktell.ask(asktell.popsize)
-                    
-                    costs = [self._base_penalty + norm(
-                                        sol - self._sol_feasible)
-                                                for sol in scaled_solutions]
-                    
-                    return scaled_solutions, costs
+                log_msg = ("Maximum of {} resamples reached. Applying "
+                           "penalty values.").format(max_resample_loops)
+                module_logger.info(log_msg)
                 
-                ask_solutions = needed_solutions - len(run_solutions)
-                scaled_solutions = asktell.ask(ask_solutions)
-                descaled_solutions = []
+                run_solutions = []
+                run_descaled_solutions = []
+                final_solutions.extend(asktell.ask(n_default))
+                final_costs.extend(self._get_penalty(final_solutions))
                 
-                for solution in scaled_solutions:
-                    
-                    new_solution = [scaler.inverse(x) for x, scaler
-                                        in zip(solution, self._scaled_vars)]
-                    nearest_solution = \
-                            [snap(x) if snap is not None else x
-                                     for x, snap in zip(new_solution,
-                                                        self._nearest_ops)]
-                    
-                    descaled_solutions.append(nearest_solution)
+                n_default = 0
                 
-                if self._fixed_index_map is not None:
-                    
-                    ordered_index_map = OrderedDict(
-                                        sorted(self._fixed_index_map.items(),
-                                               key=lambda t: t[0]))
-                    
-                    for solution in descaled_solutions:
-                        for idx, val in ordered_index_map.iteritems():
-                            solution.insert(idx, val)
+                # Do not access noise
+                self._sol_penalty = True
                 
-                checked_solutions = []
-                checked_descaled_solutions = []
-                
-                for sol, des_sol in zip(scaled_solutions, descaled_solutions):
-                    if self.iterator.pre_constraints_hook(*des_sol): continue
-                    checked_solutions.append(sol)
-                    checked_descaled_solutions.append(des_sol)
-                
-                run_solutions.extend(checked_solutions)
-                run_descaled_solutions.extend(checked_descaled_solutions)
-                
-                resample_loops += 1
+                break
             
-            log_msg = ("{} resample loops required to generate {} "
+            ask_solutions = needed_solutions - len(run_solutions)
+            scaled_solutions = asktell.ask(ask_solutions, xmean)
+            
+            # Store xmean for resamples
+            if xmean is None:
+                xmean = self.es.mean
+            
+            descaled_solutions = self._get_descaled_solutions(
+                                                        scaled_solutions)
+            
+            checked_solutions = []
+            checked_descaled_solutions = []
+            
+            for sol, des_sol in zip(scaled_solutions, descaled_solutions):
+                if self.iterator.pre_constraints_hook(*des_sol): continue
+                checked_solutions.append(sol)
+                checked_descaled_solutions.append(des_sol)
+            
+            run_solutions.extend(checked_solutions)
+            run_descaled_solutions.extend(checked_descaled_solutions)
+            
+            resample_loops += 1
+        
+        if not self._sol_penalty and resample_loops > 0:
+            log_msg = ("{} resamples required to generate {} "
                        "solutions").format(resample_loops, needed_solutions)
             module_logger.debug(log_msg)
-            
-            run_idxs, match_dict = _get_match_process(run_descaled_solutions)
-            
-            for i in run_idxs:
-                self._thread_queue.put([i, result_queue] +
-                                       run_descaled_solutions[i] + 
-                                       [n_evals])
-            
-            self._thread_queue.join()
-            
-            costs = _rebuild_input(result_queue.queue,
-                                   match_dict,
-                                   len(run_descaled_solutions))
-            
-            valid_solutions = []
-            valid_costs = []
-            
-            for sol, cost in zip(run_solutions, costs):
-                
-                if np.isnan(cost): continue
-                valid_solutions.append(sol)
-                valid_costs.append(cost)
-            
-            final_solutions.extend(valid_solutions)
-            final_costs.extend(valid_costs)
         
-        return final_solutions, final_costs
-    
-    def _get_nh_costs(self, asktell, n_evals=None):
+        categories = ["default"] * len(run_descaled_solutions)
+        all_n_evals = [n_evals] * len(run_descaled_solutions)
+        
+        n_extra = 0
+        run_solutions_extra = []
+        run_descaled_solutions_extra = []
+        categories_extra = []
+        all_n_evals_extra = []
+        
+        if scaled_solutions_extra is not None:
+            
+            descaled_solutions_extra = self._get_descaled_solutions(
+                                                scaled_solutions_extra)
+            
+            for sol, des_sol in zip(scaled_solutions_extra,
+                                    descaled_solutions_extra):
+            
+                if self.iterator.pre_constraints_hook(*des_sol):
+                    final_solutions_extra.append(sol)
+                    final_costs_extra.append(np.nan)
+                else:
+                    run_solutions_extra.append(sol)
+                    run_descaled_solutions_extra.append(des_sol)
+                    categories_extra.append("extra")
+                    n_extra += 1
+            
+            all_n_evals_extra = [n_evals_extra] * n_extra
+        
+        if n_extra + n_default == 0:
+            return result_default, result_extra
+        
+        run_solutions = run_solutions_extra + run_solutions
+        run_descaled_solutions = run_descaled_solutions_extra + \
+                                                    run_descaled_solutions
+        categories = categories_extra + categories
+        all_n_evals = all_n_evals_extra + all_n_evals
+        
+        assert (len(run_solutions) ==
+                len(run_descaled_solutions) ==
+                len(categories) ==
+                len(all_n_evals))
+        
+        run_idxs, match_dict = _get_match_process(run_descaled_solutions,
+                                                  categories,
+                                                  run_solutions)
         
         result_queue = queue.Queue()
-        scaled_solutions = asktell.ask()
-        final_costs = np.zeros(asktell.popsize)
+        
+        for i in range(n_extra + n_default):
+            
+            if i not in run_idxs: continue
+            category = categories[i]
+            sol = run_solutions[i]
+            local_n_evals = all_n_evals[i]
+            
+            self._thread_queue.put([i, category, sol, result_queue] +
+                                   run_descaled_solutions[i] + 
+                                   [local_n_evals])
+        
+        store_results = {}
+        min_i = 0
+        next_i = n_extra + n_default
+        results_found = 0
+        
+        while results_found < n_extra + n_default:
+            
+            i, category, sol, cost = result_queue.get()
+            
+            if i in match_dict:
+                all_i = [(i, category, sol)] + match_dict[i]
+                all_cost = [cost] * (1 + len(match_dict[i]))
+            else:
+                all_i = [(i, category, sol)]
+                all_cost = [cost]
+            
+            for k, kcost in zip(all_i, all_cost):
+                i, category, sol = k
+                store_results[i] = (category, sol, kcost)
+            
+            for check_i in range(min_i, next_i):
+                
+                if check_i not in store_results: continue
+                if check_i == min_i: min_i += 1
+                
+                result = store_results.pop(check_i)
+                
+                if result[0] == "extra":
+                    
+                    final_solutions_extra.append(result[1])
+                    final_costs_extra.append(result[2])
+                    results_found += 1
+                    continue
+                
+                assert result[0] == "default"
+                
+                sol = result[1]
+                sol_cost = result[2]
+                
+                if np.isnan(sol_cost):
+                    
+                    if next_i == len(run_descaled_solutions):
+                        
+                        log_msg = ("Maximum number of retry solutions "
+                                   "reached. Applying penalty value.")
+                        module_logger.info(log_msg)
+                        
+                        sol_cost = self._get_penalty([sol])[0]
+                    
+                    else:
+                        
+                        if next_i not in run_idxs:
+                            next_i += 1
+                            continue
+                            
+                        run_category = categories[next_i]
+                        run_sol = run_solutions[next_i]
+                        
+                        self._thread_queue.put(
+                                [next_i, run_category, run_sol, result_queue] +
+                                run_descaled_solutions[next_i] + 
+                                [n_evals])
+                        
+                        next_i += 1
+                        continue
+                
+                final_solutions.append(sol)
+                final_costs.append(sol_cost)
+                
+                results_found += 1
+        
+        self._thread_queue.join()
+        
+        return result_default, result_extra
+    
+    def _get_descaled_solutions(self, scaled_solutions):
+        
         descaled_solutions = []
         
         for solution in scaled_solutions:
@@ -610,35 +722,24 @@ class Main(object):
                 for idx, val in ordered_index_map.iteritems():
                     solution.insert(idx, val)
         
-        run_descaled_solutions = []
-        run_descaled_solutions_idxs = []
+        return descaled_solutions
+    
+    def _get_penalty(self, sols):
         
-        for i, des_sol in enumerate(descaled_solutions):
+        if self._sol_feasible is None:
+        
+            if self.es.countiter == 0:
+                err_msg = ("There are no feasible solutions to "
+                           "use for penalty calculation. Problem "
+                           "is likely ill-posed.")
+                raise RuntimeError(err_msg)
             
-            if self.iterator.pre_constraints_hook(*des_sol): 
-                final_costs[i] = np.nan
-            else:
-                run_descaled_solutions.append(des_sol)
-                run_descaled_solutions_idxs.append(i)
+            self._sol_feasible = self.es.best.x.copy()
         
-        run_idxs, match_dict = _get_match_process(run_descaled_solutions)
+        costs = [self._base_penalty + norm(
+                            sol - self._sol_feasible) for sol in sols]
         
-        for i in run_idxs:
-            self._thread_queue.put([i, result_queue] +
-                                   run_descaled_solutions[i] + 
-                                   [n_evals])
-        
-        self._thread_queue.join()
-        
-        costs = _rebuild_input(result_queue.queue,
-                               match_dict,
-                               len(run_descaled_solutions))
-        
-        for i, cost in zip(run_descaled_solutions_idxs, costs):
-            final_costs[i] = cost
-        
-        return final_costs
-
+        return costs
 
 
 def init_evolution_strategy(x0,
@@ -726,10 +827,18 @@ def _get_scale_factor(range_min, range_max, x0, sigma, n_sigmas):
     return half_scaled_range / max_half_range
 
 
-
-
-
-def _get_match_process(values):
+def _get_match_process(values, *args):
+    
+    def expand_args(x, args):
+        
+        if not args: return x
+        
+        result = [x]
+        
+        for arg in args:
+            result.append(arg[x])
+        
+        return tuple(result)
     
     match_dict = {}
     all_matches = []
@@ -751,21 +860,10 @@ def _get_match_process(values):
         
         all_matches.extend(match_list)
         
-        if match_list: match_dict[key] = match_list
+        if match_list:
+            match_list = [expand_args(k, args) for k in match_list]
+            match_dict[key] = match_list
     
     process_set = set(range(len(values))) - set(all_matches)
     
     return list(process_set), match_dict
-
-
-def _rebuild_input(values, match_dict, input_length):
-    
-    rebuild = np.zeros(input_length)
-    
-    for idx, res in values:
-        rebuild[idx] = res
-    
-    for base_idx, copy_idxs in match_dict.iteritems():
-        rebuild[copy_idxs] = rebuild[base_idx]
-    
-    return rebuild
