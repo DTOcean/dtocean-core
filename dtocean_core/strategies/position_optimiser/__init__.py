@@ -99,9 +99,25 @@ class PositionIterator(opt.Iterator):
         
         self._tool_man = ToolManager()
         self._positioner = get_positioner(self._core, self._base_project)
-        self._objective_var = objective_var
         self._violation_log_path = os.path.join(self._worker_directory,
                                                 violation_log_name)
+        self._objective_var = None
+        
+        self._set_objective_var(objective_var)
+        
+        return
+    
+    def _set_objective_var(self, objective_var):
+        
+        sim = self._base_project.get_simulation(title="Default")
+        
+        if objective_var not in sim.get_output_ids():
+            
+            err_str = ("Objective {} is not an output of the base project's "
+                       "default simulation").format(objective_var)
+            raise RuntimeError(err_str)
+        
+        self._objective_var = objective_var
         
         return
     

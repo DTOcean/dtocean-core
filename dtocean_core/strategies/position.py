@@ -216,6 +216,50 @@ class AdvancedPosition(Strategy):
         
         return set_vars
     
+    def get_project_status(self, core, project):
+        
+        module_menu = ModuleMenu()
+        
+        sim_index = project.get_active_index()
+        active_modules = module_menu.get_active(core, project)
+        required_modules = ["Hydrodynamics"]
+        
+        if sim_index is None:
+            
+            status_str = "Project has not been activated"
+            return [status_str], 0
+        
+        if not set(required_modules) <= set(active_modules):
+            
+            status_strs = []
+            
+            for missing in set(required_modules) - set(active_modules):
+                
+                status_str = ("Project does not contain the {} "
+                              "module").format(missing)
+                status_strs.append(status_str)
+                
+            return status_strs, 0
+        
+        if "Default" not in project.get_simulation_titles():
+            
+            status_str = ('The position optimiser requires a simulation'
+                           ' with title "Default"')
+            return [status_str], 0
+        
+        sim = project.get_simulation(title="Default")
+        objective = self._config["objective"]
+        
+        if objective not in sim.get_output_ids():
+            
+            status_str = ('Objective {} is not an output of the default '
+                          'simulation').format(objective)
+            return [status_str], 0
+        
+        status_str = "Project ready"
+        
+        return [status_str], 1
+    
     def execute(self, core, project):
         
         self._prepare_project(core, project)
@@ -477,46 +521,6 @@ class AdvancedPosition(Strategy):
             status_code = 1
         
         return status_str, status_code
-    
-    @classmethod
-    def get_project_status(cls, core, project):
-        
-        module_menu = ModuleMenu()
-        
-        sim_index = project.get_active_index()
-        active_modules = module_menu.get_active(core, project)
-        required_modules = ["Hydrodynamics",
-                            "Operations and Maintenance"]
-        
-        if sim_index is None:
-            
-            status_strs = ["Project has not been activated"]
-            status_code = 0
-        
-        elif not set(required_modules) <= set(active_modules):
-            
-            status_strs = []
-            
-            for missing in set(required_modules) - set(active_modules):
-                
-                status_str = ("Project does not contain the {} "
-                              "module").format(missing)
-                status_strs.append(status_str)
-                
-            status_code = 0
-        
-        elif "Default" not in project.get_simulation_titles():
-            
-            status_strs = [('The position optimiser requires a simulation'
-                           ' with title "Default"')]
-            status_code = 0
-        
-        else:
-            
-            status_strs = ["Project ready"]
-            status_code = 1
-        
-        return status_strs, status_code
     
     @classmethod
     def get_worker_directory_status(cls, config):

@@ -12,16 +12,16 @@ import yaml
 
 from ...core import Core
 from ...extensions import StrategyManager
+from ...menu import ModuleMenu
 from ...pipeline import Tree
 
 from .positioner import ParaPositioner
 
 try:
     import dtocean_hydro
-    import dtocean_maintenance
 except ImportError:
-    err_msg = ("The DTOcean hydrodynamics and maintenance modules must be "
-               "installed in order to use this module")
+    err_msg = ("The DTOcean hydrodynamics module must be installed in order "
+               "to use this module")
     raise ImportError(err_msg)
 
 
@@ -114,6 +114,9 @@ def iterate(core,
             t2,
             n_evals=None):
     
+    menu = ModuleMenu()
+    available_modules = menu.get_available(core, project)
+    
     beta = 90 * np.pi / 180
     psi = 0 * np.pi / 180
     
@@ -127,8 +130,6 @@ def iterate(core,
                            t2)
     
     hydro_branch = _get_branch(core, project, "Hydrodynamics")
-    oandm_branch = _get_branch(core, project, "Operations and Maintenance")
-    
     user_array_layout = hydro_branch.get_input_variable(
                                         core,
                                         project,
@@ -144,8 +145,10 @@ def iterate(core,
     rated_power.set_raw_interface(core, power_rating * n_nodes)
     rated_power.read(core, project)
     
-    if n_evals is not None:
+    if ("Operations and Maintenance" in available_modules and
+        n_evals is not None):
         
+        oandm_branch = _get_branch(core, project, "Operations and Maintenance")
         data_points = oandm_branch.get_input_variable(
                                             core,
                                             project,
