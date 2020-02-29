@@ -370,7 +370,7 @@ class Main(object):
         # Defaults
         if base_penalty is None: base_penalty = 1.
         if num_threads is None: num_threads = 1
-        if max_resample_loop_factor is None: max_resample_loop_factor = 10
+        if max_resample_loop_factor is None: max_resample_loop_factor = 20
         
         if max_resample_loop_factor <= 0:
             err_msg = ("Argument max_resample_loop_factor must be greater "
