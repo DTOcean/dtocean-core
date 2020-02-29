@@ -69,6 +69,7 @@ class MainThread(threading.Thread):
                        "{}").format(type(e).__name__, str(e))
             module_logger.warning(log_msg)
         
+        _release_logging_locks()
         self._stopped = True
         
         return
@@ -814,5 +815,18 @@ def _post_process_legacy(core, config, log_interval=100):
     
     msg_str = "Post-processing complete"
     module_logger.info(msg_str)
+    
+    return
+
+
+def _release_logging_locks():
+    
+    for k,v in  logging.Logger.manager.loggerDict.items():
+        if not isinstance(v, logging.PlaceHolder):
+            for h in v.handlers:
+                try:
+                    h.release()
+                except:
+                    pass
     
     return
