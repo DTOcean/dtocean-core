@@ -380,7 +380,6 @@ class Main(object):
         self.es = es
         self.nh = nh
         self.iterator = iterator
-        self._stop = False
         self._worker_directory = worker_directory
         self._scaled_vars = scaled_vars
         self._nearest_ops = nearest_ops
@@ -389,11 +388,12 @@ class Main(object):
         self._num_threads = num_threads
         self._max_resample_loop_factor = max_resample_loop_factor
         self._logging = logging
-        self._thread_queue = None
-        self._sol_feasible = None
-        self._spare_sols = 2
+        self._spare_sols = 1
+        self._stop = False
         self._sol_penalty = False
         self._dirty_restart = False
+        self._thread_queue = None
+        self._sol_feasible = None
         
         self._init_threads()
         
@@ -504,7 +504,7 @@ class Main(object):
                         "costs": final_costs_extra}
         
         n_default = asktell.popsize
-        needed_solutions = self._spare_sols * n_default
+        needed_solutions = (1 + self._spare_sols) * n_default
         xmean = None
         
         run_solutions = []
