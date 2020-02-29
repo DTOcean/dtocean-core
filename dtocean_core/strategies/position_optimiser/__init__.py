@@ -331,9 +331,10 @@ class Main(object):
         _, root_project_name = os.path.split(root_project_path)
         root_project_base_name, _ = os.path.splitext(root_project_name)
         
-        fixed_params, ranges, x0s, nearest_ops = get_param_control(config,
-                                                                   self._core,
-                                                                   project)
+        control_dict = get_param_control(self._core, project, config)
+        
+        ranges = control_dict["ranges"]
+        x0s = control_dict["x0s"]
         
         scaled_vars = [opt.NormScaler(x[0], x[1], y)
                                                 for x, y in zip(ranges, x0s)]
@@ -398,9 +399,9 @@ class Main(object):
                             self._worker_directory,
                             iterator,
                             scaled_vars,
-                            nearest_ops,
+                            control_dict["nearest_ops"],
                             nh=nh,
-                            fixed_index_map=fixed_params,
+                            fixed_index_map=control_dict["fixed_params"],
                             base_penalty=base_penalty,
                             num_threads=n_threads,
                             max_resample_loop_factor=max_resample_loop_factor,
@@ -464,9 +465,10 @@ class Main(object):
         _, root_project_name = os.path.split(root_project_path)
         root_project_base_name, _ = os.path.splitext(root_project_name)
         
-        fixed_params, ranges, x0s, nearest_ops = get_param_control(config,
-                                                                   self._core,
-                                                                   project)
+        control_dict = get_param_control(self._core, project, config)
+        
+        ranges = control_dict["ranges"]
+        x0s = control_dict["x0s"]
         
         scaled_vars = [opt.NormScaler(x[0], x[1], y)
                                                 for x, y in zip(ranges, x0s)]
@@ -485,9 +487,9 @@ class Main(object):
                             self._worker_directory,
                             iterator,
                             scaled_vars,
-                            nearest_ops,
+                            control_dict["nearest_ops"],
                             nh=nh,
-                            fixed_index_map=fixed_params,
+                            fixed_index_map=control_dict["fixed_params"],
                             base_penalty=base_penalty,
                             num_threads=n_threads,
                             max_resample_loop_factor=max_resample_loop_factor,
@@ -518,12 +520,16 @@ class Main(object):
 
 
 
-def get_param_control(config, core, project):
+def get_param_control(core, project, config):
     
     ranges = []
     x0s = []
     nearest_ops = []
     fixed_params = {}
+    
+    result = {"ranges": ranges,
+              "x0s": x0s,
+              "nearest_ops": nearest_ops}
     
     param_names = ["array_orientation",
                    "delta_row",
@@ -574,8 +580,9 @@ def get_param_control(config, core, project):
         nearest_ops.append(nearest_op)
     
     if not fixed_params: fixed_params = None
+    result["fixed_params"] = fixed_params
     
-    return fixed_params, ranges, x0s, nearest_ops
+    return result
 
 
 def nearest(a, value):
