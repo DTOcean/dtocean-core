@@ -26,15 +26,11 @@ import abc
 
 import numpy as np
 from polylabel import polylabel
-from scipy.spatial import Delaunay
-from scipy.spatial.qhull import QhullError
 from shapely.geometry import (LineString,
-                              MultiLineString,
-                              MultiPoint,
                               Point,
                               Polygon,
                               box)
-from shapely.ops import cascaded_union, nearest_points, polygonize
+from shapely.ops import nearest_points
 
 try:
     from dtocean_hydro.utils.bathymetry_utility import get_unfeasible_regions
@@ -63,49 +59,55 @@ class DevicePositioner(object):
         self._layer_depths = layer_depths
         self._min_depth = min_depth
         self._max_depth = max_depth
-        self._nogo_polygons = nogo_polygons
+        self._valid_poly = None
+        
+        self._set_valid_polygon(nogo_polygons)
+        
+        return
+    
+    def _set_valid_polygon(self, nogo_polygons):
+        
+        depth_exclude_poly = _get_depth_exclusion_poly(
+                                                    self._layer_depths,
+                                                    min_depth=self._min_depth,
+                                                    max_depth=self._max_depth)
+        
+        if depth_exclude_poly is None:
+            valid_poly = Polygon(self._lease_polygon)
+        else:
+            valid_poly = self._lease_polygon.difference(depth_exclude_poly)
+        
+        if nogo_polygons is None:
+            self._valid_poly = valid_poly
+            return
+        
+        for nogo_poly in nogo_polygons:
+            valid_poly = valid_poly.difference(nogo_poly)
+        
+        self._valid_poly = valid_poly
         
         return
     
     def _get_valid_nodes(self, nodes):
         
-        nodes = _remove_exterior_nodes(nodes, self._lease_polygon)
-        
-        if self._nogo_polygons is not None:
-            
-            for polygon in self._nogo_polygons:
-                nodes = _remove_interior_nodes(nodes, polygon)
-        
-        if self._layer_depths is not None:
-            
-            kwargs = {}
-            
-            if self._min_depth is not None:
-                kwargs["min_depth"] = self._min_depth
-            
-            if self._max_depth is not None:
-                kwargs["max_depth"] = self._max_depth
-            
-            nodes = _select_nodes_by_depth(nodes,
-                                           self._layer_depths,
-                                           **kwargs)
-        
-        return nodes
+        new_nodes = [(x, y) for x, y in nodes
+                                 if Point(x, y).intersects(self._valid_poly)]
+        nodes_array = np.array(new_nodes)
+    
+        return nodes_array
     
     def _make_grid_nodes(self, array_orientation,
                                delta_row,
                                delta_col,
                                beta,
-                               psi,
-                               add_rows=0,
-                               add_cols=0):
+                               psi):
         
         # Estimate number of rows and cols using bounding box
         minx, miny, maxx, maxy = self._bounding_box.bounds
         
         xdiff = maxx - minx
         ydiff = maxy - miny
-        ddiff = np.sqrt(xdiff ** 2 + ydiff ** 2)
+        ddiff = 2 * np.sqrt(xdiff ** 2 + ydiff ** 2)
         
         cos_beta = np.cos(beta)
         sin_beta = np.sin(beta)
@@ -128,8 +130,8 @@ class DevicePositioner(object):
         if n_rows_psi % 2 == 0: n_rows_psi += 1
         if n_cols_psi % 2 == 0: n_cols_psi += 1
         
-        n_rows = max(n_rows_beta, n_rows_psi) + add_rows
-        n_cols = max(n_cols_beta, n_cols_psi) + add_cols
+        n_rows = max(n_rows_beta, n_rows_psi)
+        n_cols = max(n_cols_beta, n_cols_psi)
         
         # Initiate the grid vertices
         j, i = np.meshgrid(np.arange(n_rows), np.arange(n_cols))
@@ -156,9 +158,6 @@ class DevicePositioner(object):
         coord_raw[1,:] = y.ravel()
         coords = np.dot(Rz, coord_raw).T
         
-        # Translation to bounding box's centroid
-        coords = coords + self._bounding_box.centroid
-        
         return coords
     
     @classmethod
@@ -181,7 +180,12 @@ class DevicePositioner(object):
             raise ValueError(err_str)
             
         return
-    
+ 
+    @abc.abstractmethod
+    def _adapt_nodes(self, nodes, *args, **kwargs):
+        """Hook method for adapting the initial grid"""
+        return
+
     @abc.abstractmethod
     def _select_nodes(self, nodes, *args, **kwargs):
         """Hook method for selecting the final nodes"""
@@ -194,35 +198,13 @@ class DevicePositioner(object):
          delta_col,
          beta,
          psi) = args[:5]
-        
-        combos = np.array([[0, 0],
-                           [0, 1],
-                           [1, 0],
-                           [1, 1]])
-        n_nodes = np.zeros(4)
-        
-        for i, combo in enumerate(combos):
-            
-            nodes = self._make_grid_nodes(array_orientation,
-                                      delta_row,
-                                      delta_col,
-                                      beta,
-                                      psi,
-                                      combo[0],
-                                      combo[1])
-            nodes = self._get_valid_nodes(nodes)
-            n_nodes[i] = len(nodes)
-        
-        most_devs_idx = np.argmax(n_nodes)
-        best_combo = combos[most_devs_idx]
-        
+
         nodes = self._make_grid_nodes(array_orientation,
                                       delta_row,
                                       delta_col,
                                       beta,
-                                      psi,
-                                      best_combo[0],
-                                      best_combo[1])
+                                      psi)
+        nodes = self._adapt_nodes(nodes, *args, **kwargs)
         nodes = self._get_valid_nodes(nodes)
         nodes = self._select_nodes(nodes, *args, **kwargs)
         
@@ -231,6 +213,12 @@ class DevicePositioner(object):
 
 class DummyPositioner(DevicePositioner):
     
+    def _adapt_nodes(self, nodes, *args, **kwargs):
+        
+        nodes = nodes + self._bounding_box.centroid
+        
+        return nodes
+    
     def _select_nodes(self, nodes, *args, **kwargs):
         
         return nodes
@@ -238,34 +226,33 @@ class DummyPositioner(DevicePositioner):
 
 class CompassPositioner(DevicePositioner):
     
-    def _select_nodes(self, nodes, *args, **kwargs):
+    def _adapt_nodes(self, nodes, *args, **kwargs):
         
-        delta_row = args[1]
-        delta_col =  args[2]
-        n_nodes = args[5]
-        point_code = args[6] 
-    
-        if "alpha" not in kwargs or kwargs["alpha"] == "auto":
-            alpha = 1. / max(delta_row, delta_col)
-        else:
-            alpha = kwargs["alpha"]
-        
-        concave_hull, edge_points = _alpha_shape(nodes, alpha)
-        concave_hull = concave_hull.union(MultiPoint(nodes))
-        
-        if not isinstance(concave_hull, Polygon):
-            concave_hull = concave_hull.minimum_rotated_rectangle
+        point_code = args[6]
         
         if point_code.lower() == "centre" or point_code == "C":
-            start_point = polylabel([concave_hull.exterior.coords])
+            start_point = polylabel([self._valid_poly.exterior.coords])
         else:
-            start_point_maker = PolyCompass(concave_hull)
+            start_point_maker = PolyCompass(self._valid_poly)
             start_point = start_point_maker(point_code)
         
-        start_coords = nearest_points(Point(start_point),
-                                      concave_hull)[1].coords[:][0]
-        nearest_nodes = _nearest_n_nodes(nodes, start_coords, n_nodes)
+        self._start_coords = nearest_points(Point(start_point),
+                                            self._valid_poly)[1].coords[:][0]
         
+        if not Point(self._start_coords).intersects(self._valid_poly):
+            err_str = ("Start point ({}, {}) lies outside of valid "
+                       "domain").format(*self._start_coords)
+            raise RuntimeError(err_str)
+        
+        nodes = nodes + self._start_coords
+        
+        return nodes
+    
+    def _select_nodes(self, nodes, *args, **kwargs):
+        
+        n_nodes = args[5]
+        
+        nearest_nodes = _nearest_n_nodes(nodes, self._start_coords, n_nodes)
         actual_n_nodes = len(nearest_nodes)
         
         if actual_n_nodes < n_nodes:
@@ -276,35 +263,33 @@ class CompassPositioner(DevicePositioner):
 
 class ParaPositioner(DevicePositioner):
     
-    def _select_nodes(self, nodes, *args, **kwargs):
+    def _adapt_nodes(self, nodes, *args, **kwargs):
         
-        delta_row = args[1]
-        delta_col =  args[2]
-        n_nodes = args[5]
         t1 = args[6]
         t2 = args[7]
         
-        if len(nodes) < n_nodes:
-            _raise_insufficient_nodes_error(len(nodes), n_nodes)
-        
-        if "alpha" not in kwargs or kwargs["alpha"] == "auto":
-            alpha = 1. / max(delta_row, delta_col)
+        if isinstance(self._valid_poly, LineString):
+            interp_length = self._valid_poly.length * t1
+            self._start_coords = self._valid_poly.interpolate(interp_length)
         else:
-            alpha = kwargs["alpha"]
+            self._start_coords = _parametric_point_in_polygon(self._valid_poly,
+                                                              t1,
+                                                              t2)
         
-        try:
-            concave_hull, _ = _alpha_shape(nodes, alpha)
-            concave_hull = concave_hull.union(MultiPoint(nodes))
-        except QhullError:
-            concave_hull = MultiPoint(nodes).convex_hull
+        if not Point(self._start_coords).intersects(self._valid_poly):
+            err_str = ("Start point ({}, {}) lies outside of valid "
+                       "domain").format(*self._start_coords)
+            raise RuntimeError(err_str)
         
-        if isinstance(concave_hull, LineString):
-            interp_length = concave_hull.length * t1
-            start_coords = concave_hull.interpolate(interp_length)
-        else:
-            start_coords = _parametric_point_in_polygon(concave_hull, t1, t2)
+        nodes = nodes + self._start_coords
         
-        nearest_nodes = _nearest_n_nodes(nodes, start_coords, n_nodes)
+        return nodes
+    
+    def _select_nodes(self, nodes, *args, **kwargs):
+        
+        n_nodes = args[5]
+        
+        nearest_nodes = _nearest_n_nodes(nodes, self._start_coords, n_nodes)
         actual_n_nodes = len(nearest_nodes)
         
         if actual_n_nodes < n_nodes:
@@ -487,28 +472,9 @@ def _buffer_lease_polygon(lease_polygon,
     return lease_polygon_buffered
 
 
-def _remove_exterior_nodes(nodes_array, polygon):
-    
-    new_nodes = [(x, y) for x, y in nodes_array
-                                         if Point(x, y).intersects(polygon)]
-    nodes_array = np.array(new_nodes)
-    
-    return nodes_array
-
-
-def _remove_interior_nodes(nodes_array, polygon):
-    
-    new_nodes = [(x, y) for x, y in nodes_array
-                                 if not Point(x, y).intersects(polygon)]
-    nodes_array = np.array(new_nodes)
-    
-    return nodes_array
-
-
-def _select_nodes_by_depth(nodes_array,
-                           layer_depths,
-                           min_depth=-np.inf,
-                           max_depth=0):
+def _get_depth_exclusion_poly(layer_depths,
+                              min_depth=-np.inf,
+                              max_depth=0):
     
     bathy = _extract_bathymetry(layer_depths)
     zv = bathy.depth.values.T
@@ -519,13 +485,7 @@ def _select_nodes_by_depth(nodes_array,
     
     exclude, _ = get_unfeasible_regions(safe_xyz, [min_depth, max_depth])
     
-    if exclude is None: return nodes_array
-    
-    new_nodes = [node for node in nodes_array
-                                 if not exclude.intersects(Point(node))]
-    new_nodes_array = np.array(new_nodes)
-    
-    return new_nodes_array
+    return exclude
 
 
 def _extract_bathymetry(layer_depths):
@@ -533,74 +493,13 @@ def _extract_bathymetry(layer_depths):
     return layer_depths.sel(layer="layer 1")
 
 
-def _alpha_shape(nodes, alpha):
-    """
-    Compute the alpha shape (concave hull) of a set
-    of points.
-    @param nodes: Iterable container of points.
-    @param alpha: alpha value to influence the
-        gooeyness of the border. Smaller numbers
-        don't fall inward as much as larger numbers.
-        Too large, and you lose everything!
-        
-    https://gist.github.com/dwyerk/10561690
-    """
-    
-    if len(nodes) < 4:
-        # When you have a triangle, there is no sense
-        # in computing an alpha shape.
-        return MultiPoint(nodes).convex_hull, None
-    
-    centre_xy = nodes.mean(axis=0)
-    centre_nodes = nodes - centre_xy
-    
-    tri = Delaunay(centre_nodes)
-    triangles = centre_nodes[tri.vertices]
-    
-    # Calculate triangle areas
-    a = ((triangles[:,0,0] - triangles[:,1,0]) ** 2 +
-                         (triangles[:,0,1] - triangles[:,1,1]) ** 2) ** 0.5
-    b = ((triangles[:,1,0] - triangles[:,2,0]) ** 2 +
-                         (triangles[:,1,1] - triangles[:,2,1]) ** 2) ** 0.5
-    c = ((triangles[:,2,0] - triangles[:,0,0]) ** 2 +
-                         (triangles[:,2,1] - triangles[:,0,1]) ** 2) ** 0.5
-    
-    s = ( a + b + c ) / 2.0
-    
-    with np.errstate(invalid='ignore'):
-        areas = (s*(s-a)*(s-b)*(s-c)) ** 0.5
-    
-    # Filter out zero area (or close) triangles
-    predicate = ~np.logical_or(np.isnan(areas), np.isclose(areas, 0.))
-    a = a[predicate]
-    b = b[predicate]
-    c = c[predicate]
-    areas = areas[predicate]
-    triangles = triangles[predicate]
-    
-    circums = a * b * c / (4.0 * areas)
-    filtered = triangles[circums < (1.0 / alpha)]
-    
-    edge1 = filtered[:, (0, 1)]
-    edge2 = filtered[:, (1, 2)]
-    edge3 = filtered[:, (2, 0)]
-    edges = np.concatenate((edge1,edge2,edge3))
-    edge_points = [(edge + centre_xy).tolist() for edge in edges]
-    
-    m = MultiLineString(edge_points)
-    triangles = list(polygonize(m))
-    concave_hull = cascaded_union(triangles)
-    
-    return concave_hull, edge_points
-
-
 def _nearest_n_nodes(nodes, start_coords, number_of_nodes):
-    
-    start_point = Point(start_coords)
     
     def get_distance(xy):
         end_point = Point(xy)
         return start_point.distance(end_point)
+    
+    start_point = Point(start_coords)
     
     distances = np.apply_along_axis(get_distance, 1, nodes)
     order = np.argsort(distances)

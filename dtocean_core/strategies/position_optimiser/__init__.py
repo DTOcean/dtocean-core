@@ -159,7 +159,8 @@ class PositionIterator(opt.Iterator):
             
             details = str(e)
             
-            if "Expected number of nodes not found" in details:
+            if ("Expected number of nodes not found" in details or
+                "lies outside of valid domain" in details):
                 self._log_violation(details, *args)
                 return True
             
