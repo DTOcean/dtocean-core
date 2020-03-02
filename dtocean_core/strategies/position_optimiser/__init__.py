@@ -407,6 +407,9 @@ class Main(object):
                             max_resample_loop_factor=max_resample_loop_factor,
                             logging=logging)
         
+        # Disable logging rollovers
+        opt.set_TimedRotatingFileHandler_rollover(timeout)
+        
         return
     
     def restart(self, worker_directory):
@@ -429,8 +432,12 @@ class Main(object):
         objective = config["objective"]
         
         # Defaults
+        timeout = None
         max_resample_loop_factor = None
         logging = "module"
+        
+        if is_option_set(config, "timeout"):
+            timeout = config["timeout"]
         
         if is_option_set(config, "max_resample_factor"):
             max_resample_loop_factor = config["max_resample_factor"]
@@ -494,6 +501,9 @@ class Main(object):
                             num_threads=n_threads,
                             max_resample_loop_factor=max_resample_loop_factor,
                             logging=logging)
+        
+        # Disable logging rollovers
+        opt.set_TimedRotatingFileHandler_rollover(timeout)
         
         return
     

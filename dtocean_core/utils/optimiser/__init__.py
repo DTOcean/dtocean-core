@@ -7,6 +7,7 @@
 import os
 import abc
 import sys
+import time
 import queue
 import pickle
 import logging
@@ -809,6 +810,22 @@ def load_outputs(worker_directory):
         nh = None
     
     return es, counter_dict, nh
+
+
+def set_TimedRotatingFileHandler_rollover(timeout=None):
+    
+    # If theres no timeout choose a big number
+    if timeout is None:
+        timeout = sys.maxint
+    
+    logger = logging.Logger.manager.loggerDict["dtocean_core"]
+    
+    for handler in logger.handlers:
+        if handler.__class__.__name__ == "TimedRotatingFileHandler":
+            handler.interval = timeout
+            handler.rolloverAt = handler.computeRollover(time.time())
+    
+    return
 
 
 def _get_scale_factor(range_min, range_max, x0, sigma, n_sigmas):
