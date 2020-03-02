@@ -263,8 +263,7 @@ class AdvancedPosition(Strategy):
     
     def execute(self, core, project):
         
-        self._prepare_project(core, project)
-        main = Main(core=core, project=project)
+        main = Main(core=core)
         
         _, work_dir_status = self.get_worker_directory_status(self._config)
         _, optim_status = self.get_optimiser_status(self._config)
@@ -278,7 +277,8 @@ class AdvancedPosition(Strategy):
         
         else:
             
-            main.start(self._config)
+            self._prepare_project(core, project)
+            main.start(self._config, project=project)
         
         while not main.stop:
             main.next()
@@ -290,8 +290,7 @@ class AdvancedPosition(Strategy):
     
     def execute_threaded(self, core, project):
         
-        self._prepare_project(core, project)
-        main = Main(core=core, project=project)
+        main = Main(core=core)
         
         _, work_dir_status = self.get_worker_directory_status(self._config)
         _, optim_status = self.get_optimiser_status(self._config)
@@ -305,7 +304,8 @@ class AdvancedPosition(Strategy):
         
         else:
             
-            main.start(self._config)
+            self._prepare_project(core, project)
+            main.start(self._config, project=project)
         
         thread = MainThread(main,
                             self._config)

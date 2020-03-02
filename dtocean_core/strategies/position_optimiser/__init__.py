@@ -255,31 +255,27 @@ class PositionIterator(opt.Iterator):
 class Main(object):
     
     def __init__(self, core=None,
-                       project=None,
-                       config_fname="config.yaml"):
+                       config_fname="config.yaml",
+                       default_project_fname="worker.prj"):
         
         if core is None: core = Core()
         
         self.stop = False
         self._core = core
-        self._project = project
         self._config_fname = config_fname
+        self._default_project_fname = default_project_fname
         self._worker_directory = None
         self._cma_main = None
         
-        menu = ModuleMenu()
-        self._available_modules = menu.get_available(core, project)
-        
         return
     
-    def start(self, config):
+    def start(self, config, project=None):
         
         module_logger.info("Beginning position optimisation")
         
         self.stop = False
         self._worker_directory = config["worker_dir"]
         
-        root_project_path = config['root_project_path']
         base_penalty = config["base_penalty"]
         n_threads = config["n_threads"]
         results_params = config["results_params"]
@@ -323,10 +319,15 @@ class Main(object):
         if is_option_set(config, "logging"):
             logging = config["logging"]
         
-        if self._project is None:
+        if project is None:
+            root_project_path = config['root_project_path']
             project = self._core.load_project(root_project_path)
+            archive_project = False
         else:
-            project = self._project
+            root_project_path = os.path.join(self._worker_directory,
+                                             self._default_project_fname)
+            config['root_project_path'] = root_project_path
+            archive_project = True
         
         _, root_project_name = os.path.split(root_project_path)
         root_project_base_name, _ = os.path.splitext(root_project_name)
@@ -367,7 +368,10 @@ class Main(object):
         if min_evals is None or min_evals < 1: min_evals = 1
         if max_evals < min_evals: max_evals = min_evals
         
-        if ("Operations and Maintenance" in self._available_modules and
+        menu = ModuleMenu()
+        available_modules = menu.get_available(self._core, project)
+        
+        if ("Operations and Maintenance" in available_modules and
             min_evals is not None):
             nh = opt.NoiseHandler(es.N,
                                   maxevals=[min_evals, min_evals, max_evals])
@@ -383,7 +387,11 @@ class Main(object):
                                     logging=logging,
                                     clean_existing_dir=clean_existing_dir)
         
-        # Store copy of config in worker directory for potential restart
+        # Store the base project for potential restart (if necessary)
+        if archive_project:
+            self._core.dump_project(project, root_project_path)
+        
+        # Store copy of config for potential restart
         config_path = os.path.join(self._worker_directory, self._config_fname)
         dump_config(config, config_path)
         
@@ -464,10 +472,7 @@ class Main(object):
                                    prj_pattern,
                                    last_iter)
         
-        if self._project is None:
-            project = self._core.load_project(root_project_path)
-        else:
-            project = self._project
+        project = self._core.load_project(root_project_path)
         
         _, root_project_name = os.path.split(root_project_path)
         root_project_base_name, _ = os.path.splitext(root_project_name)
