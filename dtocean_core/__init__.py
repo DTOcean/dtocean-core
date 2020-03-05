@@ -48,9 +48,9 @@ logging.getLogger(__name__).addHandler(NullHandler())
 
 
 def start_logging():
-    
+
     """Start python logger"""
-    
+
     # Pick up the configuration from the user directory if it exists
     userdir = UserDataDirectory("dtocean_core", "DTOcean", "config")
     
@@ -83,18 +83,15 @@ def start_logging():
         log_path = logdir.get_path(log_filename)
         log_config_dict["handlers"]["file"]["filename"] = log_path
         logdir.makedir()
-    
-    log.configure_logger(log_config_dict)
+            
+    log.configure_logger(log_config_dict)        
     logger = log.add_named_logger("dtocean_core")
     
     # Rotate any rotating file handlers
     for handler in logger.handlers:
-        if 'RotatingFileHandler' in handler.__class__.__name__:
-            try:
-                handler.doRollover()
-            except WindowsError:
-                pass
-    
+        if handler.__class__.__name__ == 'RotatingFileHandler':
+            handler.doRollover()
+            
     logger.info("Begin logging for dtocean_core")
     
     return
