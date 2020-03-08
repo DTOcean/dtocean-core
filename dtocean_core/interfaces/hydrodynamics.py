@@ -516,19 +516,9 @@ class HydroInterface(ModuleInterface):
             occurrence_matrix["SSH"] = 0. # Datum is mean sea level
             occurrence_matrix["specType"] = spectrum_list
         
-        # Snap lease area to bathymetry
-        bathy_x = self.data.bathymetry["x"]
-        bathy_y = self.data.bathymetry["y"]
-        bathy_box = box(bathy_x.min(),
-                        bathy_y.min(),
-                        bathy_x.max(),
-                        bathy_y.max())
-
-        lease_area = self.data.lease_area
-        sane_lease_area = lease_area.intersection(bathy_box)
-        
         # Convert lease and nogo polygons
-        numpy_lease = np.array(sane_lease_area.exterior.coords[:-1])
+        lease_area = self.data.lease_area
+        numpy_lease = np.array(lease_area.exterior.coords[:-1])
         
         if self.data.nogo_areas is None:
             numpy_nogo = None
