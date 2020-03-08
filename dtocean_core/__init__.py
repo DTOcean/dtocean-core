@@ -22,6 +22,7 @@
 
 import os
 import logging
+from stat import ST_MTIME
 from pkg_resources import get_distribution
 
 from polite.configuration import ReadINI
@@ -48,9 +49,9 @@ logging.getLogger(__name__).addHandler(NullHandler())
 
 
 def start_logging():
-
+    
     """Start python logger"""
-
+    
     # Pick up the configuration from the user directory if it exists
     userdir = UserDataDirectory("dtocean_core", "DTOcean", "config")
     
@@ -83,15 +84,25 @@ def start_logging():
         log_path = logdir.get_path(log_filename)
         log_config_dict["handlers"]["file"]["filename"] = log_path
         logdir.makedir()
-            
-    log.configure_logger(log_config_dict)        
+    
+    log.configure_logger(log_config_dict)
     logger = log.add_named_logger("dtocean_core")
     
     # Rotate any rotating file handlers
     for handler in logger.handlers:
+        
         if handler.__class__.__name__ == 'RotatingFileHandler':
-            handler.doRollover()
             
+            handler.doRollover()
+        
+        if handler.__class__.__name__ == 'TimedRotatingFileHandler':
+            
+            last_rollover = handler.rolloverAt - handler.interval
+            last_modification = os.stat(handler.baseFilename)[ST_MTIME]
+            
+            if last_rollover >= last_modification:
+                handler.doRollover()
+    
     logger.info("Begin logging for dtocean_core")
     
     return
