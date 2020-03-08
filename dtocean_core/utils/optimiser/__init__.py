@@ -520,8 +520,11 @@ class Main(object):
             # penalty value to a new set of solutions
             if resample_loops == max_resample_loops:
                 
-                log_msg = ("Maximum of {} resamples reached. Applying "
-                           "penalty values.").format(max_resample_loops)
+                log_msg = ("Maximum of {} resamples reached. Only {} of {} "
+                           "required solutions were found. Applying "
+                           "penalty values.").format(max_resample_loops,
+                                                     len(run_solutions),
+                                                     needed_solutions)
                 module_logger.info(log_msg)
                 
                 run_solutions = []
@@ -531,17 +534,16 @@ class Main(object):
                 
                 n_default = 0
                 
-                # Do not access noise
+                # Do not assess noise
                 self._sol_penalty = True
                 
                 break
             
-            ask_solutions = needed_solutions - len(run_solutions)
-            scaled_solutions = asktell.ask(ask_solutions, xmean)
+            scaled_solutions = asktell.ask(asktell.popsize, xmean)
             
             # Store xmean for resamples
             if xmean is None:
-                xmean = self.es.mean
+                xmean = asktell.mean.copy()
             
             descaled_solutions = self._get_descaled_solutions(
                                                         scaled_solutions)
@@ -554,10 +556,28 @@ class Main(object):
                 checked_solutions.append(sol)
                 checked_descaled_solutions.append(des_sol)
             
+            max_sols = needed_solutions - len(run_solutions)
+            checked_solutions = checked_solutions[:max_sols]
+            checked_descaled_solutions = checked_descaled_solutions[:max_sols]
+            
             run_solutions.extend(checked_solutions)
             run_descaled_solutions.extend(checked_descaled_solutions)
             
             resample_loops += 1
+            
+            if resample_loops > 0 and checked_solutions:
+                
+                log_msg = ("{} of {} solutions found after {} resampling "
+                           "loops").format(len(run_solutions),
+                                           needed_solutions,
+                                           resample_loops)
+                module_logger.debug(log_msg)
+                
+                sample_solution = checked_solutions[0]
+                sample_solution_strs = [str(x) for x in sample_solution]
+                sample_solution_str = ", ".join(sample_solution_strs)
+                log_msg = "Sample solution: {}".format(sample_solution_str)
+                module_logger.debug(log_msg)
         
         if not self._sol_penalty and resample_loops > 0:
             log_msg = ("{} resamples required to generate {} "
