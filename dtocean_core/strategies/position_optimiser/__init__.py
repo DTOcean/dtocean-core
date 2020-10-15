@@ -21,6 +21,7 @@ from ...extensions import ToolManager
 from ...menu import ModuleMenu
 from ...utils import optimiser as opt
 from ...utils.files import remove_retry
+from ...utils.hydrodynamics import bearing_to_radians
 
 # Set up logging
 module_logger = logging.getLogger(__name__)
@@ -552,12 +553,22 @@ def get_param_control(core, project, config):
                    "t1",
                    "t2"]
     
+    conversions = {"grid_orientation": bearing_to_radians}
+    
     for i, param_name in enumerate(param_names):
         
         parameter = config["parameters"][param_name]
         
+        
         if "fixed" in parameter:
+            
+            fixed_value =  parameter["fixed"]
+            
+            if param_name in conversions:
+                fixed_value = conversions[param_name](fixed_value)
+                
             fixed_params[i] = parameter["fixed"]
+            
             continue
         
         crange = parameter["range"]
@@ -571,14 +582,33 @@ def get_param_control(core, project, config):
                                           crange["min_multiplier"],
                                           crange["max_multiplier"])
         
+        if param_name in conversions:
+            prange = [conversions[param_name](x) for x in prange]
+            prange = sorted(prange)
+        
         if "interp" in parameter:
             
             cinterp = parameter["interp"]
             
             if cinterp["type"] == "fixed":
-                nearest_op = get_interp_fixed(cinterp["values"])
+                
+                interp_vals = cinterp["values"]
+                
+                if param_name in conversions:
+                    interp_vals = [conversions[param_name](x)
+                                                        for x in interp_vals]
+                    interp_vals = sorted(interp_vals)
+                
+                nearest_op = get_interp_fixed(interp_vals)
+                
             elif  cinterp["type"] == "range":
-                nearest_op = get_interp_range(prange, cinterp["delta"])
+                
+                interp_delta = cinterp["delta"]
+                
+                if param_name in conversions:
+                    interp_delta = conversions[param_name](interp_delta)
+                
+                nearest_op = get_interp_range(prange, interp_delta)
         
         else:
             
@@ -586,6 +616,7 @@ def get_param_control(core, project, config):
         
         if "x0" in parameter:
             x0 = parameter["x0"]
+            if param_name in conversions: x0 = conversions[param_name](x0)
         else:
             x0 = None
         
