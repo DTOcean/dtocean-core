@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #    Copyright (C) 2016 Francesco Ferri
-#    Copyright (C) 2017-2019 Mathew Topper
-#    Copyright (C) 2019 Mathew Topper (Sandia National Labs)
+#    Copyright (C) 2017-2020 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -18,7 +17,6 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-.. moduleauthor:: Francesco Ferri <ff@civil.aau.dk>
 .. moduleauthor:: Mathew Topper <mathew.topper@dataonlygreater.com>
 """
 
@@ -96,7 +94,7 @@ class DevicePositioner(object):
     
         return nodes_array
     
-    def _make_grid_nodes(self, array_orientation,
+    def _make_grid_nodes(self, grid_orientation,
                                delta_row,
                                delta_col,
                                beta,
@@ -144,8 +142,8 @@ class DevicePositioner(object):
         x = delta_col * cos_beta * i + delta_row * cos_psi * j
         y = delta_col * sin_beta * i + delta_row * sin_psi * j
         
-        # 2D rotation matrix to apply array orientation rotation
-        rot_angle = array_orientation
+        # 2D rotation matrix to apply grid orientation rotation
+        rot_angle = grid_orientation
         
         cos_array = np.cos(rot_angle)
         sin_array = np.sin(rot_angle)
@@ -193,13 +191,13 @@ class DevicePositioner(object):
     
     def __call__(self, *args, **kwargs):
         
-        (array_orientation,
+        (grid_orientation,
          delta_row,
          delta_col,
          beta,
          psi) = args[:5]
 
-        nodes = self._make_grid_nodes(array_orientation,
+        nodes = self._make_grid_nodes(grid_orientation,
                                       delta_row,
                                       delta_col,
                                       beta,
