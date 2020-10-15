@@ -21,6 +21,7 @@ from .position_optimiser import (dump_config,
 from .position_optimiser.iterator import get_positioner, iterate
 from ..menu import ModuleMenu
 from ..pipeline import Tree
+from ..utils.hydrodynamics import radians_to_bearing
 
 # Set up logging
 module_logger = logging.getLogger(__name__)
@@ -216,50 +217,6 @@ class AdvancedPosition(Strategy):
                     'project.rated_power']
         
         return set_vars
-    
-    def get_project_status(self, core, project):
-        
-        module_menu = ModuleMenu()
-        
-        sim_index = project.get_active_index()
-        active_modules = module_menu.get_active(core, project)
-        required_modules = ["Hydrodynamics"]
-        
-        if sim_index is None:
-            
-            status_str = "Project has not been activated"
-            return [status_str], 0
-        
-        if not set(required_modules) <= set(active_modules):
-            
-            status_strs = []
-            
-            for missing in set(required_modules) - set(active_modules):
-                
-                status_str = ("Project does not contain the {} "
-                              "module").format(missing)
-                status_strs.append(status_str)
-                
-            return status_strs, 0
-        
-        if "Default" not in project.get_simulation_titles():
-            
-            status_str = ('The position optimiser requires a simulation'
-                           ' with title "Default"')
-            return [status_str], 0
-        
-        sim = project.get_simulation(title="Default")
-        objective = self._config["objective"]
-        
-        if objective not in sim.get_output_ids():
-            
-            status_str = ('Objective {} is not an output of the default '
-                          'simulation').format(objective)
-            return [status_str], 0
-        
-        status_str = "Project ready"
-        
-        return [status_str], 1
     
     def execute(self, core, project):
         
@@ -501,6 +458,51 @@ class AdvancedPosition(Strategy):
         return
     
     @classmethod
+    def get_project_status(cls, core, project, config):
+        
+        module_menu = ModuleMenu()
+        
+        sim_index = project.get_active_index()
+        active_modules = module_menu.get_active(core, project)
+        required_modules = ["Hydrodynamics"]
+        
+        if sim_index is None:
+            
+            status_str = "Project has not been activated"
+            return [status_str], 0
+        
+        if not set(required_modules) <= set(active_modules):
+            
+            status_strs = []
+            
+            for missing in set(required_modules) - set(active_modules):
+                
+                status_str = ("Project does not contain the {} "
+                              "module").format(missing)
+                status_strs.append(status_str)
+                
+            return status_strs, 0
+        
+        if "Default" not in project.get_simulation_titles():
+            
+            status_str = ('The position optimiser requires a simulation'
+                           ' with title "Default"')
+            return [status_str], 0
+        
+        sim = project.get_simulation(title="Default")
+        objective = config["objective"]
+        
+        if objective not in sim.get_output_ids():
+            
+            status_str = ('Objective {} is not an output of the default '
+                          'simulation').format(objective)
+            return [status_str], 0
+        
+        status_str = "Project ready"
+        
+        return [status_str], 1
+    
+    @classmethod
     def get_config_status(cls, config):
         
         required_keys = ["root_project_path",
@@ -587,7 +589,8 @@ class AdvancedPosition(Strategy):
         
         # Check the project is active and record the simulation number
         status_strs, status_code = self.get_project_status(core,
-                                                           project)
+                                                           project,
+                                                           self._config)
         
         if status_code == 0:
             status_str = "\n".join(status_strs)
