@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2016-2019 Mathew Topper
+#    Copyright (C) 2016-2020 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@
 
 import os
 import logging
-from stat import ST_MTIME
 from pkg_resources import get_distribution
 
 from polite.configuration import ReadINI
@@ -90,18 +89,8 @@ def start_logging():
     
     # Rotate any rotating file handlers
     for handler in logger.handlers:
-        
         if handler.__class__.__name__ == 'RotatingFileHandler':
-            
             handler.doRollover()
-        
-        if handler.__class__.__name__ == 'TimedRotatingFileHandler':
-            
-            last_rollover = handler.rolloverAt - handler.interval
-            last_modification = os.stat(handler.baseFilename)[ST_MTIME]
-            
-            if last_rollover >= last_modification:
-                handler.doRollover()
     
     logger.info("Begin logging for dtocean_core")
     
