@@ -122,6 +122,8 @@ class ArrayLeasePlot(PlotInterface):
         ax1.margins(0.1, 0.1)
         ax1.autoscale_view()
         
+        annotate_poly(ax1, self.data.lease_poly)
+        
         xlabel = 'UTM x [$m$]'
         ylabel = 'UTM y [$m$]'
         
@@ -225,6 +227,8 @@ class ArrayLeasePlotNumbers(PlotInterface):
         
         ax1.margins(0.1, 0.1)
         ax1.autoscale_view()
+        
+        annotate_poly(ax1, self.data.lease_poly)
         
         xlabel = 'UTM x [$m$]'
         ylabel = 'UTM y [$m$]'
@@ -345,6 +349,9 @@ class ArrayCablesPlot(PlotInterface):
         
         ax1.margins(0.1, 0.1)
         ax1.autoscale_view()
+        
+        if self.data.lease_poly is not None:
+            annotate_poly(ax1, self.data.lease_poly)
         
         xlabel = 'UTM x [$m$]'
         ylabel = 'UTM y [$m$]'
@@ -502,6 +509,9 @@ class ArrayFoundationsPlot(PlotInterface):
         ax1.margins(0.1, 0.1)
         ax1.autoscale_view()
         
+        if self.data.lease_poly is not None:
+            annotate_poly(ax1, self.data.lease_poly)
+        
         xlabel = 'UTM x [$m$]'
         ylabel = 'UTM y [$m$]'
         
@@ -600,6 +610,18 @@ def plot_lease_boundary(ax, lease_boundary, padding=None):
     
     maxy = lease_boundary.bounds[3] + 50.
     centroid = np.array(lease_boundary.centroid)
+    return
+
+
+def annotate_poly(ax, lease_poly):
+    
+    maxy = lease_poly.bounds[3] + 50.
+    centroid = np.array(lease_poly.centroid)
+    
+    ymin, ymax = ax.get_ylim()
+    
+    if maxy > ymax:
+        maxy = ymin  + 0.95 * (ymax - ymin)
     
     ax.annotate("Lease Area",
                 xy=(centroid[0], maxy),
