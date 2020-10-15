@@ -325,7 +325,7 @@ class AdvancedPosition(Strategy):
         
         key_order = ["sim_number"]
         key_order.append(config["objective"])
-        key_order.extend(["array_orientation",
+        key_order.extend(["grid_orientation",
                           "delta_row",
                           "delta_col",
                           "n_nodes",
@@ -337,7 +337,7 @@ class AdvancedPosition(Strategy):
         params_set = params_set.difference([config["objective"]])
         key_order.extend(list(params_set))
         
-        conversion_map = {"array_orientation": math.degrees}
+        conversion_map = {"grid_orientation": radians_to_bearing}
         
         root_project_path = config['root_project_path']
         sim_dir = config["worker_dir"]
@@ -422,7 +422,7 @@ class AdvancedPosition(Strategy):
                 
                 params = results["params"]
                 
-                array_orientation = params["theta"]
+                grid_orientation = params["theta"]
                 delta_row = params["dr"]
                 delta_col = params["dc"]
                 n_nodes = params["n_nodes"]
@@ -432,7 +432,7 @@ class AdvancedPosition(Strategy):
                 iterate(core,
                         src_project,
                         positioner,
-                        array_orientation,
+                        grid_orientation,
                         delta_row,
                         delta_col,
                         n_nodes,
@@ -641,7 +641,7 @@ def _post_process(config, log_interval=100):
     
     pickle_dict = {}
     
-    param_map = {"array_orientation": "theta",
+    param_map = {"grid_orientation": "theta",
                  "delta_row": "dr",
                  "delta_col": "dc",
                  "n_nodes": "n_nodes",
@@ -730,7 +730,7 @@ def _post_process_legacy(core, config, log_interval=100):
     
     pickle_dict = {}
     
-    param_map = {"array_orientation": "theta",
+    param_map = {"grid_orientation": "theta",
                  "delta_row": "dr",
                  "delta_col": "dc",
                  "n_nodes": "n_nodes",

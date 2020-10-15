@@ -27,7 +27,7 @@ except ImportError:
 
 def main(core,
          prj_file_path,
-         array_orientation_deg,
+         grid_orientation,
          delta_row,
          delta_col,
          n_nodes,
@@ -38,14 +38,14 @@ def main(core,
          save_project=False,
          write_results=True):
     
-    array_orientation = float(array_orientation_deg) * np.pi / 180
+    grid_orientation = float(grid_orientation)
     delta_row = float(delta_row)
     delta_col = float(delta_col)
     n_nodes = int(float(n_nodes))
     t1 = float(t1)
     t2 = float(t2)
     
-    params_dict = {"theta": array_orientation,
+    params_dict = {"theta": grid_orientation,
                    "dr": delta_row,
                    "dc": delta_col,
                    "n_nodes": n_nodes,
@@ -68,7 +68,7 @@ def main(core,
         iterate(core,
                 project,
                 positioner,
-                array_orientation,
+                grid_orientation,
                 delta_row,
                 delta_col,
                 n_nodes,
@@ -106,7 +106,7 @@ def main(core,
 def iterate(core,
             project,
             positioner,
-            array_orientation,
+            grid_orientation,
             delta_row,
             delta_col,
             n_nodes,
@@ -120,7 +120,7 @@ def iterate(core,
     beta = 90 * np.pi / 180
     psi = 0 * np.pi / 180
     
-    positions = positioner(array_orientation,
+    positions = positioner(grid_orientation,
                            delta_row,
                            delta_col,
                            beta,
@@ -267,7 +267,7 @@ def interface():
     core = Core()
     
     (prj_file_path,
-     array_orientation_deg,
+     grid_orientation,
      delta_row,
      delta_col,
      n_nodes,
@@ -281,7 +281,7 @@ def interface():
     
     main(core,
          prj_file_path,
-         array_orientation_deg,
+         grid_orientation,
          delta_row,
          delta_col,
          n_nodes,

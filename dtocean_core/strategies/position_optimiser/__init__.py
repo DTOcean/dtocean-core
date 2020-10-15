@@ -29,7 +29,7 @@ module_logger = logging.getLogger(__name__)
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
-PositionParams = namedtuple('PositionParams', ['array_orientation',
+PositionParams = namedtuple('PositionParams', ['grid_orientation',
                                                'delta_row',
                                                'delta_col',
                                                'n_nodes',
@@ -48,7 +48,7 @@ class PositionCounter(opt.Counter):
                           worker_results_path,
                           lcoe,
                           flag,
-                          array_orientation_deg,
+                          grid_orientation,
                           delta_row,
                           delta_col,
                           n_nodes,
@@ -57,7 +57,7 @@ class PositionCounter(opt.Counter):
                           n_evals):
         """Build a params (probably namedtuple) object to search against."""
         
-        params = PositionParams(array_orientation_deg,
+        params = PositionParams(grid_orientation,
                                 delta_row,
                                 delta_col,
                                 n_nodes,
@@ -133,20 +133,19 @@ class PositionIterator(opt.Iterator):
     
     def pre_constraints_hook(self, *args):
         
-        (array_orientation_deg,
+        (grid_orientation,
          delta_row,
          delta_col,
          n_nodes,
          t1,
          t2) = args
         
-        array_orientation = float(array_orientation_deg) * np.pi / 180
         beta = 90 * np.pi / 180
         psi = 0 * np.pi / 180
         
         try:
             
-            positions = self._positioner(array_orientation,
+            positions = self._positioner(grid_orientation,
                                          delta_row,
                                          delta_col,
                                          beta,
@@ -546,7 +545,7 @@ def get_param_control(core, project, config):
               "x0s": x0s,
               "nearest_ops": nearest_ops}
     
-    param_names = ["array_orientation",
+    param_names = ["grid_orientation",
                    "delta_row",
                    "delta_col",
                    "n_nodes",
