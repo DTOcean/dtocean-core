@@ -580,10 +580,18 @@ def plot_point_dict(ax,
 
 
 def plot_lease_boundary(ax, lease_boundary, padding=None):
-            
-    if padding is not None:
+    
+    outer_coords = list(lease_boundary.exterior.coords)
+    
+    if padding is None:
         
-        outer_coords = list(lease_boundary.exterior.coords)
+        lease_boundary = Polygon(outer_coords)
+        patch = PolygonPatch(lease_boundary,
+                             ec=GREY,
+                             fill=False)
+    
+    else:
+        
         inner_boundary = lease_boundary.buffer(-padding)
         inner_coords = list(inner_boundary.exterior.coords)
         
@@ -592,24 +600,14 @@ def plot_lease_boundary(ax, lease_boundary, padding=None):
             inner_coords = inner_coords[::-1]
         
         lease_boundary = Polygon(outer_coords, [inner_coords])
-        
         patch = PolygonPatch(lease_boundary,
                              fc=RED,
                              fill=True,
                              alpha=0.3,
                              ls=None)
-            
-        ax.add_patch(patch)
-        
-    patch = PolygonPatch(lease_boundary,
-                         ec=BLUE,
-                         fill=False,
-                         linewidth=2)
     
     ax.add_patch(patch)
     
-    maxy = lease_boundary.bounds[3] + 50.
-    centroid = np.array(lease_boundary.centroid)
     return
 
 
