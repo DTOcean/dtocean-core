@@ -415,10 +415,12 @@ class Main(object):
         else:
             self._next_nh()
         
-        self.es.disp()
-        
         if self._logging == "print":
             self.es.disp()
+            print "    tolfun: {}".format(max(self.es.fit.fit) -
+                                                       min(self.es.fit.fit))
+            print "    tolfunhist: {}".format(max(self.es.fit.hist) -
+                                                       min(self.es.fit.hist))
         elif self._logging == "module":
             msg_str = ('Minimum fitness for iteration {}: '
                        '{:.15e}').format(self.es.countiter,
@@ -459,8 +461,19 @@ class Main(object):
         
         noise = self.nh.get_predicted_noise()
         
-        print "last true noise: {}".format(self.nh.noiseS)
-        print "predicted noise: {}".format(noise)
+        msg = "last true noise: {}".format(self.nh.noiseS)
+        
+        if self._logging == "print":
+            print msg
+        elif self._logging == "module":
+            module_logger.info(msg)
+        
+        msg = "predicted noise: {}".format(noise)
+        
+        if self._logging == "print":
+            print msg
+        elif self._logging == "module":
+            module_logger.info(msg)
         
         if abs(noise) <= 1e-12:
             log_noise = 1
@@ -582,7 +595,7 @@ class Main(object):
         if not self._sol_penalty and resample_loops > 0:
             log_msg = ("{} resamples required to generate {} "
                        "solutions").format(resample_loops, needed_solutions)
-            module_logger.debug(log_msg)
+            module_logger.info(log_msg)
         
         categories = ["default"] * len(run_descaled_solutions)
         all_n_evals = [n_evals] * len(run_descaled_solutions)
