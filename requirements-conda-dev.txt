@@ -3,9 +3,9 @@ basemap
 cmocean-matplotlib
 contours
 cycler
-Cython
 descartes
 geoalchemy2
+geopy < 2
 matplotlib <2
 monotonic
 natsort
@@ -17,9 +17,9 @@ pandas >=0.18
 pil
 psycopg2
 pyproj
+pyshp
 python-dateutil
 pyyaml
-pyshp
 ruamel.yaml
 ruamel.yaml.clib
 scipy
