@@ -209,7 +209,7 @@ def get_positioner(core, project):
                                 max_depth=installation_depth_max,
                                 nogo_polygons=nogo_areas,
                                 lease_padding=boundary_padding,
-                                turbine_separation=turbine_interdistance)
+                                turbine_interdistance=turbine_interdistance)
     
     return positioner
 

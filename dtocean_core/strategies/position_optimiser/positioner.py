@@ -48,11 +48,11 @@ class DevicePositioner(object):
                        max_depth=None,
                        nogo_polygons=None,
                        lease_padding=None,
-                       turbine_separation=None):
+                       turbine_interdistance=None):
         
         self._lease_polygon = _buffer_lease_polygon(lease_polygon,
                                                     lease_padding,
-                                                    turbine_separation)
+                                                    turbine_interdistance)
         self._bounding_box = box(*lease_polygon.bounds)
         self._layer_depths = layer_depths
         self._min_depth = min_depth
@@ -456,15 +456,15 @@ class PolyCompass(object):
 
 def _buffer_lease_polygon(lease_polygon,
                           lease_padding=None,
-                          turbine_separation=None):
+                          turbine_interdistance=None):
     
     if (lease_padding is None and
-        turbine_separation is None): return lease_polygon
+        turbine_interdistance is None): return lease_polygon
     
     if lease_padding is None: lease_padding = 0.
-    if turbine_separation is None: turbine_separation = 0.
+    if turbine_interdistance is None: turbine_interdistance = 0.
         
-    total_buffer = max(lease_padding, turbine_separation)
+    total_buffer = max(lease_padding, turbine_interdistance)
     lease_polygon_buffered = lease_polygon.buffer(-total_buffer)
     
     return lease_polygon_buffered
