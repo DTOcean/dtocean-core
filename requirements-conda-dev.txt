@@ -1,11 +1,12 @@
 # REQUIREMENTS FOR CONDA INSTALLATION (EXCLUDING DTOCEAN PACKAGES)
 basemap
+cma ==2.6.0
 cmocean-matplotlib
 contours
 cycler
 descartes
 geoalchemy2
-geopy < 2
+geopy <2
 matplotlib <2
 monotonic
 natsort
