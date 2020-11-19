@@ -390,6 +390,7 @@ class Main(object):
         self._max_resample_loop_factor = max_resample_loop_factor
         self._logging = logging
         self._spare_sols = 1
+        self._n_hist = int(10 + 30 * self.es.N / self.es.sp.popsize)
         self._stop = False
         self._sol_penalty = False
         self._dirty_restart = False
@@ -415,16 +416,28 @@ class Main(object):
         else:
             self._next_nh()
         
+        tolfun = max(self.es.fit.fit) - min(self.es.fit.fit)
+        tolfunhist = max(self.es.fit.hist) - min(self.es.fit.hist)
+        
         if self._logging == "print":
+            
             self.es.disp()
-            print "    tolfun: {}".format(max(self.es.fit.fit) -
-                                                       min(self.es.fit.fit))
-            print "    tolfunhist: {}".format(max(self.es.fit.hist) -
-                                                       min(self.es.fit.hist))
+            print "    tolfun: {}".format(tolfun)
+            print "    tolfunhist: {}".format(tolfunhist)
+            
         elif self._logging == "module":
+            
             msg_str = ('Minimum fitness for iteration {}: '
                        '{:.15e}').format(self.es.countiter,
                         min(self.es.fit.fit))
+            module_logger.info(msg_str)
+            
+            msg_str = ('Fitness value range (last iteration): '
+                       '{}').format(tolfun)
+            module_logger.info(msg_str)
+            
+            msg_str = ('Minimum fitness value range (last {} iterations): '
+                       '{}').format(self._n_hist, tolfunhist)
             module_logger.info(msg_str)
         
         return
@@ -461,14 +474,14 @@ class Main(object):
         
         noise = self.nh.get_predicted_noise()
         
-        msg = "last true noise: {}".format(self.nh.noiseS)
+        msg = "Last true noise: {}".format(self.nh.noiseS)
         
         if self._logging == "print":
             print msg
         elif self._logging == "module":
             module_logger.info(msg)
         
-        msg = "predicted noise: {}".format(noise)
+        msg = "Predicted noise: {}".format(noise)
         
         if self._logging == "print":
             print msg
