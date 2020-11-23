@@ -366,17 +366,12 @@ class Main(object):
                        base_penalty=None,
                        num_threads=None,
                        max_resample_loop_factor=None,
+                       auto_resample_iterations=None,
                        logging="module"):
         
         # Defaults
         if base_penalty is None: base_penalty = 1.
         if num_threads is None: num_threads = 1
-        if max_resample_loop_factor is None: max_resample_loop_factor = 20
-        
-        if max_resample_loop_factor <= 0:
-            err_msg = ("Argument max_resample_loop_factor must be greater "
-                       "than zero")
-            raise ValueError(err_msg)
         
         self.es = es
         self.nh = nh
@@ -389,14 +384,20 @@ class Main(object):
         self._num_threads = num_threads
         self._max_resample_loop_factor = max_resample_loop_factor
         self._logging = logging
+        self._auto_resample_iterations = auto_resample_iterations
+        self._auto_resample_iterations = auto_resample_iterations
         self._spare_sols = 1
         self._n_hist = int(10 + 30 * self.es.N / self.es.sp.popsize)
+        self._max_resample_loops = None
+        self._n_record_resample = None
         self._stop = False
         self._sol_penalty = False
         self._dirty_restart = False
         self._thread_queue = None
         self._sol_feasible = None
         
+        self._init_resamples(max_resample_loop_factor,
+                             auto_resample_iterations)
         self._init_threads()
         
         return
@@ -404,6 +405,54 @@ class Main(object):
     @property
     def stop(self):
         return self._stop
+    
+    def _init_resamples(self, max_resample_loop_factor,
+                              auto_resample_iterations):
+        
+        if auto_resample_iterations is None:
+            
+            if max_resample_loop_factor is None: max_resample_loop_factor = 20
+            
+            if max_resample_loop_factor < 0:
+                err_msg = ("Argument max_resample_loop_factor must be greater "
+                           "than or equal to zero")
+                raise ValueError(err_msg)
+            
+            self._n_record_resample = 0
+            
+            n_default = self.es.popsize
+            needed_solutions = (1 + self._spare_sols) * n_default
+            self._max_resample_loops = \
+                int(ceil(self._max_resample_loop_factor * needed_solutions))
+            
+            log_msg = ("Setting maximum resamples to "
+                       "{}").format(self._max_resample_loops)
+            module_logger.info(log_msg)
+        
+        else:
+            
+            if auto_resample_iterations <= 0:
+                err_msg = ("Argument auto_resample_iterations must be greater "
+                           "than zero")
+                raise ValueError(err_msg)
+            
+            self._max_resample_loops = 0
+            self._n_record_resample = auto_resample_iterations
+        
+        return
+    
+    def _init_threads(self):
+            
+        self._thread_queue = queue.Queue()
+        
+        for i in range(self._num_threads):
+            
+            worker = threading.Thread(target=self.iterator,
+                                      args=(self._thread_queue,))
+            worker.setDaemon(True)
+            worker.start()
+        
+        return
     
     def next(self):
         
@@ -499,20 +548,7 @@ class Main(object):
         self.nh.prepare(default["solutions"], default["costs"])
         
         return
-        
-    def _init_threads(self):
-            
-        self._thread_queue = queue.Queue()
-        
-        for i in range(self._num_threads):
-            
-            worker = threading.Thread(target=self.iterator,
-                                      args=(self._thread_queue,))
-            worker.setDaemon(True)
-            worker.start()
-        
-        return
-
+    
     def _get_solutions_costs(self, asktell,
                                    scaled_solutions_extra=None,
                                    n_evals=None,
@@ -537,18 +573,17 @@ class Main(object):
         run_solutions = []
         run_descaled_solutions = []
         resample_loops = -1
-        max_resample_loops = int(ceil(self._max_resample_loop_factor *
-                                                          needed_solutions))
         
         while len(run_solutions) < needed_solutions:
             
             # If the maximum number of resamples is reached apply a 
             # penalty value to a new set of solutions
-            if resample_loops == max_resample_loops:
+            if (self._n_record_resample == 0 and
+                resample_loops == self._max_resample_loops):
                 
                 log_msg = ("Maximum of {} resamples reached. Only {} of {} "
                            "required solutions were found. Applying "
-                           "penalty values.").format(max_resample_loops,
+                           "penalty values.").format(self._max_resample_loops,
                                                      len(run_solutions),
                                                      needed_solutions)
                 module_logger.info(log_msg)
@@ -609,6 +644,19 @@ class Main(object):
             log_msg = ("{} resamples required to generate {} "
                        "solutions").format(resample_loops, needed_solutions)
             module_logger.info(log_msg)
+        
+        if self._n_record_resample > 0:
+            
+            if resample_loops > self._max_resample_loops:
+                self._max_resample_loops = resample_loops
+            
+            self._n_record_resample -= 1
+            
+            if self._n_record_resample == 0:
+                log_msg = ("Setting maximum resamples to {} following "
+                           "iteration {}").format(self._max_resample_loops,
+                                                  self.es.countiter + 1)
+                module_logger.info(log_msg)
         
         categories = ["default"] * len(run_descaled_solutions)
         all_n_evals = [n_evals] * len(run_descaled_solutions)

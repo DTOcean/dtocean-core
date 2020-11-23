@@ -290,6 +290,7 @@ class Main(object):
         min_evals = None
         max_evals = 8
         max_resample_loop_factor = None
+        auto_resample_iterations = None
         logging = "module"
         
         if is_option_set(config, "clean_existing_dir"):
@@ -314,7 +315,16 @@ class Main(object):
             max_evals = config["max_evals"]
         
         if is_option_set(config, "max_resample_factor"):
-            max_resample_loop_factor = config["max_resample_factor"]
+            max_resample_factor = config["max_resample_factor"]
+        
+        # Check for use of auto setting
+        auto_match = re.match(r"auto([0-9]+)", str(max_resample_factor), re.I)
+        
+        if auto_match:
+            items = auto_match.groups()
+            auto_resample_iterations = int(items[0])
+        else:
+            max_resample_loop_factor = max_resample_factor
         
         if is_option_set(config, "logging"):
             logging = config["logging"]
@@ -413,6 +423,7 @@ class Main(object):
                             base_penalty=base_penalty,
                             num_threads=n_threads,
                             max_resample_loop_factor=max_resample_loop_factor,
+                            auto_resample_iterations=auto_resample_iterations,
                             logging=logging)
         
         # Disable logging rollovers
@@ -442,13 +453,24 @@ class Main(object):
         # Defaults
         timeout = None
         max_resample_loop_factor = None
+        auto_resample_iterations = None
         logging = "module"
         
         if is_option_set(config, "timeout"):
             timeout = config["timeout"]
         
         if is_option_set(config, "max_resample_factor"):
-            max_resample_loop_factor = config["max_resample_factor"]
+            max_resample_factor = config["max_resample_factor"]
+        
+        # Check for use of auto setting
+        auto_match = re.match(r"auto([0-9]+)", str(max_resample_factor), re.I)
+        
+        if auto_match:
+            items = auto_match.groups()
+            auto_resample_iterations = int(items[0])
+        else:
+            max_resample_loop_factor = max_resample_factor
+            
         
         if is_option_set(config, "logging"):
             logging = config["logging"]
@@ -505,6 +527,7 @@ class Main(object):
                             base_penalty=base_penalty,
                             num_threads=n_threads,
                             max_resample_loop_factor=max_resample_loop_factor,
+                            auto_resample_iterations=auto_resample_iterations,
                             logging=logging)
         
         # Disable logging rollovers
