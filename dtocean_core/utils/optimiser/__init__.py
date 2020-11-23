@@ -382,10 +382,7 @@ class Main(object):
         self._fixed_index_map = fixed_index_map
         self._base_penalty = base_penalty
         self._num_threads = num_threads
-        self._max_resample_loop_factor = max_resample_loop_factor
         self._logging = logging
-        self._auto_resample_iterations = auto_resample_iterations
-        self._auto_resample_iterations = auto_resample_iterations
         self._spare_sols = 1
         self._n_hist = int(10 + 30 * self.es.N / self.es.sp.popsize)
         self._max_resample_loops = None
@@ -423,7 +420,7 @@ class Main(object):
             n_default = self.es.popsize
             needed_solutions = (1 + self._spare_sols) * n_default
             self._max_resample_loops = \
-                int(ceil(self._max_resample_loop_factor * needed_solutions))
+                        int(ceil(max_resample_loop_factor * needed_solutions))
             
             log_msg = ("Setting maximum resamples to "
                        "{}").format(self._max_resample_loops)

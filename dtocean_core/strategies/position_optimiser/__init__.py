@@ -315,16 +315,19 @@ class Main(object):
             max_evals = config["max_evals"]
         
         if is_option_set(config, "max_resample_factor"):
+            
             max_resample_factor = config["max_resample_factor"]
-        
-        # Check for use of auto setting
-        auto_match = re.match(r"auto([0-9]+)", str(max_resample_factor), re.I)
-        
-        if auto_match:
-            items = auto_match.groups()
-            auto_resample_iterations = int(items[0])
-        else:
-            max_resample_loop_factor = max_resample_factor
+            
+            # Check for use of auto setting
+            auto_match = re.match(r"auto([0-9]+)",
+                                  str(max_resample_factor),
+                                  re.I)
+            
+            if auto_match:
+                items = auto_match.groups()
+                auto_resample_iterations = int(items[0])
+            else:
+                max_resample_loop_factor = max_resample_factor
         
         if is_option_set(config, "logging"):
             logging = config["logging"]
@@ -460,17 +463,19 @@ class Main(object):
             timeout = config["timeout"]
         
         if is_option_set(config, "max_resample_factor"):
-            max_resample_factor = config["max_resample_factor"]
-        
-        # Check for use of auto setting
-        auto_match = re.match(r"auto([0-9]+)", str(max_resample_factor), re.I)
-        
-        if auto_match:
-            items = auto_match.groups()
-            auto_resample_iterations = int(items[0])
-        else:
-            max_resample_loop_factor = max_resample_factor
             
+            max_resample_factor = config["max_resample_factor"]
+            
+            # Check for use of auto setting
+            auto_match = re.match(r"auto([0-9]+)",
+                                  str(max_resample_factor),
+                                  re.I)
+            
+            if auto_match:
+                items = auto_match.groups()
+                auto_resample_iterations = int(items[0])
+            else:
+                max_resample_loop_factor = max_resample_factor
         
         if is_option_set(config, "logging"):
             logging = config["logging"]
