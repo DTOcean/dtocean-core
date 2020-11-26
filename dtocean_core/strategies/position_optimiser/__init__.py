@@ -86,7 +86,6 @@ class PositionIterator(opt.Iterator):
                        base_project,
                        counter,
                        objective_var,
-                       logging="module",
                        restart=False,
                        clean_existing_dir=False,
                        violation_log_name = "violations.txt"):
@@ -95,7 +94,6 @@ class PositionIterator(opt.Iterator):
                                                worker_directory,
                                                base_project,
                                                counter,
-                                               logging,
                                                restart,
                                                clean_existing_dir)
         
@@ -196,13 +194,8 @@ class PositionIterator(opt.Iterator):
         if flag == "Exception":
             
             details = results["error"]
-            
-            if self._logging == "print":
-                print flag
-                print details
-            elif self._logging == "module":
-                module_logger.debug(flag)
-                module_logger.debug(details)
+            module_logger.debug(flag)
+            module_logger.debug(details)
             
             lcoe = np.nan
         
@@ -291,7 +284,6 @@ class Main(object):
         max_evals = 8
         max_resample_loop_factor = None
         auto_resample_iterations = None
-        logging = "module"
         
         if is_option_set(config, "clean_existing_dir"):
             clean_existing_dir = config["clean_existing_dir"]
@@ -328,9 +320,6 @@ class Main(object):
                 auto_resample_iterations = int(items[0])
             else:
                 max_resample_loop_factor = max_resample_factor
-        
-        if is_option_set(config, "logging"):
-            logging = config["logging"]
         
         if project is None:
             root_project_path = config['root_project_path']
@@ -397,7 +386,6 @@ class Main(object):
                                     project,
                                     counter,
                                     objective,
-                                    logging=logging,
                                     clean_existing_dir=clean_existing_dir)
         
         # Store the base project for potential restart (if necessary)
@@ -426,8 +414,7 @@ class Main(object):
                             base_penalty=base_penalty,
                             num_threads=n_threads,
                             max_resample_loop_factor=max_resample_loop_factor,
-                            auto_resample_iterations=auto_resample_iterations,
-                            logging=logging)
+                            auto_resample_iterations=auto_resample_iterations)
         
         # Disable logging rollovers
         opt.set_TimedRotatingFileHandler_rollover(timeout)
@@ -457,7 +444,6 @@ class Main(object):
         timeout = None
         max_resample_loop_factor = None
         auto_resample_iterations = None
-        logging = "module"
         
         if is_option_set(config, "timeout"):
             timeout = config["timeout"]
@@ -476,9 +462,6 @@ class Main(object):
                 auto_resample_iterations = int(items[0])
             else:
                 max_resample_loop_factor = max_resample_factor
-        
-        if is_option_set(config, "logging"):
-            logging = config["logging"]
         
         # Remove files above last recorded iteration
         if counter_dict:
@@ -518,7 +501,6 @@ class Main(object):
                                     project,
                                     counter,
                                     objective,
-                                    logging=logging,
                                     restart=True)
         
         self._cma_main = opt.Main(
@@ -532,8 +514,7 @@ class Main(object):
                             base_penalty=base_penalty,
                             num_threads=n_threads,
                             max_resample_loop_factor=max_resample_loop_factor,
-                            auto_resample_iterations=auto_resample_iterations,
-                            logging=logging)
+                            auto_resample_iterations=auto_resample_iterations)
         
         # Disable logging rollovers
         opt.set_TimedRotatingFileHandler_rollover(timeout)

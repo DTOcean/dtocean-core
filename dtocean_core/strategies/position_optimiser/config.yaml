@@ -6,14 +6,15 @@ n_threads:
 base_penalty: 1.
 
 # Optional
-clean_existing_dir:      # 'true' will empty the worker_dir if it exists
-popsize:                 # number of sample points per iteration
-max_simulations:         # quit after n simulations (following an iteration)
-timeout:                 # quit after t seconds (following an iteration)
-tolfun:                  # tolerance in function value for termination [default: 1e-11]
-min_evals:               # Minimum number of maintenance data points for noise handling
-max_evals:               # Maximum number of maintenance data points for noise handling [default: 8]
-logging: module          # 'module' or 'print'
+clean_existing_dir:         # 'true' will empty the worker_dir if it exists
+popsize:                    # number of sample points per iteration [default: 4 + int(3 * np.log(N))]
+max_simulations:            # quit after n simulations (following an iteration)
+timeout:                    # quit after t seconds (following an iteration)
+tolfun:                     # tolerance in function value for termination [default: 1e-11]
+min_evals:                  # minimum number of maintenance data points for noise handling
+max_evals:                  # maximum number of maintenance data points for noise handling [default: 8]
+max_resample_factor:        # multiplied by popsize to give maximum number of resample loops [default: 20]
+                            # can give "auto" followed by number of iterations to record max resamples
 
 # Parameter specification
 parameters:

@@ -174,7 +174,6 @@ class Iterator(object):
                        worker_directory,
                        base_project,
                        counter,
-                       logging="module",
                        restart=False,
                        clean_existing_dir=False):
         
@@ -182,7 +181,6 @@ class Iterator(object):
         self._root_project_base_name = root_project_base_name
         self._worker_directory = worker_directory
         self._base_project = base_project
-        self._logging = logging
         self._core = Core()
         
         if not restart:
@@ -225,17 +223,6 @@ class Iterator(object):
     def get_counter_search_dict(self):
         
         return self._counter.copy_search_dict()
-    
-    def _print_exception(self, e, flag):
-        
-        print flag
-        print e
-        
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        traceback.print_exception(exc_type, exc_value, exc_traceback,
-                                  file=sys.stdout)
-        
-        return
     
     def _log_exception(self, e, flag):
         
@@ -282,11 +269,7 @@ class Iterator(object):
             
             flag = "Fail Send"
             worker_results_path = None
-            
-            if self._logging == "print":
-                self._print_exception(e, flag)
-            elif self._logging == "module":
-                self._log_exception(e, flag)
+            self._log_exception(e, flag)
         
         try:
             
@@ -306,11 +289,7 @@ class Iterator(object):
             
             flag = "Fail Execute"
             worker_results_path = None
-            
-            if self._logging == "print":
-                self._print_exception(e, flag)
-            elif self._logging == "module":
-                self._log_exception(e, flag)
+            self._log_exception(e, flag)
         
         if "Fail" not in flag:
             
@@ -325,11 +304,7 @@ class Iterator(object):
                 
                 flag = "Fail Receive"
                 worker_results_path = None
-                
-                if self._logging == "print":
-                    self._print_exception(e, flag)
-                elif self._logging == "module":
-                    self._log_exception(e, flag)
+                self._log_exception(e, flag)
         
         self.set_counter_params(iteration,
                                 worker_project_path,
@@ -366,8 +341,7 @@ class Main(object):
                        base_penalty=None,
                        num_threads=None,
                        max_resample_loop_factor=None,
-                       auto_resample_iterations=None,
-                       logging="module"):
+                       auto_resample_iterations=None):
         
         # Defaults
         if base_penalty is None: base_penalty = 1.
@@ -382,7 +356,6 @@ class Main(object):
         self._fixed_index_map = fixed_index_map
         self._base_penalty = base_penalty
         self._num_threads = num_threads
-        self._logging = logging
         self._spare_sols = 1
         self._n_hist = int(10 + 30 * self.es.N / self.es.sp.popsize)
         self._max_resample_loops = None
@@ -465,26 +438,18 @@ class Main(object):
         tolfun = max(self.es.fit.fit) - min(self.es.fit.fit)
         tolfunhist = max(self.es.fit.hist) - min(self.es.fit.hist)
         
-        if self._logging == "print":
-            
-            self.es.disp()
-            print "    tolfun: {}".format(tolfun)
-            print "    tolfunhist: {}".format(tolfunhist)
-            
-        elif self._logging == "module":
-            
-            msg_str = ('Minimum fitness for iteration {}: '
-                       '{:.15e}').format(self.es.countiter,
-                        min(self.es.fit.fit))
-            module_logger.info(msg_str)
-            
-            msg_str = ('Fitness value range (last iteration): '
-                       '{}').format(tolfun)
-            module_logger.info(msg_str)
-            
-            msg_str = ('Minimum fitness value range (last {} iterations): '
-                       '{}').format(self._n_hist, tolfunhist)
-            module_logger.info(msg_str)
+        msg_str = ('Minimum fitness for iteration {}: '
+                   '{:.15e}').format(self.es.countiter,
+                    min(self.es.fit.fit))
+        module_logger.info(msg_str)
+        
+        msg_str = ('Fitness value range (last iteration): '
+                   '{}').format(tolfun)
+        module_logger.info(msg_str)
+        
+        msg_str = ('Minimum fitness value range (last {} iterations): '
+                   '{}').format(self._n_hist, tolfunhist)
+        module_logger.info(msg_str)
         
         return
     
@@ -521,18 +486,10 @@ class Main(object):
         noise = self.nh.get_predicted_noise()
         
         msg = "Last true noise: {}".format(self.nh.noiseS)
-        
-        if self._logging == "print":
-            print msg
-        elif self._logging == "module":
-            module_logger.info(msg)
+        module_logger.info(msg)
         
         msg = "Predicted noise: {}".format(noise)
-        
-        if self._logging == "print":
-            print msg
-        elif self._logging == "module":
-            module_logger.info(msg)
+        module_logger.info(msg)
         
         if abs(noise) <= 1e-12:
             log_noise = 1
@@ -610,9 +567,15 @@ class Main(object):
             checked_descaled_solutions = []
             
             for sol, des_sol in zip(scaled_solutions, descaled_solutions):
+                
                 if self.iterator.pre_constraints_hook(*des_sol): continue
+                
                 checked_solutions.append(sol)
                 checked_descaled_solutions.append(des_sol)
+                
+                solution_str = ", ".join(str(xi) for xi in des_sol)
+                log_msg = "Solution found: " + solution_str
+                module_logger.debug(log_msg)
             
             max_sols = needed_solutions - len(run_solutions)
             checked_solutions = checked_solutions[:max_sols]
@@ -629,12 +592,6 @@ class Main(object):
                            "loops").format(len(run_solutions),
                                            needed_solutions,
                                            resample_loops)
-                module_logger.debug(log_msg)
-                
-                sample_solution = checked_solutions[0]
-                sample_solution_strs = [str(x) for x in sample_solution]
-                sample_solution_str = ", ".join(sample_solution_strs)
-                log_msg = "Sample solution: {}".format(sample_solution_str)
                 module_logger.debug(log_msg)
         
         if not self._sol_penalty and resample_loops > 0:
