@@ -503,7 +503,7 @@ def _nearest_n_nodes(nodes, start_coords, number_of_nodes):
     order = np.argsort(distances)
     nodes_sorted = nodes[order, :]
     
-    return nodes_sorted[:number_of_nodes, :]
+    return nodes_sorted[:int(number_of_nodes), :]
 
 
 def _parametric_point_in_polygon(poly, t1, t2):

@@ -397,7 +397,7 @@ class Main(object):
             
             log_msg = ("Setting maximum resamples to "
                        "{}").format(self._max_resample_loops)
-            module_logger.info(log_msg)
+            module_logger.debug(log_msg)
         
         else:
             

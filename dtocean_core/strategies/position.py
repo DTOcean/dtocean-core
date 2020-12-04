@@ -2,12 +2,13 @@
 
 import os
 import ast
+import sys
 import glob
-import math
 import types
 import pickle
 import logging
 import threading
+import collections
 
 import pandas as pd
 import yaml
@@ -18,7 +19,9 @@ from .position_optimiser import (dump_config,
                                  load_config,
                                  load_config_template,
                                  Main)
-from .position_optimiser.iterator import get_positioner, iterate
+from .position_optimiser.iterator import (get_positioner,
+                                          iterate,
+                                          write_result_file)
 from ..menu import ModuleMenu
 from ..pipeline import Tree
 from ..utils.hydrodynamics import radians_to_bearing
@@ -173,6 +176,7 @@ class MainThread(threading.Thread):
             
             self._main.next()
         
+        _run_favorite(self._main)
         _post_process(self._config, self._log_interval)
         self._set_stopped()
         
@@ -241,7 +245,7 @@ class AdvancedPosition(Strategy):
             main.next()
         
         es = main.get_es()
-        self._post_process()
+        self._post_process(main)
         
         return es
     
@@ -271,84 +275,63 @@ class AdvancedPosition(Strategy):
         
         return thread
     
-    def _post_process(self, log_interval=100):
+    def _post_process(self, main, log_interval=100):
         
+        _run_favorite(main)
         _post_process(self._config, log_interval)
         
         return
     
     @classmethod
-    def get_results_table(cls, config):
-        
-        key_order = ["sim_number"]
-        key_order.append(config["objective"])
-        key_order.extend(["grid_orientation",
-                          "delta_row",
-                          "delta_col",
-                          "n_nodes",
-                          "t1",
-                          "t2",
-                          "n_evals"])
-        
-        params_set = set(config["results_params"])
-        params_set = params_set.difference([config["objective"]])
-        key_order.extend(list(params_set))
-        
-        conversion_map = {"grid_orientation": radians_to_bearing}
+    def get_favorite_result(cls, config):
         
         root_project_path = config['root_project_path']
+        root_project_base_name = _get_root_project_base_name(root_project_path)
         sim_dir = config["worker_dir"]
         
+        xfavorite_name = "{}_xfavorite.yaml".format(root_project_base_name)
+        xfavorite_path = os.path.join(sim_dir, xfavorite_name)
+        
+        if not os.path.isfile(xfavorite_path):
+            err_msg = "Favorite results not available"
+            raise RuntimeError(err_msg)
+        
+        read_params = config["parameters"].keys()
+        read_params.append("n_evals")
+        
+        extract_vars = set(config["results_params"])
+        extract_vars = extract_vars.union([config["objective"]])
+        extract_vars = list(extract_vars)
+        
+        result_dict = _read_yaml(xfavorite_path,
+                                 read_params,
+                                 extract_vars)
+        results_table = _get_results_table(config, result_dict)
+        
+        return results_table
+    
+    @classmethod
+    def get_all_results(cls, config):
+        
+        root_project_path = config['root_project_path']
         root_project_base_name = _get_root_project_base_name(root_project_path)
+        sim_dir = config["worker_dir"]
         
         pickle_name = "{}_results.pkl".format(root_project_base_name)
         pickle_path = os.path.join(sim_dir, pickle_name)
         
+        if not os.path.isfile(pickle_path):
+            err_msg = "Results table not available"
+            raise RuntimeError(err_msg)
+        
         pickle_dict = pickle.load(open(pickle_path, 'rb'))
+        results_table = _get_results_table(config, pickle_dict)
         
-        table_dict = {}
-        table_cols = []
-        
-        for key in key_order:
-            
-            if not key in pickle_dict: continue
-            
-            value = pickle_dict[key]
-            
-            if not value:
-                
-                table_cols.append(key)
-                table_dict[key] = value
-                
-            elif isinstance(value[0], dict):
-                
-                ref_dict = value[0]
-                template = "{} [{}]"
-                
-                for ref_key in ref_dict:
-                    
-                    col_name = template.format(key, ref_key)
-                    val_list = [x[ref_key] for x in value]
-                    
-                    if key in conversion_map:
-                        val_list = [conversion_map[key](x) for x in val_list]
-                    
-                    table_cols.append(col_name)
-                    table_dict[col_name] = val_list
-                
-            else:
-                
-                if key in conversion_map:
-                    value = [conversion_map[key](x) for x in value]
-                
-                table_cols.append(key)
-                table_dict[key] = value
-        
-        return pd.DataFrame(table_dict, columns=table_cols)
+        return results_table
     
     def load_simulations(self, core,
                                project,
-                               sim_numbers,
+                               sim_ids,
                                sim_titles=None):
         
         self.restart()
@@ -360,9 +343,9 @@ class AdvancedPosition(Strategy):
         root_project_base_name = _get_root_project_base_name(root_project_path)
         path_template = _get_sim_path_template(root_project_base_name, sim_dir)
         
-        for i, n in enumerate(sim_numbers):
+        for i, sim_id in enumerate(sim_ids):
             
-            prj_file_path = path_template.format(n, 'prj')
+            prj_file_path = path_template.format(sim_id, 'prj')
             
             if not os.path.isfile(prj_file_path):
                 
@@ -385,6 +368,10 @@ class AdvancedPosition(Strategy):
                 n_nodes = params["n_nodes"]
                 t1 = params["t1"]
                 t2 = params["t2"]
+                n_evals = None
+                
+                if "n_evals" in params:
+                    n_evals = params["n_evals"]
                 
                 iterate(core,
                         src_project,
@@ -394,7 +381,8 @@ class AdvancedPosition(Strategy):
                         delta_col,
                         n_nodes,
                         t1,
-                        t2)
+                        t2,
+                        n_evals)
                 
                 core.dump_project(src_project, prj_file_path)
             
@@ -405,7 +393,7 @@ class AdvancedPosition(Strategy):
             if sim_titles is not None:
                 sim_title = sim_titles[i]
             else:
-                sim_title = "Simulation {}".format(n)
+                sim_title = "Simulation {}".format(sim_id)
             
             core.import_simulation(src_project,
                                    project,
@@ -637,20 +625,68 @@ def _get_sim_path_template(root_project_base_name, sim_dir):
     return sim_path_template
 
 
+def _run_favorite(main, raise_exc=False):
+    
+    msg_str = "Attempting calculation of favorite solution"
+    module_logger.info(msg_str)
+    
+    es = main.get_es()
+    nh = main.get_nh()
+    
+    # Get parameters of favourite solution
+    xfavorite_descaled = main._cma_main._get_descaled_solutions(
+                                                            [es.result.xbest])
+    params = xfavorite_descaled[0] + [nh.last_n_evals]
+    
+    # Get the core, project and positioner
+    core = main._core
+    project = main._cma_main.iterator._base_project
+    positioner = main._cma_main.iterator._positioner
+    
+    # Try and run the simulation
+    e = None
+    
+    try:
+        
+        iterate(core,
+                project,
+                positioner,
+                *params)
+        
+        flag = "Success"
+    
+    except Exception as e:
+        
+        flag = "Exception"
+        
+        if raise_exc:
+            t, v, tb = sys.exc_info()
+            raise t, v, tb
+    
+    # Prepare and write the results file
+    results_base_name = main._cma_main.iterator._root_project_base_name
+    results_name = "{}_xfavorite".format(results_base_name)
+    prj_base_path = os.path.join(main._worker_directory, results_name)
+    
+    keys = ["theta", "dr", "dc", "n_nodes", "t1", "t2", "n_evals"]
+    params_dict = {k: v for k, v in zip(keys, params)}
+    
+    write_result_file(core,
+                      project,
+                      prj_base_path,
+                      params_dict,
+                      flag,
+                      e)
+    
+    return
+
+
 def _post_process(config, log_interval=100):
     
     msg_str = "Beginning post-processing of simulations"
     module_logger.info(msg_str)
     
     pickle_dict = {}
-    
-    param_map = {"grid_orientation": "theta",
-                 "delta_row": "dr",
-                 "delta_col": "dc",
-                 "n_nodes": "n_nodes",
-                 "t1": "t1",
-                 "t2": "t2",
-                 "n_evals": "n_evals"}
     
     sim_dir = config["worker_dir"]
     root_project_path = config['root_project_path']
@@ -684,33 +720,27 @@ def _post_process(config, log_interval=100):
                                                               n_sims)
             module_logger.info(msg_str)
         
-        with open(yaml_file_path, "r") as stream:
-            results = yaml.load(stream, Loader=yaml.FullLoader)
-        
-        flag = results["status"]
-        
-        if flag == "Exception": continue
-        
-        param_values = results["params"]
-        
         sim_num_dat = yaml_file_path.split("_")[-1]
-        sim_num = int(os.path.splitext(sim_num_dat)[0])
         
-        data_values = results["results"]
+        # Skip non-integer results
+        try:
+            sim_num = int(os.path.splitext(sim_num_dat)[0])
+        except ValueError:
+            continue
         
-        if set(data_values) != set(extract_vars): continue
+        yaml_dict = _read_yaml(yaml_file_path,
+                               read_params,
+                               extract_vars)
+        
+        if not yaml_dict: continue
         
         pickle_dict["sim_number"].append(sim_num)
         
         for param in read_params:
-            param_name = param_map[param]
-            if param_name not in param_values: continue
-            param_value = param_values[param_name]
-            pickle_dict[param].append(param_value)
+            pickle_dict[param].append(yaml_dict[param])
         
         for var_name in extract_vars:
-            data_value = data_values[var_name]
-            pickle_dict[var_name].append(data_value)
+            pickle_dict[var_name].append(yaml_dict[var_name])
     
     # Clean empty items (like n_evals)
     for key, item in pickle_dict.copy().iteritems():
@@ -724,6 +754,107 @@ def _post_process(config, log_interval=100):
     module_logger.info(msg_str)
     
     return
+
+
+def _read_yaml(yaml_file_path, read_params, extract_vars):
+    
+    param_map = {"grid_orientation": "theta",
+                 "delta_row": "dr",
+                 "delta_col": "dc",
+                 "n_nodes": "n_nodes",
+                 "t1": "t1",
+                 "t2": "t2",
+                 "n_evals": "n_evals"}
+    
+    with open(yaml_file_path, "r") as stream:
+        results = yaml.load(stream, Loader=yaml.FullLoader)
+        
+    flag = results["status"]
+    
+    if flag == "Exception": return {}
+    
+    param_values = results["params"]
+    data_values = results["results"]
+    
+    if set(data_values) != set(extract_vars): return {}
+    
+    result_dict = {}
+    
+    for param in read_params:
+        param_name = param_map[param]
+        if param_name not in param_values: continue
+        param_value = param_values[param_name]
+        result_dict[param] = param_value
+    
+    for var_name in extract_vars:
+        data_value = data_values[var_name]
+        result_dict[var_name] = data_value
+    
+    return result_dict
+
+
+def _get_results_table(config, results_dict):
+        
+    key_order = ["sim_number"]
+    key_order.append(config["objective"])
+    key_order.extend(["grid_orientation",
+                      "delta_row",
+                      "delta_col",
+                      "n_nodes",
+                      "t1",
+                      "t2",
+                      "n_evals"])
+    
+    params_set = set(config["results_params"])
+    params_set = params_set.difference([config["objective"]])
+    key_order.extend(list(params_set))
+    
+    conversion_map = {"grid_orientation": radians_to_bearing}
+            
+    table_dict = {}
+    table_cols = []
+    
+    for key in key_order:
+        
+        if not key in results_dict: continue
+        
+        value = results_dict[key]
+        
+        # test for sequence and convert
+        if (not isinstance(value, collections.Sequence) or 
+            isinstance(value, basestring)):
+            value = [value]
+        
+        if not value:
+            
+            table_cols.append(key)
+            table_dict[key] = value
+        
+        elif isinstance(value[0], dict):
+            
+            ref_dict = value[0]
+            template = "{} [{}]"
+            
+            for ref_key in ref_dict:
+                
+                col_name = template.format(key, ref_key)
+                val_list = [x[ref_key] for x in value]
+                
+                if key in conversion_map:
+                    val_list = [conversion_map[key](x) for x in val_list]
+                
+                table_cols.append(col_name)
+                table_dict[col_name] = val_list
+            
+        else:
+            
+            if key in conversion_map:
+                value = [conversion_map[key](x) for x in value]
+            
+            table_cols.append(key)
+            table_dict[key] = value
+    
+    return pd.DataFrame(table_dict, columns=table_cols)
 
 
 def _post_process_legacy(core, config, log_interval=100):
