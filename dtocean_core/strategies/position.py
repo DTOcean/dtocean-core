@@ -332,7 +332,8 @@ class AdvancedPosition(Strategy):
     def load_simulations(self, core,
                                project,
                                sim_ids,
-                               sim_titles=None):
+                               sim_titles=None,
+                               disable_iterate_logging=True):
         
         self.restart()
         
@@ -348,6 +349,9 @@ class AdvancedPosition(Strategy):
             prj_file_path = path_template.format(sim_id, 'prj')
             
             if not os.path.isfile(prj_file_path):
+                
+                log_msg = "Rerunning simulation: {}".format(sim_id)
+                module_logger.info(log_msg)
                 
                 if positioner is None:
                     positioner = get_positioner(core, project)
@@ -373,6 +377,9 @@ class AdvancedPosition(Strategy):
                 if "n_evals" in params:
                     n_evals = params["n_evals"]
                 
+                if disable_iterate_logging:
+                    logging.disable(logging.WARNING)
+                
                 iterate(core,
                         src_project,
                         positioner,
@@ -383,6 +390,9 @@ class AdvancedPosition(Strategy):
                         t1,
                         t2,
                         n_evals)
+                
+                if disable_iterate_logging:
+                    logging.disable(logging.NOTSET)
                 
                 core.dump_project(src_project, prj_file_path)
             
@@ -625,7 +635,10 @@ def _get_sim_path_template(root_project_base_name, sim_dir):
     return sim_path_template
 
 
-def _run_favorite(main, raise_exc=False):
+def _run_favorite(main,
+                  raise_exc=False,
+                  save_prj=False,
+                  disable_iterate_logging=True):
     
     msg_str = "Attempting calculation of favorite solution"
     module_logger.info(msg_str)
@@ -646,6 +659,9 @@ def _run_favorite(main, raise_exc=False):
     # Try and run the simulation
     e = None
     
+    if disable_iterate_logging:
+        logging.disable(logging.WARNING)
+    
     try:
         
         iterate(core,
@@ -663,6 +679,9 @@ def _run_favorite(main, raise_exc=False):
             t, v, tb = sys.exc_info()
             raise t, v, tb
     
+    if disable_iterate_logging:
+        logging.disable(logging.NOTSET)
+    
     # Prepare and write the results file
     results_base_name = main._cma_main.iterator._root_project_base_name
     results_name = "{}_xfavorite".format(results_base_name)
@@ -677,6 +696,11 @@ def _run_favorite(main, raise_exc=False):
                       params_dict,
                       flag,
                       e)
+    
+    if not save_prj: return
+    
+    prj_file_path = "{}.prj".format(prj_base_path)
+    core.dump_project(project, prj_file_path)
     
     return
 
