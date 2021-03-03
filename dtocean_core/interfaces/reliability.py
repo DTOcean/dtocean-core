@@ -35,9 +35,11 @@ import logging
 import pkg_resources
 from packaging.version import Version
 
+import pandas as pd
+
 from polite.paths import Directory, ObjDirectory, UserDataDirectory
 from polite.configuration import ReadINI
-from dtocean_reliability.main import Variables, Main
+from dtocean_reliability import Network, SubNetwork
 
 from . import ThemeInterface
 from ..utils.reliability import get_component_dict, read_RAM
@@ -46,7 +48,7 @@ from ..utils.maintenance import (get_user_network,
 
 # Check module version
 pkg_title = "dtocean-reliability"
-min_version = "1.1.dev0"
+min_version = "2.1.dev0"
 version = pkg_resources.get_distribution(pkg_title).version
 
 if not Version(version) >= Version(min_version):
@@ -105,15 +107,14 @@ class ReliabilityInterface(ThemeInterface):
                        ]
         '''
 
-        input_list  =  ["device.system_type",
-                        'device.subsystem_failure_rates',
+        input_list  =  ['device.subsystem_failure_rates',
                         'device.control_subsystem_failure_rates',
                         "project.layout",
                         "project.electrical_network",
                         "project.network_configuration",
                         "project.moorings_foundations_network",
-                        "project.lifetime",
-                        "project.mttfreq",
+                        "project.reliability_time",
+                        "project.reliability_confidence",
                         
                         "component.static_cable_NCFR",
                         "component.dynamic_cable_NCFR",
@@ -163,15 +164,7 @@ class ReliabilityInterface(ThemeInterface):
                         ]
         '''
         
-        output_list = ["project.mttf",
-                       "project.mttf_test",
-                       "project.rsystime",
-                       "project.export_cable_reliability",
-                       "project.substation_reliability",
-                       "project.hub_reliability",
-                       "project.interarray_cable_reliability",
-                       "project.umbilical_cable_reliability",
-                       "project.moorings_reliability"]
+        output_list = ["project.system_reliability_CFR"]
         
         return output_list
         
@@ -204,7 +197,8 @@ class ReliabilityInterface(ThemeInterface):
                    "project.electrical_network",
                    "project.network_configuration",
                    "project.moorings_foundations_network",
-                   "project.mttfreq",
+                   "project.reliability_time",
+                   "project.reliability_confidence",
                    "component.collection_points_NCFR",
                    "component.dry_mate_connectors_NCFR",
                    "component.dynamic_cable_NCFR",
@@ -258,17 +252,16 @@ class ReliabilityInterface(ThemeInterface):
         '''
                   
         id_map = {"array_layout": "project.layout",
-                  "device_type_user": "device.system_type",
                   'subsystem_failure_rates': 'device.subsystem_failure_rates',
                   'control_subsystem_failure_rates':
                       'device.control_subsystem_failure_rates',
                   "network_configuration_user":
                       "project.network_configuration",
-                  "mission_time": "project.lifetime",
-                  "expected_mttf": "project.mttfreq",
                   "moor_found_network":
                       "project.moorings_foundations_network",
                   "electrical_network": "project.electrical_network",
+                  "reliability_time": "project.reliability_time",
+                  "reliability_confidence": "project.reliability_confidence",
                   "collection_points_NCFR":
                       "component.collection_points_NCFR",
                   "dry_mate_connectors_NCFR":
@@ -304,18 +297,7 @@ class ReliabilityInterface(ThemeInterface):
                   "moorings_shackle_CFR": "component.moorings_shackle_CFR",
                   "moorings_swivel_CFR": "component.moorings_swivel_CFR",
                   
-                  "mttf": "project.mttf",
-                  "mttf_test": "project.mttf_test",
-                  "rsystime": "project.rsystime",
-                  "export_cable_reliability":
-                      "project.export_cable_reliability" ,
-                  "substation_reliability": "project.substation_reliability" ,
-                  "hub_reliability": "project.hub_reliability",
-                  "inter_cable_reliability":
-                      "project.interarray_cable_reliability",
-                  "umbilical_cable_reliability":
-                      "project.umbilical_cable_reliability",
-                  "moorings_reliability": "project.moorings_reliability"
+                  "system_reliability_CFR": "project.system_reliability_CFR"
                   }
                   
         return id_map
@@ -332,29 +314,28 @@ class ReliabilityInterface(ThemeInterface):
           self.data.my_output_variable = value
         
         '''
-        
-        system_type_map = {"Tidal Floating": "tidefloat",
-                           "Tidal Fixed": "tidefixed",
-                           "Wave Floating": "wavefloat",
-                           "Wave Fixed": "wavefixed"
-                           }
-        system_type = system_type_map[self.data.device_type_user]
 
         input_dict = self.get_input_dict(self.data,
                                          self.data.network_configuration_user)
         
         if input_dict is None: return
         
-        mission_time_hours = self.data.mission_time * 365. * 24. 
-                
-        if self.data.expected_mttf is None:
-            mttfreq_hours = None
+        if self.data.reliability_time is None:
+            reliability_time = 8766
         else:
-            mttfreq_hours = self.data.expected_mttf * 365. * 24.
+            reliability_time = self.data.reliability_time
         
-        input_dict["system_type"] = system_type
-        input_dict["mission_time_hours"] = mission_time_hours
-        input_dict["mttfreq_hours"] = mttfreq_hours
+        confidence_map = {'Pessimistic': 'lower',
+                          'Normal': 'mean',
+                          'Optimistic': 'upper'}
+        
+        if self.data.reliability_confidence is None:
+            confidence_level = 'mean'
+        else:
+            confidence_level = confidence_map[self.data.reliability_confidence]
+        
+        input_dict["reliability_time"] = reliability_time
+        input_dict["confidence_level"] = confidence_level
             
         if export_data:
             
@@ -376,139 +357,60 @@ class ReliabilityInterface(ThemeInterface):
 
             pkl_path = debugdir.get_path("reliability_inputs.pkl")
             pickle.dump(input_dict, open(pkl_path, "wb"))
-                        
-        input_variables = Variables(input_dict["mission_time_hours"],
-                                    input_dict["system_type"],
-                                    input_dict["compdict"], 
-                                    input_dict["mttfreq_hours"], 
-                                    input_dict["network_configuration"],
-                                    input_dict["electrical_network_hier"], 
-                                    input_dict["electrical_network_bom"],
-                                    input_dict["moor_found_network_hier"], 
-                                    input_dict["moor_found_network_bom"],
-                                    input_dict["user_hier"],
-                                    input_dict["user_bom"])
-                                
-        main = Main(input_variables)    
+        
+        ## TODO: Delete:
+#        input_dict["mission_time_hours"],
+#        input_dict["system_type"],
+#        input_dict["mttfreq_hours"]
+        
+        electrical_network = None
+        moorings_network = None
+        user_network = None
+        
+        if input_dict["electrical_network_hier"] is not None:
+            electrical_network = SubNetwork(
+                                        input_dict["electrical_network_hier"],
+                                        input_dict["electrical_network_bom"])
+        
+        if input_dict["moor_found_network_hier"] is not None:
+            moorings_network = SubNetwork(
+                                        input_dict["moor_found_network_hier"],
+                                        input_dict["moor_found_network_bom"])
+            
+        if input_dict["user_hier"] is not None:
+            user_network = SubNetwork(input_dict["user_hier"],
+                                      input_dict["user_bom"])
+        
+        network = Network(input_dict["compdict"],
+                          electrical_network,
+                          moorings_network,
+                          user_network)
                        
         if debug_entry: return
         
         year_hours = 24. * 365.25
-            
-        mttf, self.data.rsystime = main()
+        reliability_key = "R ({} hours)".format(reliability_time)
+        metrics_map = {"System": "System ID",
+                       "lambda": "Failure Rate",
+                       "MTTF": "MTTF",
+                       reliability_key: "Reliability (at time $T$)",
+                       "RPN": "RPN"}
         
-        self.data.mttf = mttf / year_hours
-        self.data.mttf_test = main.mttfpass
+        critical_network = network.set_failure_rates('critical',
+                                                     confidence_level)
+        systems_metrics = critical_network.get_systems_metrics(
+                                                            reliability_time)
         
-        if self.data.network_configuration_user == "Radial":
-            network_configuration = "radial"
-        elif self.data.network_configuration_user == "Star":
-            network_configuration = "multiplehubs"
-        else:
-            network_configuration = None
-            
-        ram_df = read_RAM(main.rsubsysvalues2,
-                          main.rsubsysvalues3,
-                          network_configuration)
+        systems_df = pd.DataFrame(systems_metrics)
+        systems_df = systems_df.drop("Link")
+        systems_df = systems_df.rename(metrics_map)
         
-        metrics_map = {"system id [-]": "System ID",
-                       "failure rate [1/10^6 hours]": "Failure Rate",
-                       "MTTF [hours]": "MTTF"}
-                        
-        if self.data.electrical_network is not None:
+        systems_df["Failure Rate"] = systems_df["Failure Rate"].apply(
+                                                         lambda x: x * 1e6)
+        systems_df["MTTF"] = systems_df["MTTF"].apply(lambda x: x / year_hours)
         
-            metrics = ram_df[(ram_df["system id [-]"] == "-") &
-                             (ram_df["subsystem id [-]"] == "Substation")]
-            failure_rate = metrics["failure rate [1/10^6 hours]"].iloc[0]
-            mttf = metrics["MTTF [hours]"].iloc[0] / year_hours
-            
-            self.data.substation_reliability = {"Failure Rate": [failure_rate],
-                                                "MTTF": [mttf]}
-            
-            metrics = ram_df[(ram_df["system id [-]"] == "-") &
-                             (ram_df["subsystem id [-]"] == "Export Cable")]
-            
-            failure_rate = metrics["failure rate [1/10^6 hours]"].iloc[0]
-            mttf = metrics["MTTF [hours]"].iloc[0] / year_hours
-            
-            self.data.export_cable_reliability = {
-                                                "Failure Rate": [failure_rate],
-                                                "MTTF": [mttf]}
-            
-            metrics = ram_df[(ram_df["system id [-]"].str.contains("subhub")) &
-                             (ram_df["subsystem id [-]"] == "Substation")]
-            
-            if not metrics.empty:
-
-                metrics_df = metrics.loc[:, ("system id [-]",
-                                             "failure rate [1/10^6 hours]",
-                                             "MTTF [hours]")]
-                metrics_df[:, "MTTF [hours]"] /= year_hours
-                
-                metrics_df = metrics_df.rename(columns=metrics_map)
-                metrics_df = metrics_df.reset_index(drop=True)
-                
-                self.data.hub_reliability = metrics_df
-            
-            metrics = ram_df[ram_df["subsystem id [-]"
-                                ].str.lower().str.contains("elec sub-system")]
-            
-            if not metrics.empty:
-
-                metrics_df = metrics.loc[:, ("system id [-]",
-                                             "failure rate [1/10^6 hours]",
-                                             "MTTF [hours]")]
-                metrics_df.loc[:, "MTTF [hours]"] /= year_hours
-                
-                metrics_df = metrics_df.rename(columns=metrics_map)
-                metrics_df = metrics_df.reset_index(drop=True)
-                
-                self.data.inter_cable_reliability = metrics_df
-                
-        if self.data.moor_found_network is not None:
-            
-            metrics = ram_df[ram_df["subsystem id [-]"
-                                        ].str.contains("mooring foundation")]
-            
-            if not metrics.empty:
-
-                metrics_df = metrics.loc[:, ("system id [-]",
-                                             "failure rate [1/10^6 hours]",
-                                             "MTTF [hours]")]
-                metrics_df.loc[:, "MTTF [hours]"] /= year_hours
-                
-                metrics_df = metrics_df.rename(columns=metrics_map)
-                metrics_df = metrics_df.reset_index(drop=True)
-                
-                self.data.moorings_reliability = metrics_df
-                
-            metrics = ram_df[ram_df["subsystem id [-]"
-                                        ].str.contains("dynamic cable")]
-            
-            if not metrics.empty:
-
-                metrics_df = metrics.loc[:, ("system id [-]",
-                                             "failure rate [1/10^6 hours]",
-                                             "MTTF [hours]")]
-                metrics_df.loc[:, "MTTF [hours]"] /= year_hours
-                
-                metrics_df = metrics_df.rename(columns=metrics_map)
-                metrics_df = metrics_df.reset_index(drop=True)
-                
-                self.data.umbilical_cable_reliability = metrics_df
-                
-        # Patch double counting of umbilical cable
-        if (self.data.inter_cable_reliability is not None and
-            self.data.umbilical_cable_reliability is not None):
-            
-            self.data.inter_cable_reliability["Failure Rate"] -= \
-                    self.data.umbilical_cable_reliability["Failure Rate"]
-            
-            hours_to_years = 1e6 / 24 / 365.25
-            mttf = [hours_to_years / rate for rate in
-                            self.data.inter_cable_reliability["Failure Rate"]]
-            self.data.inter_cable_reliability["MTTF"] = mttf
-
+        self.data.system_reliability_CFR = systems_df
+        
         return
 
         
