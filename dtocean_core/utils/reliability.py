@@ -389,39 +389,6 @@ def compdict_from_mock(xls_file,
     return compdict
 
 
-def read_RAM(mttf_network,
-             failure_rate_network,
-             electrical_layout=None):
-
-    '''read_RAM function: Read the reliability from RAM and return a pandas
-    dataframe.
-    '''
-    
-    # Get MTTF results
-    mttf_dict = get_reliability_dict(mttf_network,
-                                     electrical_layout)
-    mttf_dict["MTTF [hours]"] = mttf_dict.pop("reliability metric")
-    
-    mttf_df = pd.DataFrame(mttf_dict)
-    
-    # Get failure rate results
-    fr_dict = get_reliability_dict(failure_rate_network,
-                                   electrical_layout)
-    
-    fr_hours = fr_dict.pop("reliability metric")
-    fr_dict["failure rate [1/10^6 hours]"] = [rate * 1e6 for rate in fr_hours]
-
-    fr_df = pd.DataFrame(fr_dict)
-
-    # Merge the two frames
-    ram_df = pd.merge(mttf_df,
-                      fr_df,
-                      how='left',
-                      on=["system id [-]", "subsystem id [-]"])
-
-    return ram_df
-
-
 def get_reliability_dict(reliability_network,
                          electrical_layout=None):
     

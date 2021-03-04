@@ -42,7 +42,7 @@ from polite.configuration import ReadINI
 from dtocean_reliability import Network, SubNetwork
 
 from . import ThemeInterface
-from ..utils.reliability import get_component_dict, read_RAM
+from ..utils.reliability import get_component_dict
 from ..utils.maintenance import (get_user_network,
                                  get_user_compdict)
 
@@ -111,7 +111,6 @@ class ReliabilityInterface(ThemeInterface):
                         'device.control_subsystem_failure_rates',
                         "project.layout",
                         "project.electrical_network",
-                        "project.network_configuration",
                         "project.moorings_foundations_network",
                         "project.reliability_time",
                         "project.reliability_confidence",
@@ -145,8 +144,8 @@ class ReliabilityInterface(ThemeInterface):
                         ]
         
         return input_list
-
-    @classmethod        
+    
+    @classmethod
     def declare_outputs(cls):
         
         '''A class method to declare all the output variables provided by
@@ -164,11 +163,30 @@ class ReliabilityInterface(ThemeInterface):
                         ]
         '''
         
-        output_list = ["project.system_reliability_CFR"]
+        output_list = ["project.system_reliability_CFR",
+                       "project.export_reliability_CFR",
+                       "project.substation_reliability_CFR",
+                       "project.electrical_reliability_CFR",
+                       "project.mandf_reliability_CFR",
+                       "project.foundations_reliability_CFR",
+                       "project.moorings_reliability_CFR",
+                       "project.umbilical_reliability_CFR",
+                       "project.device_reliability_CFR",
+                       
+                       "project.system_reliability_NCFR",
+                       "project.export_reliability_NCFR",
+                       "project.substation_reliability_NCFR",
+                       "project.electrical_reliability_NCFR",
+                       "project.system_reliability_NCFR",
+                       "project.mandf_reliability_NCFR",
+                       "project.foundations_reliability_NCFR",
+                       "project.moorings_reliability_NCFR",
+                       "project.umbilical_reliability_NCFR",
+                       "project.device_reliability_NCFR"]
         
         return output_list
-        
-    @classmethod        
+    
+    @classmethod
     def declare_optional(cls):
         
         '''A class method to declare all the variables which should be flagged
@@ -195,7 +213,6 @@ class ReliabilityInterface(ThemeInterface):
                    'device.control_subsystem_failure_rates',
                    "project.layout",
                    "project.electrical_network",
-                   "project.network_configuration",
                    "project.moorings_foundations_network",
                    "project.reliability_time",
                    "project.reliability_confidence",
@@ -255,8 +272,6 @@ class ReliabilityInterface(ThemeInterface):
                   'subsystem_failure_rates': 'device.subsystem_failure_rates',
                   'control_subsystem_failure_rates':
                       'device.control_subsystem_failure_rates',
-                  "network_configuration_user":
-                      "project.network_configuration",
                   "moor_found_network":
                       "project.moorings_foundations_network",
                   "electrical_network": "project.electrical_network",
@@ -297,12 +312,41 @@ class ReliabilityInterface(ThemeInterface):
                   "moorings_shackle_CFR": "component.moorings_shackle_CFR",
                   "moorings_swivel_CFR": "component.moorings_swivel_CFR",
                   
-                  "system_reliability_CFR": "project.system_reliability_CFR"
+
+                  "system_reliability_CFR": "project.system_reliability_CFR",
+                  "export_reliability_CFR": "project.export_reliability_CFR",
+                  "substation_reliability_CFR":
+                                      "project.substation_reliability_CFR",
+                  "electrical_reliability_CFR":
+                                      "project.electrical_reliability_CFR",
+                  "mandf_reliability_CFR": "project.mandf_reliability_CFR",
+                  "foundations_reliability_CFR":
+                                      "project.foundations_reliability_CFR",
+                  "moorings_reliability_CFR":
+                                      "project.moorings_reliability_CFR",
+                  "umbilical_reliability_CFR":
+                                      "project.umbilical_reliability_CFR",
+                  "device_reliability_CFR": "project.device_reliability_CFR",
+
+                  "system_reliability_NCFR": "project.system_reliability_NCFR",
+                  "export_reliability_NCFR": "project.export_reliability_NCFR",
+                  "substation_reliability_NCFR":
+                                      "project.substation_reliability_NCFR",
+                  "electrical_reliability_NCFR":
+                                      "project.electrical_reliability_NCFR",
+                  "mandf_reliability_NCFR": "project.mandf_reliability_NCFR",
+                  "foundations_reliability_NCFR":
+                                      "project.foundations_reliability_NCFR",
+                  "moorings_reliability_NCFR":
+                                      "project.moorings_reliability_NCFR",
+                  "umbilical_reliability_NCFR":
+                                      "project.umbilical_reliability_NCFR",
+                  "device_reliability_NCFR": "project.device_reliability_NCFR"
                   }
                   
         return id_map
                  
-    def connect(self, debug_entry=False, export_data=False):
+    def connect(self, debug_entry=False, export_data=True):
         
         '''The connect method is used to execute the external program and 
         populate the interface data store with values.
@@ -315,8 +359,7 @@ class ReliabilityInterface(ThemeInterface):
         
         '''
 
-        input_dict = self.get_input_dict(self.data,
-                                         self.data.network_configuration_user)
+        input_dict = self.get_input_dict(self.data)
         
         if input_dict is None: return
         
@@ -393,30 +436,65 @@ class ReliabilityInterface(ThemeInterface):
         metrics_map = {"System": "System ID",
                        "lambda": "Failure Rate",
                        "MTTF": "MTTF",
-                       reliability_key: "Reliability (at time $T$)",
-                       "RPN": "RPN"}
+                       "RPN": "RPN",
+                       reliability_key: "Reliability (at time $T$)"}
         
-        critical_network = network.set_failure_rates('critical',
-                                                     confidence_level)
-        systems_metrics = critical_network.get_systems_metrics(
+        severities = ['critical', 'noncritical']
+        var_appends = ['_CFR', '_NCFR']
+        
+        subsystems = ["Export cable",
+                      "Substation",
+                      "Elec sub-system",
+                      "M&F sub-system",
+                      "Moorings lines",
+                      "Foundation",
+                      "Umbilical",
+                      "User sub-systems"]
+        
+        out_vars = ["export_reliability",
+                    "substation_reliability",
+                    "electrical_reliability",
+                    "mandf_reliability",
+                    "foundations_reliability",
+                    "moorings_reliability",
+                    "umbilical_reliability",
+                    "device_reliability"]
+        
+        for severity, var_append in zip(severities, var_appends):
+        
+            severity_network = network.set_failure_rates(severity,
+                                                         confidence_level)
+            systems_metrics = severity_network.get_systems_metrics(
                                                             reliability_time)
-        
-        systems_df = pd.DataFrame(systems_metrics)
-        systems_df = systems_df.drop("Link")
-        systems_df = systems_df.rename(metrics_map)
-        
-        systems_df["Failure Rate"] = systems_df["Failure Rate"].apply(
-                                                         lambda x: x * 1e6)
-        systems_df["MTTF"] = systems_df["MTTF"].apply(lambda x: x / year_hours)
-        
-        self.data.system_reliability_CFR = systems_df
+            
+            systems_df = self.get_system_dataframe(systems_metrics,
+                                                   ["Link"],
+                                                   metrics_map,
+                                                   year_hours)
+            
+            var = "system_reliability" + var_append
+            self.data[var] = systems_df
+            
+            for system, var in zip(subsystems, out_vars):
+                
+                sub_metrics = severity_network.get_subsystem_metrics(
+                                                            system,
+                                                            reliability_time)
+                
+                if sub_metrics is None: continue
+                
+                systems_df = self.get_system_dataframe(sub_metrics,
+                                                       ["Link", "Curtails"],
+                                                       metrics_map,
+                                                       year_hours)
+                
+                var += var_append
+                self.data[var] = systems_df
         
         return
-
-        
+    
     @classmethod
-    def get_input_dict(cls, data,
-                            core_network_configuration):
+    def get_input_dict(cls, data):
         
         if (data.moor_found_network is None and 
             data.electrical_network is None): return
@@ -433,14 +511,9 @@ class ReliabilityInterface(ThemeInterface):
         if data.electrical_network is None:
             electrical_network_hier = None
             electrical_network_bom = None
-            network_configuration = None
         else:
             electrical_network_hier = data.electrical_network["topology"]
             electrical_network_bom = data.electrical_network["nodes"]
-            if core_network_configuration == "Radial":
-                network_configuration = "radial"
-            elif core_network_configuration == "Star":
-                network_configuration = "multiplehubs"
              
         # Component Check
         if data.electrical_network is not None:
@@ -698,7 +771,6 @@ class ReliabilityInterface(ThemeInterface):
             compdict.update(user_compdict)
                                     
         result = {"compdict": compdict,
-                  "network_configuration": network_configuration,
                   "electrical_network_hier": electrical_network_hier,
                   "electrical_network_bom": electrical_network_bom,
                   "moor_found_network_hier": moor_found_network_hier,
@@ -707,3 +779,20 @@ class ReliabilityInterface(ThemeInterface):
                   'user_bom': user_bom}
                   
         return result
+    
+    @classmethod
+    def get_system_dataframe(cls, metrics, drop_cols, metrics_map, year_hours):
+        
+        systems_df = pd.DataFrame(metrics)
+        
+        for col in drop_cols:
+            systems_df = systems_df.drop(col, axis=1)
+        
+        systems_df = systems_df.rename(columns=metrics_map)
+        systems_df = systems_df.sort_values(by=["System ID"])
+        
+        systems_df["Failure Rate"] = systems_df["Failure Rate"].apply(
+                                                         lambda x: x * 1e6)
+        systems_df["MTTF"] = systems_df["MTTF"].apply(lambda x: x / year_hours)
+        
+        return systems_df

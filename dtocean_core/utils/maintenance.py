@@ -1251,7 +1251,7 @@ def get_user_network(subsytem_comps, array_layout):
     if len(subsytem_comps) == 4:
         subsystem_names.insert(2, 'Control')
     
-    user_hierarchy = {'array': {}}
+    user_hierarchy = {}
     user_bom = {}
 
     device_subsytem_hierarchy = {k: [v] for k, v in zip(subsystem_names,
