@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2016-2018 Mathew Topper
+#    Copyright (C) 2016-2021 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -66,14 +66,13 @@ module_logger = logging.getLogger(__name__)
 class ReliabilityInterface(ThemeInterface):
     
     '''Interface to the reliability theme.
-          
     '''
-
+    
     def __init__(self):
         
         super(ReliabilityInterface, self).__init__()
         
-    @classmethod         
+    @classmethod
     def get_name(cls):
         
         '''A class method for the common name of the interface.
@@ -84,12 +83,12 @@ class ReliabilityInterface(ThemeInterface):
         
         return "Reliability"
         
-    @classmethod         
+    @classmethod
     def declare_weight(cls):
         
         return 2
 
-    @classmethod         
+    @classmethod
     def declare_inputs(cls):
         
         '''A class method to declare all the variables required as inputs by
@@ -106,7 +105,7 @@ class ReliabilityInterface(ThemeInterface):
                         "My:second:variable",
                        ]
         '''
-
+        
         input_list  =  ['device.subsystem_failure_rates',
                         'device.control_subsystem_failure_rates',
                         "project.layout",
@@ -245,8 +244,8 @@ class ReliabilityInterface(ThemeInterface):
                    ]
                 
         return optional
-        
-    @classmethod 
+    
+    @classmethod
     def declare_id_map(self):
         
         '''Declare the mapping for variable identifiers in the data description
@@ -267,7 +266,7 @@ class ReliabilityInterface(ThemeInterface):
                        }
         
         '''
-                  
+        
         id_map = {"array_layout": "project.layout",
                   'subsystem_failure_rates': 'device.subsystem_failure_rates',
                   'control_subsystem_failure_rates':
@@ -345,7 +344,7 @@ class ReliabilityInterface(ThemeInterface):
                   }
                   
         return id_map
-                 
+    
     def connect(self, debug_entry=False, export_data=True):
         
         '''The connect method is used to execute the external program and 
@@ -358,7 +357,7 @@ class ReliabilityInterface(ThemeInterface):
           self.data.my_output_variable = value
         
         '''
-
+        
         input_dict = self.get_input_dict(self.data)
         
         if input_dict is None: return
@@ -383,7 +382,7 @@ class ReliabilityInterface(ThemeInterface):
         if export_data:
             
             userdir = UserDataDirectory("dtocean_core", "DTOcean", "config")
-                    
+            
             if userdir.isfile("files.ini"):
                 configdir = userdir
             else:
@@ -397,14 +396,9 @@ class ReliabilityInterface(ThemeInterface):
             debug_path = os.path.join(appdir_path, debug_folder)
             debugdir = Directory(debug_path)
             debugdir.makedir()
-
+            
             pkl_path = debugdir.get_path("reliability_inputs.pkl")
             pickle.dump(input_dict, open(pkl_path, "wb"))
-        
-        ## TODO: Delete:
-#        input_dict["mission_time_hours"],
-#        input_dict["system_type"],
-#        input_dict["mttfreq_hours"]
         
         electrical_network = None
         moorings_network = None
@@ -428,7 +422,7 @@ class ReliabilityInterface(ThemeInterface):
                           electrical_network,
                           moorings_network,
                           user_network)
-                       
+        
         if debug_entry: return
         
         year_hours = 24. * 365.25
@@ -506,18 +500,16 @@ class ReliabilityInterface(ThemeInterface):
             moor_found_network_hier = data.moor_found_network["topology"]
             moor_found_network_bom = data.moor_found_network["nodes"]
         
-#        print data.electrical_network
-
         if data.electrical_network is None:
             electrical_network_hier = None
             electrical_network_bom = None
         else:
             electrical_network_hier = data.electrical_network["topology"]
             electrical_network_bom = data.electrical_network["nodes"]
-             
+        
         # Component Check
         if data.electrical_network is not None:
-                    
+            
             if (data.collection_points_NCFR is None or 
                 data.collection_points_CFR is None or
                 data.dry_mate_connectors_NCFR is None or 
@@ -530,13 +522,13 @@ class ReliabilityInterface(ThemeInterface):
                 data.transformers_CFR is None or
                 data.wet_mate_connectors_NCFR is None or 
                 data.wet_mate_connectors_CFR is None):
-                 
+                
                 msg = ("Insufficient component reliability data entered to "
                        "undertake analysis for electrical network")
                 module_logger.info(msg)
-                 
+                
                 return
-                 
+        
         if data.moor_found_network is None:
             
             if (data.moorings_chain_NCFR is None or
@@ -560,10 +552,10 @@ class ReliabilityInterface(ThemeInterface):
                 module_logger.info(msg)
                 
                 return
-    
+        
         ## COMPONENTS
         compdict = {}
-
+        
         if (data.collection_points_NCFR is None or 
             data.collection_points_CFR is None):
             
@@ -591,7 +583,7 @@ class ReliabilityInterface(ThemeInterface):
                                             data.dry_mate_connectors_NCFR,
                                             check_keys=compdict.keys())
             compdict.update(dry_mate_connectors_dict)
-
+        
         if (data.dynamic_cable_NCFR is None or 
             data.dynamic_cable_CFR is None):
                 
@@ -619,7 +611,7 @@ class ReliabilityInterface(ThemeInterface):
                                             data.static_cable_NCFR,
                                             check_keys=compdict.keys())
             compdict.update(static_cable_dict)
-
+        
         if (data.transformers_NCFR is None or
             data.transformers_CFR is None):
             
@@ -632,7 +624,7 @@ class ReliabilityInterface(ThemeInterface):
                                             data.transformers_NCFR,
                                             check_keys=compdict.keys())
             compdict.update(transformers_dict)     
-
+        
         if (data.wet_mate_connectors_NCFR is None or 
             data.wet_mate_connectors_CFR is None):
             
@@ -645,7 +637,7 @@ class ReliabilityInterface(ThemeInterface):
                                             data.wet_mate_connectors_NCFR,
                                             check_keys=compdict.keys())
             compdict.update(wet_mate_connectors_dict)  
-
+        
         if (data.moorings_chain_NCFR is None or
             data.moorings_chain_CFR is None):
             
@@ -659,7 +651,7 @@ class ReliabilityInterface(ThemeInterface):
                                             data.moorings_chain_NCFR,
                                             check_keys=compdict.keys())
             compdict.update(moorings_chain_dict)
-
+        
         if (data.foundations_anchor_NCFR is None or
             data.foundations_anchor_CFR is None):
             
@@ -673,7 +665,7 @@ class ReliabilityInterface(ThemeInterface):
                                             data.foundations_anchor_NCFR,
                                             check_keys=compdict.keys())
             compdict.update(foundations_anchor_dict)
-           
+        
         if (data.moorings_forerunner_NCFR is None or 
             data.moorings_forerunner_CFR is None):
             
@@ -687,7 +679,7 @@ class ReliabilityInterface(ThemeInterface):
                                             data.moorings_forerunner_NCFR,
                                             check_keys=compdict.keys())
             compdict.update(moorings_forerunner_dict)
-
+        
         if (data.foundations_pile_NCFR is None or 
             data.foundations_pile_CFR is None):
             
@@ -701,7 +693,7 @@ class ReliabilityInterface(ThemeInterface):
                                             data.foundations_pile_NCFR,
                                             check_keys=compdict.keys())
             compdict.update(foundations_pile_dict)
-
+        
         if (data.moorings_rope_NCFR is None or
             data.moorings_rope_CFR is None):
             
@@ -715,7 +707,7 @@ class ReliabilityInterface(ThemeInterface):
                                             data.moorings_rope_NCFR,
                                             check_keys=compdict.keys())
             compdict.update(moorings_rope_dict)
-           
+        
         if (data.moorings_shackle_NCFR is None or
             data.moorings_shackle_CFR is None):
             
@@ -729,7 +721,7 @@ class ReliabilityInterface(ThemeInterface):
                                             data.moorings_shackle_NCFR,
                                             check_keys=compdict.keys())
             compdict.update(moorings_shackle_dict)   
-           
+        
         if (data.moorings_swivel_NCFR is None or
             data.moorings_swivel_CFR is None):
             
@@ -743,7 +735,7 @@ class ReliabilityInterface(ThemeInterface):
                                             data.moorings_swivel_NCFR,
                                             check_keys=compdict.keys())
             compdict.update(moorings_swivel_dict)
-            
+        
         if (data.array_layout is None or
             data.subsystem_failure_rates is None):
             
@@ -762,14 +754,14 @@ class ReliabilityInterface(ThemeInterface):
             if data.control_subsystem_failure_rates is not None:
                 subsytem_comps.insert(2,'control001')
                 subsystem_rates.update(data.control_subsystem_failure_rates)
-                
+            
             user_hier, user_bom = get_user_network(subsytem_comps,
                                                    data.array_layout)
             
             user_compdict = get_user_compdict(subsytem_comps,
                                               subsystem_rates)
             compdict.update(user_compdict)
-                                    
+        
         result = {"compdict": compdict,
                   "electrical_network_hier": electrical_network_hier,
                   "electrical_network_bom": electrical_network_bom,
@@ -777,7 +769,7 @@ class ReliabilityInterface(ThemeInterface):
                   "moor_found_network_bom": moor_found_network_bom,
                   'user_hier': user_hier,
                   'user_bom': user_bom}
-                  
+        
         return result
     
     @classmethod
