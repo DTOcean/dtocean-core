@@ -182,12 +182,12 @@ def get_input_tables(system_type,
                       'PTO': 'Pto',
                       'Control': 'Control',
                       'Support Structure': 'Support structure',
-                      'Umbilical Cable': 'Dynamic cable',
-                      'Inter-Array Cables': 'Array elec sub-system',
+                      'Umbilical Cable': 'Umbilical',
+                      'Inter-Array Cables': 'Elec sub-system',
                       'Substations': 'Substation',
-                      'Export Cable': 'Export Cable',
+                      'Export Cable': 'Export cable',
                       'Foundations': 'Foundation',
-                      'Mooring Lines': 'Mooring line'}
+                      'Mooring Lines': 'Moorings lines'}
                       
     weightings_map = {
                 'Prime Mover': 
@@ -865,7 +865,7 @@ def update_comp_table(subsystem,
         
         subsystem_id = "{}001".format(subsystem_root)
         temp_comp["Component_ID"] = subsystem_id
-        temp_comp["Component_type"] = subsystem_id
+        temp_comp["Component_type"] = "array"
 
         num_cols = all_comp.shape[1]
         temp_comp = temp_comp.rename(num_cols)
@@ -1372,13 +1372,13 @@ def get_events_table(raw_df,
 
     data_df = data_df.rename(columns=name_map)
     
-    subsytem_map = { 'Array elec sub-system': 'Inter-Array Cables',
+    subsytem_map = { 'Elec sub-system': 'Inter-Array Cables',
                      'Control': 'Control',
-                     'Dynamic cable': 'Umbilical Cable',
-                     'Export Cable': 'Export Cable',
+                     'Umbilical': 'Umbilical Cable',
+                     'Export cable': 'Export Cable',
                      'Foundation': 'Foundations',
                      'Hydrodynamic': 'Prime Mover',
-                     'Mooring line': 'Mooring Lines',
+                     'Moorings lines': 'Mooring Lines',
                      'Pto': 'PTO',
                      'Substation': 'Substations',
                      'Support structure': 'Support Structure' }

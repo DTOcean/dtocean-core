@@ -369,6 +369,7 @@ class MaintenanceInterface(ModuleInterface):
                         'options.transit_cost_multiplier',
                         'options.loading_cost_multiplier',
                         
+                        "project.reliability_confidence",
                         "options.maintenance_data_points",
                         "options.parallel_operations",
                         "options.corrective_prep_time",
@@ -537,6 +538,7 @@ class MaintenanceInterface(ModuleInterface):
                         'project.umbilical_seabed_connection',
                         "project.substation_layout",
                         "device.two_stage_assembly",
+                        "project.reliability_confidence",
                         "options.curtail_devices",
                         "options.parallel_operations",
                         "options.corrective_prep_time",
@@ -850,8 +852,10 @@ class MaintenanceInterface(ModuleInterface):
             "moorings_swivel": "component.moorings_swivel",
             "rope_stiffness": "component.moorings_rope_stiffness",
             
+            "reliability_confidence": "project.reliability_confidence"
+            
             }
-                  
+        
         return id_map
                  
     def connect(self, debug_entry=False,
@@ -1191,71 +1195,52 @@ class MaintenanceInterface(ModuleInterface):
                             self.data.transit_cost_multiplier,
                             self.data.loading_cost_multiplier)
         
-#        RAM_Param (dict): This parameter records the information for talking
-#                          to RAM module
-#            keys:         
-#        systype (str) [-]: system type: options:    'tidefloat', 
-#                                                    'tidefixed', 
-#                                                    'wavefloat', 
-#                                                    'wavefixed'
-#        eleclayout (str) [-]: electrical system architecture: options:   'radial'
-#                                                                         'singlesidedstring'
-#                                                                         'doublesidedstring'
-#                                                                         'multiplehubs'
-#        elechierdict (dict): array-level electrical system hierarchy: keys: array: export cable: export cable components (list) [-],
-#                                                                                   substation: substation components (list) [-],
-#                                                                                   layout: device layout
-#                                                                            deviceXXX: elec sub-system
-#        moorhiereg (dict): array-level mooring and foundation hierarchy: keys: array: substation foundation: substation foundation components (list) [-]
-#                                                                                      deviceXXX:  umbilical:   umbilical type (str) [-],
-#                                                                                                  foundation: foundation components (list) [-],
-#                                                                                                  mooring system: mooring components (list) [-]
-#
-#        RAM_Param['systype']
-#        RAM_Param['eleclayout']
-#        RAM_Param['elechierdict']
-#        RAM_Param['elecbomeg']
-#        RAM_Param['moorhiereg']
-#        RAM_Param['moorbomeg']
-#        RAM_Param['userhiereg']
-#        RAM_Param['userbomeg']
-#        RAM_Param['db']
-
-        system_type_map = {"Tidal Floating" : "tidefloat",
-                           "Tidal Fixed" : "tidefixed",
-                           "Wave Floating" : "wavefloat",
-                           "Wave Fixed" : "wavefixed"
-                           }
-        system_type = system_type_map[self.data.system_type]
+#        RAM_Param (dict): This parameter records the information for talking 
+#            to RAM module
+#            keys:
+#                db (dict) [-]: Component database
+#                elechier (dict) [-]: Electrical layout architecture
+#                elecbom (dict) [-]: Electrical BOM
+#                moorhier (dict) [-]: Moorings layout architecture
+#                moorbom (dict) [-]: Moorings BOM
+#                userhier (dict) [-]: User sub-systems architecture
+#                userbomeg (dict) [-]: User sub-systems BOM
+#                calcscenario (str) [-]: scenario for the calculation
 
         reliability_input_dict = \
-            ReliabilityInterface.get_input_dict(self.data,
-                                                self.data.network_type)
+            ReliabilityInterface.get_input_dict(self.data)
         
         RAM_param = {}
-        RAM_param['systype'] = system_type
+        
+        confidence_map = {'Pessimistic': 'lower',
+                          'Normal': 'mean',
+                          'Optimistic': 'upper'}
+        
+        if self.data.reliability_confidence is None:
+            confidence_level = 'mean'
+        else:
+            confidence_level = confidence_map[self.data.reliability_confidence]
+        
+        RAM_param["calcscenario"] = confidence_level
 
         if reliability_input_dict is None:
 
-            RAM_param['eleclayout'] = None
-            RAM_param['elechierdict'] = None
-            RAM_param['elecbomeg'] = None
-            RAM_param['moorhiereg'] = None
-            RAM_param['moorbomeg'] = None
+            RAM_param['elechier'] = None
+            RAM_param['elecbom'] = None
+            RAM_param['moorhier'] = None
+            RAM_param['moorbom'] = None
 
             compdict = {} 
 
         else:
 
-            RAM_param['eleclayout'] = \
-                            reliability_input_dict["network_configuration"]
-            RAM_param['elechierdict'] = \
+            RAM_param['elechier'] = \
                             reliability_input_dict["electrical_network_hier"]
-            RAM_param['elecbomeg'] = \
+            RAM_param['elecbom'] = \
                             reliability_input_dict["electrical_network_bom"]
-            RAM_param['moorhiereg'] = \
+            RAM_param['moorhier'] = \
                             reliability_input_dict["moor_found_network_hier"]
-            RAM_param['moorbomeg'] = \
+            RAM_param['moorbom'] = \
                             reliability_input_dict["moor_found_network_bom"]
 
             compdict = reliability_input_dict["compdict"]
@@ -1286,8 +1271,8 @@ class MaintenanceInterface(ModuleInterface):
                                           subsystem_rates)
         compdict.update(user_compdict)
         
-        RAM_param['userhiereg'] = user_hierarchy
-        RAM_param['userbomeg'] = user_bom
+        RAM_param['userhier'] = user_hierarchy
+        RAM_param['userbom'] = user_bom
         RAM_param['db'] = compdict
 
 #        Logistic_Param (dict): This parameter records the information for
@@ -1436,7 +1421,7 @@ class MaintenanceInterface(ModuleInterface):
 
             point_bathy = get_point_depth(self.data.bathymetry, position)
             
-            if "floating" in system_type.lower():
+            if "floating" in self.data.system_type.lower():
                 depth = 0.
             else:
                 depth = -point_bathy
@@ -1503,7 +1488,7 @@ class MaintenanceInterface(ModuleInterface):
                                           axis=1,
                                           sort=False)
             
-            array_series["Component_ID"] = "Export Cable001"
+            array_series["Component_ID"] = "Export cable001"
             array_series['depth'] = -point_bathy
             
             num_cols = array_df.shape[1]

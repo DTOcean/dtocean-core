@@ -491,7 +491,8 @@ class ReliabilityInterface(ThemeInterface):
     def get_input_dict(cls, data):
         
         if (data.moor_found_network is None and 
-            data.electrical_network is None): return
+            data.electrical_network is None and
+            data.subsystem_failure_rates): return
             
         if data.moor_found_network is None:
             moor_found_network_hier = None
