@@ -203,18 +203,20 @@ class MaintenanceInterface(ModuleInterface):
                                      ['Tidal Floating', 'Wave Floating']),
 
                         "component.static_cable_NCFR",
+                        "component.static_cable_perkm_NCFR",
                         "component.dynamic_cable_NCFR",
                         "component.dry_mate_connectors_NCFR",
                         "component.wet_mate_connectors_NCFR",
                         "component.collection_points_NCFR",
                         "component.transformers_NCFR",
                         "component.static_cable_CFR",
+                        "component.static_cable_perkm_CFR",
                         "component.dynamic_cable_CFR",
                         "component.dry_mate_connectors_CFR",
                         "component.wet_mate_connectors_CFR",
                         "component.collection_points_CFR",
                         "component.transformers_CFR",
-                                    
+                        
                         "component.foundations_anchor_NCFR",
                         "component.foundations_pile_NCFR",
                         "component.foundations_anchor_CFR",
@@ -370,6 +372,7 @@ class MaintenanceInterface(ModuleInterface):
                         'options.loading_cost_multiplier',
                         
                         "project.reliability_confidence",
+                        "project.apply_kfactors",
                         "options.maintenance_data_points",
                         "options.parallel_operations",
                         "options.corrective_prep_time",
@@ -485,12 +488,14 @@ class MaintenanceInterface(ModuleInterface):
                         "component.dry_mate_connectors_NCFR",
                         "component.dynamic_cable_NCFR",
                         "component.static_cable_NCFR",
+                        "component.static_cable_perkm_NCFR",
                         "component.transformers_NCFR",
                         "component.wet_mate_connectors_NCFR",
                         "component.collection_points_CFR",
                         "component.dry_mate_connectors_CFR",
                         "component.dynamic_cable_CFR",
                         "component.static_cable_CFR",
+                        "component.static_cable_perkm_CFR",
                         "component.transformers_CFR",
                         "component.wet_mate_connectors_CFR",
                         "component.moorings_chain_NCFR",
@@ -520,7 +525,7 @@ class MaintenanceInterface(ModuleInterface):
                         "component.moorings_chain",
                         "component.moorings_forerunner",
                         "component.moorings_rope",
-                        "component.moorings_shackle",                  
+                        "component.moorings_shackle",
                         "component.moorings_swivel",
                         "component.moorings_rope_stiffness",
                         "component.operations_limit_hs",
@@ -539,6 +544,7 @@ class MaintenanceInterface(ModuleInterface):
                         "project.substation_layout",
                         "device.two_stage_assembly",
                         "project.reliability_confidence",
+                        "project.apply_kfactors",
                         "options.curtail_devices",
                         "options.parallel_operations",
                         "options.corrective_prep_time",
@@ -652,7 +658,7 @@ class MaintenanceInterface(ModuleInterface):
             'electrical_inspections_requirements':
                 'project.electrical_inspections_requirements',
             'moorings_inspections_requirements':
-                'project.moorings_inspections_requirements',               
+                'project.moorings_inspections_requirements',
             
             'electrical_onsite_parts':
                 'project.electrical_onsite_maintenance_parts',
@@ -673,12 +679,14 @@ class MaintenanceInterface(ModuleInterface):
             "dry_mate_connectors_NCFR": "component.dry_mate_connectors_NCFR",
             "dynamic_cable_NCFR": "component.dynamic_cable_NCFR",
             "static_cable_NCFR": "component.static_cable_NCFR",
+            "static_cable_perkm_NCFR": "component.static_cable_perkm_NCFR",
             "transformers_NCFR": "component.transformers_NCFR",
             "wet_mate_connectors_NCFR": "component.wet_mate_connectors_NCFR",
             "collection_points_CFR": "component.collection_points_CFR",
             "dry_mate_connectors_CFR": "component.dry_mate_connectors_CFR",
             "dynamic_cable_CFR": "component.dynamic_cable_CFR",
             "static_cable_CFR": "component.static_cable_CFR",
+            "static_cable_perkm_CFR": "component.static_cable_perkm_CFR",
             "transformers_CFR": "component.transformers_CFR",
             "wet_mate_connectors_CFR": "component.wet_mate_connectors_CFR",
             "moorings_chain_NCFR": "component.moorings_chain_NCFR",
@@ -852,7 +860,8 @@ class MaintenanceInterface(ModuleInterface):
             "moorings_swivel": "component.moorings_swivel",
             "rope_stiffness": "component.moorings_rope_stiffness",
             
-            "reliability_confidence": "project.reliability_confidence"
+            "reliability_confidence": "project.reliability_confidence",
+            "apply_kfactors": "project.apply_kfactors"
             
             }
         
@@ -1222,18 +1231,20 @@ class MaintenanceInterface(ModuleInterface):
             confidence_level = confidence_map[self.data.reliability_confidence]
         
         RAM_param["calcscenario"] = confidence_level
-
+        RAM_param['elecdata'] = reliability_input_dict["electrical_data"]
+        RAM_param['use_kfactors'] = self.data.apply_kfactors
+        
         if reliability_input_dict is None:
-
+            
             RAM_param['elechier'] = None
             RAM_param['elecbom'] = None
             RAM_param['moorhier'] = None
             RAM_param['moorbom'] = None
-
+            
             compdict = {} 
-
+        
         else:
-
+            
             RAM_param['elechier'] = \
                             reliability_input_dict["electrical_network_hier"]
             RAM_param['elecbom'] = \
@@ -1242,9 +1253,9 @@ class MaintenanceInterface(ModuleInterface):
                             reliability_input_dict["moor_found_network_hier"]
             RAM_param['moorbom'] = \
                             reliability_input_dict["moor_found_network_bom"]
-
+           
             compdict = reliability_input_dict["compdict"]
-
+        
         # Manufacture the user network for the device subsytems:
         subsytem_comps = ['hydro001',
                           'pto001',

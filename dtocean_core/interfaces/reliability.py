@@ -110,31 +110,38 @@ class ReliabilityInterface(ThemeInterface):
                         'device.control_subsystem_failure_rates',
                         "project.layout",
                         "project.electrical_network",
+                        "project.electrical_component_data",
                         "project.moorings_foundations_network",
                         "project.reliability_time",
                         "project.reliability_confidence",
+                        "project.apply_kfactors",
                         
                         "component.static_cable_NCFR",
+                        "component.static_cable_perkm_NCFR",
                         "component.dynamic_cable_NCFR",
                         "component.dry_mate_connectors_NCFR",
                         "component.wet_mate_connectors_NCFR",
                         "component.collection_points_NCFR",
                         "component.transformers_NCFR",
+                        
                         "component.static_cable_CFR",
+                        "component.static_cable_perkm_CFR",
                         "component.dynamic_cable_CFR",
                         "component.dry_mate_connectors_CFR",
                         "component.wet_mate_connectors_CFR",
                         "component.collection_points_CFR",
                         "component.transformers_CFR",
+                        
                         "component.foundations_anchor_NCFR",
                         "component.foundations_pile_NCFR",
-                        "component.foundations_anchor_CFR",
-                        "component.foundations_pile_CFR",
                         "component.moorings_chain_NCFR",
                         "component.moorings_forerunner_NCFR",
                         "component.moorings_rope_NCFR",
                         "component.moorings_shackle_NCFR",
                         "component.moorings_swivel_NCFR",
+                        
+                        "component.foundations_anchor_CFR",
+                        "component.foundations_pile_CFR",
                         "component.moorings_chain_CFR",
                         "component.moorings_forerunner_CFR",
                         "component.moorings_rope_CFR",
@@ -212,19 +219,24 @@ class ReliabilityInterface(ThemeInterface):
                    'device.control_subsystem_failure_rates',
                    "project.layout",
                    "project.electrical_network",
+                   "project.electrical_component_data",
                    "project.moorings_foundations_network",
                    "project.reliability_time",
                    "project.reliability_confidence",
+                   "project.apply_kfactors",
+                   
                    "component.collection_points_NCFR",
                    "component.dry_mate_connectors_NCFR",
                    "component.dynamic_cable_NCFR",
                    "component.static_cable_NCFR",
+                   "component.static_cable_perkm_NCFR",
                    "component.transformers_NCFR",
                    "component.wet_mate_connectors_NCFR",
                    "component.collection_points_CFR",
                    "component.dry_mate_connectors_CFR",
                    "component.dynamic_cable_CFR",
                    "component.static_cable_CFR",
+                   "component.static_cable_perkm_CFR",
                    "component.transformers_CFR",
                    "component.wet_mate_connectors_CFR",
                    "component.moorings_chain_NCFR",
@@ -274,14 +286,19 @@ class ReliabilityInterface(ThemeInterface):
                   "moor_found_network":
                       "project.moorings_foundations_network",
                   "electrical_network": "project.electrical_network",
+                  "electrical_components": "project.electrical_component_data",
                   "reliability_time": "project.reliability_time",
                   "reliability_confidence": "project.reliability_confidence",
+                  "apply_kfactors": "project.apply_kfactors",
+                  
                   "collection_points_NCFR":
                       "component.collection_points_NCFR",
                   "dry_mate_connectors_NCFR":
                       "component.dry_mate_connectors_NCFR",
                   "dynamic_cable_NCFR": "component.dynamic_cable_NCFR",
                   "static_cable_NCFR": "component.static_cable_NCFR",
+                  "static_cable_perkm_NCFR":
+                      "component.static_cable_perkm_NCFR",
                   "transformers_NCFR": "component.transformers_NCFR",
                   "wet_mate_connectors_NCFR":
                       "component.wet_mate_connectors_NCFR",
@@ -290,6 +307,7 @@ class ReliabilityInterface(ThemeInterface):
                       "component.dry_mate_connectors_CFR",
                   "dynamic_cable_CFR": "component.dynamic_cable_CFR",
                   "static_cable_CFR": "component.static_cable_CFR",
+                  "static_cable_perkm_CFR": "component.static_cable_perkm_CFR",
                   "transformers_CFR": "component.transformers_CFR",
                   "wet_mate_connectors_CFR":
                       "component.wet_mate_connectors_CFR",
@@ -418,10 +436,13 @@ class ReliabilityInterface(ThemeInterface):
             user_network = SubNetwork(input_dict["user_hier"],
                                       input_dict["user_bom"])
         
+        # Build electrical data input
+        
         network = Network(input_dict["compdict"],
                           electrical_network,
                           moorings_network,
-                          user_network)
+                          user_network,
+                          input_dict["electrical_data"])
         
         if debug_entry: return
         
@@ -456,8 +477,10 @@ class ReliabilityInterface(ThemeInterface):
         
         for severity, var_append in zip(severities, var_appends):
         
-            severity_network = network.set_failure_rates(severity,
-                                                         confidence_level)
+            severity_network = network.set_failure_rates(
+                                                    severity,
+                                                    confidence_level,
+                                                    self.data.apply_kfactors)
             systems_metrics = severity_network.get_systems_metrics(
                                                             reliability_time)
             
@@ -508,8 +531,19 @@ class ReliabilityInterface(ThemeInterface):
             electrical_network_hier = data.electrical_network["topology"]
             electrical_network_bom = data.electrical_network["nodes"]
         
+        # k-factor default
+        if data.apply_kfactors is None:
+            data.apply_kfactors = False
+        
+        elec_records = None
+        
         # Component Check
         if data.electrical_network is not None:
+            
+            # k-factor substitution
+            if data.apply_kfactors:
+                data.static_cable_NCFR = data.static_cable_perkm_NCFR
+                data.static_cable_CFR = data.static_cable_perkm_CFR
             
             if (data.collection_points_NCFR is None or 
                 data.collection_points_CFR is None or
@@ -529,6 +563,18 @@ class ReliabilityInterface(ThemeInterface):
                 module_logger.info(msg)
                 
                 return
+            
+            # k-factor electrical data
+            if data.apply_kfactors:
+                
+                if data.electrical_components is None:
+                    
+                    err_str = ("Electrical network component data must be "
+                               "provided if using k-factors")
+                    raise ValueError(err_str)
+                
+                elec_records = data.electrical_components[
+                                ["Quantity", "Marker"]].to_records(index=False)
         
         if data.moor_found_network is None:
             
@@ -769,7 +815,8 @@ class ReliabilityInterface(ThemeInterface):
                   "moor_found_network_hier": moor_found_network_hier,
                   "moor_found_network_bom": moor_found_network_bom,
                   'user_hier': user_hier,
-                  'user_bom': user_bom}
+                  'user_bom': user_bom,
+                  'electrical_data': elec_records}
         
         return result
     
