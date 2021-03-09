@@ -33,6 +33,7 @@ def main(core,
          n_nodes,
          t1,
          t2,
+         dev_per_string=None,
          n_evals=None,
          raise_exc=False,
          save_project=False,
@@ -51,6 +52,11 @@ def main(core,
                    "n_nodes": n_nodes,
                    "t1": t1,
                    "t2": t2}
+    
+    if dev_per_string is not None:
+        
+        dev_per_string = int(float(dev_per_string))
+        params_dict["dev_per_string"] =  dev_per_string
     
     if n_evals is not None:
         
@@ -74,6 +80,7 @@ def main(core,
                 n_nodes,
                 t1,
                 t2,
+                dev_per_string,
                 n_evals)
         
         flag = "Success"
@@ -112,6 +119,7 @@ def iterate(core,
             n_nodes,
             t1,
             t2,
+            dev_per_string=None,
             n_evals=None):
     
     menu = ModuleMenu()
@@ -144,6 +152,17 @@ def iterate(core,
                                                   'project.rated_power')
     rated_power.set_raw_interface(core, power_rating * n_nodes)
     rated_power.read(core, project)
+    
+    if ("Electrical Sub-Systems" in available_modules and
+        dev_per_string is not None):
+        
+        elec_branch = _get_branch(core, project, "Electrical Sub-Systems")
+        devices_per_string = elec_branch.get_input_variable(
+                                            core,
+                                            project,
+                                            'project.devices_per_string')
+        devices_per_string.set_raw_interface(core, dev_per_string)
+        devices_per_string.read(core, project)
     
     if ("Operations and Maintenance" in available_modules and
         n_evals is not None):
@@ -272,10 +291,14 @@ def interface():
      delta_col,
      n_nodes,
      t1,
-     t2) = sys.argv[1:8]
+     t2,
+     dev_per_string) = sys.argv[1:9]
+    
+    if dev_per_string == "None":
+        dev_per_string = None
      
-    if len(sys.argv) == 9:
-        n_evals = sys.argv[8]
+    if len(sys.argv) == 10:
+        n_evals = sys.argv[9]
     else:
         n_evals = None
     
@@ -287,4 +310,5 @@ def interface():
          n_nodes,
          t1,
          t2,
+         dev_per_string,
          n_evals)

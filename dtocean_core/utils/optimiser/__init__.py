@@ -335,7 +335,7 @@ class Main(object):
                        worker_directory,
                        iterator,
                        scaled_vars,
-                       nearest_ops,
+                       x_ops,
                        nh=None,
                        fixed_index_map=None,
                        base_penalty=None,
@@ -352,7 +352,7 @@ class Main(object):
         self.iterator = iterator
         self._worker_directory = worker_directory
         self._scaled_vars = scaled_vars
-        self._nearest_ops = nearest_ops
+        self._x_ops = x_ops
         self._fixed_index_map = fixed_index_map
         self._base_penalty = base_penalty
         self._num_threads = num_threads
@@ -754,12 +754,10 @@ class Main(object):
             
             new_solution = [scaler.inverse(x) for x, scaler
                                 in zip(solution, self._scaled_vars)]
-            nearest_solution = \
-                    [snap(x) if snap is not None else x
-                             for x, snap in zip(new_solution,
-                                                self._nearest_ops)]
+            new_solution = [op(x) if op is not None else x
+                                for x, op in zip(new_solution, self._x_ops)]
             
-            descaled_solutions.append(nearest_solution)
+            descaled_solutions.append(new_solution)
         
         if self._fixed_index_map is not None:
             
@@ -794,6 +792,7 @@ class Main(object):
 def init_evolution_strategy(x0,
                             low_bound,
                             high_bound,
+                            integer_variables=None,
                             max_simulations=None,
                             popsize=None,
                             timeout=None,
@@ -802,6 +801,9 @@ def init_evolution_strategy(x0,
     
     opts = {'bounds': [low_bound, high_bound]}#,
 #            'verbose': -3}
+    
+    if integer_variables is not None:
+        opts["integer_variables"] = integer_variables
     
     if max_simulations is not None:
         opts["maxfevals"] = max_simulations

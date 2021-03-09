@@ -36,6 +36,7 @@ PositionParams = namedtuple('PositionParams', ['grid_orientation',
                                                'n_nodes',
                                                't1',
                                                't2',
+                                               'dev_per_string',
                                                'n_evals',
                                                'lcoe',
                                                'flag',
@@ -55,6 +56,7 @@ class PositionCounter(opt.Counter):
                           n_nodes,
                           t1,
                           t2,
+                          dev_per_string,
                           n_evals):
         """Build a params (probably namedtuple) object to search against."""
         
@@ -64,6 +66,7 @@ class PositionCounter(opt.Counter):
                                 n_nodes,
                                 t1,
                                 t2,
+                                dev_per_string,
                                 n_evals,
                                 lcoe,
                                 flag,
@@ -137,7 +140,8 @@ class PositionIterator(opt.Iterator):
          delta_col,
          n_nodes,
          t1,
-         t2) = args
+         t2,
+         dev_per_string) = args
         
         beta = 90 * np.pi / 180
         psi = 0 * np.pi / 180
@@ -347,10 +351,14 @@ class Main(object):
         high_bound = [scaler.scaled(x[1])
                                     for x, scaler in zip(ranges, scaled_vars)]
         
+        integer_variables = control_dict["integer_variables"]
+        if not integer_variables: integer_variables = None
+        
         es = opt.init_evolution_strategy(
                                     x0,
                                     low_bound,
                                     high_bound,
+                                    integer_variables=integer_variables,
                                     max_simulations=max_simulations,
                                     popsize=popsize,
                                     timeout=timeout,
@@ -408,7 +416,7 @@ class Main(object):
                             self._worker_directory,
                             iterator,
                             scaled_vars,
-                            control_dict["nearest_ops"],
+                            control_dict["x_ops"],
                             nh=nh,
                             fixed_index_map=control_dict["fixed_params"],
                             base_penalty=base_penalty,
@@ -508,7 +516,7 @@ class Main(object):
                             self._worker_directory,
                             iterator,
                             scaled_vars,
-                            control_dict["nearest_ops"],
+                            control_dict["x_ops"],
                             nh=nh,
                             fixed_index_map=control_dict["fixed_params"],
                             base_penalty=base_penalty,
@@ -548,35 +556,58 @@ def get_param_control(core, project, config):
     
     ranges = []
     x0s = []
-    nearest_ops = []
+    x_ops = []
+    integer_variables = []
     fixed_params = {}
     
     result = {"ranges": ranges,
               "x0s": x0s,
-              "nearest_ops": nearest_ops}
+              "x_ops": x_ops,
+              "integer_variables": integer_variables}
     
     param_names = ["grid_orientation",
                    "delta_row",
                    "delta_col",
                    "n_nodes",
                    "t1",
-                   "t2"]
+                   "t2",
+                   "dev_per_string"]
     
+    optional_map = {"dev_per_string": None}
     conversions = {"grid_orientation": bearing_to_radians}
     
     for i, param_name in enumerate(param_names):
         
-        parameter = config["parameters"][param_name]
+        if param_name not in config["parameters"]:
+            
+            if param_name in optional_map:
+                
+                fixed_value = optional_map[param_name]
+                
+                if param_name in conversions:
+                    fixed_value = conversions[param_name](fixed_value)
+                    
+                fixed_params[i] = fixed_value
+                
+                continue
+            
+            else:
+                
+                err_msg = ("Parameter '{}' must be included in the "
+                           "'parameters' section of the "
+                           "configuration").format(param_name)
+                raise KeyError(err_msg)
         
+        parameter = config["parameters"][param_name]
         
         if "fixed" in parameter:
             
-            fixed_value =  parameter["fixed"]
+            fixed_value = parameter["fixed"]
             
             if param_name in conversions:
                 fixed_value = conversions[param_name](fixed_value)
                 
-            fixed_params[i] = parameter["fixed"]
+            fixed_params[i] = fixed_value
             
             continue
         
@@ -595,33 +626,17 @@ def get_param_control(core, project, config):
             prange = [conversions[param_name](x) for x in prange]
             prange = sorted(prange)
         
-        if "interp" in parameter:
+        if "integer" in parameter:
             
-            cinterp = parameter["interp"]
+            cinteger = parameter["integer"]
             
-            if cinterp["type"] == "fixed":
-                
-                interp_vals = cinterp["values"]
-                
-                if param_name in conversions:
-                    interp_vals = [conversions[param_name](x)
-                                                        for x in interp_vals]
-                    interp_vals = sorted(interp_vals)
-                
-                nearest_op = get_interp_fixed(interp_vals)
-                
-            elif  cinterp["type"] == "range":
-                
-                interp_delta = cinterp["delta"]
-                
-                if param_name in conversions:
-                    interp_delta = conversions[param_name](interp_delta)
-                
-                nearest_op = get_interp_range(prange, interp_delta)
+            if cinteger:
+                x_op = np.floor
+                integer_variables.append(i - len(fixed_params))
         
         else:
             
-            nearest_op = None
+            x_op = None
         
         if "x0" in parameter:
             x0 = parameter["x0"]
@@ -631,7 +646,7 @@ def get_param_control(core, project, config):
         
         ranges.append(prange)
         x0s.append(x0)
-        nearest_ops.append(nearest_op)
+        x_ops.append(x_op)
     
     if not fixed_params: fixed_params = None
     result["fixed_params"] = fixed_params
