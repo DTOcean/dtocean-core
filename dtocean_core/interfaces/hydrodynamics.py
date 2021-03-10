@@ -79,8 +79,8 @@ class HydroInterface(ModuleInterface):
           names.
           
     '''
-        
-    @classmethod         
+    
+    @classmethod
     def get_name(cls):
         
         '''A class method for the common name of the interface.
@@ -90,13 +90,13 @@ class HydroInterface(ModuleInterface):
         '''
         
         return "Hydrodynamics"
-        
-    @classmethod         
+    
+    @classmethod
     def declare_weight(cls):
         
         return 1
-
-    @classmethod         
+    
+    @classmethod
     def declare_inputs(cls):
         
         '''A class method to declare all the variables required as inputs by
@@ -113,7 +113,7 @@ class HydroInterface(ModuleInterface):
                         "My: second:variable",
                        ]
         '''
-
+        
         input_list  =  ['site.lease_boundary',
                         'bathymetry.layers',
                         
@@ -136,11 +136,15 @@ class HydroInterface(ModuleInterface):
                                      "device.system_type",
                                      ["Wave Fixed", "Wave Floating"]),
                         
-                        MaskVariable("farm.tidal_occurrence_point",
+                        MaskVariable('farm.tidal_occurrence',
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
                         
                         MaskVariable("farm.tidal_series",
+                                     "device.system_type",
+                                     ["Tidal Fixed", "Tidal Floating"]),
+                        
+                        MaskVariable("farm.tidal_occurrence_point",
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
                         
@@ -205,9 +209,6 @@ class HydroInterface(ModuleInterface):
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
                         
-                        MaskVariable("options.tidal_use_all_steps",
-                                     "device.system_type",
-                                     ["Tidal Fixed", "Tidal Floating"])
                         ]
         
         return input_list
@@ -272,14 +273,17 @@ class HydroInterface(ModuleInterface):
               optional = ["My:first:variable",
                          ]
         '''
-        optional = ["device.turbine_interdistance",
+        optional = ['farm.tidal_occurrence',
+                    "farm.tidal_series",
+                    "farm.tidal_occurrence_point",
+                    "device.turbine_interdistance",
+                    "project.tidal_occurrence_nbins",
                     "project.main_direction",
                     'farm.nogo_areas',
                     'options.boundary_padding',
                     "options.power_bin_width",
                     "options.user_array_layout",
                     "options.tidal_data_directory",
-                    "options.tidal_use_all_steps"
                     ]
         
         return optional
@@ -305,7 +309,7 @@ class HydroInterface(ModuleInterface):
                        }
         
         '''
-                  
+        
         id_map = {
                     "AEP_array": "project.annual_energy",
                     "AEP_per_device": "project.annual_energy_per_device",
@@ -352,7 +356,6 @@ class HydroInterface(ModuleInterface):
                     "tidal_series": "farm.tidal_series",
                     "turbine_interdist": "device.turbine_interdistance",
                     "type": "device.system_type",
-                    "use_all_steps": "options.tidal_use_all_steps",
                     "user_array_layout": "options.user_array_layout",
                     "user_array_option": "options.user_array_option",
                     "wave_data_directory": "device.wave_data_directory",
@@ -423,60 +426,92 @@ class HydroInterface(ModuleInterface):
         # Check whether the bin width divides the RP perfectly
         check_bin_widths(self.data.rated_power_device,
                          self.data.pow_bins)
-
+        
         if 'Tidal' in self.data.type:
             
-            x = self.data.tidal_series.coords["UTM x"]
-            y = self.data.tidal_series.coords["UTM y"]
-                        
-            tide_dict = {"U": self.data.tidal_series.U.values,
-                         "V": self.data.tidal_series.V.values,
-                         "SSH": self.data.tidal_series.SSH.values,
-                         "TI": self.data.tidal_series.TI.values,
-                         "x": x.values,
-                         "y": y.values,
-                         "t": self.data.tidal_series.t.values,
-                         "xc": self.data.tidal_occurrence_point.x,
-                         "yc": self.data.tidal_occurrence_point.y,
-                         "ns": self.data.tidal_nbins
-                         }
+            if self.data.tidal_occurrence is not None:
+                
+                occurrence_matrix = {
+                        "x": self.data.tidal_occurrence["UTM x"].values,
+                        "y": self.data.tidal_occurrence["UTM y"].values,
+                        "p": self.data.tidal_occurrence["p"].values,
+                        "U": self.data.tidal_occurrence["U"].values,
+                        "V": self.data.tidal_occurrence["V"].values,
+                        "SSH": self.data.tidal_occurrence["SSH"].values,
+                        "TI": self.data.tidal_occurrence["TI"].values}
+                
+                # Don't let farm.tidal_occurrence be an output
+                self.data.tidal_occurrence = None
             
-            if (self.data.use_all_steps is not None and
-                self.data.use_all_steps):
+            elif self.data.tidal_series is None:
                 
-                n_steps = len(self.data.tidal_series.t.values)
-                p = np.ones(n_steps) * (1. / n_steps)
+                err_msg = ("Tidal time series or representative velocity "
+                           "fields must be provided.")
+                raise ValueError(err_msg)
+            
+            elif self.data.tidal_occurrence_point is None:
                 
-                tide_dict.pop("xc")
-                tide_dict.pop("yc")
-                tide_dict["p"] = p
-                tide_dict["ns"] = n_steps
-                
-                occurrence_matrix = tide_dict
+                err_msg = ("The tidal occurance extraction point must be "
+                           "specified when creating velocity fields from "
+                           "the tidal time series.")
+                raise ValueError(err_msg)
             
             else:
                 
-                occurrence_matrix = make_tide_statistics(tide_dict)
-            
-            p_total = sum(occurrence_matrix['p'])
-            
-            if not np.isclose(p_total, 1.):
+                if self.data.tidal_nbins is None:
+                    tidal_nbins = len(self.data.tidal_series.t)
+                else:
+                    tidal_nbins = self.data.tidal_nbins
                 
-                errStr = ("Tidal statistics probabilities invalid. Total "
-                          "probability equals {}").format(p_total)
-                raise ValueError(errStr)
-                                                    
-            occurrence_matrix_coords = [occurrence_matrix['x'],
-                                        occurrence_matrix['y'],
-                                        occurrence_matrix['p']]
-                                        
-            matrix_xset = {"values": {"U": occurrence_matrix['U'],
-                                      "V": occurrence_matrix['V'],
-                                      "SSH": occurrence_matrix['SSH'],
-                                      "TI": occurrence_matrix['TI']},
-                           "coords": occurrence_matrix_coords}
-                           
-            self.data.tidal_occurrence = matrix_xset
+                x = self.data.tidal_series.coords["UTM x"]
+                y = self.data.tidal_series.coords["UTM y"]
+                
+                tide_dict = {"U": self.data.tidal_series.U.values,
+                             "V": self.data.tidal_series.V.values,
+                             "SSH": self.data.tidal_series.SSH.values,
+                             "TI": self.data.tidal_series.TI.values,
+                             "x": x.values,
+                             "y": y.values,
+                             "t": self.data.tidal_series.t.values,
+                             "xc": self.data.tidal_occurrence_point.x,
+                             "yc": self.data.tidal_occurrence_point.y,
+                             "ns": tidal_nbins
+                             }
+                
+                if self.data.tidal_nbins is None:
+                    
+                    n_steps = len(self.data.tidal_series.t.values)
+                    p = np.ones(n_steps) * (1. / n_steps)
+                    
+                    tide_dict.pop("xc")
+                    tide_dict.pop("yc")
+                    tide_dict["p"] = p
+                    
+                    occurrence_matrix = tide_dict
+                
+                else:
+                    
+                    occurrence_matrix = make_tide_statistics(tide_dict)
+                
+                p_total = sum(occurrence_matrix['p'])
+                
+                if not np.isclose(p_total, 1.):
+                    
+                    errStr = ("Tidal statistics probabilities invalid. Total "
+                              "probability equals {}").format(p_total)
+                    raise ValueError(errStr)
+                
+                occurrence_matrix_coords = [occurrence_matrix['x'],
+                                            occurrence_matrix['y'],
+                                            occurrence_matrix['p']]
+                                            
+                matrix_xset = {"values": {"U": occurrence_matrix['U'],
+                                          "V": occurrence_matrix['V'],
+                                          "SSH": occurrence_matrix['SSH'],
+                                          "TI": occurrence_matrix['TI']},
+                               "coords": occurrence_matrix_coords}
+                
+                self.data.tidal_occurrence = matrix_xset
         
         else:
             
@@ -504,7 +539,7 @@ class HydroInterface(ModuleInterface):
                             "JONSWAP": "Jonswap",
                             "Bretschneider": "Bretschneider_Mitsuyasu",
                             "Modified Bretschneider":
-                                "Modified_Bretschneider_Mitsuyasu"                          
+                                "Modified_Bretschneider_Mitsuyasu"
                             }
             
             spectrum_type = spectrum_map[self.data.spectrum_type_farm]
@@ -525,7 +560,7 @@ class HydroInterface(ModuleInterface):
         else:
             numpy_nogo = [np.array(x.exterior.coords[:-1])
                                     for x in self.data.nogo_areas.values()]
-                               
+        
         numpy_landing = np.array(self.data.export_landing_point.coords[0])
         
         # Bathymetry (**assume layer 1 in uppermost**)
@@ -534,14 +569,14 @@ class HydroInterface(ModuleInterface):
                              self.data.bathymetry["y"].values)
         xyz = np.dstack([xv.flatten(), yv.flatten(), zv.flatten()])[0]
         safe_xyz = xyz[~np.isnan(xyz).any(axis=1)]
-
+        
         # Convert main direction to vector
         if self.data.main_direction is None:
             main_direction_vec = None
         else:
             main_direction_tuple = bearing_to_vector(self.data.main_direction)
             main_direction_vec = np.array(main_direction_tuple)
-                                                                                                               
+        
         Site = WP2_SiteData(numpy_lease,
                             numpy_nogo,
                             occurrence_matrix,
