@@ -114,12 +114,20 @@ class SpacingConstraintsTool(Tool):
                         MaskVariable("farm.spec_spread",
                                      "device.system_type",
                                      ["Wave Fixed", "Wave Floating"]),
-                                     
-                        MaskVariable("farm.tidal_occurrence_point",
+                        
+                        MaskVariable('farm.tidal_occurrence',
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
                         
                         MaskVariable("farm.tidal_series",
+                                     "device.system_type",
+                                     ["Tidal Fixed", "Tidal Floating"]),
+                        
+                        MaskVariable("farm.tidal_occurrence_point",
+                                     "device.system_type",
+                                     ["Tidal Fixed", "Tidal Floating"]),
+                        
+                        MaskVariable("project.tidal_occurrence_nbins",
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
                         
@@ -134,10 +142,6 @@ class SpacingConstraintsTool(Tool):
                         'device.minimum_distance_y',
                         
                         MaskVariable("device.turbine_interdistance",
-                                     "device.system_type",
-                                     ["Tidal Fixed", "Tidal Floating"]),
-                        
-                        MaskVariable("project.tidal_occurrence_nbins",
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
                         
@@ -190,7 +194,11 @@ class SpacingConstraintsTool(Tool):
               optional = ["My:first:variable",
                          ]
         '''
-        optional = ["device.turbine_interdistance",
+        optional = ['farm.tidal_occurrence',
+                    "farm.tidal_series",
+                    "farm.tidal_occurrence_point",
+                    "project.tidal_occurrence_nbins",
+                    "device.turbine_interdistance",
                     "project.main_direction",
                     'options.boundary_padding'
                     ]
@@ -231,6 +239,7 @@ class SpacingConstraintsTool(Tool):
                     "spectrum_gamma_farm": "farm.spec_gamma",
                     "spectrum_type_farm": "farm.spectrum_name",
                     "tidal_nbins": "project.tidal_occurrence_nbins",
+                    "tidal_occurrence": "farm.tidal_occurrence",
                     "tidal_occurrence_point": "farm.tidal_occurrence_point",
                     "tidal_series": "farm.tidal_series",
                     "turbine_interdist": "device.turbine_interdistance",
@@ -252,30 +261,77 @@ class SpacingConstraintsTool(Tool):
         
         if 'Tidal' in self.data.type:
             
-            x = self.data.tidal_series.coords["UTM x"]
-            y = self.data.tidal_series.coords["UTM y"]
-            
-            tide_dict = {"U": self.data.tidal_series.U.values, 
-                         "V": self.data.tidal_series.V.values, 
-                         "SSH": self.data.tidal_series.SSH.values, 
-                         "TI": self.data.tidal_series.TI.values, 
-                         "x": x.values, 
-                         "y": y.values,
-                         "t": self.data.tidal_series.t.values,  
-                         "xc": self.data.tidal_occurrence_point.x, 
-                         "yc": self.data.tidal_occurrence_point.y,
-                         "ns": self.data.tidal_nbins
-                         }
-            
-            occurrence_matrix = make_tide_statistics(tide_dict)
-            
-            p_total = sum(occurrence_matrix['p'])
-            
-            if not np.isclose(p_total, 1.):
+            if self.data.tidal_occurrence is not None:
                 
-                errStr = ("Tidal statistics probabilities invalid. Total "
-                          "probability equals {}").format(p_total)
-                raise ValueError(errStr)
+                occurrence_matrix = {
+                        "x": self.data.tidal_occurrence["UTM x"].values,
+                        "y": self.data.tidal_occurrence["UTM y"].values,
+                        "p": self.data.tidal_occurrence["p"].values,
+                        "U": self.data.tidal_occurrence["U"].values,
+                        "V": self.data.tidal_occurrence["V"].values,
+                        "SSH": self.data.tidal_occurrence["SSH"].values,
+                        "TI": self.data.tidal_occurrence["TI"].values}
+                
+                # Don't let farm.tidal_occurrence be an output
+                self.data.tidal_occurrence = None
+            
+            elif self.data.tidal_series is None:
+                
+                err_msg = ("Tidal time series or representative velocity "
+                           "fields must be provided.")
+                raise ValueError(err_msg)
+            
+            elif self.data.tidal_occurrence_point is None:
+                
+                err_msg = ("The tidal occurance extraction point must be "
+                           "specified when creating velocity fields from "
+                           "the tidal time series.")
+                raise ValueError(err_msg)
+            
+            else:
+                
+                if self.data.tidal_nbins is None:
+                    tidal_nbins = len(self.data.tidal_series.t)
+                else:
+                    tidal_nbins = self.data.tidal_nbins
+                
+                x = self.data.tidal_series.coords["UTM x"]
+                y = self.data.tidal_series.coords["UTM y"]
+                
+                tide_dict = {"U": self.data.tidal_series.U.values,
+                             "V": self.data.tidal_series.V.values,
+                             "SSH": self.data.tidal_series.SSH.values,
+                             "TI": self.data.tidal_series.TI.values,
+                             "x": x.values,
+                             "y": y.values,
+                             "t": self.data.tidal_series.t.values,
+                             "xc": self.data.tidal_occurrence_point.x,
+                             "yc": self.data.tidal_occurrence_point.y,
+                             "ns": tidal_nbins
+                             }
+                
+                if self.data.tidal_nbins is None:
+                    
+                    n_steps = len(self.data.tidal_series.t.values)
+                    p = np.ones(n_steps) * (1. / n_steps)
+                    
+                    tide_dict.pop("xc")
+                    tide_dict.pop("yc")
+                    tide_dict["p"] = p
+                    
+                    occurrence_matrix = tide_dict
+                
+                else:
+                    
+                    occurrence_matrix = make_tide_statistics(tide_dict)
+                
+                p_total = sum(occurrence_matrix['p'])
+                
+                if not np.isclose(p_total, 1.):
+                    
+                    errStr = ("Tidal statistics probabilities invalid. Total "
+                              "probability equals {}").format(p_total)
+                    raise ValueError(errStr)
         
         else:
             
