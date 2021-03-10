@@ -148,6 +148,10 @@ class HydroInterface(ModuleInterface):
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
                         
+                        MaskVariable("project.tidal_occurrence_nbins",
+                                     "device.system_type",
+                                     ["Tidal Fixed", "Tidal Floating"]),
+                        
                         MaskVariable("farm.wave_series",
                                      "device.system_type",
                                      ["Wave Fixed", "Wave Floating"]),
@@ -193,11 +197,6 @@ class HydroInterface(ModuleInterface):
                                      ["Wave Fixed", "Wave Floating"]),
                         
                         'project.rated_power',
-                        
-                        MaskVariable("project.tidal_occurrence_nbins",
-                                     "device.system_type",
-                                     ["Tidal Fixed", "Tidal Floating"]),
-                        
                         'project.main_direction',
                         'options.boundary_padding',
                         'options.optimisation_threshold',
