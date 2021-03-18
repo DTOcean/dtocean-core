@@ -18,7 +18,7 @@ from . import Strategy
 from .position_optimiser import (dump_config,
                                  load_config,
                                  load_config_template,
-                                 Main)
+                                 PositionOptimiser)
 from .position_optimiser.iterator import (get_positioner,
                                           iterate,
                                           write_result_file)
@@ -30,15 +30,15 @@ from ..utils.hydrodynamics import radians_to_bearing
 module_logger = logging.getLogger(__name__)
 
 
-class MainThread(threading.Thread):
+class OptimiserThread(threading.Thread):
     
-    def __init__(self, main,
+    def __init__(self, optimiser,
                        config,
                        log_interval=100,
                        wait_interval=1):
         
-        super(MainThread, self).__init__(name="MainThread")
-        self._main = main
+        super(OptimiserThread, self).__init__(name="OptimiserThread")
+        self._optimiser = optimiser
         self._config = config
         self._log_interval = log_interval
         self._wait_interval = wait_interval
@@ -154,7 +154,7 @@ class MainThread(threading.Thread):
         
         continue_event_state = self._continue_event.is_set()
         
-        while not self._main.stop:
+        while not self._optimiser.stop:
             
             if (self._continue_event.is_set() != continue_event_state and 
                 not self._continue_event.is_set()):
@@ -174,9 +174,9 @@ class MainThread(threading.Thread):
                 self._set_stopped()
                 return
             
-            self._main.next()
+            self._optimiser.next()
         
-        _run_favorite(self._main)
+        _run_favorite(self._optimiser)
         _post_process(self._config, self._log_interval)
         self._set_stopped()
         
@@ -185,7 +185,7 @@ class MainThread(threading.Thread):
     def get_es(self):
         
         if self.stopped:
-            result = self._main.get_es()
+            result = self._optimiser.get_es()
         else:
             result = None
         
@@ -224,7 +224,7 @@ class AdvancedPosition(Strategy):
     
     def execute(self, core, project):
         
-        main = Main(core=core)
+        optimiser = PositionOptimiser(core=core)
         
         _, work_dir_status = self.get_worker_directory_status(self._config)
         _, optim_status = self.get_optimiser_status(self._config)
@@ -234,24 +234,24 @@ class AdvancedPosition(Strategy):
             log_str = 'Attempting restart of incomplete strategy'
             module_logger.info(log_str)
             
-            main.restart(self._config["worker_dir"])
+            optimiser.restart(self._config["worker_dir"])
         
         else:
             
             self._prepare_project(core, project)
-            main.start(self._config, project=project)
+            optimiser.start(self._config, project=project)
         
-        while not main.stop:
-            main.next()
+        while not optimiser.stop:
+            optimiser.next()
         
-        es = main.get_es()
-        self._post_process(main)
+        es = optimiser.get_es()
+        self._post_process(optimiser)
         
         return es
     
     def execute_threaded(self, core, project):
         
-        main = Main(core=core)
+        optimiser = PositionOptimiser(core=core)
         
         _, work_dir_status = self.get_worker_directory_status(self._config)
         _, optim_status = self.get_optimiser_status(self._config)
@@ -261,23 +261,23 @@ class AdvancedPosition(Strategy):
             log_str = 'Attempting restart of incomplete strategy'
             module_logger.info(log_str)
             
-            main.restart(self._config["worker_dir"])
+            optimiser.restart(self._config["worker_dir"])
         
         else:
             
             self._prepare_project(core, project)
-            main.start(self._config, project=project)
+            optimiser.start(self._config, project=project)
         
-        thread = MainThread(main,
-                            self._config)
+        thread = OptimiserThread(optimiser,
+                                 self._config)
         
         thread.start()
         
         return thread
     
-    def _post_process(self, main, log_interval=100):
+    def _post_process(self, optimiser, log_interval=100):
         
-        _run_favorite(main)
+        _run_favorite(optimiser)
         _post_process(self._config, log_interval)
         
         return
@@ -635,7 +635,7 @@ def _get_sim_path_template(root_project_base_name, sim_dir):
     return sim_path_template
 
 
-def _run_favorite(main,
+def _run_favorite(optimiser,
                   raise_exc=False,
                   save_prj=False,
                   disable_iterate_logging=True):
@@ -643,18 +643,18 @@ def _run_favorite(main,
     msg_str = "Attempting calculation of favorite solution"
     module_logger.info(msg_str)
     
-    es = main.get_es()
-    nh = main.get_nh()
+    es = optimiser.get_es()
+    nh = optimiser.get_nh()
     
     # Get parameters of favourite solution
-    xfavorite_descaled = main._cma_main._get_descaled_solutions(
+    xfavorite_descaled = optimiser._cma_main._get_descaled_solutions(
                                                             [es.result.xbest])
     params = xfavorite_descaled[0] + [nh.last_n_evals]
     
     # Get the core, project and positioner
-    core = main._core
-    project = main._cma_main.iterator._base_project
-    positioner = main._cma_main.iterator._positioner
+    core = optimiser._core
+    project = optimiser._cma_main.iterator._base_project
+    positioner = optimiser._cma_main.iterator._positioner
     
     # Try and run the simulation
     e = None
@@ -683,9 +683,9 @@ def _run_favorite(main,
         logging.disable(logging.NOTSET)
     
     # Prepare and write the results file
-    results_base_name = main._cma_main.iterator._root_project_base_name
+    results_base_name = optimiser._cma_main.iterator._root_project_base_name
     results_name = "{}_xfavorite".format(results_base_name)
-    prj_base_path = os.path.join(main._worker_directory, results_name)
+    prj_base_path = os.path.join(optimiser._worker_directory, results_name)
     
     keys = ["theta", "dr", "dc", "n_nodes", "t1", "t2", "n_evals"]
     params_dict = {k: v for k, v in zip(keys, params)}

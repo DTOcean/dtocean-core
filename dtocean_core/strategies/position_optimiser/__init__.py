@@ -255,7 +255,7 @@ class PositionIterator(opt.Iterator):
         return
 
 
-class Main(object):
+class PositionOptimiser(object):
     
     def __init__(self, core=None,
                        config_fname="config.yaml",
