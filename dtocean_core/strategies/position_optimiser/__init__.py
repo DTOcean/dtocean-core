@@ -129,7 +129,13 @@ class PositionIterator(opt.Iterator):
         
         popen_args = ["_dtocean-optim-pos",
                       worker_project_path]
-        popen_args += [str(x) for x in args]
+        popen_args += [str(x) for x in args[:6]]
+        
+        if args[6] is not None:
+            popen_args.append("--dev_per_string {}".format(args[6]))
+        
+        if args[7] is not None:
+            popen_args.append("--n_evals {}".format(args[7]))
         
         return popen_args
     

@@ -7,6 +7,7 @@
 import os
 import sys
 
+import argparse
 import numpy as np
 import yaml
 
@@ -283,32 +284,28 @@ def write_result_file(core,
 
 def interface():
     
+    parser = argparse.ArgumentParser()
+    
+    parser.add_argument("prj_file_path")
+    parser.add_argument("grid_orientation")
+    parser.add_argument("delta_row")
+    parser.add_argument("delta_col")
+    parser.add_argument("n_nodes")
+    parser.add_argument("t1")
+    parser.add_argument("t2")
+    parser.add_argument("--dev_per_string", type=int)
+    parser.add_argument("--n_evals", type=int)
+    
     core = Core()
-    
-    (prj_file_path,
-     grid_orientation,
-     delta_row,
-     delta_col,
-     n_nodes,
-     t1,
-     t2,
-     dev_per_string) = sys.argv[1:9]
-    
-    if dev_per_string == "None":
-        dev_per_string = None
-     
-    if len(sys.argv) == 10:
-        n_evals = sys.argv[9]
-    else:
-        n_evals = None
+    args = parser.parse_args()
     
     main(core,
-         prj_file_path,
-         grid_orientation,
-         delta_row,
-         delta_col,
-         n_nodes,
-         t1,
-         t2,
-         dev_per_string,
-         n_evals)
+         args.prj_file_path,
+         args.grid_orientation,
+         args.delta_row,
+         args.delta_col,
+         args.n_nodes,
+         args.t1,
+         args.t2,
+         args.dev_per_string,
+         args.n_evals)
