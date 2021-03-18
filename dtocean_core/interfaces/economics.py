@@ -542,9 +542,13 @@ class EconomicInterface(ThemeInterface):
         
         self.data.economics_metrics = metrics_table
         
-        # Do univariate stats on discounted metrics
-        args_table = {"Discounted OPEX": "discounted_opex",
-                      "Discounted Energy": "discounted_energy"}
+        # Do univariate stats on discounted metrics and optionally LCOE
+        args_table = {"Discounted Energy": "discounted_energy"}
+        
+        if metrics_table["Discounted OPEX"].isnull().any():
+            args_table["LCOE"] = "lcoe"
+        else:
+            args_table["Discounted OPEX"] = "discounted_opex"
         
         for key, arg_root in args_table.iteritems():
                         
@@ -592,10 +596,11 @@ class EconomicInterface(ThemeInterface):
             self.data[arg_lower] = lower
             self.data[arg_upper] = upper
             
-        if metrics_table["Discounted Energy"].isnull().any(): return
+        if (metrics_table["Discounted Energy"].isnull().any() or
+            metrics_table["Discounted OPEX"].isnull().any()): return
         
-        opex = metrics_table["Discounted OPEX"] / 1000.
         energy = metrics_table["Discounted Energy"]
+        opex = metrics_table["Discounted OPEX"] / 1000.
         
         if len(metrics_table["Discounted Energy"]) < 3:
             
