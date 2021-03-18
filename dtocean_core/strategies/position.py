@@ -10,6 +10,7 @@ import logging
 import threading
 import collections
 
+import numpy as np
 import pandas as pd
 import yaml
 from natsort import natsorted
@@ -649,7 +650,14 @@ def _run_favorite(optimiser,
     # Get parameters of favourite solution
     xfavorite_descaled = optimiser._cma_main._get_descaled_solutions(
                                                             [es.result.xbest])
-    params = xfavorite_descaled[0] + [nh.last_n_evals]
+    
+    params = xfavorite_descaled[0]
+    
+    # Strip numpy types from values
+    params = [x.item() if type(x).__module__ == np.__name__ else x 
+                                                          for x in params]
+    
+    if nh is not None: params += [nh.last_n_evals]
     
     # Get the core, project and positioner
     core = optimiser._core
@@ -687,8 +695,10 @@ def _run_favorite(optimiser,
     results_name = "{}_xfavorite".format(results_base_name)
     prj_base_path = os.path.join(optimiser._worker_directory, results_name)
     
-    keys = ["theta", "dr", "dc", "n_nodes", "t1", "t2", "n_evals"]
-    params_dict = {k: v for k, v in zip(keys, params)}
+    keys = ["theta", "dr", "dc", "n_nodes", "t1", "t2", "dev_per_string"]
+    if nh is not None: keys.append("n_evals")
+    
+    params_dict = {k: v for k, v in zip(keys, params) if v is not None}
     
     write_result_file(core,
                       project,
@@ -761,6 +771,7 @@ def _post_process(config, log_interval=100):
         pickle_dict["sim_number"].append(sim_num)
         
         for param in read_params:
+            if param not in yaml_dict: continue
             pickle_dict[param].append(yaml_dict[param])
         
         for var_name in extract_vars:
