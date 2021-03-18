@@ -385,9 +385,9 @@ class PositionOptimiser(object):
         if max_evals < min_evals: max_evals = min_evals
         
         menu = ModuleMenu()
-        available_modules = menu.get_available(self._core, project)
+        active_modules = menu.get_active(self._core, project)
         
-        if ("Operations and Maintenance" in available_modules and
+        if ("Operations and Maintenance" in active_modules and
             min_evals is not None):
             nh = opt.NoiseHandler(es.N,
                                   maxevals=[min_evals, min_evals, max_evals])

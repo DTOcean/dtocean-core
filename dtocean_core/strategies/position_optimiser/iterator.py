@@ -124,7 +124,7 @@ def iterate(core,
             n_evals=None):
     
     menu = ModuleMenu()
-    available_modules = menu.get_available(core, project)
+    active_modules = menu.get_active(core, project)
     
     beta = 90 * np.pi / 180
     psi = 0 * np.pi / 180
@@ -154,7 +154,7 @@ def iterate(core,
     rated_power.set_raw_interface(core, power_rating * n_nodes)
     rated_power.read(core, project)
     
-    if ("Electrical Sub-Systems" in available_modules and
+    if ("Electrical Sub-Systems" in active_modules and
         dev_per_string is not None):
         
         elec_branch = _get_branch(core, project, "Electrical Sub-Systems")
@@ -165,7 +165,7 @@ def iterate(core,
         devices_per_string.set_raw_interface(core, dev_per_string)
         devices_per_string.read(core, project)
     
-    if ("Operations and Maintenance" in available_modules and
+    if ("Operations and Maintenance" in active_modules and
         n_evals is not None):
         
         oandm_branch = _get_branch(core, project, "Operations and Maintenance")
