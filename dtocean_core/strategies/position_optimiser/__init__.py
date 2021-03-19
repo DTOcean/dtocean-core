@@ -8,6 +8,7 @@ import os
 import re
 import glob
 import logging
+import numbers
 from bisect import bisect_left
 from collections import namedtuple
 
@@ -212,6 +213,15 @@ class PositionIterator(opt.Iterator):
         elif flag == "Success":
             
             lcoe = results["results"][self._objective_var]
+            
+            if not isinstance(lcoe, numbers.Number):
+                
+                warn_msg = ("Detected result is not a number, returning "
+                            "np.nan. Detected type is "
+                            "'{}'").format(type(lcoe).__name__)
+                module_logger.warn(warn_msg)
+                
+                lcoe = np.nan
         
         else:
         
