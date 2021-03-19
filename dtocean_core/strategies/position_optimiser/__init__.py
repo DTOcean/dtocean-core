@@ -133,10 +133,12 @@ class PositionIterator(opt.Iterator):
         popen_args += [str(x) for x in args[:6]]
         
         if args[6] is not None:
-            popen_args.append("--dev_per_string {}".format(args[6]))
+            popen_args.extend(["--dev_per_string",
+                               "{:d}".format(int(args[6]))])
         
         if args[7] is not None:
-            popen_args.append("--n_evals {}".format(args[7]))
+            popen_args.extend(["--n_evals",
+                               "{:d}".format(int(args[7]))])
         
         return popen_args
     
