@@ -65,6 +65,7 @@ def main(core,
         params_dict["n_evals"] =  n_evals
     
     e = None
+    project = None
     
     try:
         
@@ -94,7 +95,7 @@ def main(core,
             t, v, tb = sys.exc_info()
             raise t, v, tb
     
-    if save_project:
+    if save_project and project is not None:
         core.dump_project(project, prj_file_path)
     
     if not write_results: return
