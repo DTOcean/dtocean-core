@@ -416,7 +416,7 @@ class ReliabilityInterface(ThemeInterface):
             debugdir.makedir()
             
             pkl_path = debugdir.get_path("reliability_inputs.pkl")
-            pickle.dump(input_dict, open(pkl_path, "wb"))
+            pickle.dump(input_dict, open(pkl_path, "wb"), -1)
         
         electrical_network = None
         moorings_network = None
@@ -574,7 +574,14 @@ class ReliabilityInterface(ThemeInterface):
                     raise ValueError(err_str)
                 
                 elec_records = data.electrical_components[
-                                ["Quantity", "Marker"]].to_records(index=False)
+                                        ["Installation Type",
+                                         "Quantity",
+                                         "Marker"]].to_records(index=False)
+                
+                # unicode fix
+                new_dtype = [(str(name), T) for name, T in
+                                                     elec_records.dtype.descr]
+                elec_records = elec_records.astype(new_dtype)
         
         if data.moor_found_network is None:
             
