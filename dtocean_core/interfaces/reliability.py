@@ -39,7 +39,7 @@ import pandas as pd
 
 from polite.paths import Directory, ObjDirectory, UserDataDirectory
 from polite.configuration import ReadINI
-from dtocean_reliability import Network, SubNetwork
+from dtocean_reliability import slugify, Network, SubNetwork
 
 from . import ThemeInterface
 from ..utils.reliability import get_component_dict
@@ -579,7 +579,7 @@ class ReliabilityInterface(ThemeInterface):
                                          "Marker"]].to_records(index=False)
                 
                 # unicode fix
-                new_dtype = [(str(name), T) for name, T in
+                new_dtype = [(slugify(name), T) for name, T in
                                                      elec_records.dtype.descr]
                 elec_records = elec_records.astype(new_dtype)
         
