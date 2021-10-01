@@ -39,7 +39,7 @@ import pandas as pd
 
 from polite.paths import Directory, ObjDirectory, UserDataDirectory
 from polite.configuration import ReadINI
-from dtocean_reliability import slugify, Network, SubNetwork
+from dtocean_reliability import Network, SubNetwork
 
 from . import ThemeInterface
 from ..utils.reliability import get_component_dict
@@ -441,8 +441,7 @@ class ReliabilityInterface(ThemeInterface):
         network = Network(input_dict["compdict"],
                           electrical_network,
                           moorings_network,
-                          user_network,
-                          input_dict["electrical_data"])
+                          user_network)
         
         if debug_entry: return
         
@@ -480,7 +479,7 @@ class ReliabilityInterface(ThemeInterface):
             severity_network = network.set_failure_rates(
                                                     severity,
                                                     confidence_level,
-                                                    self.data.apply_kfactors)
+                                                    input_dict["k_factors"])
             systems_metrics = severity_network.get_systems_metrics(
                                                             reliability_time)
             
@@ -535,8 +534,6 @@ class ReliabilityInterface(ThemeInterface):
         if data.apply_kfactors is None:
             data.apply_kfactors = False
         
-        elec_records = None
-        
         # Component Check
         if data.electrical_network is not None:
             
@@ -564,6 +561,8 @@ class ReliabilityInterface(ThemeInterface):
                 
                 return
             
+            k_factors = {}
+            
             # k-factor electrical data
             if data.apply_kfactors:
                 
@@ -573,15 +572,17 @@ class ReliabilityInterface(ThemeInterface):
                                "provided if using k-factors")
                     raise ValueError(err_str)
                 
-                elec_records = data.electrical_components[
-                                        ["Installation Type",
-                                         "Quantity",
-                                         "Marker"]].to_records(index=False)
+                valid_types = ["array", "export"]
+                m2km = lambda x: x / 1e3 
                 
-                # unicode fix
-                new_dtype = [(slugify(name), T) for name, T in
-                                                     elec_records.dtype.descr]
-                elec_records = elec_records.astype(new_dtype)
+                for _, row in data.electrical_components.iterrows():
+                    
+                    if row["Installation Type"] not in valid_types:
+                        continue
+                    
+                    key = row["Marker"]
+                    value = m2km(row["Quantity"])
+                    k_factors[key] = value
         
         if data.moor_found_network is None:
             
@@ -823,7 +824,7 @@ class ReliabilityInterface(ThemeInterface):
                   "moor_found_network_bom": moor_found_network_bom,
                   'user_hier': user_hier,
                   'user_bom': user_bom,
-                  'electrical_data': elec_records}
+                  'k_factors': k_factors}
         
         return result
     

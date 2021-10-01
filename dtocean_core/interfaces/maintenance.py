@@ -1213,8 +1213,9 @@ class MaintenanceInterface(ModuleInterface):
 #                moorhier (dict) [-]: Moorings layout architecture
 #                moorbom (dict) [-]: Moorings BOM
 #                userhier (dict) [-]: User sub-systems architecture
-#                userbomeg (dict) [-]: User sub-systems BOM
+#                userbom (dict) [-]: User sub-systems BOM
 #                calcscenario (str) [-]: scenario for the calculation
+#                kfactors (dict) [-]: kfactors indexed by component marker
 
         reliability_input_dict = \
             ReliabilityInterface.get_input_dict(self.data)
@@ -1231,8 +1232,6 @@ class MaintenanceInterface(ModuleInterface):
             confidence_level = confidence_map[self.data.reliability_confidence]
         
         RAM_param["calcscenario"] = confidence_level
-        RAM_param['elecdata'] = reliability_input_dict["electrical_data"]
-        RAM_param['use_kfactors'] = self.data.apply_kfactors
         
         if reliability_input_dict is None:
             
@@ -1240,6 +1239,7 @@ class MaintenanceInterface(ModuleInterface):
             RAM_param['elecbom'] = None
             RAM_param['moorhier'] = None
             RAM_param['moorbom'] = None
+            RAM_param['kfactors'] = None
             
             compdict = {} 
         
@@ -1253,6 +1253,7 @@ class MaintenanceInterface(ModuleInterface):
                             reliability_input_dict["moor_found_network_hier"]
             RAM_param['moorbom'] = \
                             reliability_input_dict["moor_found_network_bom"]
+            RAM_param['kfactors'] = reliability_input_dict["k_factors"]
            
             compdict = reliability_input_dict["compdict"]
         
