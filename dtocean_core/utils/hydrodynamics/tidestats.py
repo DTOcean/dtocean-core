@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #    Copyright (C) 2016 Mathew Topper, Francesco Ferri, Rui Duarte
-#    Copyright (C) 2017-2019 Mathew Topper
+#    Copyright (C) 2017-2021 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -70,6 +70,10 @@ def make_tide_statistics(dictinput,
     xc = dictinput['xc']
     yc = dictinput['yc']
     ns = dictinput['ns']
+    
+    if ns < 1:
+        err_str = "The number of scenarii must be at least one"
+        raise ValueError(err_str)
     
     nearest_x_idx, nearest_y_idx = _get_nearest_xy_idx(x, y, xc, yc)
     

@@ -1,6 +1,6 @@
 
 #    Copyright (C) 2016 Mathew Topper, David Bould, Rui Duarte, Francesco Ferri
-#    Copyright (C) 2017-2019 Mathew Topper
+#    Copyright (C) 2017-2021 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -2332,7 +2332,7 @@ class SimpleData(Structure):
     def get_data(self, raw, meta_data):
         
         typed = self._assign_type(raw, meta_data.types)
-                
+        
         if meta_data.valid_values is not None:
             
             if typed not in meta_data.valid_values:
@@ -2340,6 +2340,51 @@ class SimpleData(Structure):
                 valid_str = ", ".join(meta_data.valid_values)
                 errStr = ("Given data '{}' does not match any valid value "
                           "from: {}").format(typed, valid_str)
+                raise ValueError(errStr)
+        
+        if (meta_data.types[0] in ["int", "float"] and
+            meta_data.minimum_equals is not None):
+            
+            test = self._assign_type(meta_data.minimum_equals[0],
+                                     meta_data.types)
+            
+            if typed < test:
+                errStr = ("Given data '{}' is less than minimum value: "
+                          "{}").format(typed, meta_data.minimum_equals[0])
+                raise ValueError(errStr)
+        
+        if (meta_data.types[0] in ["int", "float"] and
+            meta_data.minimums is not None):
+            
+            test = self._assign_type(meta_data.minimums[0],
+                                     meta_data.types)
+            
+            if typed <= test:
+                errStr = ("Given data '{}' is less than or equal to minimum "
+                          "value: {}").format(typed, meta_data.minimums[0])
+                raise ValueError(errStr)
+        
+        if (meta_data.types[0] in ["int", "float"] and
+            meta_data.maximum_equals is not None):
+            
+            test = self._assign_type(meta_data.maximum_equals[0],
+                                     meta_data.types)
+            
+            if typed > test:
+                errStr = ("Given data '{}' is greater than maximum value: "
+                          "{}").format(typed, meta_data.maximum_equals[0])
+                raise ValueError(errStr)
+        
+        if (meta_data.types[0] in ["int", "float"] and
+            meta_data.maximums is not None):
+            
+            test = self._assign_type(meta_data.maximums[0],
+                                     meta_data.types)
+            
+            if typed >= test:
+                errStr = ("Given data '{}' is greater than or equal to "
+                          "maximum value: {}").format(typed,
+                                                      meta_data.maximums[0])
                 raise ValueError(errStr)
         
         return typed
