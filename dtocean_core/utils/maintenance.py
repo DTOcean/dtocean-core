@@ -134,6 +134,7 @@ def get_input_tables(system_type,
     
     # Electrical
     subhubs = None
+    elec_subsystems = []
     
     if elec_network is not None:
     
@@ -158,6 +159,8 @@ def get_input_tables(system_type,
                                                      elec_database)
         
     # Moorings and Foundations
+    mandf_subsystems = []
+    
     if mandf_network is not None:
     
         mandf_subsystems = ['Foundations']

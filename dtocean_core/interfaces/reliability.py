@@ -531,6 +531,8 @@ class ReliabilityInterface(ThemeInterface):
             electrical_network_bom = data.electrical_network["nodes"]
         
         # k-factor default
+        k_factors = {}
+        
         if data.apply_kfactors is None:
             data.apply_kfactors = False
         
@@ -560,8 +562,6 @@ class ReliabilityInterface(ThemeInterface):
                 module_logger.info(msg)
                 
                 return
-            
-            k_factors = {}
             
             # k-factor electrical data
             if data.apply_kfactors:

@@ -661,7 +661,7 @@ class InstallationInterface(ModuleInterface):
                         "Grout Volume": "grout volume [m3]",
                         "Device": "devices [-]",
                         "Foundation": "foundations [-]"}
-
+            
             foundations_df = foundations_df.rename(columns=name_map)
             
             # TEMP FIX: Change substation foundation to 'pile foundation'
@@ -669,7 +669,9 @@ class InstallationInterface(ModuleInterface):
             array_idxs = foundations_df.index[
                             foundations_df["devices [-]"] == "array"].tolist()
             
-            foundations_df.at[array_idxs[0], "type [-]"] = 'pile foundation'
+            if array_idxs:
+                foundations_df.at[array_idxs[0],
+                                  "type [-]"] = 'pile foundation'
             
             # Add fixed or floating indicators to certain foundation types
             if "floating" in self.data.system_type.lower():

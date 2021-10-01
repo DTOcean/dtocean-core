@@ -1029,7 +1029,9 @@ class MaintenanceInterface(ModuleInterface):
 #                current_speed_max_om (float) [m/s]  : Current speed max for operational limit conditions during the maintenance action
 #                requires_lifiting	 (bool) [-]       : Is lifting required?
 #                requires_divers (bool) [-]          : Are divers required?
-
+        
+        elec_database = None
+        
         if self.data.electrical_network is not None:
             
             none_check = [x is None for x in
@@ -1061,7 +1063,9 @@ class MaintenanceInterface(ModuleInterface):
                                         self.data.elec_db_cp,
                                         self.data.collection_point_cog,
                                         self.data.collection_point_foundations)
-            
+        
+        mandf_database = None
+        
         if self.data.moor_found_network is not None:
             
             none_check = [x is None for x in

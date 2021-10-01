@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #    Copyright (C) 2016 Mathew Topper, Vincenzo Nava
-#    Copyright (C) 2017-2018 Mathew Topper
+#    Copyright (C) 2017-2021 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -1189,6 +1189,8 @@ class MooringsInterface(ModuleInterface):
                     }
 
         economics_data = main.sysecobom.rename(columns=name_map)
+        economics_data = economics_data.loc[
+                                        economics_data["Quantity"] != "n/a"]
         
         # Remove any rows with n/a in the quantity column.
         economics_data["Quantity"] = pd.to_numeric(economics_data["Quantity"])
