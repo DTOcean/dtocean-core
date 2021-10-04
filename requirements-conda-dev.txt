@@ -4,7 +4,7 @@ cma ==2.6.0
 cmocean-matplotlib
 contours
 cycler
-descartes
+descartes-matplotlib
 geoalchemy2
 geopy <2
 matplotlib <2
