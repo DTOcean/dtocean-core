@@ -19,7 +19,7 @@ log_valid_solutions: true   # Show valid solutions found by the optimiser in the
 
 # Parameter specification
 parameters:
-    array_orientation:
+    grid_orientation:
       range:
         type: fixed
         min: -90.
