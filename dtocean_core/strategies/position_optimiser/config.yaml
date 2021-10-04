@@ -15,6 +15,7 @@ min_evals:                  # minimum number of maintenance data points for nois
 max_evals:                  # maximum number of maintenance data points for noise handling [default: 8]
 max_resample_factor:        # multiplied by popsize to give maximum number of resample loops [default: 20]
                             # can give "auto" followed by number of iterations to record max resamples
+log_valid_solutions: true   # Show valid solutions found by the optimiser in the logging [default: false])
 
 # Parameter specification
 parameters:

@@ -22,6 +22,7 @@ from .position_optimiser import (dump_config,
                                  PositionOptimiser)
 from .position_optimiser.iterator import (get_positioner,
                                           iterate,
+                                          prepare,
                                           write_result_file)
 from ..menu import ModuleMenu
 from ..pipeline import Tree
@@ -330,11 +331,56 @@ class AdvancedPosition(Strategy):
         
         return results_table
     
-    def load_simulations(self, core,
+    def import_simulation_file(self, core,
+                                     project,
+                                     yaml_file_path,
+                                     sim_title=None):
+        
+        if sim_title is None:
+            sim_title = os.path.basename(yaml_file_path)
+        
+        with open(yaml_file_path, "r") as stream:
+            results = yaml.load(stream, Loader=yaml.FullLoader)
+        
+        params = results["params"]
+        
+        grid_orientation = params["theta"]
+        delta_row = params["dr"]
+        delta_col = params["dc"]
+        n_nodes = params["n_nodes"]
+        t1 = params["t1"]
+        t2 = params["t2"]
+        n_evals = None
+        
+        if "n_evals" in params:
+            n_evals = params["n_evals"]
+        
+        src_project = project._to_project()
+        positioner = get_positioner(core, project)
+        
+        prepare(core,
+                src_project,
+                positioner,
+                grid_orientation,
+                delta_row,
+                delta_col,
+                n_nodes,
+                t1,
+                t2,
+                n_evals)
+        
+        core.import_simulation(src_project,
                                project,
-                               sim_ids,
-                               sim_titles=None,
-                               disable_iterate_logging=True):
+                               dst_sim_title=sim_title)
+        self.add_simulation_title(sim_title)
+        
+        return
+    
+    def load_simulation_ids(self, core,
+                                  project,
+                                  sim_ids,
+                                  sim_titles=None,
+                                  disable_iterate_logging=True):
         
         self.restart()
         
@@ -561,7 +607,7 @@ class AdvancedPosition(Strategy):
         worker_directory = config["worker_dir"]
         
         status_str = None
-        status_code = None
+        status_code = 0
         
         if os.path.isdir(worker_directory):
             

@@ -124,6 +124,36 @@ def iterate(core,
             dev_per_string=None,
             n_evals=None):
     
+    prepare(core,
+            project,
+            positioner,
+            grid_orientation,
+            delta_row,
+            delta_col,
+            n_nodes,
+            t1,
+            t2,
+            dev_per_string,
+            n_evals)
+    
+    basic_strategy = _get_basic_strategy()
+    basic_strategy.execute(core, project)
+    
+    return
+
+
+def prepare(core,
+            project,
+            positioner,
+            grid_orientation,
+            delta_row,
+            delta_col,
+            n_nodes,
+            t1,
+            t2,
+            dev_per_string=None,
+            n_evals=None):
+    
     menu = ModuleMenu()
     active_modules = menu.get_active(core, project)
     
@@ -176,9 +206,6 @@ def iterate(core,
                                             'options.maintenance_data_points')
         data_points.set_raw_interface(core, n_evals)
         data_points.read(core, project)
-    
-    basic_strategy = _get_basic_strategy()
-    basic_strategy.execute(core, project)
     
     return
 
