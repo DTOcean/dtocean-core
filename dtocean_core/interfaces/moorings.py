@@ -1190,7 +1190,7 @@ class MooringsInterface(ModuleInterface):
 
         economics_data = main.sysecobom.rename(columns=name_map)
         economics_data = economics_data.loc[
-                                        economics_data["Quantity"] != "n/a"]
+                            economics_data["Quantity"].astype(str) != "n/a"]
         
         # Remove any rows with n/a in the quantity column.
         economics_data["Quantity"] = pd.to_numeric(economics_data["Quantity"])
