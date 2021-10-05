@@ -579,24 +579,19 @@ class AdvancedPosition(Strategy):
         worker_directory = config["worker_dir"]
         
         status_str = None
-        status_code = None
+        status_code = 1
         
         if os.path.isdir(worker_directory):
             
             if len(os.listdir(worker_directory)) == 0:
-                
                 status_str = "Worker directory empty"
-                status_code = 1
-            
             elif not config['clean_existing_dir']:
-                
                 status_str = "Worker directory contains files"
                 status_code = 0
         
         else:
             
             status_str = "Worker directory does not yet exist"
-            status_code = 1
         
         return status_str, status_code
     
