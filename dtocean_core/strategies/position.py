@@ -483,23 +483,16 @@ class AdvancedPosition(Strategy):
     
     @classmethod
     def load_config(cls, config_path):
-        
         config = load_config(config_path)
-        
         return config
     
     def dump_config(self, config_path):
-        
-        dump_config(self._config, config_path)
-        
+        dump_config(config_path, self._config)
         return
     
     @classmethod
     def export_config_template(cls, export_path):
-        
-        config = load_config_template()
-        dump_config(config, export_path)
-        
+        dump_config(export_path)
         return
     
     @classmethod

@@ -376,6 +376,10 @@ class Main(object):
     def stop(self):
         return self._stop
     
+    @property
+    def max_resample_loops(self):
+        return self._max_resample_loops
+    
     def _init_resamples(self, max_resample_loop_factor,
                               auto_resample_iterations):
         
@@ -787,6 +791,13 @@ class Main(object):
                             sol - self._sol_feasible) for sol in sols]
         
         return costs
+    
+    def get_max_resample_factor(self):
+        
+        if self._n_record_resample > 0:
+            return "auto{}".format(self._n_record_resample)
+        
+        return self._max_resample_loops
 
 
 def init_evolution_strategy(x0,

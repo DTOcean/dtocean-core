@@ -4,6 +4,7 @@ root_project_path:
 worker_dir:
 n_threads:
 base_penalty: 1.
+objective: "project.lcoe_median"
 
 # Optional
 clean_existing_dir:         # 'true' will empty the worker_dir if it exists
@@ -16,6 +17,18 @@ max_evals:                  # maximum number of maintenance data points for nois
 max_resample_factor:        # multiplied by popsize to give maximum number of resample loops [default: 20]
                             # can give "auto" followed by number of iterations to record max resamples
 log_valid_solutions: true   # Show valid solutions found by the optimiser in the logging [default: false])
+
+# Do not modify
+results_params:
+  - project.number_of_devices
+  - project.annual_energy
+  - project.q_factor
+  - project.capex_total
+  - project.capex_breakdown
+  - project.lifetime_opex_mean
+  - project.lifetime_energy_mean
+  - project.lcoe_median
+  - project.lcoe_mean
 
 # Parameter specification
 parameters:
@@ -53,15 +66,3 @@ parameters:
         min: 0.
         max: 1.
 
-# Hidden (required)
-objective: "project.lcoe_median"
-results_params:
-  - "project.number_of_devices"
-  - "project.annual_energy"
-  - "project.q_factor"
-  - "project.capex_total"
-  - "project.capex_breakdown"
-  - "project.lifetime_opex_mean"
-  - "project.lifetime_energy_mean"
-  - "project.lcoe_median"
-  - "project.lcoe_mean"

@@ -279,6 +279,7 @@ class PositionOptimiser(object):
         self._core = core
         self._config_fname = config_fname
         self._default_project_fname = default_project_fname
+        self._dump_config = False
         self._worker_directory = None
         self._cma_main = None
         
@@ -340,8 +341,10 @@ class PositionOptimiser(object):
             if auto_match:
                 items = auto_match.groups()
                 auto_resample_iterations = int(items[0])
+                self._dump_config = True
             else:
                 max_resample_loop_factor = max_resample_factor
+                self._dump_config = False
         
         if project is None:
             root_project_path = config['root_project_path']
@@ -420,7 +423,7 @@ class PositionOptimiser(object):
         
         # Store copy of config for potential restart
         config_path = os.path.join(self._worker_directory, self._config_fname)
-        dump_config(config, config_path)
+        dump_config(config_path, config)
         
         # Store the es object and counter search dict for potential restart
         opt.dump_outputs(self._worker_directory, es, iterator, nh)
@@ -456,7 +459,7 @@ class PositionOptimiser(object):
             opt.load_outputs(worker_directory)
         except:
             log_msg = "Can not find state of previous optimisation"
-            module_logger.warning(log_msg, exc_info=True)
+            module_logger.debug(log_msg, exc_info=True)
             return False
         
         required_keys = set(["root_project_path",
@@ -470,7 +473,7 @@ class PositionOptimiser(object):
             missing_line = ", ".join(missing)
             log_str = ("Required keys '{}' are missing from the config "
                        "file").format(missing_line)
-            module_logger.warning(log_str)
+            module_logger.debug(log_str)
             
             return False
         
@@ -520,8 +523,10 @@ class PositionOptimiser(object):
             if auto_match:
                 items = auto_match.groups()
                 auto_resample_iterations = int(items[0])
+                self._dump_config = True
             else:
                 max_resample_loop_factor = max_resample_factor
+                self._dump_config = False
         
         # Remove files above last recorded iteration
         if counter_dict:
@@ -594,6 +599,18 @@ class PositionOptimiser(object):
                          self._cma_main.iterator,
                          self._cma_main.nh)
         
+        if not self._dump_config: return
+        
+        max_resample_factor = self._cma_main.get_max_resample_factor()
+        
+        config_path = os.path.join(self._worker_directory, self._config_fname)
+        config = load_config(config_path)
+        config["max_resample_factor"] = self._cma_main.max_resample_loops
+        dump_config(config_path, config)
+        
+        if "auto" not in str(max_resample_factor):
+            self._dump_config = False
+        
         return
     
     def get_es(self):
@@ -601,7 +618,6 @@ class PositionOptimiser(object):
     
     def get_nh(self):
         return self._cma_main.nh
-
 
 
 def get_param_control(core, project, config):
@@ -770,12 +786,29 @@ def load_config_template(config_name="config.yaml"):
     return config
 
 
-def dump_config(config, config_path):
+def dump_config(config_path, config=None, use_template=True):
+    
+    if config is None: config = {}
+    
+    if use_template:
+        
+        config_template = load_config_template()
+        
+        # Strip any keys not in the template
+        for key in config.keys():
+            if key not in config_template:
+                config.pop(key)
+        
+        config_template.update(config)
+    
+    else:
+        
+        config_template = config
     
     ruyaml = YAML()
     
     with open(config_path, 'w') as stream:
-        ruyaml.dump(config, stream)
+        ruyaml.dump(config_template, stream)
     
     return
 
