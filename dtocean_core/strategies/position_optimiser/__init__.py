@@ -447,7 +447,41 @@ class PositionOptimiser(object):
         
         return
     
+    def is_restart(self, worker_directory):
+        
+        config_path = os.path.join(worker_directory, self._config_fname)
+        
+        try:
+            config = load_config(config_path)
+            opt.load_outputs(worker_directory)
+        except:
+            log_msg = "Can not find state of previous optimisation"
+            module_logger.warning(log_msg, exc_info=True)
+            return False
+        
+        required_keys = set(["root_project_path",
+                             "base_penalty",
+                             "n_threads",
+                             "objective"])
+        
+        if not set(config) >= required_keys:
+            
+            missing = [str(key) for key in required_keys - set(config)]
+            missing_line = ", ".join(missing)
+            log_str = ("Required keys '{}' are missing from the config "
+                       "file").format(missing_line)
+            module_logger.warning(log_str)
+            
+            return False
+        
+        return True
+    
     def restart(self, worker_directory):
+        
+        if not self.is_restart(worker_directory):
+            log_str = "Restarting position optimisation not possible"
+            module_logger.warning(log_str)
+            return
         
         module_logger.info("Restart position optimisation")
         

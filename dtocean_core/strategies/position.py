@@ -229,7 +229,7 @@ class AdvancedPosition(Strategy):
         optimiser = PositionOptimiser(core=core)
         
         _, work_dir_status = self.get_worker_directory_status(self._config)
-        _, optim_status = self.get_optimiser_status(self._config)
+        _, optim_status = self.get_optimiser_status(core, self._config)
         
         if work_dir_status == 0 and optim_status == 2:
             
@@ -256,7 +256,7 @@ class AdvancedPosition(Strategy):
         optimiser = PositionOptimiser(core=core)
         
         _, work_dir_status = self.get_worker_directory_status(self._config)
-        _, optim_status = self.get_optimiser_status(self._config)
+        _, optim_status = self.get_optimiser_status(core, self._config)
         
         if work_dir_status == 0 and optim_status == 2:
             
@@ -601,7 +601,9 @@ class AdvancedPosition(Strategy):
         return status_str, status_code
     
     @classmethod
-    def get_optimiser_status(cls, config):
+    def get_optimiser_status(cls, core, config):
+        
+        optimiser = PositionOptimiser(core=core)
         
         root_project_path = config['root_project_path']
         worker_directory = config["worker_dir"]
@@ -622,7 +624,7 @@ class AdvancedPosition(Strategy):
                 status_str = "Optimisation complete"
                 status_code = 1
             
-            else:
+            elif optimiser.is_restart(worker_directory):
                 
                 status_str = ("Optimisation incomplete (restart may be "
                               "possible)")
