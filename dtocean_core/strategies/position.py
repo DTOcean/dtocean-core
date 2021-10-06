@@ -852,6 +852,7 @@ def _read_yaml(yaml_file_path, read_params, extract_vars):
     result_dict = {}
     
     for param in read_params:
+        if param not in param_map: continue
         param_name = param_map[param]
         if param_name not in param_values: continue
         param_value = param_values[param_name]
