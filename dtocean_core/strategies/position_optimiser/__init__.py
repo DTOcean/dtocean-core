@@ -304,7 +304,8 @@ class PositionOptimiser(object):
         timeout = None
         tolfun = None
         min_evals = None
-        max_evals = 8
+        max_evals = 128
+        max_resample_factor = "auto2"
         max_resample_loop_factor = None
         auto_resample_iterations = None
         
@@ -330,21 +331,20 @@ class PositionOptimiser(object):
             max_evals = config["max_evals"]
         
         if is_option_set(config, "max_resample_factor"):
-            
             max_resample_factor = config["max_resample_factor"]
             
-            # Check for use of auto setting
-            auto_match = re.match(r"auto([0-9]+)",
-                                  str(max_resample_factor),
-                                  re.I)
-            
-            if auto_match:
-                items = auto_match.groups()
-                auto_resample_iterations = int(items[0])
-                self._dump_config = True
-            else:
-                max_resample_loop_factor = max_resample_factor
-                self._dump_config = False
+        # Check for use of auto setting
+        auto_match = re.match(r"auto([0-9]+)",
+                              str(max_resample_factor),
+                              re.I)
+        
+        if auto_match:
+            items = auto_match.groups()
+            auto_resample_iterations = int(items[0])
+            self._dump_config = True
+        else:
+            max_resample_loop_factor = max_resample_factor
+            self._dump_config = False
         
         if project is None:
             root_project_path = config['root_project_path']
