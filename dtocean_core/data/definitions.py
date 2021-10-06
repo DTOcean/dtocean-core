@@ -1394,6 +1394,14 @@ class Histogram(Structure):
         
         return deepcopy(data)
     
+    @classmethod
+    def equals(cls, left, right):
+        
+        vals_equal = np.array_equal(left["values"], right["values"])
+        bins_equal = np.array_equal(left["bins"], right["bins"])
+        
+        return vals_equal and bins_equal
+    
     @staticmethod
     def auto_file_input(self):
         column_requirements = ("bin start", "bin end", "bin value")
@@ -1534,11 +1542,29 @@ class HistogramDict(Histogram):
     """
 
     def get_data(self, raw, meta_data):
-
+        
         hist_dict = {k: super(HistogramDict, self).get_data(v, meta_data)
                                                     for k, v in raw.items()}
-
+        
         return hist_dict
+    
+    @classmethod
+    def equals(cls, left, right):
+        
+        if set(left.keys()) != set(right.keys()): return False
+        
+        for key in left.keys():
+            
+            left_val = left[key]
+            right_val = right[key]
+            
+            vals_equal = np.array_equal(left_val["values"],
+                                        right_val["values"])
+            bins_equal = np.array_equal(left_val["bins"], right_val["bins"])
+            
+            if not (vals_equal and bins_equal): return False
+        
+        return True
     
     @staticmethod
     def auto_file_input(self):
@@ -1591,7 +1617,7 @@ class HistogramDict(Histogram):
         self.data.result = result
         
         return
-
+    
     @staticmethod
     def auto_file_output(self):
         

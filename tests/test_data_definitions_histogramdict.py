@@ -21,7 +21,7 @@ def test_HistogramDict_available():
 
 
 def test_HistogramDict():
-              
+    
     test_data_one = np.random.random(10)
     test_data_two = np.random.random(10)
     
@@ -38,18 +38,104 @@ def test_HistogramDict():
     test = HistogramDict()
     a = test.get_data(values_dict, meta)
     b = test.get_value(a)
-
+    
     assert len(b["test_one"]["values"]) == len(values_one)
     assert len(b["test_two"]["bins"]) == len(b["test_two"]["values"]) + 1
-    
-    
+
+
 def test_get_None():
     
     test = HistogramDict()
     result = test.get_value(None)
     
     assert result is None
+
+
+def test_HistogramDict_equals():
     
+    test_data_one = np.random.random(10)
+    test_data_two = np.random.random(10)
+    
+    values_one, bins_one = np.histogram(test_data_one)
+    values_two, bins_two = np.histogram(test_data_two)
+    
+    a = {"test_one": (values_one, bins_one),
+         "test_two": (values_two, bins_two)}
+    
+    b = {"test_one": (values_one, bins_one),
+         "test_two": (values_two, bins_two)}
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test"})
+    test = HistogramDict()
+    
+    adata = test.get_data(a, meta)
+    avalue = test.get_value(adata)
+    
+    bdata = test.get_data(b, meta)
+    bvalue = test.get_value(bdata)
+    
+    assert HistogramDict.equals(avalue, bvalue)
+
+
+def test_HistogramDict_not_equals_values():
+    
+    test_data_one = np.random.random(10)
+    test_data_two = np.random.random(10)
+    test_data_three = np.random.random(10)
+    
+    values_one, bins_one = np.histogram(test_data_one)
+    values_two, bins_two = np.histogram(test_data_two)
+    values_three, bins_three = np.histogram(test_data_three)
+    
+    a = {"test_one": (values_one, bins_one),
+         "test_two": (values_two, bins_two)}
+    
+    b = {"test_one": (values_one, bins_one),
+         "test_two": (values_three, bins_three)}
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test"})
+    test = HistogramDict()
+    
+    adata = test.get_data(a, meta)
+    avalue = test.get_value(adata)
+    
+    bdata = test.get_data(b, meta)
+    bvalue = test.get_value(bdata)
+    
+    assert not HistogramDict.equals(avalue, bvalue)
+
+
+def test_HistogramDict_not_equals_keys():
+    
+    test_data_one = np.random.random(10)
+    test_data_two = np.random.random(10)
+    
+    values_one, bins_one = np.histogram(test_data_one)
+    values_two, bins_two = np.histogram(test_data_two)
+    
+    a = {"test_one": (values_one, bins_one),
+         "test_two": (values_two, bins_two)}
+    
+    b = {"test_one": (values_one, bins_one),
+         "test_three": (values_two, bins_two)}
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test"})
+    test = HistogramDict()
+    
+    adata = test.get_data(a, meta)
+    avalue = test.get_value(adata)
+    
+    bdata = test.get_data(b, meta)
+    bvalue = test.get_value(bdata)
+    
+    assert not HistogramDict.equals(avalue, bvalue)
+
 
 @pytest.mark.parametrize("fext", [".xls", ".xlsx"])
 def test_HistogramDict_auto_file(tmpdir, fext):
