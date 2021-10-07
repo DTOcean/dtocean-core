@@ -393,7 +393,7 @@ class PositionOptimiser(object):
         if min_evals is None:
             
             complex_stats = ['interval_lower', 'interval_upper', 'mode']
-            simple_stats = ['mean', 'median']
+            simple_stats = ['mean']
             
             if any(word in objective for word in complex_stats):
                 min_evals = 4
