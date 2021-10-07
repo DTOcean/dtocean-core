@@ -18,7 +18,6 @@ from natsort import natsorted
 from . import Strategy
 from .position_optimiser import (dump_config,
                                  load_config,
-                                 load_config_template,
                                  PositionOptimiser)
 from .position_optimiser.iterator import (get_positioner,
                                           iterate,
@@ -199,6 +198,10 @@ class AdvancedPosition(Strategy):
     """
     
     @classmethod
+    def get_config_fname(cls):
+        return "config.yaml"
+    
+    @classmethod
     def get_name(cls):
         
         return "Advanced Positioning"
@@ -226,7 +229,8 @@ class AdvancedPosition(Strategy):
     
     def execute(self, core, project):
         
-        optimiser = PositionOptimiser(core=core)
+        optimiser = PositionOptimiser(core=core,
+                                      config_fname=self.get_config_fname())
         
         _, work_dir_status = self.get_worker_directory_status(self._config)
         _, optim_status = self.get_optimiser_status(core, self._config)
@@ -253,7 +257,8 @@ class AdvancedPosition(Strategy):
     
     def execute_threaded(self, core, project):
         
-        optimiser = PositionOptimiser(core=core)
+        optimiser = PositionOptimiser(core=core,
+                                      config_fname=self.get_config_fname())
         
         _, work_dir_status = self.get_worker_directory_status(self._config)
         _, optim_status = self.get_optimiser_status(core, self._config)
@@ -593,7 +598,8 @@ class AdvancedPosition(Strategy):
     @classmethod
     def get_optimiser_status(cls, core, config):
         
-        optimiser = PositionOptimiser(core=core)
+        optimiser = PositionOptimiser(core=core,
+                                      config_fname=cls.get_config_fname())
         
         root_project_path = config['root_project_path']
         worker_directory = config["worker_dir"]
