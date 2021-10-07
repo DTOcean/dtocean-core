@@ -9,6 +9,7 @@ objective: project.lcoe_median
 # Optional
 clean_existing_dir:         # 'true' will empty the worker_dir if it exists
 popsize:                    # number of sample points per iteration [default: 4 + int(3 * np.log(N))]
+maximise:                   # maximise the cost function [default: false]
 max_simulations:            # quit after n simulations (following an iteration)
 timeout:                    # quit after t seconds (following an iteration)
 tolfun:                     # tolerance in function value for termination [default: 1e-11]

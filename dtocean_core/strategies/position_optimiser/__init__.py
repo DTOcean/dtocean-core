@@ -299,6 +299,7 @@ class PositionOptimiser(object):
         
         # Defaults
         clean_existing_dir = False
+        maximise = False
         max_simulations = None
         popsize = None
         timeout = None
@@ -311,6 +312,9 @@ class PositionOptimiser(object):
         
         if is_option_set(config, "clean_existing_dir"):
             clean_existing_dir = config["clean_existing_dir"]
+        
+        if is_option_set(config, "maximise"):
+            maximise = config["maximise"]
         
         if is_option_set(config, "max_simulations"):
             max_simulations = config["max_simulations"]
@@ -442,6 +446,7 @@ class PositionOptimiser(object):
                             fixed_index_map=control_dict["fixed_params"],
                             base_penalty=base_penalty,
                             num_threads=n_threads,
+                            maximise=maximise,
                             max_resample_loop_factor=max_resample_loop_factor,
                             auto_resample_iterations=auto_resample_iterations)
         
@@ -504,9 +509,13 @@ class PositionOptimiser(object):
         objective = config["objective"]
         
         # Defaults
+        maximise = False
         timeout = None
         max_resample_loop_factor = None
         auto_resample_iterations = None
+        
+        if is_option_set(config, "maximise"):
+            maximise = config["maximise"]
         
         if is_option_set(config, "timeout"):
             timeout = config["timeout"]
@@ -578,6 +587,7 @@ class PositionOptimiser(object):
                             fixed_index_map=control_dict["fixed_params"],
                             base_penalty=base_penalty,
                             num_threads=n_threads,
+                            maximise=maximise,
                             max_resample_loop_factor=max_resample_loop_factor,
                             auto_resample_iterations=auto_resample_iterations)
         

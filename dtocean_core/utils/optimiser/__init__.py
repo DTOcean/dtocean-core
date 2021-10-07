@@ -340,6 +340,7 @@ class Main(object):
                        fixed_index_map=None,
                        base_penalty=None,
                        num_threads=None,
+                       maximise=False,
                        max_resample_loop_factor=None,
                        auto_resample_iterations=None):
         
@@ -356,6 +357,7 @@ class Main(object):
         self._fixed_index_map = fixed_index_map
         self._base_penalty = base_penalty
         self._num_threads = num_threads
+        self._maximise = maximise
         self._spare_sols = 1
         self._n_hist = int(10 + 30 * self.es.N / self.es.sp.popsize)
         self._max_resample_loops = None
@@ -704,8 +706,11 @@ class Main(object):
                 
                 if result[0] == "extra":
                     
+                    extra_cost = result[2]
+                    if self._maximise: extra_cost *= -1
+                    
                     final_solutions_extra.append(result[1])
-                    final_costs_extra.append(result[2])
+                    final_costs_extra.append(extra_cost)
                     results_found += 1
                     continue
                 
@@ -741,6 +746,7 @@ class Main(object):
                         next_i += 1
                         continue
                 
+                if self._maximise: sol_cost *= -1
                 final_solutions.append(sol)
                 final_costs.append(sol_cost)
                 
