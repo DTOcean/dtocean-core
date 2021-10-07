@@ -530,8 +530,10 @@ class AdvancedPosition(Strategy):
         sim = project.get_simulation(title="Default")
         objective = config["objective"]
         
+        if objective is None:
+            return [], 0
+        
         if objective not in sim.get_output_ids():
-            
             status_str = ('Objective {} is not an output of the default '
                           'simulation').format(objective)
             return [status_str], 0
