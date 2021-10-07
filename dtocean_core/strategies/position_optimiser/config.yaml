@@ -2,33 +2,21 @@
 # Required
 root_project_path:
 worker_dir:
-n_threads:
+n_threads: 1
+objective:
 base_penalty: 1.
-objective: project.lcoe_median
 
 # Optional
 clean_existing_dir:         # 'true' will empty the worker_dir if it exists
-popsize:                    # number of sample points per iteration [default: 4 + int(3 * np.log(N))]
 maximise:                   # maximise the cost function [default: false]
+tolfun:                     # tolerance in function value for termination [default: 1e-11]
 max_simulations:            # quit after n simulations (following an iteration)
 timeout:                    # quit after t seconds (following an iteration)
-tolfun:                     # tolerance in function value for termination [default: 1e-11]
 min_evals:                  # minimum number of maintenance data points for noise handling
 max_evals:                  # maximum number of maintenance data points for noise handling [default: 128]
+popsize:                    # number of sample points per iteration [default: 4 + int(3 * np.log(N))]
 max_resample_factor:        # multiplied by popsize to give maximum number of resample loops 
                             # can give "auto" followed by number of iterations to record max resamples [default: auto2]
-
-# Do not modify
-results_params:
-  - project.number_of_devices
-  - project.annual_energy
-  - project.q_factor
-  - project.capex_total
-  - project.capex_breakdown
-  - project.lifetime_opex_mean
-  - project.lifetime_energy_mean
-  - project.lcoe_median
-  - project.lcoe_mean
 
 # Parameter specification
 parameters:
@@ -66,3 +54,13 @@ parameters:
         min: 0.
         max: 1.
 
+results_params:                     # Do not modify
+  - project.number_of_devices
+  - project.annual_energy
+  - project.q_factor
+  - project.capex_total
+  - project.capex_breakdown
+  - project.lifetime_opex_mean
+  - project.lifetime_cost_mean
+  - project.lifetime_energy_mean
+  - project.lcoe_mean
