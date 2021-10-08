@@ -729,7 +729,8 @@ def _run_favorite(optimiser,
     
     # Get the core, project and positioner
     core = optimiser._core
-    project = optimiser._cma_main.iterator._base_project
+    base_project = optimiser._cma_main.iterator._base_project
+    project = base_project._to_project()
     positioner = optimiser._cma_main.iterator._positioner
     
     # Try and run the simulation
