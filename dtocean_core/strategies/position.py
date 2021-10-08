@@ -24,6 +24,7 @@ import pickle
 import logging
 import threading
 import collections
+from copy import deepcopy
 
 import numpy as np
 import pandas as pd
@@ -651,6 +652,49 @@ class AdvancedPosition(Strategy):
                 status_code = 2
         
         return status_str, status_code
+    
+    @classmethod
+    def allow_rerun(cls, core, project, config):
+        
+        _, project_status_code = AdvancedPosition.get_project_status(core,
+                                                                     project,
+                                                                     config)
+        
+        if project_status_code == 0: return False
+        
+        _, config_status_code = AdvancedPosition.get_config_status(config)
+        
+        if config_status_code == 0: return False
+        
+        if config["worker_dir"] is None: return False
+        
+        old_config = None
+        
+        _, worker_dir_status_code = \
+                     AdvancedPosition.get_worker_directory_status(config)
+        
+        if worker_dir_status_code >= 1: return True
+            
+        _, optimiser_status_code = AdvancedPosition.get_optimiser_status(
+                                                                        core,
+                                                                        config)
+        
+        if optimiser_status_code <= 1: return False
+        
+        # Test to see if configs match
+        old_config_path = os.path.join(config["worker_dir"], 
+                                       AdvancedPosition.get_config_fname())
+        old_config = AdvancedPosition.load_config(old_config_path)
+        old_config.pop('clean_existing_dir')
+        
+        test_config = deepcopy(config)
+        test_config.pop('clean_existing_dir')
+        test_config.pop('force_strategy_run')
+        old_config['root_project_path'] =  test_config['root_project_path']
+        
+        if old_config == test_config: return True
+        
+        return False
     
     def _prepare_project(self, core, project):
         
