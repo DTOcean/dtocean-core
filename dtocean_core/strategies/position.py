@@ -654,8 +654,6 @@ class AdvancedPosition(Strategy):
         
         if config["worker_dir"] is None: return False
         
-        old_config = None
-        
         _, worker_dir_status_code = \
                      AdvancedPosition.get_worker_directory_status(config)
         
@@ -667,20 +665,7 @@ class AdvancedPosition(Strategy):
         
         if optimiser_status_code <= 1: return False
         
-        # Test to see if configs match
-        old_config_path = os.path.join(config["worker_dir"], 
-                                       AdvancedPosition.get_config_fname())
-        old_config = AdvancedPosition.load_config(old_config_path)
-        old_config.pop('clean_existing_dir')
-        
-        test_config = deepcopy(config)
-        test_config.pop('clean_existing_dir')
-        test_config.pop('force_strategy_run')
-        old_config['root_project_path'] =  test_config['root_project_path']
-        
-        if old_config == test_config: return True
-        
-        return False
+        return True
     
     def _prepare_project(self, core, project):
         
