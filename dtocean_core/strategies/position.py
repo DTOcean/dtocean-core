@@ -245,26 +245,7 @@ class AdvancedPosition(Strategy):
     
     def execute(self, core, project):
         
-        optimiser = PositionOptimiser(core=core,
-                                      config_fname=self.get_config_fname())
-        
-        _, work_dir_status = self.get_worker_directory_status(self._config)
-        _, optim_status = self.get_optimiser_status(core, self._config)
-        
-        if work_dir_status == 0 and optim_status == 2:
-            
-            log_str = 'Attempting restart of incomplete strategy'
-            module_logger.info(log_str)
-            
-            optimiser.restart(self._config["worker_dir"])
-        
-        else:
-            
-            self._prepare_project(core, project)
-            optimiser.start(self._config, project=project)
-        
-        # Clear the 'clean_existing_dir' option
-        self._config['clean_existing_dir'] = None
+        optimiser = self._pre_execute(core, project)
         
         while not optimiser.stop:
             optimiser.next()
@@ -276,33 +257,38 @@ class AdvancedPosition(Strategy):
     
     def execute_threaded(self, core, project):
         
+        optimiser = self._pre_execute(core, project)
+        config_copy = deepcopy(self._config)
+        thread = OptimiserThread(optimiser, config_copy)
+        thread.start()
+        
+        return thread
+    
+    def _pre_execute(self, core, project):
+        
+        config_copy = deepcopy(self._config)
         optimiser = PositionOptimiser(core=core,
                                       config_fname=self.get_config_fname())
         
-        _, work_dir_status = self.get_worker_directory_status(self._config)
-        _, optim_status = self.get_optimiser_status(core, self._config)
+        _, work_dir_status = self.get_worker_directory_status(config_copy)
+        _, optim_status = self.get_optimiser_status(core, config_copy)
         
         if work_dir_status == 0 and optim_status == 2:
             
             log_str = 'Attempting restart of incomplete strategy'
             module_logger.info(log_str)
             
-            optimiser.restart(self._config["worker_dir"])
+            optimiser.restart(config_copy["worker_dir"])
         
         else:
             
             self._prepare_project(core, project)
-            optimiser.start(self._config, project=project)
+            optimiser.start(config_copy, project=project)
         
-        # Clear the 'clean_existing_dir' option
+        # Clear the 'clean_existing_dir' option to avoid accidental overwrite
         self._config['clean_existing_dir'] = None
         
-        thread = OptimiserThread(optimiser,
-                                 self._config)
-        
-        thread.start()
-        
-        return thread
+        return optimiser
     
     def _post_process(self, optimiser, log_interval=100):
         
