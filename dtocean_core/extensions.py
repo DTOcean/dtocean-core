@@ -577,7 +577,7 @@ class StrategyManager(ExtensionManager):
             sim_titles = stg_dict["sim_record"]
         
         new_strategy._sim_record = sim_titles
-        new_strategy._config = stg_dict["config"]
+        new_strategy._config = stg_dict["config"] # Maybe use this to clear the bad flag
         new_strategy.sim_details = stg_dict["sim_details"]
         
         return new_strategy
