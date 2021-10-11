@@ -1,5 +1,5 @@
 
-#    Copyright (C) 2016-2018 Mathew Topper
+#    Copyright (C) 2016-2021 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -549,7 +549,7 @@ class StrategyManager(ExtensionManager):
         
         stg_dict = {"name": stg_name_str,
                     "sim_record": strategy._sim_record,
-                    "config": strategy._config,
+                    "config": strategy.dump_config_hook(strategy._config),
                     "sim_details": strategy.sim_details,
                     "version": 2.1}
         

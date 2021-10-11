@@ -222,6 +222,11 @@ class AdvancedPosition(Strategy):
         
         return "Advanced Positioning"
     
+    def dump_config_hook(self, config):
+        safe_config = deepcopy(config)
+        safe_config['clean_existing_dir'] = None
+        return safe_config
+    
     def configure(self, **config_dict):
         
         _, status = self.get_config_status(config_dict)
@@ -500,7 +505,8 @@ class AdvancedPosition(Strategy):
         return config
     
     def dump_config(self, config_path):
-        dump_config(config_path, self._config)
+        config = self.dump_config_hook(self._config)
+        dump_config(config_path, config)
         return
     
     @classmethod
@@ -640,7 +646,7 @@ class AdvancedPosition(Strategy):
         return status_str, status_code
     
     @classmethod
-    def allow_rerun(cls, core, project, config):
+    def allow_run(cls, core, project, config):
         
         _, project_status_code = AdvancedPosition.get_project_status(core,
                                                                      project,

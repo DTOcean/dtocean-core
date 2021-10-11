@@ -1,5 +1,20 @@
 # -*- coding: utf-8 -*-
 
+#    Copyright (C) 2021 Mathew Topper
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 """
 .. moduleauthor:: Mathew Topper <mathew.topper@dataonlygreater.com>
 """
@@ -9,6 +24,7 @@ import re
 import glob
 import logging
 import numbers
+from copy import deepcopy
 from bisect import bisect_left
 from collections import namedtuple
 
@@ -427,6 +443,8 @@ class PositionOptimiser(object):
         
         # Store copy of config for potential restart
         config_path = os.path.join(self._worker_directory, self._config_fname)
+        safe_config = deepcopy(config)
+        safe_config['clean_existing_dir'] = None
         dump_config(config_path, config)
         
         # Store the es object and counter search dict for potential restart
