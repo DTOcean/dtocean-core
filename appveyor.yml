@@ -7,19 +7,6 @@
 #      general configuration      #
 #---------------------------------#
 
-# Build only for commits to certain locations
-only_commits:
-  files:
-    - dds/
-    - dtocean_core/
-    - test_data/
-    - tests/
-    - setup.py
-    
-skip_commits:
-  files:
-    - dtocean_core/config/
-
 # version format
 version: 2.0.1-build{build}
 
@@ -61,7 +48,7 @@ install:
   - python setup.py bootstrap
   - conda install --file requirements-conda-dev.txt
   - pip install -e .
-  - conda install pytest pytest-cov pytest-mock
+  - conda install mock pytest pytest-cov=2.5.1 pytest-mock
   
 build: off
   
