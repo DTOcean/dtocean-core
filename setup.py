@@ -4,8 +4,9 @@ import os
 import sys
 import glob
 import shutil
-
 from distutils.cmd import Command
+
+import yaml
 from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
@@ -136,13 +137,33 @@ class Bootstrap(Command):
         sys.exit(errno)
 
 
+def read_yaml(rel_path):
+    with open(rel_path, 'r') as stream:
+        data_loaded = yaml.safe_load(stream)
+    return data_loaded
+
+
+def get_appveyor_version():
+    
+    data = read_yaml("appveyor.yml")
+    
+    if "version" not in data:
+        raise RuntimeError("Unable to find version string.")
+    
+    appveyor_version = data["version"]
+    last_dot_idx = appveyor_version.rindex(".")
+    
+    return appveyor_version[:last_dot_idx]
+
+
 setup(name='dtocean-core',
-      version='2.0.1',
+      version=get_appveyor_version(),
       description='dtocean-core: The core component of the DTOcean tools',
       maintainer='Mathew Topper',
       maintainer_email='mathew.topper@dataonlygreater.com',
       license="GPLv3",
       packages=find_packages(),
+      setup_requires=['pyyaml'],
       install_requires=[
         'aneris>=0.10',
         'basemap',
@@ -196,7 +217,8 @@ setup(name='dtocean-core',
                     },
       zip_safe=False, # Important for reading config files
       # scripts=['post-install.py'],
-      tests_require=['pytest',
+      tests_require=['mock',
+                     'pytest',
                      'pytest-mock'],
       cmdclass={'test': PyTest,
                 'cleantest': CleanTest,
