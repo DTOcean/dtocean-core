@@ -1,6 +1,6 @@
 # REQUIREMENTS FOR CONDA INSTALLATION (EXCLUDING DTOCEAN PACKAGES)
 basemap
-cmocean
+cmocean-matplotlib
 contours
 cycler
 Cython
@@ -11,7 +11,7 @@ monotonic
 natsort
 netcdf4
 numpy
-openpyxl
+openpyxl <3
 packaging
 pandas >=0.18
 pil
@@ -24,6 +24,6 @@ setuptools
 shapely
 utm
 xarray
-xlrd
-xlsxwriter
+xlrd <2
+xlsxwriter <3
 xlwt
