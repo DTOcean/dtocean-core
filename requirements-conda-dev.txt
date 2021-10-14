@@ -25,5 +25,5 @@ shapely
 utm
 xarray
 xlrd <2
-xlsxwriter
+xlsxwriter <3
 xlwt
