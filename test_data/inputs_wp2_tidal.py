@@ -12,7 +12,7 @@ import pandas as pd
 from scipy.stats import multivariate_normal, norm
 
 # Setup
-x = np.linspace(0.,1000.,100)
+x = np.linspace(0.,1100.,100)
 y = np.linspace(0.,300.,30) 
 nx = len(x)
 ny = len(y)

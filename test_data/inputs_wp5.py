@@ -424,18 +424,19 @@ tool = 'Jetting'
 
 electrical_network = {
  'nodes': {'array': {'Export cable': {'marker': [[0, 1]],
-                                      'quantity': {6: 1, 17: 1}},
-                     'Substation': {'marker': [[2]], 'quantity': {12: 1}}},
+                                      'quantity': Counter({"6": 1, "17": 1})},
+                     'Substation': {'marker': [[2]],
+                                    'quantity': Counter({"12": 1})}},
            'device001': {'marker': [[35, 8, 9, 32, 33]],
-                         'quantity': Counter({2: 1, 6: 3, 'id743': 1})},
+                         'quantity': Counter({"2": 1, "6": 3, 'id743': 1})},
            'device002': {'marker': [[36, 6, 7, 73, 34]],
-                         'quantity': Counter({2: 1, 6: 3, 'id743': 1})}},
- 'topology': {'array': {'Export cable': [[17, 6]],
-                        'Substation': [[12]],
+                         'quantity': Counter({"2": 1, "6": 3, 'id743': 1})}},
+ 'topology': {'array': {'Export cable': [["17", "6"]],
+                        'Substation': [["12"]],
                         'layout': [['device002',
                                     'device001']]},
-              'device001': {'Elec sub-system': [[6, 2, 6, 'id743', 6]]},
-              'device002': {'Elec sub-system': [[6, 2, 6, 'id743', 6]]}}}
+              'device001': {'Elec sub-system': [["6", "2", "6", 'id743', "6"]]},
+              'device002': {'Elec sub-system': [["6", "2", "6", 'id743', "6"]]}}}
 
 
 electrical_components_dict = {   'Installation Type': {0: 'wet-mate',

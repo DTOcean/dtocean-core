@@ -28,12 +28,6 @@ compdict.update(elec_dict)
 
 comp_tables = get_reliability_tables(compdict) #component database
 
-device_type = "Tidal Fixed"
-mission_time = 20 # in years
-mttfreq = 0.5 # 50 % of the lifetime  
-
-network_configuration = "Radial"
-
 moor_found_network = {"topology": eval(open(os.path.join(reli_dir ,
                                               'dummymoorhier.txt')).read()),
                       "nodes": eval(open(os.path.join(reli_dir ,
@@ -44,11 +38,7 @@ electrical_network = {"topology": eval(open(os.path.join(reli_dir ,
                       "nodes": eval(open(os.path.join(reli_dir ,
                                                'dummyelecbom.txt')).read())}
 
-test_data = {"device.system_type": device_type,
-             "project.network_configuration": network_configuration,
-             "project.lifetime": mission_time,
-             "project.mttfreq": mttfreq,
-             "project.moorings_foundations_network": moor_found_network,
+test_data = {"project.moorings_foundations_network": moor_found_network,
              "project.electrical_network": electrical_network,
              "component.moorings_chain_NCFR": comp_tables["chain NCFR"],
              "component.moorings_chain_CFR": comp_tables["chain CFR"],

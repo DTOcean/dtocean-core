@@ -4452,7 +4452,7 @@ class XGrid2D(XGridND):
             plt.xticks(locs, new_labels)
         
         if ycoord.values.dtype.kind in {'U', 'S'}:
-            plt.yxticks(y, yuniques)
+            plt.yticks(y, yuniques)
         else:
             locs, _ = plt.yticks()
             f = interpolate.interp1d(y, yuniques, fill_value="extrapolate")

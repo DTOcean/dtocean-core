@@ -119,8 +119,8 @@ def test_get_reliability_interface(theme_menu, core, tidal_project, var_tree):
     interface = connector.get_interface(core,
                                         project,
                                         theme_name)
-                                        
-    assert interface.data.mission_time is not None
+    
+    assert interface.data.electrical_network is not None
 
 
 def test_reliability_interface_entry(theme_menu,
