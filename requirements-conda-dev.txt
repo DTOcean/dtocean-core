@@ -4,7 +4,7 @@ cmocean-matplotlib
 contours
 cycler
 Cython
-descartes-matplotlib
+descartes
 geoalchemy2
 matplotlib <2
 monotonic
