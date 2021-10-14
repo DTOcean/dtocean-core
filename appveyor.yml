@@ -28,7 +28,7 @@ init:
 install:
   - "set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%"
   - conda config --set always_yes yes --set changeps1 no
-  - conda update --quiet conda
+  - conda install --quiet conda=4.6.14
   - conda info --all
   - conda create -n _dtocean_core python=%PYTHON_VERSION% pip
   - activate _dtocean_core
