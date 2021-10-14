@@ -167,6 +167,7 @@ setup(name='dtocean-core',
       install_requires=[
         'aneris>=0.10',
         'basemap',
+        'cma',
         'cmocean',
         'contours',
         'cycler',

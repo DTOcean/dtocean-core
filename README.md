@@ -87,13 +87,20 @@ the source code root directory:
 $ conda create -n _dtocean_core python=2.7 pip
 ```
 
-Activate the environment, then copy the `.condrc` file to store installation  
-channels and pin critical packages to ensure stable installation of multiple 
-DTOcean modules:
+Activate the environment, then copy the `.condrc` file (or `.condarc-32` if
+you're using 32bit windows) to store installation channels and pin critical 
+packages to ensure stable installation of multiple DTOcean modules:
 
 ```
 $ conda activate _dtocean_core
 $ copy .condarc %CONDA_PREFIX%
+```
+
+OR, if you're using Powershell:
+
+```
+$ conda activate _dtocean_rely
+$ copy .condarc $env:CONDA_PREFIX
 ```
 
 Install [polite](https://github.com/DTOcean/polite) and [aneris](
@@ -121,6 +128,19 @@ $ conda install dtocean-hydrodynamics ^
                 dtocean-maintenance ^
                 dtocean-economics ^
                 dtocean-reliability ^
+                dtocean-environment
+```
+
+OR, if you're using Powershell:
+
+```
+$ conda install dtocean-hydrodynamics `
+                dtocean-electrical `
+                dtocean-moorings `
+                dtocean-installation `
+                dtocean-maintenance `
+                dtocean-economics `
+                dtocean-reliability `
                 dtocean-environment
 ```
 
@@ -177,7 +197,7 @@ $ conda activate _dtocean_core
 Install pytest to the environment (one time only):
 
 ```
-$ conda install -y pytest pytest-mock
+$ conda install -y mock pytest pytest-mock
 ```
 
 Run the tests:
