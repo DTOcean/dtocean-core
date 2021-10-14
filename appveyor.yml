@@ -8,7 +8,7 @@
 #---------------------------------#
 
 # version format
-version: 2.0.1-build{build}
+version: 3.0.dev1.build{build}
 
 environment:
   matrix:
@@ -34,7 +34,7 @@ install:
   - activate _dtocean_core
   - copy %CONDARC% %CONDA_PREFIX%\\.condarc
   - >
-    conda install "polite>=0.9,<1"
+    conda install "polite>=0.10,<1"
     "aneris>=0.11,<1"
     "dtocean-economics>=2.0.0,<3"
     "dtocean-electrical>=2.0.0,<3"
@@ -49,13 +49,12 @@ install:
   - conda install --file requirements-conda-dev.txt
   - pip install -e .
   - conda install mock pytest pytest-cov=2.5.1 pytest-mock
-  
+
 build: off
-  
+
 test_script:
   - python setup.py test -a "--cov dtocean_core"
-  
+
 after_test:
  - pip install codecov
  - codecov
-  
