@@ -9,8 +9,8 @@ geoalchemy2
 matplotlib <2
 monotonic
 natsort
-netcdf4 =1.4
-numpy =1.11.3=py27hab9e983_3
+netcdf4 =1.3
+numpy =1.11.3
 openpyxl <3
 packaging
 pandas >=0.23
@@ -21,7 +21,6 @@ pyshp
 python-dateutil
 pyyaml >=5.1
 ruamel.yaml
-ruamel.yaml.clib
 scipy
 setuptools
 shapely

@@ -87,20 +87,24 @@ the source code root directory:
 $ conda create -n _dtocean_core python=2.7 pip
 ```
 
-Activate the environment, then copy the `.condrc` file (or `.condarc-32` if
-you're using 32bit windows) to store installation channels and pin critical 
-packages to ensure stable installation of multiple DTOcean modules:
+Activate the environment, then copy the `<condarc>` file to store installation 
+channels and pin critical packages to ensure stable installation of multiple 
+DTOcean modules. Installation differs slightly for 32 and 64 bit systems. In 
+the instructions below, the `<condarc>` label should be replaced with
+`.condarc-32` for 32-bit systems and `.condarc` for 64-bit.
 
 ```
 $ conda activate _dtocean_core
-$ copy .condarc %CONDA_PREFIX%
+$ cd \\path\\to\\dtocean-core
+$ copy <condarc> %CONDA_PREFIX%\\.condarc
 ```
 
 OR, if you're using Powershell:
 
 ```
-$ conda activate _dtocean_rely
-$ copy .condarc $env:CONDA_PREFIX
+$ conda activate _dtocean_core
+$ cd \\path\\to\\dtocean-core
+$ copy <condarc> $env:CONDA_PREFIX\\.condarc
 ```
 
 Install [polite](https://github.com/DTOcean/polite) and [aneris](
@@ -169,10 +173,14 @@ $ cd \\path\\to\\dtocean-core
 ``` 
 
 Finally, install dtocean-core and its dependencies using conda and pip (don't
-worry if some packages are downgraded during this process):
+worry if some packages are downgraded during this process). Installation 
+differs slightly for 32 and 64 bit systems. In the instructions
+below, the `<requirements>` label should be replaced with
+`requirements-conda-dev-32.txt` for 32-bit systems and
+`requirements-conda-dev.txt` for 64-bit.
 
 ```
-$ conda install --file requirements-conda-dev.txt
+$ conda install --file <requirements>
 $ pip install -e .
 ```
 

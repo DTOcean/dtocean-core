@@ -13,14 +13,16 @@ version: 3.0.dev1.build{build}
 environment:
   matrix:
     - PYTHON_VERSION: 2.7
-      MINICONDA: C:\Miniconda
+      MINICONDA: C:\Miniconda3
       ARCH: "32"
       CONDARC: .condarc-32
+      REQUIREMENTS: requirements-conda-dev-32.txt
       
     - PYTHON_VERSION: 2.7
-      MINICONDA: C:\Miniconda-x64
+      MINICONDA: C:\Miniconda3-x64
       ARCH: "64"
       CONDARC: .condarc
+      REQUIREMENTS: requirements-conda-dev.txt
 
 init:
   - "ECHO %PYTHON_VERSION% %MINICONDA%"
@@ -28,14 +30,15 @@ init:
 install:
   - "set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%"
   - conda config --set always_yes yes --set changeps1 no
-  - conda install --quiet conda=4.6.14
-  - conda info --all
+  - conda update python
+  - conda update --all
+  - conda info
   - conda create -n _dtocean_core python=%PYTHON_VERSION% pip
-  - activate _dtocean_core
+  - conda activate _dtocean_core
   - copy %CONDARC% %CONDA_PREFIX%\\.condarc
   - >
     conda install "polite>=0.10,<1"
-    "aneris>=0.11,<1"
+    "aneris>=0.11.1,<1"
     "dtocean-economics>=2.0.0,<3"
     "dtocean-electrical>=2.0.0,<3"
     "dtocean-environment>=2.0.0,<3"
@@ -46,7 +49,9 @@ install:
     "dtocean-moorings>=2.0.0,<3"
     "dtocean-reliability>=3.0.0,<4"
   - python setup.py bootstrap
-  - conda install --file requirements-conda-dev.txt
+  - conda install --file %REQUIREMENTS%
+  - chcp 65001
+  - set PYTHONIOENCODING=utf-8
   - pip install -e .
   - conda install mock pytest pytest-cov=2.5.1 pytest-mock
 
