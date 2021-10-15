@@ -33,7 +33,6 @@ Note:
 import os
 import pickle
 import pkg_resources
-from packaging.version import Version
 
 import numpy as np
 from natsort import natsorted
@@ -52,6 +51,7 @@ from ..utils.hydrodynamics import (make_wave_statistics,
                                    bearing_to_vector,
                                    vector_to_bearing,
                                    radians_to_bearing)
+from ..utils.version import Version
 
 from . import ModuleInterface
 

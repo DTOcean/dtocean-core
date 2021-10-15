@@ -35,7 +35,6 @@ import os
 import math
 import pickle
 import pkg_resources
-from packaging.version import Version
 
 import pandas as pd
 import numpy as np
@@ -50,6 +49,7 @@ from dtocean_environment.main import (HydroStage,
                                       OperationMaintenanceStage)
                                      
 from . import ThemeInterface
+from ..utils.version import Version
 
 # Check module version
 pkg_title = "dtocean-environment"

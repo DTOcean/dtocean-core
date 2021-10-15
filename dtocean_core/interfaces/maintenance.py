@@ -34,7 +34,6 @@ import os
 import pickle
 import logging
 import pkg_resources
-from packaging.version import Version
 
 # External 3rd party libraries
 import numpy as np
@@ -59,6 +58,7 @@ from ..utils.maintenance import (get_input_tables,
                                  get_point_depth,
                                  get_events_table)
 from ..utils.stats import UniVariateKDE
+from ..utils.version import Version
 
 # Check module version
 pkg_title = "dtocean-maintenance"

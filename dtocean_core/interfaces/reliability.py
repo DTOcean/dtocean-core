@@ -33,7 +33,6 @@ import os
 import pickle
 import logging
 import pkg_resources
-from packaging.version import Version
 
 import pandas as pd
 
@@ -45,6 +44,7 @@ from . import ThemeInterface
 from ..utils.reliability import get_component_dict
 from ..utils.maintenance import (get_user_network,
                                  get_user_compdict)
+from ..utils.version import Version
 
 # Check module version
 pkg_title = "dtocean-reliability"

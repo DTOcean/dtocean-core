@@ -35,7 +35,6 @@ import os
 import pickle
 import logging
 import pkg_resources
-from packaging.version import Version
 
 import numpy as np
 import pandas as pd
@@ -56,6 +55,7 @@ from aneris.boundary.interface import MaskVariable
 from . import ModuleInterface
 from ..utils.electrical import sanitise_network
 from ..utils.network import find_marker_key
+from ..utils.version import Version
 
 # Check module version
 pkg_title = "dtocean-electrical"

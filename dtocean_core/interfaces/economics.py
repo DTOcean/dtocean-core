@@ -29,7 +29,6 @@ Note:
 """
 
 import pkg_resources
-from packaging.version import Version
 
 import numpy as np
 import pandas as pd
@@ -45,6 +44,7 @@ from ..utils.stats import (UniVariateKDE,
                            BiVariateKDE,
                            pdf_confidence_densities,
                            pdf_contour_coords)
+from ..utils.version import Version
 
 # Check module version
 pkg_title = "dtocean-economics"

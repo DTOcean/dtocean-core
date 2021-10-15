@@ -35,7 +35,6 @@ import os
 import pickle
 import logging
 import pkg_resources
-from packaging.version import Version
 
 import utm
 import numpy as np
@@ -60,6 +59,7 @@ from ..utils.install_electrical import (set_collection_points,
                                         set_connectors,
                                         get_umbilical_terminations,
                                         set_cable_cp_references)
+from ..utils.version import Version
 
 # Check module version
 pkg_title = "dtocean-installation"

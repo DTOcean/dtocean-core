@@ -35,7 +35,6 @@ Note:
 import os
 import pickle
 import pkg_resources
-from packaging.version import Version
 
 # External 3rd party libraries
 import numpy as np
@@ -50,6 +49,7 @@ from dtocean_moorings.main import Variables, Main
 # DTOcean Core modules
 from . import ModuleInterface
 from ..utils.moorings import get_component_dict
+from ..utils.version import Version
 
 # Check module version
 pkg_title = "dtocean-moorings"
