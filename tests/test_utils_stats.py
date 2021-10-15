@@ -13,7 +13,8 @@ from scipy.stats import norm
 from dtocean_core.utils.stats import (UniVariateKDE,
                                       BiVariateKDE,
                                       pdf_confidence_densities,
-                                      pdf_contour_coords)
+                                      pdf_contour_coords,
+                                      get_standard_error)
 
 
 @pytest.fixture(scope="module")
@@ -214,3 +215,32 @@ def test_pdf_contour_coords(bigaussian_pdf):
     
     assert len(cx) > 0
     assert len(cy) > 0
+
+
+def test_get_standard_error():
+    
+    f = lambda: np.random.standard_normal(size=30) + 1;
+    expected = 5;
+    confidence = 2.576; # 99% interval
+    
+    n_tests = 1;
+    tests = [];
+    
+    for i in range(n_tests):
+        
+        std_error, results = get_standard_error(f, 5);
+        
+        # Check that the expected value is within interval
+        actual = results.mean().sum();
+        print std_error
+        print actual
+        print confidence
+        test = ((actual - confidence * std_error < expected) and
+                (expected < actual + confidence * std_error));
+        tests.append(test)
+    
+    print tests
+    tpct = sum(tests) / n_tests * 100;
+    
+    # Add some slack!
+    assert tpct > 96

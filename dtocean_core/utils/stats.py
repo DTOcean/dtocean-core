@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+#    Copyright (C) 2020 National Technology & Engineering Solutions of Sandia
 #    Copyright (C) 2017-2021 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -26,6 +27,7 @@ import logging
 import numpy as np
 
 from scipy import optimize, stats
+from scipy.special import gamma
 from contours.quad import QuadContourGenerator
 
 # Set up logging
@@ -248,4 +250,78 @@ def pdf_contour_coords(xx, yy, pdf, level):
         cy.extend(v[:,1])
         
     return cx, cy
+
+
+def get_standard_error(func, samples, metric='norm'):
+    """
+    Calculates the standard error of the mean of a given function.
+    
+    This function can either be used to reduce the standard error to
+    a certain level or calculate the standard error given a fixed number
+    of samples.
+    
+    Args:
+      func (function handle): function to evaluate
+      samples (int): number of samples to be used. 
+      metric (string):
+           the name of the metric used to calculate the standard error.
+           The options are ``'norm'`` which norms the error over the 
+           result vector, ``'max'`` which returns the greatest error in 
+           the vector, or ``'normmean'`` which returns the norm of the 
+           errors divided by the sum of the mean of the result vector.
+           Default is ``'norm'``.
+       targetField (string):
+           if :attr:`funHandle` returns a struct then this option 
+           indicates the field in the struct to use for the error 
+           calculation.
+    
+    
+    Returns: the standard error metric vector
+    """
+    
+    def get_c4(n):
+        # Correction for unbiased estimate of the standard deviation.
+        # https://en.wikipedia.org/wiki/Unbiased_estimation_of_standard_deviation
+        a = np.sqrt(2. / (n - 1));
+        b = gamma(n / 2.) / gamma((n - 1) / 2.);
+        print a, b
+        return a * b;
+    
+    error_fun = None
+    
+    if metric == 'norm':
+        error_fun = lambda x, y: np.linalg.norm(x);
+    elif metric == 'max':
+        error_fun = lambda x, y: np.max(x);
+    elif metric == 'normmean':
+        error_fun = lambda x, y: np.linalg.norm(x) / np.sum(np.mean(y));
+    
+    n = 0;
+    results = []
+    calculate_c4 = True
+    
+    while True:
         
+        n = n + 1;
+        result_n = np.array(func())
+        results.append(result_n)
+        
+        if n < 2: continue
+    
+        # The c4 calculation fails at large n
+        if calculate_c4:
+            
+            c4 = get_c4(n);
+            
+            if not np.isfinite(c4):
+                c4 = 1;
+                calculate_c4 = False;
+        
+        results_array = np.stack(results)
+        result_error = c4 * np.std(results_array) / np.sqrt(n);
+        error_metric = error_fun(result_error, results_array);
+        
+        if n >= samples:
+            break
+    
+    return error_metric, results_array

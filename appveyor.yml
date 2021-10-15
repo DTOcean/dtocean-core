@@ -33,9 +33,9 @@ install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update python
   - conda update --all
+  - conda init cmd.exe
   - conda info
   - conda create -n _dtocean_core python=%PYTHON_VERSION% pip
-  - conda init cmd.exe
   - conda activate _dtocean_core
   - copy %CONDARC_PATH% %CONDA_PREFIX%\\.condarc
   - >
