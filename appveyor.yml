@@ -12,29 +12,28 @@ version: 3.0.dev1.build{build}
 
 environment:
   matrix:
-    - PYTHON_VERSION: 2.7
+    - ENV_PYTHON_VERSION: 2.7
       MINICONDA: C:\Miniconda3
       ARCH: "32"
       CONDARC: .condarc-32
       REQUIREMENTS: requirements-conda-dev-32.txt
       
-    - PYTHON_VERSION: 2.7
+    - ENV_PYTHON_VERSION: 2.7
       MINICONDA: C:\Miniconda3-x64
       ARCH: "64"
       CONDARC: .condarc
       REQUIREMENTS: requirements-conda-dev.txt
 
 init:
-  - "ECHO %PYTHON_VERSION% %MINICONDA%"
+  - "ECHO %ENV_PYTHON_VERSION% %MINICONDA%"
 
 install:
   - "set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%"
   - conda config --set always_yes yes --set changeps1 no
-  - conda update conda
   - conda update python
   - conda update --all
   - conda info
-  - conda create -n _dtocean_core python=%PYTHON_VERSION% pip
+  - conda create -n _dtocean_core python=%ENV_PYTHON_VERSION% pip
   - conda activate _dtocean_core
   - copy %CONDARC% %CONDA_PREFIX%\\.condarc
   - >
