@@ -675,19 +675,22 @@ class EconomicInterface(ThemeInterface):
             
             xx, yy, pdf = distribution.pdf()
             clevels = pdf_confidence_densities(pdf)
-            cx, cy = pdf_contour_coords(xx, yy, pdf, clevels[0])
             
-            lcoes = []
-            
-            for discounted_opex, discounted_energy in zip(cx, cy):
+            if clevels:
                 
-                lcoe = (result["Discounted CAPEX"] / 1000. +
-                                        discounted_opex) / discounted_energy
-                lcoes.append(lcoe)
-            
-            self.data.confidence_density = clevels[0]
-            self.data.lcoe_lower = min(lcoes)
-            self.data.lcoe_upper = max(lcoes)
+                cx, cy = pdf_contour_coords(xx, yy, pdf, clevels[0])
+                
+                lcoes = []
+                
+                for discounted_opex, discounted_energy in zip(cx, cy):
+                    
+                    lcoe = (result["Discounted CAPEX"] / 1000. +
+                                            discounted_opex) / discounted_energy
+                    lcoes.append(lcoe)
+                
+                self.data.confidence_density = clevels[0]
+                self.data.lcoe_lower = min(lcoes)
+                self.data.lcoe_upper = max(lcoes)
             
             # LCOE distribution
             raw = {"values": pdf,

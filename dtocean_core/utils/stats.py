@@ -21,10 +21,15 @@ Created on Mon Sep 11 08:49:07 2017
 .. moduleauthor:: Mathew Topper <mathew.topper@dataonlygreater.com>
 """
 
+import logging
+
 import numpy as np
 
 from scipy import optimize, stats
 from contours.quad import QuadContourGenerator
+
+# Set up logging
+module_logger = logging.getLogger(__name__)
 
 
 class UniVariateKDE(object):
@@ -217,13 +222,16 @@ def pdf_confidence_densities(pdf, levels=None):
         
         local_pdf = np.copy(pdf)
         
-        density = optimize.brentq(diff_frac,
-                                  pdf.min(),
-                                  pdf.max(),
-                                  args=(local_pdf, frac, pdf_sum))
-        
-        densities.append(density)
-        
+        try:
+            density = optimize.brentq(diff_frac,
+                                      pdf.min(),
+                                      pdf.max(),
+                                      args=(local_pdf, frac, pdf_sum))
+            
+            densities.append(density)
+        except ValueError as e:
+            module_logger.debug(e, exc_info=True)
+    
     return densities
 
 
