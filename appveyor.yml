@@ -15,13 +15,13 @@ environment:
     - PYTHON_VERSION: 2.7
       MINICONDA: C:\Miniconda3
       ARCH: "32"
-      CONDARC: .condarc-32
+      CONDARC_PATH: .condarc-32
       REQUIREMENTS: requirements-conda-dev-32.txt
       
     - PYTHON_VERSION: 2.7
       MINICONDA: C:\Miniconda3-x64
       ARCH: "64"
-      CONDARC: .condarc-64
+      CONDARC_PATH: .condarc
       REQUIREMENTS: requirements-conda-dev.txt
 
 init:
@@ -31,13 +31,12 @@ init:
 install:
   - "set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%"
   - conda config --set always_yes yes --set changeps1 no
-  - conda info --all
   - conda update python
   - conda update --all
   - conda info
   - conda create -n _dtocean_core python=%PYTHON_VERSION% pip
   - conda activate _dtocean_core
-  - copy %CONDARC% %CONDA_PREFIX%\\.condarc
+  - copy %CONDARC_PATH% %CONDA_PREFIX%\\.condarc
   - >
     conda install "polite>=0.10,<1"
     "aneris>=0.11.1,<1"
