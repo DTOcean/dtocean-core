@@ -35,6 +35,7 @@ install:
   - conda update --all
   - conda info
   - conda create -n _dtocean_core python=%PYTHON_VERSION% pip
+  - conda init cmd.exe
   - conda activate _dtocean_core
   - copy %CONDARC_PATH% %CONDA_PREFIX%\\.condarc
   - >
