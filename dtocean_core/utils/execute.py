@@ -34,7 +34,7 @@ def warn_with_traceback(message,
                         lineno,
                         file=None,
                         line=None):
-
+    
     log = file if hasattr(file,'write') else sys.stderr
     traceback.print_stack(file=log)
     log.write(warnings.formatwarning(message,
@@ -116,6 +116,7 @@ def main(fpath,
     
     return
 
+
 def main_interface():
     '''Command line interface for execute_dtocean_project.
     
@@ -172,7 +173,7 @@ def main_interface():
     if no_save is True:
         save = False
     elif rpath is not None:
-        save = rpath
+        save = rpath.strip()
     else:
         save = True
     

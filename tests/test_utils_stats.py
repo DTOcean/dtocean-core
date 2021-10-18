@@ -140,6 +140,40 @@ def test_UniVariateKDE_mean():
     assert tpct > 90
 
 
+def test_UniVariateKDE_median():
+    
+    """Trival function calculates median of initial dataset not distribution"""
+    
+    def get_vals():
+        results = []
+        for _ in range(30):
+            data = np.random.normal(size=50)
+            distribution = UniVariateKDE(data)
+            results.append(distribution.median())
+        return results
+    
+    expected = 0
+    confidence = 3.291 # 99.9% interval
+    
+    n_tests = 20
+    tests = []
+    
+    for i in range(n_tests):
+        
+        values = get_vals()
+        std_error = get_standard_error(values);
+        
+        # Check that the expected value is within interval
+        actual = np.median(values)
+        test = ((actual - confidence * std_error < expected) and
+                (expected < actual + confidence * std_error))
+        tests.append(int(test))
+    
+    tpct = sum(tests) * 100. / n_tests
+    
+    # Add some slack!
+    assert tpct > 90
+
 
 def test_UniVariateKDE_mode():
     
@@ -358,3 +392,15 @@ def test_get_standard_error():
     
     # Add some slack!
     assert tpct > 90
+
+
+def test_get_standard_error_large():
+    values = np.random.normal(size=1000)
+    assert get_standard_error(values) > 0
+
+
+@pytest.mark.parametrize("length", [0, 1])
+def test_get_standard_error_one_value(length):
+    values = [1] * length
+    assert get_standard_error(values) is None
+

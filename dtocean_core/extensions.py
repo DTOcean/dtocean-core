@@ -184,31 +184,31 @@ class StrategyManager(ExtensionManager):
                                            scope)
         done_levels = self._module_menu.get_completed(core, project)
         
-        # Check the number of levels in each simulation        
-        sim_lengths = []        
+        # Check the number of levels in each simulation
+        sim_lengths = []
         
         for level_values in sim_levels.itervalues():
             sim_lengths.append(len(level_values.values()))
-                        
+            
         level_set = set(sim_lengths)
         
         if len(level_set) != 1:
             
             errStr = "The number of levels in each simulation is not equal"
             raise ValueError(errStr)
-                    
+        
         sim_names = []
         level_lists = {k: [] for k in done_levels}
         
         for sim_key, level_values in sim_levels.iteritems():
             
             sim_names.append(sim_key)
-
+            
             for name in done_levels:
                 
                 find_levels = [level for level in level_values
                                                    if name.lower() in level]
-
+                
                 if len(find_levels) > 1:
                     
                     errStr = ("More than one level matches module name "
@@ -220,7 +220,7 @@ class StrategyManager(ExtensionManager):
                 else:
                     found_level = find_levels[0]
                     value = level_values[found_level]
-
+                
                 level_lists[name].append(value)
         
         raw_dict = {"Simulation Name": sim_names}
@@ -228,7 +228,7 @@ class StrategyManager(ExtensionManager):
         
         raw_cols = ["Simulation Name"]
         raw_cols.extend(done_levels)
-                 
+        
         df = pd.DataFrame(raw_dict)
         df = df[raw_cols]
         
@@ -532,12 +532,6 @@ class StrategyManager(ExtensionManager):
             stg_dict = pickle.load(fstream)
         
         # Now deserialise the data
-        if "version" not in stg_dict and project is None:
-            
-            err_msg = ("A project object is required for loading strategies "
-                       "with the old sim_record type")
-            raise ValueError(err_msg)
-        
         new_strategy = self._set_load_dict(stg_dict, project=project)
         
         return new_strategy
