@@ -728,8 +728,8 @@ class BoundariesInterface(ProjectInterface):
     
     '''Interface to expose the area defining polygons.
     '''
-        
-    @classmethod         
+    
+    @classmethod
     def get_name(cls):
         
         '''A class method for the common name of the interface.
@@ -739,8 +739,8 @@ class BoundariesInterface(ProjectInterface):
         '''
         
         return "Project Boundaries Interface"
-
-    @classmethod         
+    
+    @classmethod
     def declare_inputs(cls):
         
         '''A class method to declare all the variables required as inputs by
@@ -757,15 +757,15 @@ class BoundariesInterface(ProjectInterface):
                         "My:second:variable",
                        ]
         '''
-
+        
         input_list = ["site.projection",
                       "site.lease_boundary",
                       "site.corridor_boundary",
                       "corridor.landing_point"]
         
         return input_list
-
-    @classmethod        
+    
+    @classmethod
     def declare_outputs(cls):
         
         '''A class method to declare all the output variables provided by
@@ -784,10 +784,10 @@ class BoundariesInterface(ProjectInterface):
         '''
         
         outputs = None
-                
-        return outputs
         
-    @classmethod        
+        return outputs
+    
+    @classmethod
     def declare_optional(cls):
         
         '''A class method to declare all the variables which should be flagged
@@ -812,9 +812,9 @@ class BoundariesInterface(ProjectInterface):
         option_list = ["site.corridor_boundary",
                        "site.lease_boundary",
                        "corridor.landing_point"]
-                        
-        return option_list
         
+        return option_list
+    
     @classmethod 
     def declare_id_map(self):
         
@@ -844,7 +844,7 @@ class BoundariesInterface(ProjectInterface):
                   }
         
         return id_map
-                 
+    
     def connect(self):
         
         '''The connect method is used to execute the external program and 
@@ -859,5 +859,3 @@ class BoundariesInterface(ProjectInterface):
         '''
         
         return
-
-

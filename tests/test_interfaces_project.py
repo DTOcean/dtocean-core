@@ -159,3 +159,31 @@ def test_options_interface_systems(core, wave_project):
     interface.connect()
                                         
     assert interface.data.system_names.equals(pd.Series(["b"]))
+
+
+def test_boundaries_interface(core, wave_project):
+    
+    project_menu = ProjectMenu()
+    var_tree = Tree()
+    interface_name = "Project Boundaries Interface"
+    
+    project = deepcopy(wave_project)
+    project_menu.activate(core, project, interface_name)
+    
+    boundaries_branch = var_tree.get_branch(core, project, interface_name)
+    
+    projection = boundaries_branch.get_input_variable(core,
+                                                      project,
+                                                      "site.projection")
+    projection.set_raw_interface(core, "UTM10")
+    projection.read(core, project)
+    
+    can_execute = project_menu.is_executable(core, project, interface_name)
+    
+    if not can_execute:
+        
+        inputs = projection.get_input_status(core, project)
+        pprint(inputs)
+        assert can_execute
+    
+    assert can_execute

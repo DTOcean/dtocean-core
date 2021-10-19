@@ -65,18 +65,19 @@ class UnitSensitivity(Strategy):
     
     def execute(self, core, project):
         
-        module_name = self._config["module_name"]
-        variable_name = self._config["var_name"]
-        variable_values = self._config["var_values"]
-        
         # Test for Nones
-        if (module_name is None or
-            variable_name is None or
-            variable_values is None):
+        if (self._config is None or
+            self._config["module_name"] is None or
+            self._config["var_name"] is None or
+            self._config["var_values"] is None):
                 
             errStr = ("Some configuration values are None. Have you called "
                       "the configure method?")
             raise ValueError(errStr)
+        
+        module_name = self._config["module_name"]
+        variable_name = self._config["var_name"]
+        variable_values = self._config["var_values"]
         
         # Pick up the branch
         if not module_name in self._module_menu.get_available(core, project):

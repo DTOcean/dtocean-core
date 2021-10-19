@@ -36,17 +36,11 @@ class MultiSensitivity(Strategy):
     """A multi-variable sensitivity study  over a given range of
     values, adjusted before execution of a chosen module."""
     
-    def __init__(self):
-        
-        super(MultiSensitivity, self).__init__()
-        
-        return
-    
     @classmethod
     def get_name(cls):
         
         return "Multi Sensitivity"
-        
+    
     @classmethod
     def count_selections(cls, inputs_df, subsp_ratio):
         
@@ -79,15 +73,17 @@ class MultiSensitivity(Strategy):
     
     def execute(self, core, project):
         
-        inputs_df = self._config["inputs_df"]
-        subsp_ratio = self._config["subsp_ratio"]
-        
         # Test for Nones
-        if inputs_df is None:
+        if (self._config is None or
+            self._config["inputs_df"] is None or
+            self._config["subsp_ratio"] is None):
             
             errStr = ("The configuration values are None. Have you called "
                       "the configure method?")
             raise ValueError(errStr)
+        
+        inputs_df = self._config["inputs_df"]
+        subsp_ratio = self._config["subsp_ratio"]
         
         # Check subspacing ratio
         if subsp_ratio is None or subsp_ratio > 1:
@@ -292,4 +288,3 @@ class MultiSensitivity(Strategy):
         basic.execute(core, project)
         
         return
-

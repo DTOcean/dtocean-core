@@ -12,6 +12,7 @@ import pandas as pd
 discount_rate = 0.1
 electrical_network_efficiency = 0.99
 capex_oandm = 100.
+externalities_capex = 1e6
 
 zero_bom_dict = {"Key Identifier": [0, 1],
                  "Quantity": [5, 10],
@@ -35,7 +36,8 @@ opex_bom = pd.DataFrame(opex_bom_dict)
 energy_record_dict = {"Energy": [10000, 20000],
                       "Year": [3, 4]}
 energy_record = pd.DataFrame(energy_record_dict)
-    
+
+
 test_data = {"project.discount_rate": discount_rate,
              "project.electrical_economics_data": electrical_bom,
              "project.moorings_foundations_economics_data": moorings_bom,
@@ -44,7 +46,8 @@ test_data = {"project.discount_rate": discount_rate,
              "project.opex_per_year": opex_bom,
              "project.energy_per_year": energy_record,
              'project.electrical_network_efficiency':
-                 electrical_network_efficiency}
+                 electrical_network_efficiency,
+             'project.externalities_capex': externalities_capex}
              
 if __name__ == "__main__":
     

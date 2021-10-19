@@ -3158,17 +3158,9 @@ class PointData(Structure):
                 raise ValueError(err_str)
             
             s = shapes[0]
-            
-            if len(s.points) != 1:
-                
-                err_str = ("Only a single point may be defined in the "
-                           "imported shapefile. Given file has {} "
-                           "points").format(len(s.points))
-                raise ValueError(err_str)
-            
             point = s.points[0]
             
-            if hasattr(s, "z"):
+            if shp.shapeType == shapefile.POINTZ:
                 point.append(s.z[0])
         
         data = Point(point)
@@ -3824,10 +3816,11 @@ class PolygonData(Structure):
         
         with shapefile.Reader(path) as shp:
         
-            if shp.shapeType != shapefile.POLYGON:
+            if shp.shapeType not in [shapefile.POLYGON, shapefile.POLYGONZ]:
                 
-                err_str = ("The imported shapefile must have POLYGON type. "
-                           "Given file has {} type").format(shp.shapeTypeName)
+                err_str = ("The imported shapefile must have POLYGON or "
+                           "POLYGONZ type. Given file has {} "
+                           "type").format(shp.shapeTypeName)
                 raise ValueError(err_str)
             
             shapes = shp.shapes()
@@ -3847,25 +3840,33 @@ class PolygonData(Structure):
                            "defined in the imported shapefile. Given file has "
                            "{} parts").format(len(s.parts))
                 raise ValueError(err_str)
-            
+        
+        if shp.shapeType == shapefile.POLYGONZ:
+            points = [point + (z,) for point, z in zip(s.points, s.z)]
+        else:
             points = s.points
-            
+        
         data = Polygon(points)
-            
+        
         return data
     
     @staticmethod
     def _write_shapefile(path, polygon):
         
         if isinstance(polygon, Polygon):
-            data = zip(*polygon.exterior.xy)
+            data = np.array(polygon.exterior.coords)
         else:
             raise TypeError("Data is not a valid Polygon object.")
             
         with shapefile.Writer(path) as shp:
-
+            
             shp.field('name', 'C')
-            shp.poly([data])
+            
+            if data.shape[1] == 3:
+                shp.polyz([data.tolist()])
+            else:
+                shp.poly([data.tolist()])
+            
             shp.record('polygon1')
         
         return

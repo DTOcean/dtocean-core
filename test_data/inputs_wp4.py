@@ -406,6 +406,8 @@ fabcost = 1.0 #optional fabrication cost factor
 
 umbilical_connection = [0,0,-0.5]
 
+use_max_thrust = True
+
 test_data = {'constants.line_bearing_capacity_factor': linebcf,
              'constants.pile_Am_moment_coefficient': pilemomcoefam,
              'constants.pile_Bm_moment_coefficient': pilemomcoefbm,
@@ -504,7 +506,8 @@ test_data = {'constants.line_bearing_capacity_factor': linebcf,
              'component.foundations_anchor_sand':
                                              comp_tables["drag anchor sand"],
              'component.foundations_anchor_soft':
-                                             comp_tables["drag anchor soft"]
+                                             comp_tables["drag anchor soft"],
+             'options.use_max_thrust': use_max_thrust
              }
 
 
