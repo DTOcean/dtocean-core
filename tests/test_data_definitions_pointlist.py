@@ -67,7 +67,7 @@ def test_get_None():
     assert result is None
         
         
-@pytest.mark.parametrize("fext", [".csv", ".xls", ".xlsx"])
+@pytest.mark.parametrize("fext", [".csv", ".shp", ".xls", ".xlsx"])
 def test_PointList_auto_file(tmpdir, fext):
 
     test_path = tmpdir.mkdir("sub").join("test{}".format(fext))
@@ -83,7 +83,7 @@ def test_PointList_auto_file(tmpdir, fext):
     ztests = [False, True]
     
     for raw, ztest in zip(raws, ztests):
-    
+        
         meta = CoreMetaData({"identifier": "test",
                              "structure": "test",
                              "title": "test"})

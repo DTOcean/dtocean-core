@@ -3141,10 +3141,11 @@ class PointData(Structure):
         
         with shapefile.Reader(path) as shp:
         
-            if shp.shapeType != shapefile.POINT:
+            if shp.shapeType not in [shapefile.POINT, shapefile.POINTZ]:
                 
-                err_str = ("The imported shapefile must have POINT type. "
-                           "Given file has {} type").format(shp.shapeTypeName)
+                err_str = ("The imported shapefile must have POINT or POINTZ "
+                           "type. Given file has {} "
+                           "type").format(shp.shapeTypeName)
                 raise ValueError(err_str)
             
             shapes = shp.shapes()
@@ -3167,22 +3168,30 @@ class PointData(Structure):
             
             point = s.points[0]
             
+            if hasattr(s, "z"):
+                point.append(s.z[0])
+        
         data = Point(point)
-            
+        
         return data
     
     @staticmethod
     def _write_shapefile(path, point):
         
         if isinstance(point, Point):
-            data = zip(*point.xy)[0]
+            data = np.array(point)
         else:
             raise TypeError("Data is not a valid Point object.")
             
         with shapefile.Writer(path) as shp:
             
             shp.field('name', 'C')
-            shp.point(*data)
+            
+            if len(data) == 3: 
+                shp.pointz(*data)
+            else:
+                shp.point(*data)
+            
             shp.record('point1')
         
         return
@@ -3340,10 +3349,12 @@ class PointList(PointData):
         
         with shapefile.Reader(path) as shp:
         
-            if shp.shapeType != shapefile.MULTIPOINT:
+            if shp.shapeType not in [shapefile.MULTIPOINT,
+                                     shapefile.MULTIPOINTZ]:
                 
-                err_str = ("The imported shapefile must have MULTIPOINT type. "
-                           "Given file has {} type").format(shp.shapeTypeName)
+                err_str = ("The imported shapefile must have MULTIPOINT or "
+                           "MULTIPOINTZ type. Given file has {} "
+                           "type").format(shp.shapeTypeName)
                 raise ValueError(err_str)
             
             shapes = shp.shapes()
@@ -3357,7 +3368,10 @@ class PointList(PointData):
             
             s = shapes[0]
         
-        result = [Point(point) for point in s.points]
+        if shp.shapeType == shapefile.MULTIPOINTZ:
+            result = [Point(point + (z,)) for point, z in zip(s.points, s.z)]
+        else:
+            result = [Point(point) for point in s.points]
         
         return result
     
@@ -3374,7 +3388,12 @@ class PointList(PointData):
         with shapefile.Writer(path) as shp:
             
             shp.field('name', 'C')
-            shp.multipoint(data)
+            
+            if data.shape[1] == 3:
+                shp.multipointz(data)
+            else:
+                shp.multipoint(data)
+            
             shp.record('multipoint1')
         
         return

@@ -79,7 +79,7 @@ def test_PointData_not_equals(left, right):
     assert not PointData.equals(left_point, right_point)
 
 
-@pytest.mark.parametrize("fext", [".csv", ".xls", ".xlsx"])
+@pytest.mark.parametrize("fext", [".csv", ".shp", ".xls", ".xlsx"])
 def test_PointData_auto_file(tmpdir, fext):
 
     test_path = tmpdir.mkdir("sub").join("test{}".format(fext))
@@ -125,7 +125,9 @@ def test_PointData_auto_plot(tmpdir):
         
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
-                         "title": "test"})
+                         "title": "test",
+                         "labels": ["ex", "why"],
+                         "units": ["m", "s"]})
     
     raw = (0, 1)
     

@@ -58,6 +58,77 @@ def test_SimpleData_get_value_None():
     assert result is None
 
 
+@pytest.mark.parametrize("tinput, ttype", [(1, "int"),
+                                           (1., "float")])
+def test_SimpleData_minimum_equals(tinput, ttype):
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test",
+                         "types": [ttype],
+                         "minimum_equals": [2]})
+    
+    test = SimpleData()
+    
+    with pytest.raises(ValueError) as excinfo:
+        test.get_data(tinput, meta)
+    
+    assert "less than minimum" in str(excinfo)
+
+
+@pytest.mark.parametrize("tinput, ttype", [(1, "int"),
+                                           (1., "float")])
+def test_SimpleData_minimums(tinput, ttype):
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test",
+                         "types": [ttype],
+                         "minimums": [1]})
+    
+    test = SimpleData()
+    
+    with pytest.raises(ValueError) as excinfo:
+        test.get_data(tinput, meta)
+    
+    assert "less than or equal to minimum" in str(excinfo)
+
+
+@pytest.mark.parametrize("tinput, ttype", [(1, "int"),
+                                           (1., "float")])
+def test_SimpleData_maximum_equals(tinput, ttype):
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test",
+                         "types": [ttype],
+                         "maximum_equals": [0]})
+    
+    test = SimpleData()
+    
+    with pytest.raises(ValueError) as excinfo:
+        test.get_data(tinput, meta)
+    
+    assert "greater than maximum" in str(excinfo)
+
+
+@pytest.mark.parametrize("tinput, ttype", [(1, "int"),
+                                           (1., "float")])
+def test_SimpleData_maximums(tinput, ttype):
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test",
+                         "types": [ttype],
+                         "maximums": [1]})
+    
+    test = SimpleData()
+    
+    with pytest.raises(ValueError) as excinfo:
+        test.get_data(tinput, meta)
+    
+    assert "greater than or equal to maximum" in str(excinfo)
+
 @pytest.mark.parametrize("left, right", [(1, 1),
                                          ("a", "a"),
                                          (False, False),
