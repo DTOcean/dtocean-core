@@ -126,7 +126,7 @@ class Counter(object):
     
     @abc.abstractmethod
     def _set_params(self, *args):
-        """Build a params (probably namedtuple) object to search against."""
+        """Build a params (probably namedtuple) object to record iteration."""
         return
     
     def get_cost(self, *args):

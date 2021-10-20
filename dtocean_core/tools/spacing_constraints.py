@@ -48,15 +48,15 @@ from . import Tool
 
 # Check module version
 pkg_title = "dtocean-hydrodynamics"
-min_version = "1.0"
+major_version = 3
 version = pkg_resources.get_distribution(pkg_title).version
 
-if not Version(version) >= Version(min_version):
+if not Version(version).major == major_version:
     
-    err_msg = ("Installed {} is too old! At least version {} is required, but "
-               "version {} is installed").format(pkg_title,
-                                                 version,
-                                                 min_version)
+    err_msg = ("Incompatible version of {} detected! Major version {} is "
+               "required, but version {} is installed").format(pkg_title,
+                                                               major_version,
+                                                               version)
     raise ImportError(err_msg)
 
 
@@ -258,6 +258,10 @@ class SpacingConstraintsTool(Tool):
         return
     
     def connect(self, **kwargs):
+        
+        if 'layout' not in self._config:
+            err_msg = "Key 'layout' missing from config. Was configure called?"
+            raise RuntimeError(err_msg)
         
         if 'Tidal' in self.data.type:
             

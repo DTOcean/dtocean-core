@@ -15,6 +15,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import pkg_resources
+
 import matplotlib.pyplot as plt
 
 from dtocean_electrical.main import Electrical
@@ -23,6 +25,20 @@ from dtocean_electrical.grid.grid_processing import grid_processing
 
 from . import Tool
 from ..interfaces.electrical import ElectricalInterface
+from ..utils.version import Version
+
+# Check module version
+pkg_title = "dtocean-electrical"
+major_version = 2
+version = pkg_resources.get_distribution(pkg_title).version
+
+if not Version(version).major == major_version:
+    
+    err_msg = ("Incompatible version of {} detected! Major version {} is "
+               "required, but version {} is installed").format(pkg_title,
+                                                               major_version,
+                                                               version)
+    raise ImportError(err_msg)
 
 
 class CableConstraintsTool(Tool):

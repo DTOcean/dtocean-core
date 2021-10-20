@@ -606,7 +606,7 @@ class ToolManager(ExtensionManager):
         result = False
         
         if core.can_load_interface(project, tool):
-            result = True        
+            result = True
         
         return result
     
@@ -620,5 +620,5 @@ class ToolManager(ExtensionManager):
         
         interface = core.load_interface(project, tool)
         core.connect_interface(project, interface)
-
+        
         return

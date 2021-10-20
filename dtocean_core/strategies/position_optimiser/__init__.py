@@ -75,7 +75,7 @@ class PositionCounter(opt.Counter):
                           t2,
                           dev_per_string,
                           n_evals):
-        """Build a params (probably namedtuple) object to search against."""
+        """Build a params (probably namedtuple) object to record iteration."""
         
         params = PositionParams(grid_orientation,
                                 delta_row,
