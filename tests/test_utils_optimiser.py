@@ -109,11 +109,17 @@ def sphere_cost(x, c=0.0):
 
 class MockIterator(Iterator):
     
+    def __init__(self, *args, **kwargs):
+        super(MockIterator, self).__init__(*args, **kwargs)
+        self.scaler = None
+    
     def _init_counter(self):
         return MockCounter()
     
     def _get_popen_args(self, worker_project_path, n_evals, *args):
         "Return the arguments to create a new process thread using Popen"
+        if self.scaler is not None:
+            args = [self.scaler.inverse(x) for x in args]
         self._args = args
         return ["python", "-V"]
     
@@ -159,12 +165,14 @@ def test_iterator(mocker):
     result_queue = queue.Queue()
     
     item = [result_queue]
+    item.append(None)
     item.append([1])
     item.append(["mock1"])
     
     thread_queue.put(item)
     
     item = [result_queue]
+    item.append(None)
     item.append([10])
     item.append(["mock2"])
     
@@ -192,12 +200,14 @@ def test_iterator_threaded(mocker):
     worker.start()
     
     item = [result_queue]
+    item.append(None)
     item.append([1])
     item.append(["mock1"])
     
     thread_queue.put(item)
     
     item = [result_queue]
+    item.append(None)
     item.append([10])
     item.append(["mock2"])
     
@@ -224,12 +234,14 @@ def test_iterator_previous_cost(mocker):
     result_queue = queue.Queue()
     
     item = [result_queue]
+    item.append(None)
     item.append([1])
     item.append(["mock1"])
     
     thread_queue.put(item)
     
     item = [result_queue]
+    item.append(None)
     item.append([1])
     item.append(["mock2"])
     
@@ -255,6 +267,7 @@ def test_iterator_fail_send(caplog, mocker):
     result_queue = queue.Queue()
     
     item = [result_queue]
+    item.append(None)
     item.append([1])
     item.append(["mock1"])
     
@@ -284,6 +297,7 @@ def test_iterator_fail_execute(caplog, mocker):
     result_queue = queue.Queue()
     
     item = [result_queue]
+    item.append(None)
     item.append([1])
     item.append(["mock1"])
     
@@ -312,6 +326,7 @@ def test_iterator_fail_receive(caplog, mocker):
     result_queue = queue.Queue()
     
     item = [result_queue]
+    item.append(None)
     item.append([1])
     item.append(["mock1"])
     
@@ -334,6 +349,7 @@ def test_main(mocker, tmpdir):
     x0 = 5
     x_range = (-1, 10)
     scaler = NormScaler(x_range[0], x_range[1], x0)
+    mock_iter.scaler = scaler
     
     scaled_vars = [scaler] * 2
     xhat0 = [scaler.x0] * 2
@@ -344,7 +360,7 @@ def test_main(mocker, tmpdir):
     es = init_evolution_strategy(xhat0,
                                  xhat_low_bound,
                                  xhat_high_bound,
-                                 tolfun=1e-2,
+                                 tolfun=1e-1,
                                  logging_directory=str(tmpdir))
     
     test = Main(es, mock_iter, scaled_vars, x_ops, base_penalty=1e4)
@@ -352,8 +368,8 @@ def test_main(mocker, tmpdir):
     while not test.stop:
         test.next()
     
-    print es.result_pretty()
-    print es.result.xfavorite
-    print [scaler.inverse(x) for x in es.result.xfavorite]
+    sol = np.array([scaler.inverse(x) for x in es.result.xfavorite])
     
-    assert False
+    assert (sol >= x_range[0]).all()
+    assert (sol <= x_range[1]).all()
+    assert (sol ** 2).sum() < 1e-1
