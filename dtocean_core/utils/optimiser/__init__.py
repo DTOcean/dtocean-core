@@ -207,7 +207,7 @@ class Iterator(object):
         return
     
     @abc.abstractmethod
-    def _get_popen_args(self, worker_project_path, *args):
+    def _get_popen_args(self, worker_project_path, n_evals, *args):
         "Return the arguments to create a new process thread using Popen"
         return
     
@@ -223,6 +223,7 @@ class Iterator(object):
                                   worker_project_path,
                                   results,
                                   flag,
+                                  n_evals,
                                   *args):
         """Update the counter object with new data."""
         return
@@ -253,13 +254,11 @@ class Iterator(object):
         
         return
     
-    def _iterate(self, results_queue, x, *extra):
+    def _iterate(self, results_queue, n_evals, x, *extra):
         
-        print x
         previous_cost = self._counter.get_cost(*x)
         
         if previous_cost:
-            print "previous_cost"
             results_queue.put((previous_cost,) + extra)
             return
         
@@ -286,7 +285,7 @@ class Iterator(object):
         
         try:
             
-            popen_args = self._get_popen_args(worker_project_path, *x)
+            popen_args = self._get_popen_args(worker_project_path, n_evals, *x)
             process = Popen(popen_args, close_fds=True)
             exit_code = process.wait()
             
@@ -319,6 +318,7 @@ class Iterator(object):
                                  worker_project_path,
                                  results,
                                  flag,
+                                 n_evals,
                                  *x)
         self._cleanup_hook(worker_project_path, flag, results)
         
@@ -328,8 +328,9 @@ class Iterator(object):
     
     def __call__(self, q, stop_empty=False):
         """Call the iterator with a queue.Queue() where index 0 is another
-        queue to collect results, the seconds index is the solution to solve
-        and extra arguments and added to the result queue following the cost
+        queue to collect results, index 1 is the number of evaluations for 
+        noisy cost functions, index 2 is the solution to solve and any extra 
+        indices are added to the result queue following the calculated cost.
         """
         
         if stop_empty:
@@ -338,7 +339,6 @@ class Iterator(object):
             check = lambda: True
         
         while check():
-            print "Here"
             item = q.get()
             self._iterate(*item)
             q.task_done()
@@ -349,7 +349,6 @@ class Iterator(object):
 class Main(object):
     
     def __init__(self, es,
-                       worker_directory,
                        iterator,
                        scaled_vars,
                        x_ops,
@@ -368,7 +367,6 @@ class Main(object):
         self.es = es
         self.nh = nh
         self.iterator = iterator
-        self._worker_directory = worker_directory
         self._scaled_vars = scaled_vars
         self._x_ops = x_ops
         self._fixed_index_map = fixed_index_map
@@ -686,13 +684,16 @@ class Main(object):
         for i in range(n_extra + n_default):
             
             if i not in run_idxs: continue
+            
+            descaled_sol = run_descaled_solutions[i]
+            local_n_evals = all_n_evals[i]
             category = categories[i]
             sol = run_solutions[i]
-            local_n_evals = all_n_evals[i]
             
             item = [result_queue]
-            item.append(run_descaled_solutions[i] + [local_n_evals])
-            item.append([i, category, sol])
+            item.append(local_n_evals)
+            item.append(descaled_sol)
+            item.extend([i, category, sol])
             
             self._thread_queue.put(item)
         
@@ -753,13 +754,15 @@ class Main(object):
                         if next_i not in run_idxs:
                             next_i += 1
                             continue
-                            
+                        
+                        run_descaled_sol = run_descaled_solutions[next_i]
                         run_category = categories[next_i]
                         run_sol = run_solutions[next_i]
                         
                         item = [result_queue]
-                        item.append(run_descaled_solutions[next_i] + [n_evals])
-                        item.append([next_i, run_category, run_sol])
+                        item.append(n_evals)
+                        item.append(run_descaled_sol)
+                        item.extend([next_i, run_category, run_sol])
                         
                         self._thread_queue.put(item)
                         

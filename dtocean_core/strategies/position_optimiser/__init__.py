@@ -145,7 +145,7 @@ class PositionIterator(opt.Iterator):
         
         return
     
-    def _get_popen_args(self, worker_project_path, *args):
+    def _get_popen_args(self, worker_project_path, n_evals, *args):
         "Return the arguments to create a new process thread using Popen"
         
         popen_args = ["_dtocean-optim-pos",
@@ -156,7 +156,7 @@ class PositionIterator(opt.Iterator):
             popen_args.extend(["--dev_per_string",
                                "{:d}".format(int(args[6]))])
         
-        if args[7] is not None:
+        if n_evals is not None:
             popen_args.extend(["--n_evals",
                                "{:d}".format(int(args[7]))])
         
@@ -209,13 +209,22 @@ class PositionIterator(opt.Iterator):
                                   worker_project_path,
                                   results,
                                   flag,
+                                  n_evals,
                                   *args):
         """Update the counter object with new data."""
         
+        args.append(n_evals)
+        worker_results_path = None
+        cost = np.nan
+        
+        if results is not None:
+            worker_results_path = results["worker_results_path"]
+            cost = results["cost"]
+        
         self._counter.set_params(iteration,
                                  worker_project_path,
-                                 results["worker_results_path"],
-                                 results["cost"],
+                                 worker_results_path,
+                                 cost,
                                  flag,
                                  *args)
         
@@ -468,7 +477,6 @@ class PositionOptimiser(object):
         
         self._cma_main = opt.Main(
                             es,
-                            self._worker_directory,
                             iterator,
                             scaled_vars,
                             control_dict["x_ops"],
@@ -608,7 +616,6 @@ class PositionOptimiser(object):
         
         self._cma_main = opt.Main(
                             es,
-                            self._worker_directory,
                             iterator,
                             scaled_vars,
                             control_dict["x_ops"],

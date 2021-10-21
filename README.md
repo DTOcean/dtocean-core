@@ -205,7 +205,7 @@ $ conda activate _dtocean_core
 Install pytest to the environment (one time only):
 
 ```
-$ conda install -y mock pytest pytest-mock
+$ conda install -y mock pytest pytest-catchlog pytest-mock
 ```
 
 Run the tests:
