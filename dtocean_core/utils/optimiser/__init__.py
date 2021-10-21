@@ -34,12 +34,10 @@ from math import ceil
 from subprocess import Popen
 
 import cma
-import yaml
 import numpy as np
 from numpy.linalg import norm
 
 from ..files import init_dir
-from ...core import Core
 
 # Convenience import
 from .noisehandler import NoiseHandler
@@ -185,18 +183,18 @@ class Iterator(object):
     
     __metaclass__ = abc.ABCMeta
     
-    def __init__(self, root_project_base_name,
-                       worker_directory,
+    def __init__(self, core,
                        base_project,
-                       counter,
+                       root_project_base_name,
+                       worker_directory,
                        restart=False,
                        clean_existing_dir=False):
         
-        self._counter = counter
+        self._core = core
+        self._base_project = base_project
         self._root_project_base_name = root_project_base_name
         self._worker_directory = worker_directory
-        self._base_project = base_project
-        self._core = Core()
+        self._counter = self._init_counter()
         
         if not restart:
             init_dir(worker_directory, clean_existing_dir)
@@ -204,39 +202,41 @@ class Iterator(object):
         return
     
     @abc.abstractmethod
-    def get_popen_args(self, worker_project_path, *args):
+    def _init_counter(self):
+        "Initialise and return the counter stored in the _counter attr"
+        return
+    
+    @abc.abstractmethod
+    def _get_popen_args(self, worker_project_path, *args):
         "Return the arguments to create a new process thread using Popen"
         return
     
     @abc.abstractmethod
-    def pre_constraints_hook(self, *args):
-        """Allows checking of constraints prior to execution. Should return
-        True if violated otherwise False"""
+    def _get_worker_results(self, iteration):
+        """Return the results for the given iteration as a dictionary that
+        must include the key "cost". For constraint violation the cost key
+        should be set to np.nan"""
         return
     
     @abc.abstractmethod
-    def get_worker_cost(self, results):
-        """Return the function cost based on the data read from the worker
-        results file. Constraint violation should return np.nan"""
-        return
-    
-    @abc.abstractmethod
-    def set_counter_params(self, iteration,
-                                 worker_project_path,
-                                 worker_results_path,
-                                 cost,
-                                 flag,
-                                 *args):
+    def _set_counter_params(self, iteration,
+                                  worker_project_path,
+                                  results,
+                                  flag,
+                                  *args):
         """Update the counter object with new data."""
         return
     
-    @abc.abstractmethod
-    def cleanup(self, worker_project_path, flag, results):
+    def pre_constraints_hook(self, *args):
+        """Allows checking of constraints prior to execution. Should return
+        True if violated otherwise False"""
+        return False
+    
+    def _cleanup_hook(self, worker_project_path, flag, results):
         """Hook to clean up simulation files as required"""
         return
     
     def get_counter_search_dict(self):
-        
         return self._counter.copy_search_dict()
     
     def _log_exception(self, e, flag):
@@ -253,28 +253,27 @@ class Iterator(object):
         
         return
     
-    def _iterate(self, idx, category, sol, results_queue, *args):
+    def _iterate(self, results_queue, x, *extra):
         
-        previous_cost = self._counter.get_cost(*args)
+        print x
+        previous_cost = self._counter.get_cost(*x)
         
         if previous_cost:
-            results_queue.put((idx, category, sol, previous_cost))
+            print "previous_cost"
+            results_queue.put((previous_cost,) + extra)
             return
         
         flag = ""
         iteration = self._counter.get_iteration()
-        cost = np.nan
         
         worker_file_root_path = "{}_{}".format(self._root_project_base_name,
                                                iteration)
         worker_project_name = "{}.prj".format(worker_file_root_path)
-        worker_results_name = "{}.yaml".format(worker_file_root_path)
         worker_project_path = os.path.join(self._worker_directory,
                                            worker_project_name)
-        worker_results_path = os.path.join(self._worker_directory,
-                                           worker_results_name)
         
         results = None
+        cost = np.nan
         
         try:
             
@@ -283,12 +282,11 @@ class Iterator(object):
         except Exception as e:
             
             flag = "Fail Send"
-            worker_results_path = None
             self._log_exception(e, flag)
         
         try:
             
-            popen_args = self.get_popen_args(worker_project_path, *args)
+            popen_args = self._get_popen_args(worker_project_path, *x)
             process = Popen(popen_args, close_fds=True)
             exit_code = process.wait()
             
@@ -303,44 +301,48 @@ class Iterator(object):
         except Exception as e:
             
             flag = "Fail Execute"
-            worker_results_path = None
             self._log_exception(e, flag)
         
         if "Fail" not in flag:
             
             try:
                 
-                with open(worker_results_path, "r") as stream:
-                    results = yaml.load(stream, Loader=yaml.FullLoader)
-                
-                cost = self.get_worker_cost(results)
+                results = self._get_worker_results(iteration)
+                cost = results["cost"]
             
             except Exception as e:
                 
                 flag = "Fail Receive"
-                worker_results_path = None
                 self._log_exception(e, flag)
         
-        self.set_counter_params(iteration,
-                                worker_project_path,
-                                worker_results_path,
-                                cost,
-                                flag,
-                                *args)
-        self.cleanup(worker_project_path, flag, results)
+        self._set_counter_params(iteration,
+                                 worker_project_path,
+                                 results,
+                                 flag,
+                                 *x)
+        self._cleanup_hook(worker_project_path, flag, results)
         
-        results_queue.put((idx, category, sol, cost))
+        results_queue.put((cost,) + extra)
         
         return
     
-    def __call__(self, q):
+    def __call__(self, q, stop_empty=False):
+        """Call the iterator with a queue.Queue() where index 0 is another
+        queue to collect results, the seconds index is the solution to solve
+        and extra arguments and added to the result queue following the cost
+        """
         
-        while True:
-            
+        if stop_empty:
+            check = lambda: not q.empty()
+        else:
+            check = lambda: True
+        
+        while check():
+            print "Here"
             item = q.get()
             self._iterate(*item)
             q.task_done()
-            
+        
         return
 
 
@@ -688,9 +690,11 @@ class Main(object):
             sol = run_solutions[i]
             local_n_evals = all_n_evals[i]
             
-            self._thread_queue.put([i, category, sol, result_queue] +
-                                   run_descaled_solutions[i] + 
-                                   [local_n_evals])
+            item = [result_queue]
+            item.append(run_descaled_solutions[i] + [local_n_evals])
+            item.append([i, category, sol])
+            
+            self._thread_queue.put(item)
         
         store_results = {}
         min_i = 0
@@ -699,7 +703,7 @@ class Main(object):
         
         while results_found < n_extra + n_default:
             
-            i, category, sol, cost = result_queue.get()
+            cost, i, category, sol = result_queue.get()
             
             if i in match_dict:
                 all_i = [(i, category, sol)] + match_dict[i]
@@ -753,10 +757,11 @@ class Main(object):
                         run_category = categories[next_i]
                         run_sol = run_solutions[next_i]
                         
-                        self._thread_queue.put(
-                                [next_i, run_category, run_sol, result_queue] +
-                                run_descaled_solutions[next_i] + 
-                                [n_evals])
+                        item = [result_queue]
+                        item.append(run_descaled_solutions[next_i] + [n_evals])
+                        item.append([next_i, run_category, run_sol])
+                        
+                        self._thread_queue.put(item)
                         
                         next_i += 1
                         continue

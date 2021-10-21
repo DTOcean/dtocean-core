@@ -28,6 +28,7 @@ from copy import deepcopy
 from bisect import bisect_left
 from collections import namedtuple
 
+import yaml
 import numpy as np
 from ruamel.yaml import YAML
 from natsort import natsorted
@@ -55,7 +56,7 @@ PositionParams = namedtuple('PositionParams', ['grid_orientation',
                                                't2',
                                                'dev_per_string',
                                                'n_evals',
-                                               'lcoe',
+                                               'cost',
                                                'flag',
                                                'prj_file_path',
                                                'yaml_file_path'])
@@ -65,7 +66,7 @@ class PositionCounter(opt.Counter):
     
     def _set_params(self, worker_project_path,
                           worker_results_path,
-                          lcoe,
+                          cost,
                           flag,
                           grid_orientation,
                           delta_row,
@@ -85,7 +86,7 @@ class PositionCounter(opt.Counter):
                                 t2,
                                 dev_per_string,
                                 n_evals,
-                                lcoe,
+                                cost,
                                 flag,
                                 worker_project_path,
                                 worker_results_path)
@@ -101,19 +102,19 @@ class PositionCounter(opt.Counter):
 
 class PositionIterator(opt.Iterator):
     
-    def __init__(self, root_project_base_name,
-                       worker_directory,
+    def __init__(self, core,
                        base_project,
-                       counter,
+                       root_project_base_name,
+                       worker_directory,
                        objective_var,
                        restart=False,
                        clean_existing_dir=False,
                        violation_log_name = "violations.txt"):
         
-        super(PositionIterator, self).__init__(root_project_base_name,
-                                               worker_directory,
+        super(PositionIterator, self).__init__(core,
                                                base_project,
-                                               counter,
+                                               root_project_base_name,
+                                               worker_directory,
                                                restart,
                                                clean_existing_dir)
         
@@ -126,6 +127,9 @@ class PositionIterator(opt.Iterator):
         self._set_objective_var(objective_var)
         
         return
+    
+    def _init_counter(self):
+        return PositionCounter()
     
     def _set_objective_var(self, objective_var):
         
@@ -141,7 +145,7 @@ class PositionIterator(opt.Iterator):
         
         return
     
-    def get_popen_args(self, worker_project_path, *args):
+    def _get_popen_args(self, worker_project_path, *args):
         "Return the arguments to create a new process thread using Popen"
         
         popen_args = ["_dtocean-optim-pos",
@@ -157,6 +161,65 @@ class PositionIterator(opt.Iterator):
                                "{:d}".format(int(args[7]))])
         
         return popen_args
+    
+    def _get_worker_results(self, iteration):
+        """Return the results for the given iteration as a dictionary that
+        must include the key "cost". For constraint violation the cost key
+        should be set to np.nan"""
+        
+        worker_file_root_path = "{}_{}".format(self._root_project_base_name,
+                                               iteration)
+        worker_results_name = "{}.yaml".format(worker_file_root_path)
+        worker_results_path = os.path.join(self._worker_directory,
+                                           worker_results_name)
+        
+        with open(worker_results_path, "r") as stream:
+            results = yaml.load(stream, Loader=yaml.FullLoader)
+        
+        flag = results["status"]
+        cost = np.nan
+        
+        if flag == "Exception":
+            
+            details = results["error"]
+            module_logger.debug(flag)
+            module_logger.debug(details)
+        
+        elif flag == "Success":
+            
+            cost = results["results"][self._objective_var]
+            
+            if not isinstance(cost, numbers.Number):
+                
+                warn_msg = ("Detected cost is not a number, returning "
+                            "np.nan. Detected type is "
+                            "'{}'").format(type(cost).__name__)
+                module_logger.warn(warn_msg)
+        
+        else:
+            
+            raise RuntimeError("Unrecognised flag '{}'".format(flag))
+        
+        results["worker_results_path"] = worker_results_path
+        results["cost"] = cost
+        
+        return results
+    
+    def _set_counter_params(self, iteration,
+                                  worker_project_path,
+                                  results,
+                                  flag,
+                                  *args):
+        """Update the counter object with new data."""
+        
+        self._counter.set_params(iteration,
+                                 worker_project_path,
+                                 results["worker_results_path"],
+                                 results["cost"],
+                                 flag,
+                                 *args)
+        
+        return
     
     def pre_constraints_hook(self, *args):
         
@@ -214,57 +277,7 @@ class PositionIterator(opt.Iterator):
         
         return False
     
-    def get_worker_cost(self, results):
-        """Return the function cost based on the data read from the worker
-        results file. Constraint violation should return np.nan"""
-        
-        flag = results["status"]
-        
-        if flag == "Exception":
-            
-            details = results["error"]
-            module_logger.debug(flag)
-            module_logger.debug(details)
-            
-            lcoe = np.nan
-        
-        elif flag == "Success":
-            
-            lcoe = results["results"][self._objective_var]
-            
-            if not isinstance(lcoe, numbers.Number):
-                
-                warn_msg = ("Detected result is not a number, returning "
-                            "np.nan. Detected type is "
-                            "'{}'").format(type(lcoe).__name__)
-                module_logger.warn(warn_msg)
-                
-                lcoe = np.nan
-        
-        else:
-        
-            raise RuntimeError("Unrecognised flag '{}'".format(flag))
-        
-        return lcoe
-    
-    def set_counter_params(self, iteration,
-                                 worker_project_path,
-                                 worker_results_path,
-                                 cost,
-                                 flag,
-                                 *args):
-        """Update the counter object with new data."""
-        
-        self._counter.set_params(iteration,
-                                 worker_project_path,
-                                 worker_results_path,
-                                 cost,
-                                 flag,
-                                 *args)
-        
-        return
-    
-    def cleanup(self, worker_project_path, flag, lines):
+    def _cleanup_hook(self, worker_project_path, flag, lines):
         """Hook to clean up simulation files as required"""
         
         remove_retry(worker_project_path)
@@ -429,11 +442,10 @@ class PositionOptimiser(object):
         else:
             nh = None
         
-        counter = PositionCounter()
-        iterator = PositionIterator(root_project_base_name,
-                                    self._worker_directory,
+        iterator = PositionIterator(self._core,
                                     project,
-                                    counter,
+                                    root_project_base_name,
+                                    self._worker_directory,
                                     objective,
                                     clean_existing_dir=clean_existing_dir)
         
@@ -587,11 +599,10 @@ class PositionOptimiser(object):
         scaled_vars = [opt.NormScaler(x[0], x[1], y)
                                                 for x, y in zip(ranges, x0s)]
         
-        counter = PositionCounter(counter_dict)
-        iterator = PositionIterator(root_project_base_name,
-                                    self._worker_directory,
+        iterator = PositionIterator(self._core,
                                     project,
-                                    counter,
+                                    root_project_base_name,
+                                    self._worker_directory,
                                     objective,
                                     restart=True)
         
