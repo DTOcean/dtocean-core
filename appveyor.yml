@@ -55,7 +55,7 @@ install:
   - chcp 65001
   - set PYTHONIOENCODING=utf-8
   - pip install -e .
-  - conda install mock pytest pytest-catchlog pytest-cov=2.5.1 pytest-mock
+  - conda install mock "pytest<3.2" pytest-catchlog pytest-cov=2.5.1 pytest-mock
 
 build: off
 
