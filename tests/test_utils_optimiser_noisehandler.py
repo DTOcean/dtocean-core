@@ -50,10 +50,6 @@ class MockCounter(Counter):
         return None
 
 
-    def noisysphere(self, x, noise=2.10e-9, cond=1.0, noise_offset=0.10):
-        """noise=10 does not work with default popsize, ``cma.NoiseHandler(dimension, 1e7)`` helps"""
-        return self.elli(x, cond=cond) * np.exp(0 + noise * np.random.randn() / len(x)) + noise_offset * np.random.rand()
-
 def noisy_sphere_cost(x, noise=2.10e-9, cond=1.0, noise_offset=0.10):
     
     #    The BSD 3-Clause License
