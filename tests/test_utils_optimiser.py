@@ -16,7 +16,8 @@ from dtocean_core.utils.optimiser import (SafeCMAEvolutionStrategy,
                                           Iterator,
                                           Main,
                                           init_evolution_strategy,
-                                          _get_scale_factor)
+                                          _get_scale_factor,
+                                          _get_match_process)
 
 
 @contextlib.contextmanager
@@ -727,3 +728,16 @@ def test_get_scale_factor_bad_n_sigmas(n_sigmas):
         _get_scale_factor(0, 2, 1, 1, n_sigmas)
     
     assert "must be a positive whole number" in str(excinfo)
+
+
+def test_get_match_process():
+    
+    a = [[1, 1], [2, 2], [2, 2], [2, 2], [3, 3]]
+    b = ["a", "b", "b", "b", "c"]
+    c = [True, False, False, False, True]
+    
+    run_idxs, match_dict = _get_match_process(a, b, c)
+    
+    assert run_idxs == [0, 1, 4]
+    assert 1 in match_dict
+    assert match_dict[1] == [(2, "b", False), (3, "b", False)]
