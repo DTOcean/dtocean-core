@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import queue
+import logging
 import threading
+import contextlib
 from collections import namedtuple
 
 import pytest
@@ -12,6 +14,16 @@ from dtocean_core.utils.optimiser import (NormScaler,
                                           Iterator,
                                           Main,
                                           init_evolution_strategy)
+
+
+@contextlib.contextmanager
+def caplog_for_logger(caplog, logger_name, level=logging.DEBUG):
+    caplog.handler.records = []
+    logger = logging.getLogger(logger_name)
+    logger.addHandler(caplog.handler)
+    logger.setLevel(level)
+    yield
+    logger.removeHandler(caplog.handler)
 
 
 @pytest.fixture
@@ -273,7 +285,8 @@ def test_iterator_fail_send(caplog, mocker):
     
     thread_queue.put(item)
     
-    test(thread_queue, stop_empty=True)
+    with caplog_for_logger(caplog, 'dtocean_core'):
+        test(thread_queue, stop_empty=True)
     
     assert result_queue.get() == (np.nan, ['mock1'])
     assert "Fail Send" in caplog.text
@@ -303,7 +316,8 @@ def test_iterator_fail_execute(caplog, mocker):
     
     thread_queue.put(item)
     
-    test(thread_queue, stop_empty=True)
+    with caplog_for_logger(caplog, 'dtocean_core'):
+        test(thread_queue, stop_empty=True)
     
     assert result_queue.get() == (np.nan, ['mock1'])
     assert "Fail Execute" in caplog.text
@@ -332,7 +346,8 @@ def test_iterator_fail_receive(caplog, mocker):
     
     thread_queue.put(item)
     
-    test(thread_queue, stop_empty=True)
+    with caplog_for_logger(caplog, 'dtocean_core'):
+        test(thread_queue, stop_empty=True)
     
     assert result_queue.get() == (np.nan, ['mock1'])
     assert "Fail Receive" in caplog.text
