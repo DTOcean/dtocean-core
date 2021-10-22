@@ -17,6 +17,9 @@ from dtocean_core.utils.stats import (UniVariateKDE,
                                       get_standard_error)
 
 
+SLACK = 85
+
+
 @pytest.fixture(scope="module")
 def gaussian():
     
@@ -137,7 +140,7 @@ def test_UniVariateKDE_mean():
     tpct = sum(tests) * 100. / n_tests
     
     # Add some slack!
-    assert tpct > 90
+    assert tpct >= SLACK
 
 
 def test_UniVariateKDE_median():
@@ -172,7 +175,7 @@ def test_UniVariateKDE_median():
     tpct = sum(tests) * 100. / n_tests
     
     # Add some slack!
-    assert tpct > 90
+    assert tpct >= SLACK
 
 
 def test_UniVariateKDE_mode():
@@ -205,7 +208,7 @@ def test_UniVariateKDE_mode():
     tpct = sum(tests) * 100. / n_tests
     
     # Add some slack!
-    assert tpct > 90
+    assert tpct >= SLACK
 
 
 def test_UniVariateKDE_interval(gaussian):
@@ -280,7 +283,7 @@ def test_BiVariateKDE_mean():
     tpct = sum(tests) * 100. / n_tests
     
     # Add some slack!
-    assert tpct > 90
+    assert tpct >= SLACK
 
 
 def test_BiVariateKDE_mode():
@@ -315,7 +318,7 @@ def test_BiVariateKDE_mode():
     tpct = sum(tests) * 100. / n_tests
     
     # Add some slack!
-    assert tpct > 90
+    assert tpct >= SLACK
 
 
 def test_BiVariateKDE_pdf(bigaussian_pdf):
@@ -391,7 +394,7 @@ def test_get_standard_error():
     tpct = sum(tests) * 100. / n_tests
     
     # Add some slack!
-    assert tpct > 90
+    assert tpct >= SLACK
 
 
 def test_get_standard_error_large():
