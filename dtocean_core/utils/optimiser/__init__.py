@@ -929,7 +929,7 @@ def _get_scale_factor(range_min, range_max, x0, sigma, n_sigmas):
         raise ValueError(err_str)
     
     if n_sigmas % 1 != 0 or int(n_sigmas) <= 0:
-        err_str = "n_sigmas must a positive whole number"
+        err_str = "n_sigmas must be a positive whole number"
         raise ValueError(err_str)
     
     max_half_range = max(range_max - x0, x0 - range_min)

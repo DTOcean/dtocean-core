@@ -8,12 +8,15 @@ from collections import namedtuple
 
 import pytest
 import numpy as np
+import matplotlib.pyplot as plt
 
-from dtocean_core.utils.optimiser import (NormScaler,
+from dtocean_core.utils.optimiser import (SafeCMAEvolutionStrategy,
+                                          NormScaler,
                                           Counter,
                                           Iterator,
                                           Main,
-                                          init_evolution_strategy)
+                                          init_evolution_strategy,
+                                          _get_scale_factor)
 
 
 @contextlib.contextmanager
@@ -108,6 +111,37 @@ def test_Counter_get_cost(value, expected):
 
 
 def sphere_cost(x, c=0.0):
+    
+    #    The BSD 3-Clause License
+    #    Copyright (c) 2014 Inria
+    #    Author: Nikolaus Hansen, 2008-
+    #    Author: Petr Baudis, 2014
+    #    Author: Youhei Akimoto, 2016-
+    #    
+    #    Redistribution and use in source and binary forms, with or without
+    #    modification, are permitted provided that the following conditions
+    #    are met:
+    #    
+    #    1. Redistributions of source code must retain the above copyright and
+    #       authors notice, this list of conditions and the following disclaimer.
+    #    
+    #    2. Redistributions in binary form must reproduce the above copyright
+    #       and authors notice, this list of conditions and the following
+    #       disclaimer in the documentation and/or other materials provided with
+    #       the distribution.
+    #    
+    #    3. Neither the name of the copyright holder nor the names of its
+    #       contributors nor the authors names may be used to endorse or promote
+    #       products derived from this software without specific prior written
+    #       permission.
+    #    
+    #    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    #    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    #    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    #    AUTHORS OR CONTRIBUTORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES
+    #    OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, 
+    #    ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    #    DEALINGS IN THE SOFTWARE.
     
     # Sphere (squared norm) test objective function
     
@@ -354,6 +388,135 @@ def test_iterator_fail_receive(caplog, mocker):
     assert exc_msg in caplog.text
 
 
+def test_init_evolution_strategy(tmpdir):
+    
+    x0 = 5
+    x_range = (-1, 10)
+    scaler = NormScaler(x_range[0], x_range[1], x0)
+    
+    xhat0 = [scaler.x0] * 2
+    xhat_low_bound = [scaler.scaled(x_range[0])] * 2
+    xhat_high_bound = [scaler.scaled(x_range[1])] * 2
+    
+    es = init_evolution_strategy(xhat0,
+                                 xhat_low_bound,
+                                 xhat_high_bound,
+                                 integer_variables=[0],
+                                 max_simulations=10,
+                                 popsize=9,
+                                 timeout=1,
+                                 tolfun=1e-9,
+                                 logging_directory=str(tmpdir))
+    
+    assert isinstance(es, SafeCMAEvolutionStrategy)
+
+
+def test_main_max_resample_loop_factor_negative(mocker, tmpdir):
+    
+    x0 = 5
+    x_range = (-1, 10)
+    scaler = NormScaler(x_range[0], x_range[1], x0)
+    
+    xhat0 = [scaler.x0] * 2
+    xhat_low_bound = [scaler.scaled(x_range[0])] * 2
+    xhat_high_bound = [scaler.scaled(x_range[1])] * 2
+    
+    es = init_evolution_strategy(xhat0,
+                                 xhat_low_bound,
+                                 xhat_high_bound,
+                                 tolfun=1e-1,
+                                 logging_directory=str(tmpdir))
+    
+    with pytest.raises(ValueError) as excinfo:
+        Main(es,
+             None,
+             None,
+             None,
+             max_resample_loop_factor=-1)
+    
+    assert "must be greater than or equal to zero" in str(excinfo)
+
+
+def test_main_max_auto_resample_iterations_zero(mocker, tmpdir):
+    
+    x0 = 5
+    x_range = (-1, 10)
+    scaler = NormScaler(x_range[0], x_range[1], x0)
+    
+    xhat0 = [scaler.x0] * 2
+    xhat_low_bound = [scaler.scaled(x_range[0])] * 2
+    xhat_high_bound = [scaler.scaled(x_range[1])] * 2
+    
+    es = init_evolution_strategy(xhat0,
+                                 xhat_low_bound,
+                                 xhat_high_bound,
+                                 tolfun=1e-1,
+                                 logging_directory=str(tmpdir))
+    
+    with pytest.raises(ValueError) as excinfo:
+        Main(es,
+             None,
+             None,
+             None,
+             auto_resample_iterations=0)
+    
+    assert "must be greater than zero" in str(excinfo)
+
+
+def test_main_max_resample_loops(mocker, tmpdir):
+    
+    x0 = 5
+    x_range = (-1, 10)
+    scaler = NormScaler(x_range[0], x_range[1], x0)
+    
+    xhat0 = [scaler.x0] * 2
+    xhat_low_bound = [scaler.scaled(x_range[0])] * 2
+    xhat_high_bound = [scaler.scaled(x_range[1])] * 2
+    popsize = 4
+    max_resample_loop_factor = 2
+    
+    es = init_evolution_strategy(xhat0,
+                                 xhat_low_bound,
+                                 xhat_high_bound,
+                                 popsize=popsize,
+                                 logging_directory=str(tmpdir))
+    
+    test = Main(es,
+                None,
+                None,
+                None,
+                max_resample_loop_factor=max_resample_loop_factor)
+    
+    expected = 2 * popsize * max_resample_loop_factor
+    assert test.get_max_resample_factor() == expected
+
+
+def test_main_get_max_resample_factor_auto(mocker, tmpdir):
+    
+    x0 = 5
+    x_range = (-1, 10)
+    scaler = NormScaler(x_range[0], x_range[1], x0)
+    
+    xhat0 = [scaler.x0] * 2
+    xhat_low_bound = [scaler.scaled(x_range[0])] * 2
+    xhat_high_bound = [scaler.scaled(x_range[1])] * 2
+    auto_resample_iterations = 2
+    
+    es = init_evolution_strategy(xhat0,
+                                 xhat_low_bound,
+                                 xhat_high_bound,
+                                 logging_directory=str(tmpdir))
+    
+    test = Main(es,
+                None,
+                None,
+                None,
+                auto_resample_iterations=auto_resample_iterations)
+    
+    expected = "auto{}".format(auto_resample_iterations)
+    assert test.get_max_resample_factor() == expected
+
+
 def test_main(mocker, tmpdir):
     
     mocker.patch("dtocean_core.utils.optimiser.init_dir")
@@ -388,3 +551,179 @@ def test_main(mocker, tmpdir):
     assert (sol >= x_range[0]).all()
     assert (sol <= x_range[1]).all()
     assert (sol ** 2).sum() < 1e-1
+
+
+def test_main_fixed(mocker, tmpdir):
+    
+    mocker.patch("dtocean_core.utils.optimiser.init_dir")
+    mock_core = mocker.MagicMock()
+    
+    mock_iter = MockIterator(mock_core, None, "mock", "mock")
+    
+    x0 = 5
+    x_range = (-1, 10)
+    scaler = NormScaler(x_range[0], x_range[1], x0)
+    mock_iter.scaler = scaler
+    
+    scaled_vars = [scaler] * 2
+    xhat0 = [scaler.x0] * 2
+    xhat_low_bound = [scaler.scaled(x_range[0])] * 2
+    xhat_high_bound = [scaler.scaled(x_range[1])] * 2
+    x_ops = [None] * 2
+    fixed_index_map = {2: scaler.scaled(1)}
+    
+    es = init_evolution_strategy(xhat0,
+                                 xhat_low_bound,
+                                 xhat_high_bound,
+                                 tolfun=1e-1,
+                                 logging_directory=str(tmpdir))
+    
+    test = Main(es,
+                mock_iter,
+                scaled_vars,
+                x_ops,
+                fixed_index_map=fixed_index_map,
+                base_penalty=1e4)
+    
+    while not test.stop:
+        test.next()
+    
+    assert abs(es.result.fbest - 1) < 1e-1
+
+
+def test_main_auto_resample_iterations(caplog, mocker, tmpdir):
+    
+    mocker.patch("dtocean_core.utils.optimiser.init_dir")
+    mock_core = mocker.MagicMock()
+    
+    mock_iter = MockIterator(mock_core, None, "mock", "mock")
+    
+    x0 = 5
+    x_range = (-1, 10)
+    scaler = NormScaler(x_range[0], x_range[1], x0)
+    mock_iter.scaler = scaler
+    
+    scaled_vars = [scaler] * 2
+    xhat0 = [scaler.x0] * 2
+    xhat_low_bound = [scaler.scaled(x_range[0])] * 2
+    xhat_high_bound = [scaler.scaled(x_range[1])] * 2
+    x_ops = [None] * 2
+    
+    es = init_evolution_strategy(xhat0,
+                                 xhat_low_bound,
+                                 xhat_high_bound,
+                                 tolfun=1e-1,
+                                 logging_directory=str(tmpdir))
+    
+    test = Main(es,
+                mock_iter,
+                scaled_vars,
+                x_ops,
+                base_penalty=1e4,
+                auto_resample_iterations=2)
+    
+    i = 0
+    
+    with caplog_for_logger(caplog, 'dtocean_core'):
+        while i < 4:
+            test.next()
+            i += 1
+    
+    assert "following iteration 2" in caplog.text
+
+
+def test_main_no_feasible_solutions(mocker, tmpdir):
+    
+    mocker.patch("dtocean_core.utils.optimiser.init_dir")
+    mock_core = mocker.MagicMock()
+    
+    mock_iter = MockIterator(mock_core, None, "mock", "mock")
+    
+    mocker.patch.object(mock_iter,
+                        "_get_worker_results",
+                        return_value={"cost": np.nan})
+    
+    x0 = 5
+    x_range = (-1, 10)
+    scaler = NormScaler(x_range[0], x_range[1], x0)
+    mock_iter.scaler = scaler
+    
+    scaled_vars = [scaler] * 2
+    xhat0 = [scaler.x0] * 2
+    xhat_low_bound = [scaler.scaled(x_range[0])] * 2
+    xhat_high_bound = [scaler.scaled(x_range[1])] * 2
+    x_ops = [None] * 2
+    
+    es = init_evolution_strategy(xhat0,
+                                 xhat_low_bound,
+                                 xhat_high_bound,
+                                 tolfun=1e-1,
+                                 logging_directory=str(tmpdir))
+    
+    test = Main(es, mock_iter, scaled_vars, x_ops, base_penalty=1e4)
+    
+    with pytest.raises(RuntimeError) as excinfo:
+        test.next()
+    
+    assert "no feasible solutions" in str(excinfo)
+
+
+def test_SafeCMAEvolutionStrategy_plot(caplog, mocker, tmpdir):
+    
+    mocker.patch("dtocean_core.utils.optimiser.init_dir")
+    mock_core = mocker.MagicMock()
+    
+    mock_iter = MockIterator(mock_core, None, "mock", "mock")
+    
+    x0 = 5
+    x_range = (-1, 10)
+    scaler = NormScaler(x_range[0], x_range[1], x0)
+    mock_iter.scaler = scaler
+    
+    scaled_vars = [scaler] * 2
+    xhat0 = [scaler.x0] * 2
+    xhat_low_bound = [scaler.scaled(x_range[0])] * 2
+    xhat_high_bound = [scaler.scaled(x_range[1])] * 2
+    x_ops = [None] * 2
+    
+    es = init_evolution_strategy(xhat0,
+                                 xhat_low_bound,
+                                 xhat_high_bound,
+                                 tolfun=1e-1,
+                                 logging_directory=str(tmpdir))
+    
+    test = Main(es,
+                mock_iter,
+                scaled_vars,
+                x_ops,
+                base_penalty=1e4,
+                auto_resample_iterations=2)
+    
+    i = 0
+    
+    while i < 4:
+        test.next()
+        i += 1
+    
+    es.plot()
+    
+    assert len(plt.get_fignums()) == 1
+    
+    plt.close("all")
+
+
+def test_get_scale_factor_bad_sigma():
+    
+    with pytest.raises(ValueError) as excinfo:
+        _get_scale_factor(0, 2, 1, 0, 1)
+    
+    assert "sigma must be positive" in str(excinfo)
+
+
+@pytest.mark.parametrize("n_sigmas", [-1, 2.1])
+def test_get_scale_factor_bad_n_sigmas(n_sigmas):
+    
+    with pytest.raises(ValueError) as excinfo:
+        _get_scale_factor(0, 2, 1, 1, n_sigmas)
+    
+    assert "must be a positive whole number" in str(excinfo)
