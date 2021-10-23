@@ -675,9 +675,17 @@ class Main(object):
                 len(categories) ==
                 len(all_n_evals))
         
-        run_idxs, match_dict = _get_match_process(run_descaled_solutions,
-                                                  categories,
-                                                  run_solutions)
+        # Reuse previous costs if the function is not noisy
+        if self.nh is None:
+            
+            run_idxs, match_dict = _get_match_process(run_descaled_solutions,
+                                                      categories,
+                                                      run_solutions)
+        
+        else:
+            
+            run_idxs = range(len(run_solutions))
+            match_dict = {}
         
         result_queue = queue.Queue()
         
