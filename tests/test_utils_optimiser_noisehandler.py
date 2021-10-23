@@ -8,7 +8,7 @@ import numpy as np
 
 from dtocean_core.utils.optimiser import (NormScaler,
                                           Counter,
-                                          Iterator,
+                                          Evaluator,
                                           Main,
                                           NoiseHandler,
                                           init_evolution_strategy,
@@ -50,7 +50,7 @@ class MockCounter(Counter):
         return None
 
 
-def noisy_sphere_cost(x, noise=2.10e-9, cond=1.0, noise_offset=0.10):
+def noisy_sphere_cost(x, noise=5, cond=1.0):
     
     #    The BSD 3-Clause License
     #    Copyright (c) 2014 Inria
@@ -100,14 +100,22 @@ def noisy_sphere_cost(x, noise=2.10e-9, cond=1.0, noise_offset=0.10):
     # noise=10 does not work with default popsize,
     # ``cma.NoiseHandler(dimension, 1e7)`` helps"""
     
-    return elli(x, cond=cond) * np.exp(noise * np.random.randn() / len(x)) \
-                                            + noise_offset * np.random.rand()
+    test = np.random.rand()
+    
+    if test > 0.5:
+        sign = 1
+    else:
+        sign = -1
+    
+    noise = sign * np.exp(noise * np.random.randn() / len(x))
+    
+    return elli(x, cond=cond) * noise
 
 
-class MockIterator(Iterator):
+class MockEvaluator(Evaluator):
     
     def __init__(self, *args, **kwargs):
-        super(MockIterator, self).__init__(*args, **kwargs)
+        super(MockEvaluator, self).__init__(*args, **kwargs)
         self.scaler = None
     
     def _init_counter(self):
@@ -118,6 +126,7 @@ class MockIterator(Iterator):
         if self.scaler is not None:
             args = [self.scaler.inverse(x) for x in args]
         self._args = args
+        self._n_evals = n_evals
         return ["python", "-V"]
     
     def _get_worker_results(self, iteration):
@@ -126,7 +135,11 @@ class MockIterator(Iterator):
         should be set to np.nan"""
         
         x = np.array(self._args)
-        return {"cost": noisy_sphere_cost(x)}
+        all_costs = np.array([noisy_sphere_cost(x)
+                                        for _ in xrange(self._n_evals)])
+        cost = np.nanmean(all_costs)
+        
+        return {"cost": cost}
     
     def _set_counter_params(self, iteration,
                                   worker_project_path,
@@ -156,37 +169,45 @@ def test_main(mocker, tmpdir):
     mocker.patch("dtocean_core.utils.optimiser.init_dir")
     mock_core = mocker.MagicMock()
     
-    mock_iter = MockIterator(mock_core, None, "mock", "mock")
+    mock_eval = MockEvaluator(mock_core, None, "mock", "mock")
     
     x0 = 5
     x_range = (-1, 10)
     scaler = NormScaler(x_range[0], x_range[1], x0)
-    mock_iter.scaler = scaler
+    mock_eval.scaler = scaler
     
-    scaled_vars = [scaler] * 2
-    xhat0 = [scaler.x0] * 2
-    xhat_low_bound = [scaler.scaled(x_range[0])] * 2
-    xhat_high_bound = [scaler.scaled(x_range[1])] * 2
-    x_ops = [None] * 2
+    scaled_vars = [scaler] * 3
+    xhat0 = [scaler.x0] * 3
+    xhat_low_bound = [scaler.scaled(x_range[0])] * 3
+    xhat_high_bound = [scaler.scaled(x_range[1])] * 3
+    x_ops = [None] * 3
     
     es = init_evolution_strategy(xhat0,
                                  xhat_low_bound,
                                  xhat_high_bound,
-                                 tolfun=1e-1,
+                                 tolfun=1e-2,
                                  logging_directory=str(tmpdir))
     
     nh = NoiseHandler(es.N, maxevals=[1, 1, 30])
     
-    test = Main(es, mock_iter, scaled_vars, x_ops, nh=nh, base_penalty=1e4)
+    test = Main(es, mock_eval, scaled_vars, x_ops, nh=nh, base_penalty=1e9)
     
-    while not test.stop:
+    max_noise = -np.inf
+    costs = []
+    
+    while max_noise <= 0:
+        max_noise = max(max_noise, nh._noise_predict())
+        print  nh._noise_predict()
+        cost = es.result.fbest
+        costs.append(cost)
         test.next()
     
-    sol = np.array([scaler.inverse(x) for x in es.result.xfavorite])
+    assert max_noise > 0
     
-    assert (sol >= x_range[0]).all()
-    assert (sol <= x_range[1]).all()
-    assert (sol ** 2).sum() < 1e-1
+    first_cost = costs[0]
+    last_cost = costs[-1]
+    
+    assert first_cost > last_cost
 
 
 def test_dump_load_outputs(mocker, tmpdir):
@@ -194,12 +215,12 @@ def test_dump_load_outputs(mocker, tmpdir):
     mocker.patch("dtocean_core.utils.optimiser.init_dir")
     mock_core = mocker.MagicMock()
     
-    mock_iter = MockIterator(mock_core, None, "mock", "mock")
+    mock_eval = MockEvaluator(mock_core, None, "mock", "mock")
     
     x0 = 5
     x_range = (-1, 10)
     scaler = NormScaler(x_range[0], x_range[1], x0)
-    mock_iter.scaler = scaler
+    mock_eval.scaler = scaler
     
     scaled_vars = [scaler] * 2
     xhat0 = [scaler.x0] * 2
@@ -216,7 +237,7 @@ def test_dump_load_outputs(mocker, tmpdir):
     nh = NoiseHandler(es.N, maxevals=[1, 1, 30])
     
     test = Main(es,
-                mock_iter,
+                mock_eval,
                 scaled_vars,
                 x_ops,
                 nh=nh,
@@ -229,10 +250,10 @@ def test_dump_load_outputs(mocker, tmpdir):
         test.next()
         i += 1
     
-    counter_dict = mock_iter.get_counter_search_dict()
+    counter_dict = mock_eval.get_counter_search_dict()
     pre_dump = len(tmpdir.listdir())
     
-    dump_outputs(str(tmpdir), es, mock_iter, nh)
+    dump_outputs(str(tmpdir), es, mock_eval, nh)
     
     assert len(tmpdir.listdir()) == pre_dump + 3
     

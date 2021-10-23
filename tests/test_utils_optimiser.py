@@ -523,12 +523,12 @@ def test_main(mocker, tmpdir):
     mocker.patch("dtocean_core.utils.optimiser.init_dir")
     mock_core = mocker.MagicMock()
     
-    mock_iter = MockEvaluator(mock_core, None, "mock", "mock")
+    mock_eval = MockEvaluator(mock_core, None, "mock", "mock")
     
     x0 = 5
     x_range = (-1, 10)
     scaler = NormScaler(x_range[0], x_range[1], x0)
-    mock_iter.scaler = scaler
+    mock_eval.scaler = scaler
     
     scaled_vars = [scaler] * 2
     xhat0 = [scaler.x0] * 2
@@ -542,7 +542,7 @@ def test_main(mocker, tmpdir):
                                  tolfun=1e-1,
                                  logging_directory=str(tmpdir))
     
-    test = Main(es, mock_iter, scaled_vars, x_ops, base_penalty=1e4)
+    test = Main(es, mock_eval, scaled_vars, x_ops, base_penalty=1e4)
     
     while not test.stop:
         test.next()
@@ -559,12 +559,12 @@ def test_main_fixed(mocker, tmpdir):
     mocker.patch("dtocean_core.utils.optimiser.init_dir")
     mock_core = mocker.MagicMock()
     
-    mock_iter = MockEvaluator(mock_core, None, "mock", "mock")
+    mock_eval = MockEvaluator(mock_core, None, "mock", "mock")
     
     x0 = 5
     x_range = (-1, 10)
     scaler = NormScaler(x_range[0], x_range[1], x0)
-    mock_iter.scaler = scaler
+    mock_eval.scaler = scaler
     
     scaled_vars = [scaler] * 2
     xhat0 = [scaler.x0] * 2
@@ -580,7 +580,7 @@ def test_main_fixed(mocker, tmpdir):
                                  logging_directory=str(tmpdir))
     
     test = Main(es,
-                mock_iter,
+                mock_eval,
                 scaled_vars,
                 x_ops,
                 fixed_index_map=fixed_index_map,
@@ -592,17 +592,79 @@ def test_main_fixed(mocker, tmpdir):
     assert abs(es.result.fbest - 1) < 1e-1
 
 
+class MockEvaluatorPenalty(MockEvaluator):
+    
+    def __init__(self, *args, **kwargs):
+        super(MockEvaluatorPenalty, self).__init__(*args, **kwargs)
+        self.popsize = None
+        self._evaluation = None
+    
+    def pre_constraints_hook(self, *args):
+        if self._evaluation > self.popsize: return True
+        return False
+    
+    def _get_worker_results(self, evaluation):
+        self._evaluation = evaluation
+        return super(MockEvaluatorPenalty,
+                     self)._get_worker_results(evaluation)
+
+
+def test_main_apply_constraints_penalty(caplog, mocker, tmpdir):
+    
+    mocker.patch("dtocean_core.utils.optimiser.init_dir")
+    mock_core = mocker.MagicMock()
+    
+    mock_eval = MockEvaluatorPenalty(mock_core, None, "mock", "mock")
+    
+    x0 = 5
+    x_range = (-1, 10)
+    scaler = NormScaler(x_range[0], x_range[1], x0)
+    
+    popsize = 5
+    mock_eval.scaler = scaler
+    mock_eval.popsize = popsize
+    
+    scaled_vars = [scaler] * 2
+    xhat0 = [scaler.x0] * 2
+    xhat_low_bound = [scaler.scaled(x_range[0])] * 2
+    xhat_high_bound = [scaler.scaled(x_range[1])] * 2
+    x_ops = [None] * 2
+    
+    es = init_evolution_strategy(xhat0,
+                                 xhat_low_bound,
+                                 xhat_high_bound,
+                                 popsize=popsize,
+                                 logging_directory=str(tmpdir))
+    
+    test = Main(es,
+                mock_eval,
+                scaled_vars,
+                x_ops,
+                base_penalty=1e4,
+                max_resample_loop_factor=1)
+    
+    i = 0
+    
+    with caplog_for_logger(caplog, 'dtocean_core'):
+        while i < 3:
+            test.next()
+            i += 1
+    
+    expected = "Only 0 of {} required solutions were found".format(popsize * 2)
+    assert expected in caplog.text
+
+
 def test_main_auto_resample_iterations(caplog, mocker, tmpdir):
     
     mocker.patch("dtocean_core.utils.optimiser.init_dir")
     mock_core = mocker.MagicMock()
     
-    mock_iter = MockEvaluator(mock_core, None, "mock", "mock")
+    mock_eval = MockEvaluator(mock_core, None, "mock", "mock")
     
     x0 = 5
     x_range = (-1, 10)
     scaler = NormScaler(x_range[0], x_range[1], x0)
-    mock_iter.scaler = scaler
+    mock_eval.scaler = scaler
     
     scaled_vars = [scaler] * 2
     xhat0 = [scaler.x0] * 2
@@ -617,7 +679,7 @@ def test_main_auto_resample_iterations(caplog, mocker, tmpdir):
                                  logging_directory=str(tmpdir))
     
     test = Main(es,
-                mock_iter,
+                mock_eval,
                 scaled_vars,
                 x_ops,
                 base_penalty=1e4,
@@ -638,16 +700,16 @@ def test_main_no_feasible_solutions(mocker, tmpdir):
     mocker.patch("dtocean_core.utils.optimiser.init_dir")
     mock_core = mocker.MagicMock()
     
-    mock_iter = MockEvaluator(mock_core, None, "mock", "mock")
+    mock_eval = MockEvaluator(mock_core, None, "mock", "mock")
     
-    mocker.patch.object(mock_iter,
+    mocker.patch.object(mock_eval,
                         "_get_worker_results",
                         return_value={"cost": np.nan})
     
     x0 = 5
     x_range = (-1, 10)
     scaler = NormScaler(x_range[0], x_range[1], x0)
-    mock_iter.scaler = scaler
+    mock_eval.scaler = scaler
     
     scaled_vars = [scaler] * 2
     xhat0 = [scaler.x0] * 2
@@ -661,7 +723,7 @@ def test_main_no_feasible_solutions(mocker, tmpdir):
                                  tolfun=1e-1,
                                  logging_directory=str(tmpdir))
     
-    test = Main(es, mock_iter, scaled_vars, x_ops, base_penalty=1e4)
+    test = Main(es, mock_eval, scaled_vars, x_ops, base_penalty=1e4)
     
     with pytest.raises(RuntimeError) as excinfo:
         test.next()
@@ -674,12 +736,12 @@ def test_SafeCMAEvolutionStrategy_plot(caplog, mocker, tmpdir):
     mocker.patch("dtocean_core.utils.optimiser.init_dir")
     mock_core = mocker.MagicMock()
     
-    mock_iter = MockEvaluator(mock_core, None, "mock", "mock")
+    mock_eval = MockEvaluator(mock_core, None, "mock", "mock")
     
     x0 = 5
     x_range = (-1, 10)
     scaler = NormScaler(x_range[0], x_range[1], x0)
-    mock_iter.scaler = scaler
+    mock_eval.scaler = scaler
     
     scaled_vars = [scaler] * 2
     xhat0 = [scaler.x0] * 2
@@ -694,7 +756,7 @@ def test_SafeCMAEvolutionStrategy_plot(caplog, mocker, tmpdir):
                                  logging_directory=str(tmpdir))
     
     test = Main(es,
-                mock_iter,
+                mock_eval,
                 scaled_vars,
                 x_ops,
                 base_penalty=1e4,
