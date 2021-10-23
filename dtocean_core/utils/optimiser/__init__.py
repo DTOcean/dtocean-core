@@ -90,18 +90,18 @@ class Counter(object):
     def __init__(self, search_dict=None):
         
         if search_dict is None or not search_dict:
-            iteration = 0
+            evaluation = 0
             search_dict = {}
         else:
-            iteration = max(search_dict) + 1
+            evaluation = max(search_dict) + 1
         
-        self._iteration = iteration
+        self._evaluation = evaluation
         self._search_dict = search_dict
         self._lock = threading.Lock()
         
         return
     
-    def set_params(self, iteration, *args):
+    def set_params(self, evaluation, *args):
         
         params = self._set_params(*args)
         
@@ -109,12 +109,12 @@ class Counter(object):
         
         try:
             
-            if iteration in self._search_dict:
-                err_str = ("Iteration {} has already been "
-                           "recorded").format(iteration)
+            if evaluation in self._search_dict:
+                err_str = ("Evaluation {} has already been "
+                           "recorded").format(evaluation)
                 raise ValueError(err_str)
                 
-            self._search_dict[iteration] = params
+            self._search_dict[evaluation] = params
         
         finally:
             
@@ -124,7 +124,7 @@ class Counter(object):
     
     @abc.abstractmethod
     def _set_params(self, *args):
-        """Build a params (probably namedtuple) object to record iteration."""
+        """Build a params (probably namedtuple) object to record evaluation."""
         return
     
     def get_cost(self, *args):
@@ -152,14 +152,14 @@ class Counter(object):
         return None."""
         return
     
-    def get_iteration(self):
+    def get_evaluation(self):
         
         self._lock.acquire()
         
         try:
             
-            result = self._iteration
-            self._iteration += 1
+            result = self._evaluation
+            self._evaluation += 1
         
         finally:
             
@@ -179,7 +179,7 @@ class Counter(object):
         return result
 
 
-class Iterator(object):
+class Evaluator(object):
     
     __metaclass__ = abc.ABCMeta
     
@@ -212,14 +212,14 @@ class Iterator(object):
         return
     
     @abc.abstractmethod
-    def _get_worker_results(self, iteration):
-        """Return the results for the given iteration as a dictionary that
+    def _get_worker_results(self, evaluation):
+        """Return the results for the given evaluation as a dictionary that
         must include the key "cost". For constraint violation the cost key
         should be set to np.nan"""
         return
     
     @abc.abstractmethod
-    def _set_counter_params(self, iteration,
+    def _set_counter_params(self, evaluation,
                                   worker_project_path,
                                   results,
                                   flag,
@@ -263,10 +263,10 @@ class Iterator(object):
             return
         
         flag = ""
-        iteration = self._counter.get_iteration()
+        evaluation = self._counter.get_evaluation()
         
         worker_file_root_path = "{}_{}".format(self._root_project_base_name,
-                                               iteration)
+                                               evaluation)
         worker_project_name = "{}.prj".format(worker_file_root_path)
         worker_project_path = os.path.join(self._worker_directory,
                                            worker_project_name)
@@ -306,7 +306,7 @@ class Iterator(object):
             
             try:
                 
-                results = self._get_worker_results(iteration)
+                results = self._get_worker_results(evaluation)
                 cost = results["cost"]
             
             except Exception as e:
@@ -314,7 +314,7 @@ class Iterator(object):
                 flag = "Fail Receive"
                 self._log_exception(e, flag)
         
-        self._set_counter_params(iteration,
+        self._set_counter_params(evaluation,
                                  worker_project_path,
                                  results,
                                  flag,
@@ -327,7 +327,7 @@ class Iterator(object):
         return
     
     def __call__(self, q, stop_empty=False):
-        """Call the iterator with a queue.Queue() where index 0 is another
+        """Call the evaluator with a queue.Queue() where index 0 is another
         queue to collect results, index 1 is the number of evaluations for 
         noisy cost functions, index 2 is the solution to solve and any extra 
         indices are added to the result queue following the calculated cost.
@@ -349,7 +349,7 @@ class Iterator(object):
 class Main(object):
     
     def __init__(self, es,
-                       iterator,
+                       evaluator,
                        scaled_vars,
                        x_ops,
                        nh=None,
@@ -366,7 +366,7 @@ class Main(object):
         
         self.es = es
         self.nh = nh
-        self.iterator = iterator
+        self.evaluator = evaluator
         self._scaled_vars = scaled_vars
         self._x_ops = x_ops
         self._fixed_index_map = fixed_index_map
@@ -438,7 +438,7 @@ class Main(object):
         
         for i in range(self._num_threads):
             
-            worker = threading.Thread(target=self.iterator,
+            worker = threading.Thread(target=self.evaluator,
                                       args=(self._thread_queue,))
             worker.setDaemon(True)
             worker.start()
@@ -589,7 +589,7 @@ class Main(object):
             
             for sol, des_sol in zip(scaled_solutions, descaled_solutions):
                 
-                if self.iterator.pre_constraints_hook(*des_sol): continue
+                if self.evaluator.pre_constraints_hook(*des_sol): continue
                 
                 checked_solutions.append(sol)
                 checked_descaled_solutions.append(des_sol)
@@ -650,7 +650,7 @@ class Main(object):
             for sol, des_sol in zip(scaled_solutions_extra,
                                     descaled_solutions_extra):
             
-                if self.iterator.pre_constraints_hook(*des_sol):
+                if self.evaluator.pre_constraints_hook(*des_sol):
                     final_solutions_extra.append(sol)
                     final_costs_extra.append(np.nan)
                 else:
@@ -865,9 +865,9 @@ def init_evolution_strategy(x0,
     return es
 
 
-def dump_outputs(worker_directory, es, iterator, nh=None):
+def dump_outputs(worker_directory, es, evaluator, nh=None):
     
-    counter_dict = iterator.get_counter_search_dict()
+    counter_dict = evaluator.get_counter_search_dict()
     
     es_path = os.path.join(worker_directory, 'saved-cma-object.pkl')
     counter_dict_path = os.path.join(worker_directory,

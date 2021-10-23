@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from dtocean_core.utils.optimiser import (SafeCMAEvolutionStrategy,
                                           NormScaler,
                                           Counter,
-                                          Iterator,
+                                          Evaluator,
                                           Main,
                                           init_evolution_strategy,
                                           _get_scale_factor,
@@ -57,7 +57,7 @@ MockParams = namedtuple('MockParams', ['cost', 'x'])
 class MockCounter(Counter):
     
     def _set_params(self, *args):
-        """Build a params (probably namedtuple) object to record iteration."""
+        """Build a params (probably namedtuple) object to record evaluation."""
         return MockParams(args[0], args[1:])
     
     def _get_cost(self, params, *args):
@@ -73,10 +73,10 @@ class MockCounter(Counter):
 def test_Counter_set_params():
     
     counter = MockCounter()
-    iteration = counter.get_iteration()
-    counter.set_params(iteration, 11, 1)
-    iteration = counter.get_iteration()
-    counter.set_params(iteration, 12, 2)
+    evaluation = counter.get_evaluation()
+    counter.set_params(evaluation, 11, 1)
+    evaluation = counter.get_evaluation()
+    counter.set_params(evaluation, 12, 2)
     
     search_dict = counter.copy_search_dict()
     
@@ -87,11 +87,11 @@ def test_Counter_set_params():
 def test_Counter_set_params_bad_iter():
     
     counter = MockCounter()
-    iteration = counter.get_iteration()
-    counter.set_params(iteration, 1, 11)
+    evaluation = counter.get_evaluation()
+    counter.set_params(evaluation, 1, 11)
     
     with pytest.raises(ValueError) as excinfo:
-        counter.set_params(iteration, 2, 12)
+        counter.set_params(evaluation, 2, 12)
     
     assert "has already been recorded" in str(excinfo)
 
@@ -103,10 +103,10 @@ def test_Counter_set_params_bad_iter():
 def test_Counter_get_cost(value, expected):
     
     counter = MockCounter()
-    iteration = counter.get_iteration()
-    counter.set_params(iteration, 11, 1)
-    iteration = counter.get_iteration()
-    counter.set_params(iteration, 12, 2)
+    evaluation = counter.get_evaluation()
+    counter.set_params(evaluation, 11, 1)
+    evaluation = counter.get_evaluation()
+    counter.set_params(evaluation, 12, 2)
     
     assert counter.get_cost(value) == expected
 
@@ -154,10 +154,10 @@ def sphere_cost(x, c=0.0):
     return cost
 
 
-class MockIterator(Iterator):
+class MockEvaluator(Evaluator):
     
     def __init__(self, *args, **kwargs):
-        super(MockIterator, self).__init__(*args, **kwargs)
+        super(MockEvaluator, self).__init__(*args, **kwargs)
         self.scaler = None
     
     def _init_counter(self):
@@ -170,15 +170,15 @@ class MockIterator(Iterator):
         self._args = args
         return ["python", "-V"]
     
-    def _get_worker_results(self, iteration):
-        """Return the results for the given iteration as a dictionary that
+    def _get_worker_results(self, evaluation):
+        """Return the results for the given evaluation as a dictionary that
         must include the key "cost". For constraint violation the cost key
         should be set to np.nan"""
         
         x = np.array(self._args)
         return {"cost": sphere_cost(x)}
     
-    def _set_counter_params(self, iteration,
+    def _set_counter_params(self, evaluation,
                                   worker_project_path,
                                   results,
                                   flag,
@@ -189,7 +189,7 @@ class MockIterator(Iterator):
         cost = np.nan
         if results is not None: cost = results["cost"]
         
-        self._counter.set_params(iteration, cost, *args)
+        self._counter.set_params(evaluation, cost, *args)
         
         return
     
@@ -201,12 +201,12 @@ class MockIterator(Iterator):
 #        raise e
 
 
-def test_iterator(mocker):
+def test_evaluator(mocker):
     
     mocker.patch("dtocean_core.utils.optimiser.init_dir")
     mock_core = mocker.MagicMock()
     
-    test = MockIterator(mock_core, None, "mock", "mock")
+    test = MockEvaluator(mock_core, None, "mock", "mock")
     
     thread_queue = queue.Queue()
     result_queue = queue.Queue()
@@ -231,12 +231,12 @@ def test_iterator(mocker):
     assert result_queue.get() == (100.0, ['mock2'])
 
 
-def test_iterator_threaded(mocker):
+def test_evaluator_threaded(mocker):
     
     mocker.patch("dtocean_core.utils.optimiser.init_dir")
     mock_core = mocker.MagicMock()
     
-    test = MockIterator(mock_core, None, "mock", "mock")
+    test = MockEvaluator(mock_core, None, "mock", "mock")
     
     thread_queue = queue.Queue()
     result_queue = queue.Queue()
@@ -266,12 +266,12 @@ def test_iterator_threaded(mocker):
     assert result_queue.get() == (100.0, ['mock2'])
 
 
-def test_iterator_previous_cost(mocker):
+def test_evaluator_previous_cost(mocker):
     
     mocker.patch("dtocean_core.utils.optimiser.init_dir")
     mock_core = mocker.MagicMock()
     
-    test = MockIterator(mock_core, None, "mock", "mock")
+    test = MockEvaluator(mock_core, None, "mock", "mock")
     
     mocker.patch.object(test._counter,
                         "get_cost",
@@ -300,7 +300,7 @@ def test_iterator_previous_cost(mocker):
     assert result_queue.get() == ("match", ['mock2'])
 
 
-def test_iterator_fail_send(caplog, mocker):
+def test_evaluator_fail_send(caplog, mocker):
     
     mocker.patch("dtocean_core.utils.optimiser.init_dir")
     mock_core = mocker.MagicMock()
@@ -308,7 +308,7 @@ def test_iterator_fail_send(caplog, mocker):
     exc_msg = 'Bang!'
     mock_core.dump_project.side_effect = KeyError(exc_msg)
     
-    test = MockIterator(mock_core, None, "mock", "mock")
+    test = MockEvaluator(mock_core, None, "mock", "mock")
     
     thread_queue = queue.Queue()
     result_queue = queue.Queue()
@@ -328,7 +328,7 @@ def test_iterator_fail_send(caplog, mocker):
     assert exc_msg in caplog.text
 
 
-def test_iterator_fail_execute(caplog, mocker):
+def test_evaluator_fail_execute(caplog, mocker):
     
     mock_process = mocker.MagicMock()
     mock_process.wait.return_value = 1
@@ -339,7 +339,7 @@ def test_iterator_fail_execute(caplog, mocker):
     mocker.patch("dtocean_core.utils.optimiser.init_dir")
     
     mock_core = mocker.MagicMock()
-    test = MockIterator(mock_core, None, "mock", "mock")
+    test = MockEvaluator(mock_core, None, "mock", "mock")
     
     thread_queue = queue.Queue()
     result_queue = queue.Queue()
@@ -359,12 +359,12 @@ def test_iterator_fail_execute(caplog, mocker):
     assert "External process failed to open" in caplog.text
 
 
-def test_iterator_fail_receive(caplog, mocker):
+def test_evaluator_fail_receive(caplog, mocker):
     
     mocker.patch("dtocean_core.utils.optimiser.init_dir")
     mock_core = mocker.MagicMock()
     
-    test = MockIterator(mock_core, None, "mock", "mock")
+    test = MockEvaluator(mock_core, None, "mock", "mock")
     
     exc_msg = 'Bang!'
     mocker.patch.object(test,
@@ -523,7 +523,7 @@ def test_main(mocker, tmpdir):
     mocker.patch("dtocean_core.utils.optimiser.init_dir")
     mock_core = mocker.MagicMock()
     
-    mock_iter = MockIterator(mock_core, None, "mock", "mock")
+    mock_iter = MockEvaluator(mock_core, None, "mock", "mock")
     
     x0 = 5
     x_range = (-1, 10)
@@ -559,7 +559,7 @@ def test_main_fixed(mocker, tmpdir):
     mocker.patch("dtocean_core.utils.optimiser.init_dir")
     mock_core = mocker.MagicMock()
     
-    mock_iter = MockIterator(mock_core, None, "mock", "mock")
+    mock_iter = MockEvaluator(mock_core, None, "mock", "mock")
     
     x0 = 5
     x_range = (-1, 10)
@@ -597,7 +597,7 @@ def test_main_auto_resample_iterations(caplog, mocker, tmpdir):
     mocker.patch("dtocean_core.utils.optimiser.init_dir")
     mock_core = mocker.MagicMock()
     
-    mock_iter = MockIterator(mock_core, None, "mock", "mock")
+    mock_iter = MockEvaluator(mock_core, None, "mock", "mock")
     
     x0 = 5
     x_range = (-1, 10)
@@ -638,7 +638,7 @@ def test_main_no_feasible_solutions(mocker, tmpdir):
     mocker.patch("dtocean_core.utils.optimiser.init_dir")
     mock_core = mocker.MagicMock()
     
-    mock_iter = MockIterator(mock_core, None, "mock", "mock")
+    mock_iter = MockEvaluator(mock_core, None, "mock", "mock")
     
     mocker.patch.object(mock_iter,
                         "_get_worker_results",
@@ -674,7 +674,7 @@ def test_SafeCMAEvolutionStrategy_plot(caplog, mocker, tmpdir):
     mocker.patch("dtocean_core.utils.optimiser.init_dir")
     mock_core = mocker.MagicMock()
     
-    mock_iter = MockIterator(mock_core, None, "mock", "mock")
+    mock_iter = MockEvaluator(mock_core, None, "mock", "mock")
     
     x0 = 5
     x_range = (-1, 10)

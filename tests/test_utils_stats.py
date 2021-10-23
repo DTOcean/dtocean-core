@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Sep 11 09:55:13 2017
-
-@author: mtopper
-"""
 
 import pytest
 

@@ -76,7 +76,7 @@ class PositionCounter(opt.Counter):
                           t2,
                           dev_per_string,
                           n_evals):
-        """Build a params (probably namedtuple) object to record iteration."""
+        """Build a params (probably namedtuple) object to record evaluation."""
         
         params = PositionParams(grid_orientation,
                                 delta_row,
@@ -100,7 +100,7 @@ class PositionCounter(opt.Counter):
         return None
 
 
-class PositionIterator(opt.Iterator):
+class PositionEvaluator(opt.Evaluator):
     
     def __init__(self, core,
                        base_project,
@@ -111,12 +111,12 @@ class PositionIterator(opt.Iterator):
                        clean_existing_dir=False,
                        violation_log_name = "violations.txt"):
         
-        super(PositionIterator, self).__init__(core,
-                                               base_project,
-                                               root_project_base_name,
-                                               worker_directory,
-                                               restart,
-                                               clean_existing_dir)
+        super(PositionEvaluator, self).__init__(core,
+                                                base_project,
+                                                root_project_base_name,
+                                                worker_directory,
+                                                restart,
+                                                clean_existing_dir)
         
         self._tool_man = ToolManager()
         self._positioner = get_positioner(self._core, self._base_project)
@@ -162,13 +162,13 @@ class PositionIterator(opt.Iterator):
         
         return popen_args
     
-    def _get_worker_results(self, iteration):
-        """Return the results for the given iteration as a dictionary that
+    def _get_worker_results(self, evaluation):
+        """Return the results for the given evaluation as a dictionary that
         must include the key "cost". For constraint violation the cost key
         should be set to np.nan"""
         
         worker_file_root_path = "{}_{}".format(self._root_project_base_name,
-                                               iteration)
+                                               evaluation)
         worker_results_name = "{}.yaml".format(worker_file_root_path)
         worker_results_path = os.path.join(self._worker_directory,
                                            worker_results_name)
@@ -205,7 +205,7 @@ class PositionIterator(opt.Iterator):
         
         return results
     
-    def _set_counter_params(self, iteration,
+    def _set_counter_params(self, evaluation,
                                   worker_project_path,
                                   results,
                                   flag,
@@ -221,7 +221,7 @@ class PositionIterator(opt.Iterator):
             worker_results_path = results["worker_results_path"]
             cost = results["cost"]
         
-        self._counter.set_params(iteration,
+        self._counter.set_params(evaluation,
                                  worker_project_path,
                                  worker_results_path,
                                  cost,
@@ -451,12 +451,12 @@ class PositionOptimiser(object):
         else:
             nh = None
         
-        iterator = PositionIterator(self._core,
-                                    project,
-                                    root_project_base_name,
-                                    self._worker_directory,
-                                    objective,
-                                    clean_existing_dir=clean_existing_dir)
+        evaluator = PositionEvaluator(self._core,
+                                      project,
+                                      root_project_base_name,
+                                      self._worker_directory,
+                                      objective,
+                                      clean_existing_dir=clean_existing_dir)
         
         # Store the base project for potential restart (if necessary)
         if archive_project:
@@ -469,7 +469,7 @@ class PositionOptimiser(object):
         dump_config(config_path, config)
         
         # Store the es object and counter search dict for potential restart
-        opt.dump_outputs(self._worker_directory, es, iterator, nh)
+        opt.dump_outputs(self._worker_directory, es, evaluator, nh)
         
         # Write the results params control file for workers
         results_params = list(set(results_params).union([objective]))
@@ -477,7 +477,7 @@ class PositionOptimiser(object):
         
         self._cma_main = opt.Main(
                             es,
-                            iterator,
+                            evaluator,
                             scaled_vars,
                             control_dict["x_ops"],
                             nh=nh,
@@ -607,16 +607,16 @@ class PositionOptimiser(object):
         scaled_vars = [opt.NormScaler(x[0], x[1], y)
                                                 for x, y in zip(ranges, x0s)]
         
-        iterator = PositionIterator(self._core,
-                                    project,
-                                    root_project_base_name,
-                                    self._worker_directory,
-                                    objective,
-                                    restart=True)
+        evaluator = PositionEvaluator(self._core,
+                                      project,
+                                      root_project_base_name,
+                                      self._worker_directory,
+                                      objective,
+                                      restart=True)
         
         self._cma_main = opt.Main(
                             es,
-                            iterator,
+                            evaluator,
                             scaled_vars,
                             control_dict["x_ops"],
                             nh=nh,
@@ -642,7 +642,7 @@ class PositionOptimiser(object):
         self._cma_main.next()
         opt.dump_outputs(self._worker_directory,
                          self._cma_main.es,
-                         self._cma_main.iterator,
+                         self._cma_main.evaluator,
                          self._cma_main.nh)
         
         if not self._dump_config: return
