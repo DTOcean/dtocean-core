@@ -43,9 +43,9 @@ class DevicePositioner(object):
     __metaclass__ = abc.ABCMeta
     
     def __init__(self, lease_polygon,
-                       layer_depths=None,
-                       min_depth=None,
-                       max_depth=None,
+                       layer_depths,
+                       min_depth=-np.inf,
+                       max_depth=0,
                        nogo_polygons=None,
                        lease_padding=None,
                        turbine_interdistance=None):
@@ -178,16 +178,14 @@ class DevicePositioner(object):
             raise ValueError(err_str)
             
         return
- 
-    @abc.abstractmethod
-    def _adapt_nodes(self, nodes, *args, **kwargs):
+    
+    def _adapt_nodes_hook(self, nodes, *args, **kwargs):
         """Hook method for adapting the initial grid"""
-        return
-
-    @abc.abstractmethod
-    def _select_nodes(self, nodes, *args, **kwargs):
+        return nodes
+    
+    def _select_nodes_hook(self, nodes, *args, **kwargs):
         """Hook method for selecting the final nodes"""
-        return
+        return nodes
     
     def __call__(self, *args, **kwargs):
         
@@ -202,29 +200,23 @@ class DevicePositioner(object):
                                       delta_col,
                                       beta,
                                       psi)
-        nodes = self._adapt_nodes(nodes, *args, **kwargs)
+        nodes = self._adapt_nodes_hook(nodes, *args, **kwargs)
         nodes = self._get_valid_nodes(nodes)
-        nodes = self._select_nodes(nodes, *args, **kwargs)
+        nodes = self._select_nodes_hook(nodes, *args, **kwargs)
         
         return nodes
 
 
 class DummyPositioner(DevicePositioner):
     
-    def _adapt_nodes(self, nodes, *args, **kwargs):
-        
+    def _adapt_nodes_hook(self, nodes, *args, **kwargs):
         nodes = nodes + self._bounding_box.centroid
-        
-        return nodes
-    
-    def _select_nodes(self, nodes, *args, **kwargs):
-        
         return nodes
 
 
 class CompassPositioner(DevicePositioner):
     
-    def _adapt_nodes(self, nodes, *args, **kwargs):
+    def _adapt_nodes_hook(self, nodes, *args, **kwargs):
         
         point_code = args[6]
         
@@ -246,7 +238,7 @@ class CompassPositioner(DevicePositioner):
         
         return nodes
     
-    def _select_nodes(self, nodes, *args, **kwargs):
+    def _select_nodes_hook(self, nodes, *args, **kwargs):
         
         n_nodes = args[5]
         
@@ -261,7 +253,7 @@ class CompassPositioner(DevicePositioner):
 
 class ParaPositioner(DevicePositioner):
     
-    def _adapt_nodes(self, nodes, *args, **kwargs):
+    def _adapt_nodes_hook(self, nodes, *args, **kwargs):
         
         t1 = args[6]
         t2 = args[7]
@@ -283,7 +275,7 @@ class ParaPositioner(DevicePositioner):
         
         return nodes
     
-    def _select_nodes(self, nodes, *args, **kwargs):
+    def _select_nodes_hook(self, nodes, *args, **kwargs):
         
         n_nodes = args[5]
         

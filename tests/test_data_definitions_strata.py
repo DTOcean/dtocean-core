@@ -22,8 +22,8 @@ def test_Strata_available():
 
 def test_Strata():
 
-    x = np.linspace(0.,1000.,100)
-    y = np.linspace(0.,300.,30) 
+    x = np.linspace(0.,1000.,101)
+    y = np.linspace(0.,300.,31) 
     nx = len(x)
     ny = len(y)
     
@@ -41,8 +41,8 @@ def test_Strata():
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
                          "title": "test",
-                         "labels": ["UTM x",
-                                    "UTM y",
+                         "labels": ["x",
+                                    "y",
                                     "layer",
                                     "depth",
                                     "sediment"]})
@@ -51,7 +51,7 @@ def test_Strata():
     a = test.get_data(raw, meta)
     b = test.get_value(a)
     
-    assert b['depth'].values.shape == (100, 30, 1)
+    assert b['depth'].values.shape == (101, 31, 1)
     assert (b['sediment'].values == "rock").all()
 
 
@@ -74,8 +74,8 @@ def test_Strata_auto_file(tmpdir, fext):
     test_path_in = test_dir.join("test_depth{}".format(fext))
     test_path_in_str = str(test_path_in)    
     
-    x = np.linspace(0.,1000.,100)
-    y = np.linspace(0.,300.,30) 
+    x = np.linspace(0.,1000.,101)
+    y = np.linspace(0.,300.,31) 
     nx = len(x)
     ny = len(y)
     
@@ -93,8 +93,8 @@ def test_Strata_auto_file(tmpdir, fext):
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
                          "title": "test",
-                         "labels": ["UTM x",
-                                    "UTM y",
+                         "labels": ["x",
+                                    "y",
                                     "layer",
                                     "depth",
                                     "sediment"]})
@@ -122,14 +122,14 @@ def test_Strata_auto_file(tmpdir, fext):
     fin.connect()
     result = test.get_data(fin.data.result, meta)
     
-    assert result['depth'].values.shape == (100, 30, 1)
+    assert result['depth'].values.shape == (101, 31, 1)
     assert (result['sediment'].values == "rock").all()
         
 
 def test_Strata_auto_plot(tmpdir):
         
-    x = np.linspace(0.,1000.,100)
-    y = np.linspace(0.,300.,30) 
+    x = np.linspace(0.,1000.,101)
+    y = np.linspace(0.,300.,31) 
     nx = len(x)
     ny = len(y)
     
@@ -147,8 +147,8 @@ def test_Strata_auto_plot(tmpdir):
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
                          "title": "test",
-                         "labels": ["UTM x",
-                                    "UTM y",
+                         "labels": ["x",
+                                    "y",
                                     "layer",
                                     "depth",
                                     "sediment"]})
