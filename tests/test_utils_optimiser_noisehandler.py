@@ -154,6 +154,129 @@ class MockEvaluator(Evaluator):
 #        raise e
 
 
+def test_noisehandler_tell_empty(mocker, tmpdir):
+    
+    mocker.patch("dtocean_core.utils.optimiser.init_dir")
+    mock_core = mocker.MagicMock()
+    
+    mock_eval = MockEvaluator(mock_core, None, "mock", "mock")
+    
+    x0 = 5
+    x_range = (-1, 10)
+    scaler = NormScaler(x_range[0], x_range[1], x0)
+    mock_eval.scaler = scaler
+    
+    xhat0 = [scaler.x0] * 2
+    xhat_low_bound = [scaler.scaled(x_range[0])] * 2
+    xhat_high_bound = [scaler.scaled(x_range[1])] * 2
+    
+    es = init_evolution_strategy(xhat0,
+                                 xhat_low_bound,
+                                 xhat_high_bound,
+                                 tolfun=1e-2,
+                                 timeout=60,
+                                 logging_directory=str(tmpdir))
+    
+    nh = NoiseHandler(es.N, maxevals=[1, 1, 5])
+    
+    init_sols = [np.array([10, 10]),
+                 np.array([10, 10]),
+                 np.array([10, 10]),
+                 np.array([10, 10])]
+    init_cost = [10, 10, 10, 10]
+    
+    nh.prepare(init_sols, init_cost)
+    nh.ask(es.ask)
+    nh.tell([], [])
+    
+    assert nh.fit is None
+    assert nh.fitre is None
+    assert nh._sigma_fac == 1.0
+
+
+def test_noisehandler_tell_wrong_number(mocker, tmpdir):
+    
+    mocker.patch("dtocean_core.utils.optimiser.init_dir")
+    mock_core = mocker.MagicMock()
+    
+    mock_eval = MockEvaluator(mock_core, None, "mock", "mock")
+    
+    x0 = 5
+    x_range = (-1, 10)
+    scaler = NormScaler(x_range[0], x_range[1], x0)
+    mock_eval.scaler = scaler
+    
+    xhat0 = [scaler.x0] * 2
+    xhat_low_bound = [scaler.scaled(x_range[0])] * 2
+    xhat_high_bound = [scaler.scaled(x_range[1])] * 2
+    
+    es = init_evolution_strategy(xhat0,
+                                 xhat_low_bound,
+                                 xhat_high_bound,
+                                 tolfun=1e-2,
+                                 timeout=60,
+                                 logging_directory=str(tmpdir))
+    
+    nh = NoiseHandler(es.N, maxevals=[1, 1, 5])
+    
+    init_sols = [np.array([10, 10]),
+                 np.array([10, 10]),
+                 np.array([10, 10]),
+                 np.array([10, 10])]
+    init_cost = [10, 10, 10, 10]
+    
+    nh.prepare(init_sols, init_cost)
+    sols = nh.ask(es.ask)
+    
+    with pytest.raises(ValueError) as excinfo:
+        nh.tell(sols, [10])
+    
+    expected = "Exactly {} solutions and function values".format(len(sols))
+    assert expected in str(excinfo)
+
+
+def test_noisehandler_tell_not_asked_for(mocker, tmpdir):
+    
+    mocker.patch("dtocean_core.utils.optimiser.init_dir")
+    mock_core = mocker.MagicMock()
+    
+    mock_eval = MockEvaluator(mock_core, None, "mock", "mock")
+    
+    x0 = 5
+    x_range = (-1, 10)
+    scaler = NormScaler(x_range[0], x_range[1], x0)
+    mock_eval.scaler = scaler
+    
+    xhat0 = [scaler.x0] * 2
+    xhat_low_bound = [scaler.scaled(x_range[0])] * 2
+    xhat_high_bound = [scaler.scaled(x_range[1])] * 2
+    
+    es = init_evolution_strategy(xhat0,
+                                 xhat_low_bound,
+                                 xhat_high_bound,
+                                 tolfun=1e-2,
+                                 timeout=60,
+                                 logging_directory=str(tmpdir))
+    
+    nh = NoiseHandler(es.N, maxevals=[1, 1, 5])
+    
+    init_sols = [np.array([10, 10]),
+                 np.array([10, 10]),
+                 np.array([10, 10]),
+                 np.array([10, 10])]
+    init_cost = [10, 10, 10, 10]
+    
+    nh.prepare(init_sols, init_cost)
+    sols = nh.ask(es.ask)
+    fake_sol = [sol * 0 + 1 for sol in sols]
+    fake_value = range(len(sols))
+    
+    with pytest.raises(RuntimeError) as excinfo:
+        nh.tell(fake_sol, fake_value)
+    
+    assert "was not asked for" in str(excinfo)
+
+
 def test_main(mocker, tmpdir):
     
     mocker.patch("dtocean_core.utils.optimiser.init_dir")

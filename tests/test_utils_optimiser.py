@@ -17,7 +17,9 @@ from dtocean_core.utils.optimiser import (SafeCMAEvolutionStrategy,
                                           Main,
                                           init_evolution_strategy,
                                           _get_scale_factor,
-                                          _get_match_process)
+                                          _get_match_process,
+                                          dump_outputs,
+                                          load_outputs)
 
 
 @contextlib.contextmanager
@@ -52,7 +54,13 @@ def test_NormScaler_scaling(norm_scaler, value):
     scaled = norm_scaler.scaled(value)
     assert np.isclose(norm_scaler.inverse(scaled), value)
 
-MockParams = namedtuple('MockParams', ['cost', 'x'])
+
+class MockParams(namedtuple('MockParams', ['cost', 'x'])):
+    def __eq__(self, other):
+        a = self.cost
+        b = other.cost
+        return ((a == b) | (np.isnan(a) & np.isnan(b)) and
+                self.x == other.x)
 
 class MockCounter(Counter):
     
@@ -803,3 +811,54 @@ def test_get_match_process():
     assert run_idxs == [0, 1, 4]
     assert 1 in match_dict
     assert match_dict[1] == [(2, "b", False), (3, "b", False)]
+
+
+def test_dump_load_outputs(mocker, tmpdir):
+    
+    mocker.patch("dtocean_core.utils.optimiser.init_dir")
+    mock_core = mocker.MagicMock()
+    
+    mock_eval = MockEvaluator(mock_core, None, "mock", "mock")
+    
+    x0 = 5
+    x_range = (-1, 10)
+    scaler = NormScaler(x_range[0], x_range[1], x0)
+    mock_eval.scaler = scaler
+    
+    scaled_vars = [scaler] * 2
+    xhat0 = [scaler.x0] * 2
+    xhat_low_bound = [scaler.scaled(x_range[0])] * 2
+    xhat_high_bound = [scaler.scaled(x_range[1])] * 2
+    x_ops = [None] * 2
+    
+    es = init_evolution_strategy(xhat0,
+                                 xhat_low_bound,
+                                 xhat_high_bound,
+                                 tolfun=1e-1,
+                                 logging_directory=str(tmpdir))
+    
+    test = Main(es,
+                mock_eval,
+                scaled_vars,
+                x_ops,
+                base_penalty=1e4,
+                auto_resample_iterations=2)
+    
+    i = 0
+    
+    while i < 4:
+        test.next()
+        i += 1
+    
+    counter_dict = mock_eval.get_counter_search_dict()
+    pre_dump = len(tmpdir.listdir())
+    
+    dump_outputs(str(tmpdir), es, mock_eval)
+    
+    assert len(tmpdir.listdir()) == pre_dump + 2
+    
+    new_es, new_counter_dict, new_nh = load_outputs(str(tmpdir))
+    
+    assert es.fit.hist == new_es.fit.hist
+    assert new_counter_dict == counter_dict
+    assert new_nh is None
