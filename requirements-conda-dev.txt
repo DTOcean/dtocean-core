@@ -19,6 +19,7 @@ psycopg2
 pyproj
 pyshp
 python-dateutil
+python-polylabel
 pyyaml >=5.1
 ruamel.yaml
 ruamel.yaml.clib
