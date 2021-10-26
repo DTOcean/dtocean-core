@@ -44,11 +44,14 @@ class DevicePositioner(object):
     
     def __init__(self, lease_polygon,
                        layer_depths,
-                       min_depth=-np.inf,
-                       max_depth=0,
+                       min_depth=None,
+                       max_depth=None,
                        nogo_polygons=None,
                        lease_padding=None,
                        turbine_interdistance=None):
+        
+        if min_depth is None: min_depth = -1 * np.inf
+        if max_depth is None: max_depth = 0
         
         self._lease_polygon = _buffer_lease_polygon(lease_polygon,
                                                     lease_padding,
