@@ -10,6 +10,7 @@ from dtocean_core.data.definitions import Strata
 from dtocean_core.strategies.position_optimiser.positioner import (
                                                 _buffer_lease_polygon,
                                                 _get_depth_exclusion_poly,
+                                                _check_grid_dims,
                                                 _make_grid_nodes,
                                                 DummyPositioner,
                                                 _parametric_point_in_polygon,
@@ -95,6 +96,23 @@ def test_get_depth_exclusion_poly(layer_depths):
                                      max_depth=-21)
     
     assert test.bounds == (0.0, 0.0, 200.0, 300.0)
+
+
+@pytest.mark.parametrize("delta_row, delta_col, beta, psi, expected", [
+                         (-1, 1, 0, 0, "'delta_row' must be greater"),
+                         (1, -1, 0, 0, "'delta_col' must be greater"),
+                         (1, 1, -1, 0, "in the range (0, pi)"),
+                         (1, 1, 2 * np.pi, 0, "in the range (0, pi)"),
+                         (1, 1, 0.5 * np.pi, -1 * np.pi,
+                                      "in the range (-pi / 2, pi / 2)"),
+                         (1, 1, 0.5 * np.pi, np.pi,
+                                      "in the range (-pi / 2, pi / 2)")])
+def test_check_grid_dims(delta_row, delta_col, beta, psi, expected):
+    
+    with pytest.raises(ValueError) as excinfo:
+        _check_grid_dims(delta_row, delta_col, beta, psi)
+    
+    assert expected in str(excinfo)
 
 
 def test_make_grid_nodes():
@@ -295,6 +313,16 @@ def test_get_p0_index():
     p0_idx = _get_p0_index(coords)
     
     assert list(coords)[p0_idx] == (0.0, 0.0)
+
+
+def test_get_p0_index_unique():
+    
+    poly = Polygon([(0, 50), (200, 50), (100, 0)])
+    
+    coords = poly.exterior.coords
+    p0_idx = _get_p0_index(coords)
+    
+    assert list(coords)[p0_idx] == (100.0, 0.0)
 
 
 @pytest.mark.parametrize("ccw", [True, False])

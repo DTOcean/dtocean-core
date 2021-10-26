@@ -107,26 +107,7 @@ class DevicePositioner(object):
     
         return nodes_array
     
-    @classmethod
-    def _check_grid_dims(cls, delta_row, delta_col, beta, psi):
-        
-        if delta_row <= 0:
-            err_str = "Argument 'delta_row' must be greater than zero"
-            raise ValueError(err_str)
-            
-        if delta_col <= 0:
-            err_str = "Argument 'delta_col' must be greater than zero"
-            raise ValueError(err_str)
-        
-        if not (0 < beta < np.pi):
-            err_str = "Argument 'beta' must lie in the range (0, pi)"
-            raise ValueError(err_str)
-            
-        if not (np.pi / -2 < psi < np.pi / 2):
-            err_str = "Argument 'psi' must lie in the range (-pi / 2, pi / 2)"
-            raise ValueError(err_str)
-            
-        return
+
     
     @abc.abstractmethod
     def _adapt_nodes(self, nodes, *args, **kwargs):
@@ -144,7 +125,9 @@ class DevicePositioner(object):
          delta_col,
          beta,
          psi) = args[:5]
-
+        
+        _check_grid_dims(delta_row, delta_col, beta, psi)
+        
         nodes = self._make_grid_nodes(grid_orientation,
                                       delta_row,
                                       delta_col,
@@ -191,6 +174,27 @@ def _get_depth_exclusion_poly(layer_depths,
 
 def _extract_bathymetry(layer_depths):
     return layer_depths.sel(layer="layer 1")
+
+
+def _check_grid_dims(delta_row, delta_col, beta, psi):
+    
+    if delta_row <= 0:
+        err_str = "Argument 'delta_row' must be greater than zero"
+        raise ValueError(err_str)
+        
+    if delta_col <= 0:
+        err_str = "Argument 'delta_col' must be greater than zero"
+        raise ValueError(err_str)
+    
+    if not (0 < beta < np.pi):
+        err_str = "Argument 'beta' must lie in the range (0, pi)"
+        raise ValueError(err_str)
+        
+    if not (np.pi / -2 < psi < np.pi / 2):
+        err_str = "Argument 'psi' must lie in the range (-pi / 2, pi / 2)"
+        raise ValueError(err_str)
+        
+    return
 
 
 def _make_grid_nodes(bounding_box,
@@ -320,9 +324,9 @@ def _get_p0_index(coords):
     # if more than one point has minimum y. It is assumed that coords
     # is a CoordinateSequence.
     
-    is_min_y = np.isclose(coords.xy[1][:-1],  min(coords.xy[1]), rtol=1e-10)
+    is_min_y = np.isclose(coords.xy[1][:-1], min(coords.xy[1]), rtol=1e-10)
     min_y_indexs = np.where(is_min_y)[0]
-        
+    
     if len(min_y_indexs) > 1:
         min_y_xs = np.array(coords.xy[0])[min_y_indexs]
         is_min_x = np.isclose(min_y_xs, min(min_y_xs), rtol=1e-10)
