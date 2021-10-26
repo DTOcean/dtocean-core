@@ -180,9 +180,9 @@ def prepare(core,
                            delta_col,
                            beta,
                            psi,
-                           n_nodes,
                            t1,
-                           t2)
+                           t2,
+                           n_nodes)
     
     hydro_branch = _get_branch(core, project, "Hydrodynamics")
     user_array_layout = hydro_branch.get_input_variable(
