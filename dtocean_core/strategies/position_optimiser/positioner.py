@@ -53,20 +53,22 @@ class DevicePositioner(object):
         if min_depth is None: min_depth = -1 * np.inf
         if max_depth is None: max_depth = 0
         
-        self._lease_polygon = _buffer_lease_polygon(lease_polygon,
-                                                    lease_padding,
-                                                    turbine_interdistance)
+        self._lease_polygon = _buffer_lease_polygon(lease_polygon)
         self._bounding_box = box(*lease_polygon.bounds)
         self._layer_depths = layer_depths
         self._min_depth = min_depth
         self._max_depth = max_depth
         self._valid_poly = None
         
-        self._set_valid_polygon(nogo_polygons)
+        self._set_valid_polygon(nogo_polygons,
+                                lease_padding,
+                                turbine_interdistance)
         
         return
     
-    def _set_valid_polygon(self, nogo_polygons):
+    def _set_valid_polygon(self, nogo_polygons,
+                                 lease_padding,
+                                 turbine_interdistance):
         
         depth_exclude_poly = _get_depth_exclusion_poly(
                                                     self._layer_depths,
@@ -79,13 +81,17 @@ class DevicePositioner(object):
             valid_poly = self._lease_polygon.difference(depth_exclude_poly)
         
         if nogo_polygons is None:
-            self._valid_poly = valid_poly
+            self._valid_poly = _buffer_lease_polygon(valid_poly,
+                                                     lease_padding,
+                                                     turbine_interdistance)
             return
         
         for nogo_poly in nogo_polygons:
             valid_poly = valid_poly.difference(nogo_poly)
         
-        self._valid_poly = valid_poly
+        self._valid_poly = _buffer_lease_polygon(valid_poly,
+                                                 lease_padding,
+                                                 turbine_interdistance)
         
         return
     

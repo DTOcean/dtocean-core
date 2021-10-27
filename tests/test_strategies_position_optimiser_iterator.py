@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import sys
+
+import yaml
 import pytest
 import numpy as np
 from shapely.geometry import Polygon
@@ -17,7 +20,10 @@ from dtocean_core.strategies.position_optimiser.iterator import (
                                                 prepare,
                                                 _get_basic_strategy, 
                                                 iterate,
-                                                get_positioner)
+                                                get_positioner,
+                                                write_result_file,
+                                                main,
+                                                interface)
 
 # Check for module
 pytest.importorskip("dtocean_hydro")
@@ -179,7 +185,7 @@ def test_get_positioner(mocker,
                         lease_polygon,
                         layer_depths):
     
-    def give_data(dummy, var):
+    def get_data_value(dummy, var):
         
         if var == "site.lease_boundary":
             return lease_polygon
@@ -211,8 +217,242 @@ def test_get_positioner(mocker,
     
     core = mocker.MagicMock()
     core.has_data.return_value = True
-    core.get_data_value = give_data
+    core.get_data_value = get_data_value
     
     positioner = get_positioner(core, None)
     
     assert isinstance(positioner, ParaPositioner)
+    assert positioner._valid_poly.bounds == (120.0, 70.0, 780.0, 230.0)
+
+
+def test_write_result_file_success(mocker, tmpdir):
+    
+    def has_data(dummy, var):
+        
+        if var == "mock1":
+            return True
+        
+        return False
+    
+    def get_data_value(dummy, var):
+        
+        if var == "mock1":
+            return 1
+        
+        return None
+    
+    results_control = ("mock1\n"
+                       "mock2\n")
+    
+    p = tmpdir.join("results_control.txt")
+    p.write(results_control)
+    
+    core = mocker.MagicMock()
+    core.has_data = has_data
+    core.get_data_value = get_data_value
+    
+    p = tmpdir.join("mock")
+    prj_base_path = str(p)
+    
+    params_dict = {"mock0": 0}
+    
+    write_result_file(core,
+                      None,
+                      prj_base_path,
+                      params_dict,
+                      "Success",
+                      None)
+    
+    assert len(tmpdir.listdir()) == 2
+    
+    yaml_path = prj_base_path + ".yaml"
+    
+    with open(yaml_path, 'r') as stream:
+        data_loaded = yaml.safe_load(stream)
+    
+    assert data_loaded == {'status': 'Success',
+                           'params': {'mock0': 0},
+                           'results': {'mock2': None,
+                                       'mock1': 1}}
+
+
+def test_write_result_file_exception(mocker, tmpdir):
+    
+    core = mocker.MagicMock()
+    
+    p = tmpdir.join("mock")
+    prj_base_path = str(p)
+    
+    params_dict = {"mock0": 0}
+    
+    write_result_file(core,
+                      None,
+                      prj_base_path,
+                      params_dict,
+                      "Exception",
+                      RuntimeError("mock"))
+    
+    assert len(tmpdir.listdir()) == 1
+    
+    yaml_path = prj_base_path + ".yaml"
+    
+    with open(yaml_path, 'r') as stream:
+        data_loaded = yaml.safe_load(stream)
+    
+    assert data_loaded == {'status': 'Exception',
+                           'params': {'mock0': 0},
+                           'error': 'mock'}
+
+
+def test_write_result_file_bad_flag():
+    
+    with pytest.raises(RuntimeError) as excinfo:
+        write_result_file(None,
+                          None,
+                          "mock",
+                          None,
+                          "mock",
+                          None)
+    
+    assert "Unrecognised flag" in str(excinfo)
+
+
+def test_main(mocker):
+    
+    project = mocker.MagicMock()
+    
+    core = mocker.MagicMock()
+    core.load_project.return_value = project
+    
+    mocker.patch('dtocean_core.strategies.position_optimiser.iterator.'
+                 'get_positioner')
+    
+    mocker.patch('dtocean_core.strategies.position_optimiser.iterator.'
+                 'iterate')
+    
+    write_result_file = mocker.patch('dtocean_core.strategies.'
+                                     'position_optimiser.iterator.'
+                                     'write_result_file')
+    
+    grid_orientation = 0
+    delta_row = 10
+    delta_col = 20
+    n_nodes = 5
+    t1 = t2 = 0.5
+    dev_per_string = 5
+    n_evals = 2
+    
+    main(core,
+         "mock.prj",
+         grid_orientation,
+         delta_row,
+         delta_col,
+         n_nodes,
+         t1,
+         t2,
+         dev_per_string,
+         n_evals,
+         save_project=True)
+    
+    write_result_file_args = write_result_file.call_args.args
+    
+    assert core.dump_project.called
+    assert write_result_file_args[2] == "mock"
+    assert write_result_file_args[3] == {'theta': float(grid_orientation),
+                                         'dr': float(delta_row),
+                                         'dc': float(delta_col),
+                                         'n_nodes': n_nodes,
+                                         't1': t1,
+                                         't2': t2,
+                                         'dev_per_string': dev_per_string,
+                                         'n_evals': n_evals}
+    assert write_result_file_args[4] == 'Success'
+
+
+def test_main_exception(mocker):
+    
+    project = mocker.MagicMock()
+    
+    core = mocker.MagicMock()
+    core.load_project.return_value = project
+    
+    mocker.patch('dtocean_core.strategies.position_optimiser.iterator.'
+                 'get_positioner')
+    
+    mocker.patch('dtocean_core.strategies.position_optimiser.iterator.'
+                 'iterate',
+                 side_effect=RuntimeError("mock"))
+    
+    write_result_file = mocker.patch('dtocean_core.strategies.'
+                                     'position_optimiser.iterator.'
+                                     'write_result_file')
+    
+    grid_orientation = 0
+    delta_row = 10
+    delta_col = 20
+    n_nodes = 5
+    t1 = t2 = 0.5
+    dev_per_string = 5
+    n_evals = 2
+    
+    main(core,
+         "mock.prj",
+         grid_orientation,
+         delta_row,
+         delta_col,
+         n_nodes,
+         t1,
+         t2,
+         dev_per_string,
+         n_evals,
+         save_project=True)
+    
+    write_result_file_args = write_result_file.call_args.args
+    
+    assert core.dump_project.called
+    assert write_result_file_args[2] == "mock"
+    assert write_result_file_args[3] == {'theta': float(grid_orientation),
+                                         'dr': float(delta_row),
+                                         'dc': float(delta_col),
+                                         'n_nodes': n_nodes,
+                                         't1': t1,
+                                         't2': t2,
+                                         'dev_per_string': dev_per_string,
+                                         'n_evals': n_evals}
+    assert write_result_file_args[4] == 'Exception'
+    assert str(write_result_file_args[5]) == "mock"
+
+
+def test_interface(mocker):
+    
+    prj_file_path = "mock.prj"
+    grid_orientation = 0
+    delta_row = 10
+    delta_col = 20
+    n_nodes = 5
+    t1 = t2 = 0.5
+    
+    arg_str = ("_dtocean-optim-pos {} {} {} {} {} {} "
+               "{}").format(prj_file_path,
+                            grid_orientation,
+                            delta_row,
+                            delta_col,
+                            n_nodes,
+                            t1,
+                            t2)
+    testargs = arg_str.split()
+    
+    mocker.patch.object(sys, 'argv', testargs)
+    
+    test = mocker.patch('dtocean_core.strategies.position_optimiser.iterator.'
+                        'main')
+    
+    interface()
+    
+    assert test.call_args.args[1:8] == (prj_file_path,
+                                        str(grid_orientation),
+                                        str(delta_row),
+                                        str(delta_col),
+                                        str(n_nodes),
+                                        str(t1),
+                                        str(t2))

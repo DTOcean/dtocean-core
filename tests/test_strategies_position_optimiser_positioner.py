@@ -252,9 +252,10 @@ def test_DummyPositioner_valid_poly(lease_polygon,
     
     test = DummyPositioner(lease_polygon,
                            layer_depths,
-                           max_depth=-21)
+                           max_depth=-21,
+                           lease_padding=10)
     
-    assert test._valid_poly.bounds == (200.0, 50.0, 900.0, 250.0)
+    assert test._valid_poly.bounds == (210.0, 60.0, 890.0, 240.0)
 
 
 def test_DummyPositioner_valid_poly_nogo(lease_polygon,
@@ -264,9 +265,10 @@ def test_DummyPositioner_valid_poly_nogo(lease_polygon,
     test = DummyPositioner(lease_polygon,
                            layer_depths,
                            max_depth=-21,
-                           nogo_polygons=nogo_polygons)
+                           nogo_polygons=nogo_polygons,
+                           lease_padding=10)
     
-    assert test._valid_poly.bounds == (200.0, 50.0, 800.0, 250.0)
+    assert test._valid_poly.bounds == (210.0, 60.0, 790.0, 240.0)
 
 
 def test_DummyPositioner(lease_polygon,
