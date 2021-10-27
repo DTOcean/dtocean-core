@@ -53,7 +53,7 @@ class DevicePositioner(object):
         if min_depth is None: min_depth = -1 * np.inf
         if max_depth is None: max_depth = 0
         
-        self._lease_polygon = _buffer_lease_polygon(lease_polygon)
+        self._lease_polygon = lease_polygon
         self._bounding_box = box(*lease_polygon.bounds)
         self._layer_depths = layer_depths
         self._min_depth = min_depth
