@@ -156,7 +156,8 @@ class MockEvaluator(Evaluator):
 
 def test_noisehandler_tell_empty(mocker, tmpdir):
     
-    mocker.patch("dtocean_core.utils.optimiser.init_dir")
+    mocker.patch("dtocean_core.utils.optimiser.init_dir",
+                 autospec=True)
     mock_core = mocker.MagicMock()
     
     mock_eval = MockEvaluator(mock_core, None, "mock", "mock")
@@ -196,7 +197,8 @@ def test_noisehandler_tell_empty(mocker, tmpdir):
 
 def test_noisehandler_tell_wrong_number(mocker, tmpdir):
     
-    mocker.patch("dtocean_core.utils.optimiser.init_dir")
+    mocker.patch("dtocean_core.utils.optimiser.init_dir",
+                 autospec=True)
     mock_core = mocker.MagicMock()
     
     mock_eval = MockEvaluator(mock_core, None, "mock", "mock")
@@ -237,7 +239,8 @@ def test_noisehandler_tell_wrong_number(mocker, tmpdir):
 
 def test_noisehandler_tell_not_asked_for(mocker, tmpdir):
     
-    mocker.patch("dtocean_core.utils.optimiser.init_dir")
+    mocker.patch("dtocean_core.utils.optimiser.init_dir",
+                 autospec=True)
     mock_core = mocker.MagicMock()
     
     mock_eval = MockEvaluator(mock_core, None, "mock", "mock")
@@ -279,7 +282,8 @@ def test_noisehandler_tell_not_asked_for(mocker, tmpdir):
 
 def test_main(mocker, tmpdir):
     
-    mocker.patch("dtocean_core.utils.optimiser.init_dir")
+    mocker.patch("dtocean_core.utils.optimiser.init_dir",
+                 autospec=True)
     mock_core = mocker.MagicMock()
     
     mock_eval = MockEvaluator(mock_core, None, "mock", "mock")
@@ -326,7 +330,8 @@ def test_main(mocker, tmpdir):
 
 def test_dump_load_outputs(mocker, tmpdir):
     
-    mocker.patch("dtocean_core.utils.optimiser.init_dir")
+    mocker.patch("dtocean_core.utils.optimiser.init_dir",
+                 autospec=True)
     mock_core = mocker.MagicMock()
     
     mock_eval = MockEvaluator(mock_core, None, "mock", "mock")

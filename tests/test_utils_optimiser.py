@@ -211,7 +211,8 @@ class MockEvaluator(Evaluator):
 
 def test_evaluator(mocker):
     
-    mocker.patch("dtocean_core.utils.optimiser.init_dir")
+    mocker.patch("dtocean_core.utils.optimiser.init_dir",
+                 autospec=True)
     mock_core = mocker.MagicMock()
     
     test = MockEvaluator(mock_core, None, "mock", "mock")
@@ -241,7 +242,8 @@ def test_evaluator(mocker):
 
 def test_evaluator_threaded(mocker):
     
-    mocker.patch("dtocean_core.utils.optimiser.init_dir")
+    mocker.patch("dtocean_core.utils.optimiser.init_dir",
+                 autospec=True)
     mock_core = mocker.MagicMock()
     
     test = MockEvaluator(mock_core, None, "mock", "mock")
@@ -276,14 +278,16 @@ def test_evaluator_threaded(mocker):
 
 def test_evaluator_previous_cost(mocker):
     
-    mocker.patch("dtocean_core.utils.optimiser.init_dir")
+    mocker.patch("dtocean_core.utils.optimiser.init_dir",
+                 autospec=True)
     mock_core = mocker.MagicMock()
     
     test = MockEvaluator(mock_core, None, "mock", "mock")
     
     mocker.patch.object(test._counter,
                         "get_cost",
-                        side_effect = [False, "match"])
+                        side_effect = [False, "match"],
+                        autospec=True)
     
     thread_queue = queue.Queue()
     result_queue = queue.Queue()
@@ -310,7 +314,8 @@ def test_evaluator_previous_cost(mocker):
 
 def test_evaluator_fail_send(caplog, mocker):
     
-    mocker.patch("dtocean_core.utils.optimiser.init_dir")
+    mocker.patch("dtocean_core.utils.optimiser.init_dir",
+                 autospec=True)
     mock_core = mocker.MagicMock()
     
     exc_msg = 'Bang!'
@@ -342,9 +347,11 @@ def test_evaluator_fail_execute(caplog, mocker):
     mock_process.wait.return_value = 1
     
     mocker.patch('dtocean_core.utils.optimiser.Popen',
-                 return_value=mock_process)
+                 return_value=mock_process,
+                 autospec=True)
     
-    mocker.patch("dtocean_core.utils.optimiser.init_dir")
+    mocker.patch("dtocean_core.utils.optimiser.init_dir",
+                 autospec=True)
     
     mock_core = mocker.MagicMock()
     test = MockEvaluator(mock_core, None, "mock", "mock")
@@ -369,7 +376,8 @@ def test_evaluator_fail_execute(caplog, mocker):
 
 def test_evaluator_fail_receive(caplog, mocker):
     
-    mocker.patch("dtocean_core.utils.optimiser.init_dir")
+    mocker.patch("dtocean_core.utils.optimiser.init_dir",
+                 autospec=True)
     mock_core = mocker.MagicMock()
     
     test = MockEvaluator(mock_core, None, "mock", "mock")
@@ -377,7 +385,8 @@ def test_evaluator_fail_receive(caplog, mocker):
     exc_msg = 'Bang!'
     mocker.patch.object(test,
                         "_get_worker_results",
-                        side_effect=KeyError(exc_msg))
+                        side_effect=KeyError(exc_msg),
+                        autospec=True)
     
     thread_queue = queue.Queue()
     result_queue = queue.Queue()
@@ -528,7 +537,8 @@ def test_main_get_max_resample_factor_auto(mocker, tmpdir):
 
 def test_main(mocker, tmpdir):
     
-    mocker.patch("dtocean_core.utils.optimiser.init_dir")
+    mocker.patch("dtocean_core.utils.optimiser.init_dir",
+                 autospec=True)
     mock_core = mocker.MagicMock()
     
     mock_eval = MockEvaluator(mock_core, None, "mock", "mock")
@@ -564,7 +574,8 @@ def test_main(mocker, tmpdir):
 
 def test_main_fixed(mocker, tmpdir):
     
-    mocker.patch("dtocean_core.utils.optimiser.init_dir")
+    mocker.patch("dtocean_core.utils.optimiser.init_dir",
+                 autospec=True)
     mock_core = mocker.MagicMock()
     
     mock_eval = MockEvaluator(mock_core, None, "mock", "mock")
@@ -619,7 +630,8 @@ class MockEvaluatorPenalty(MockEvaluator):
 
 def test_main_apply_constraints_penalty(caplog, mocker, tmpdir):
     
-    mocker.patch("dtocean_core.utils.optimiser.init_dir")
+    mocker.patch("dtocean_core.utils.optimiser.init_dir",
+                 autospec=True)
     mock_core = mocker.MagicMock()
     
     mock_eval = MockEvaluatorPenalty(mock_core, None, "mock", "mock")
@@ -664,7 +676,8 @@ def test_main_apply_constraints_penalty(caplog, mocker, tmpdir):
 
 def test_main_auto_resample_iterations(caplog, mocker, tmpdir):
     
-    mocker.patch("dtocean_core.utils.optimiser.init_dir")
+    mocker.patch("dtocean_core.utils.optimiser.init_dir",
+                 autospec=True)
     mock_core = mocker.MagicMock()
     
     mock_eval = MockEvaluator(mock_core, None, "mock", "mock")
@@ -705,14 +718,16 @@ def test_main_auto_resample_iterations(caplog, mocker, tmpdir):
 
 def test_main_no_feasible_solutions(mocker, tmpdir):
     
-    mocker.patch("dtocean_core.utils.optimiser.init_dir")
+    mocker.patch("dtocean_core.utils.optimiser.init_dir",
+                 autospec=True)
     mock_core = mocker.MagicMock()
     
     mock_eval = MockEvaluator(mock_core, None, "mock", "mock")
     
     mocker.patch.object(mock_eval,
                         "_get_worker_results",
-                        return_value={"cost": np.nan})
+                        return_value={"cost": np.nan},
+                        autospec=True)
     
     x0 = 5
     x_range = (-1, 10)
@@ -741,7 +756,8 @@ def test_main_no_feasible_solutions(mocker, tmpdir):
 
 def test_SafeCMAEvolutionStrategy_plot(caplog, mocker, tmpdir):
     
-    mocker.patch("dtocean_core.utils.optimiser.init_dir")
+    mocker.patch("dtocean_core.utils.optimiser.init_dir",
+                 autospec=True)
     mock_core = mocker.MagicMock()
     
     mock_eval = MockEvaluator(mock_core, None, "mock", "mock")
@@ -815,7 +831,8 @@ def test_get_match_process():
 
 def test_dump_load_outputs(mocker, tmpdir):
     
-    mocker.patch("dtocean_core.utils.optimiser.init_dir")
+    mocker.patch("dtocean_core.utils.optimiser.init_dir",
+                 autospec=True)
     mock_core = mocker.MagicMock()
     
     mock_eval = MockEvaluator(mock_core, None, "mock", "mock")

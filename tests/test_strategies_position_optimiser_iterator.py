@@ -105,7 +105,8 @@ def test_prepare(mocker, lease_polygon, layer_depths):
     
     mocker.patch('dtocean_core.strategies.position_optimiser.iterator.'
                  'ModuleMenu',
-                  return_value=module_menu)
+                  return_value=module_menu,
+                  autospec=True)
     
     mock_var = mocker.MagicMock()
     mock_branch = mocker.MagicMock()
@@ -113,7 +114,8 @@ def test_prepare(mocker, lease_polygon, layer_depths):
     
     _get_branch = mocker.patch('dtocean_core.strategies.position_optimiser.'
                                'iterator._get_branch',
-                               return_value=mock_branch)
+                               return_value=mock_branch,
+                               autospec=True)
     
     core = mocker.MagicMock()
     core.get_data_value.return_value = 1
@@ -160,13 +162,15 @@ def test_get_basic_strategy():
 def test_iterate(mocker):
     
     mocker.patch('dtocean_core.strategies.position_optimiser.iterator.'
-                 'prepare')
+                 'prepare',
+                 autospec=True)
     
     basic_strategy = mocker.MagicMock()
     
     mocker.patch('dtocean_core.strategies.position_optimiser.iterator.'
                  '_get_basic_strategy',
-                 return_value=basic_strategy)
+                 return_value=basic_strategy,
+                 autospec=True)
     
     iterate(None,
             None,
@@ -325,10 +329,12 @@ def test_main(mocker):
     core.load_project.return_value = project
     
     mocker.patch('dtocean_core.strategies.position_optimiser.iterator.'
-                 'get_positioner')
+                 'get_positioner',
+                 autospec=True)
     
     mocker.patch('dtocean_core.strategies.position_optimiser.iterator.'
-                 'iterate')
+                 'iterate',
+                 autospec=True)
     
     write_result_file = mocker.patch('dtocean_core.strategies.'
                                      'position_optimiser.iterator.'
@@ -377,15 +383,18 @@ def test_main_exception(mocker):
     core.load_project.return_value = project
     
     mocker.patch('dtocean_core.strategies.position_optimiser.iterator.'
-                 'get_positioner')
+                 'get_positioner',
+                 autospec=True)
     
     mocker.patch('dtocean_core.strategies.position_optimiser.iterator.'
                  'iterate',
-                 side_effect=RuntimeError("mock"))
+                 side_effect=RuntimeError("mock"),
+                 autospec=True)
     
     write_result_file = mocker.patch('dtocean_core.strategies.'
                                      'position_optimiser.iterator.'
-                                     'write_result_file')
+                                     'write_result_file',
+                                     autospec=True)
     
     grid_orientation = 0
     delta_row = 10
@@ -445,7 +454,8 @@ def test_interface(mocker):
     mocker.patch.object(sys, 'argv', testargs)
     
     test = mocker.patch('dtocean_core.strategies.position_optimiser.iterator.'
-                        'main')
+                        'main',
+                        autospec=True)
     
     interface()
     
