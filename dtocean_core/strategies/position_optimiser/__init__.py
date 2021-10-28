@@ -25,7 +25,6 @@ import glob
 import logging
 import numbers
 from copy import deepcopy
-from bisect import bisect_left
 from collections import namedtuple
 
 import yaml
@@ -128,9 +127,6 @@ class PositionEvaluator(opt.Evaluator):
         
         return
     
-    def _init_counter(self):
-        return PositionCounter()
-    
     def _set_objective_var(self, objective_var):
         
         sim = self._base_project.get_simulation(title="Default")
@@ -145,6 +141,9 @@ class PositionEvaluator(opt.Evaluator):
         
         return
     
+    def _init_counter(self):
+        return PositionCounter()
+    
     def _get_popen_args(self, worker_project_path, n_evals, *args):
         "Return the arguments to create a new process thread using Popen"
         
@@ -158,7 +157,7 @@ class PositionEvaluator(opt.Evaluator):
         
         if n_evals is not None:
             popen_args.extend(["--n_evals",
-                               "{:d}".format(int(args[7]))])
+                               "{:d}".format(int(n_evals))])
         
         return popen_args
     
@@ -213,7 +212,7 @@ class PositionEvaluator(opt.Evaluator):
                                   *args):
         """Update the counter object with new data."""
         
-        args.append(n_evals)
+        args += (n_evals,)
         worker_results_path = None
         cost = np.nan
         
@@ -250,9 +249,9 @@ class PositionEvaluator(opt.Evaluator):
                                          delta_col,
                                          beta,
                                          psi,
-                                         int(n_nodes),
                                          t1,
-                                         t2)
+                                         t2,
+                                         int(n_nodes))
         
         except RuntimeError as e:
             
@@ -288,9 +287,7 @@ class PositionEvaluator(opt.Evaluator):
     
     def _cleanup_hook(self, worker_project_path, flag, lines):
         """Hook to clean up simulation files as required"""
-        
         remove_retry(worker_project_path)
-        
         return
     
     def _log_violation(self, details, *args):
@@ -348,31 +345,31 @@ class PositionOptimiser(object):
         max_resample_loop_factor = None
         auto_resample_iterations = None
         
-        if is_option_set(config, "clean_existing_dir"):
+        if _is_option_set(config, "clean_existing_dir"):
             clean_existing_dir = config["clean_existing_dir"]
         
-        if is_option_set(config, "maximise"):
+        if _is_option_set(config, "maximise"):
             maximise = config["maximise"]
         
-        if is_option_set(config, "max_simulations"):
+        if _is_option_set(config, "max_simulations"):
             max_simulations = config["max_simulations"]
         
-        if is_option_set(config, "popsize"):
+        if _is_option_set(config, "popsize"):
             popsize = config["popsize"]
         
-        if is_option_set(config, "timeout"):
+        if _is_option_set(config, "timeout"):
             timeout = config["timeout"]
         
-        if is_option_set(config, "tolfun"):
+        if _is_option_set(config, "tolfun"):
             tolfun = config["tolfun"]
             
-        if is_option_set(config, "min_evals"):
+        if _is_option_set(config, "min_evals"):
             min_evals = config["min_evals"]
         
-        if is_option_set(config, "max_evals"):
+        if _is_option_set(config, "max_evals"):
             max_evals = config["max_evals"]
         
-        if is_option_set(config, "max_resample_factor"):
+        if _is_option_set(config, "max_resample_factor"):
             max_resample_factor = config["max_resample_factor"]
             
         # Check for use of auto setting
@@ -401,7 +398,7 @@ class PositionOptimiser(object):
         _, root_project_name = os.path.split(root_project_path)
         root_project_base_name, _ = os.path.splitext(root_project_name)
         
-        control_dict = get_param_control(self._core, project, config)
+        control_dict = _get_param_control(self._core, project, config)
         
         ranges = control_dict["ranges"]
         x0s = control_dict["x0s"]
@@ -473,7 +470,7 @@ class PositionOptimiser(object):
         
         # Write the results params control file for workers
         results_params = list(set(results_params).union([objective]))
-        dump_results_control(results_params, self._worker_directory)
+        _dump_results_control(results_params, self._worker_directory)
         
         self._cma_main = opt.Main(
                             es,
@@ -552,13 +549,13 @@ class PositionOptimiser(object):
         max_resample_loop_factor = None
         auto_resample_iterations = None
         
-        if is_option_set(config, "maximise"):
+        if _is_option_set(config, "maximise"):
             maximise = config["maximise"]
         
-        if is_option_set(config, "timeout"):
+        if _is_option_set(config, "timeout"):
             timeout = config["timeout"]
         
-        if is_option_set(config, "max_resample_factor"):
+        if _is_option_set(config, "max_resample_factor"):
             
             max_resample_factor = config["max_resample_factor"]
             
@@ -587,19 +584,19 @@ class PositionOptimiser(object):
         yaml_pattern = '{}_*.yaml'.format(root_project_base_name)
         prj_pattern = '{}_*.prj'.format(root_project_base_name)
         
-        clean_numbered_files_above(self._worker_directory,
-                                   yaml_pattern,
-                                   last_iter)
-        clean_numbered_files_above(self._worker_directory,
-                                   prj_pattern,
-                                   last_iter)
+        _clean_numbered_files_above(self._worker_directory,
+                                    yaml_pattern,
+                                    last_iter)
+        _clean_numbered_files_above(self._worker_directory,
+                                    prj_pattern,
+                                    last_iter)
         
         project = self._core.load_project(root_project_path)
         
         _, root_project_name = os.path.split(root_project_path)
         root_project_base_name, _ = os.path.splitext(root_project_name)
         
-        control_dict = get_param_control(self._core, project, config)
+        control_dict = _get_param_control(self._core, project, config)
         
         ranges = control_dict["ranges"]
         x0s = control_dict["x0s"]
@@ -666,7 +663,7 @@ class PositionOptimiser(object):
         return self._cma_main.nh
 
 
-def get_param_control(core, project, config):
+def _get_param_control(core, project, config):
     
     ranges = []
     x0s = []
@@ -700,7 +697,7 @@ def get_param_control(core, project, config):
                 
                 if param_name in conversions:
                     fixed_value = conversions[param_name](fixed_value)
-                    
+                
                 fixed_params[i] = fixed_value
                 
                 continue
@@ -728,28 +725,22 @@ def get_param_control(core, project, config):
         crange = parameter["range"]
         
         if crange["type"] == "fixed":
-            prange = get_range_fixed(crange["min"], crange["max"])
+            prange = _get_range_fixed(crange["min"], crange["max"])
         elif crange["type"] == "multiplier":
-            prange = get_range_multiplier(core,
-                                          project,
-                                          crange["variable"],
-                                          crange["min_multiplier"],
-                                          crange["max_multiplier"])
+            prange = _get_range_multiplier(core,
+                                           project,
+                                           crange["variable"],
+                                           crange["min_multiplier"],
+                                           crange["max_multiplier"])
         
         if param_name in conversions:
             prange = [conversions[param_name](x) for x in prange]
             prange = sorted(prange)
         
-        if "integer" in parameter:
-            
-            cinteger = parameter["integer"]
-            
-            if cinteger:
-                x_op = np.floor
-                integer_variables.append(i - len(fixed_params))
-        
+        if "integer" in parameter and parameter["integer"]:
+            x_op = np.floor
+            integer_variables.append(i - len(fixed_params))
         else:
-            
             x_op = None
         
         if "x0" in parameter:
@@ -768,50 +759,13 @@ def get_param_control(core, project, config):
     return result
 
 
-def nearest(a, value):
-    
-    # Round half towards positive infinity
-    
-    i = bisect_left(a, value)
-        
-    if i == 0:
-        return a[i]
-    elif i == len(a):
-        return a[i - 1]
-    elif value - a[i - 1] < a[i] - value:
-        return a[i - 1]
-    else:
-        return a[i]
-
-
-def get_range_fixed(rmin, rmax):
+def _get_range_fixed(rmin, rmax):
     return (rmin, rmax)
 
 
-def get_range_multiplier(core, project, variable, mmin, mmax):
-    
+def _get_range_multiplier(core, project, variable, mmin, mmax):
     value = core.get_data_value(project, variable)
-    
     return (mmin * value, mmax * value)
-
-
-def get_interp_fixed(values):
-    
-    f = lambda x: nearest(values, x)
-    
-    return f
-
-
-def get_interp_range(irange, delta):
-    
-    extend = 0.
-    
-    if np.isclose((irange[1] - irange[0]) % delta, 0., atol=0):
-        extend += delta
-    
-    f = lambda x: nearest(np.arange(irange[0], irange[1] + extend, delta), x)
-    
-    return f
 
 
 def load_config(config_path):
@@ -824,21 +778,13 @@ def load_config(config_path):
     return config
 
 
-def load_config_template(config_name="config.yaml"):
-    
-    config_path = os.path.join(THIS_DIR, config_name)
-    config = load_config(config_path)
-    
-    return config
-
-
 def dump_config(config_path, config=None, use_template=True):
     
     if config is None: config = {}
     
     if use_template:
         
-        config_template = load_config_template()
+        config_template = _load_config_template()
         
         # Strip any keys not in the template
         for key in config.keys():
@@ -859,9 +805,17 @@ def dump_config(config_path, config=None, use_template=True):
     return
 
 
-def dump_results_control(params,
-                         worker_directory,
-                         fname='results_control.txt'):
+def _load_config_template(config_name="config.yaml"):
+    
+    config_path = os.path.join(THIS_DIR, config_name)
+    config = load_config(config_path)
+    
+    return config
+
+
+def _dump_results_control(params,
+                          worker_directory,
+                          fname='results_control.txt'):
     
     dump_str = '\n'.join(params)
     fpath = os.path.join(worker_directory, fname)
@@ -872,11 +826,11 @@ def dump_results_control(params,
     return
 
 
-def clean_numbered_files_above(directory, search_pattern, highest_valid):
+def _clean_numbered_files_above(directory, search_pattern, highest_valid):
     
     search_str = os.path.join(directory, search_pattern)
     file_paths = natsorted(glob.glob(search_str))
-    file_numbers = map(extract_number, file_paths)
+    file_numbers = map(_extract_number, file_paths)
     
     paths_to_clean = [x for x, y in zip(file_paths, file_numbers)
                                                     if y > highest_valid]
@@ -887,11 +841,11 @@ def clean_numbered_files_above(directory, search_pattern, highest_valid):
     return
 
 
-def extract_number(f):
+def _extract_number(f):
     s = re.findall("(\d+).", f)
     return int(s[0]) if s else -1
 
 
-def is_option_set(config, key):
+def _is_option_set(config, key):
     result = key in config and config[key] is not None
     return result

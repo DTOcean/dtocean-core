@@ -101,6 +101,18 @@ class Counter(object):
         
         return
     
+    @property
+    def search_dict(self):
+        
+        self._lock.acquire()
+        
+        try:
+            result = deepcopy(self._search_dict)
+        finally:
+            self._lock.release()
+        
+        return result
+    
     def set_params(self, evaluation, *args):
         
         params = self._set_params(*args)
@@ -152,7 +164,7 @@ class Counter(object):
         return None."""
         return
     
-    def get_evaluation(self):
+    def next_evaluation(self):
         
         self._lock.acquire()
         
@@ -163,17 +175,6 @@ class Counter(object):
         
         finally:
             
-            self._lock.release()
-        
-        return result
-    
-    def copy_search_dict(self):
-        
-        self._lock.acquire()
-        
-        try:
-            result = deepcopy(self._search_dict)
-        finally:
             self._lock.release()
         
         return result
@@ -238,7 +239,7 @@ class Evaluator(object):
         return
     
     def get_counter_search_dict(self):
-        return self._counter.copy_search_dict()
+        return self._counter.search_dict
     
     def _log_exception(self, e, flag):
         
@@ -263,7 +264,7 @@ class Evaluator(object):
             return
         
         flag = ""
-        evaluation = self._counter.get_evaluation()
+        evaluation = self._counter.next_evaluation()
         
         worker_file_root_path = "{}_{}".format(self._root_project_base_name,
                                                evaluation)

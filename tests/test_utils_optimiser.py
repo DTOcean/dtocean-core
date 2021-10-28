@@ -81,12 +81,12 @@ class MockCounter(Counter):
 def test_Counter_set_params():
     
     counter = MockCounter()
-    evaluation = counter.get_evaluation()
+    evaluation = counter.next_evaluation()
     counter.set_params(evaluation, 11, 1)
-    evaluation = counter.get_evaluation()
+    evaluation = counter.next_evaluation()
     counter.set_params(evaluation, 12, 2)
     
-    search_dict = counter.copy_search_dict()
+    search_dict = counter.search_dict
     
     assert len(search_dict) == 2
     assert search_dict[1] == MockParams(12, (2,))
@@ -95,7 +95,7 @@ def test_Counter_set_params():
 def test_Counter_set_params_bad_iter():
     
     counter = MockCounter()
-    evaluation = counter.get_evaluation()
+    evaluation = counter.next_evaluation()
     counter.set_params(evaluation, 1, 11)
     
     with pytest.raises(ValueError) as excinfo:
@@ -111,9 +111,9 @@ def test_Counter_set_params_bad_iter():
 def test_Counter_get_cost(value, expected):
     
     counter = MockCounter()
-    evaluation = counter.get_evaluation()
+    evaluation = counter.next_evaluation()
     counter.set_params(evaluation, 11, 1)
-    evaluation = counter.get_evaluation()
+    evaluation = counter.next_evaluation()
     counter.set_params(evaluation, 12, 2)
     
     assert counter.get_cost(value) == expected
