@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import os
+import logging
+import contextlib
 
 import numpy as np
 import pytest
@@ -13,6 +15,7 @@ except ImportError:
     from yaml import Dumper
 
 
+import dtocean_core.utils.optimiser as opt
 from dtocean_core.core import Core
 from dtocean_core.data import CoreMetaData
 from dtocean_core.data.definitions import Strata
@@ -23,7 +26,18 @@ from dtocean_core.strategies.position_optimiser import (PositionParams,
                                                         PositionEvaluator,
                                                         _get_range_fixed,
                                                         _get_range_multiplier,
-                                                        _get_param_control)
+                                                        _get_param_control,
+                                                        PositionOptimiser)
+
+
+@contextlib.contextmanager
+def caplog_for_logger(caplog, logger_name, level=logging.DEBUG):
+    caplog.handler.records = []
+    logger = logging.getLogger(logger_name)
+    logger.addHandler(caplog.handler)
+    logger.setLevel(level)
+    yield
+    logger.removeHandler(caplog.handler)
 
 
 @pytest.fixture
@@ -223,6 +237,23 @@ def test_PositionEvaluator_get_worker_results_bad_flag(mocker, evaluator):
         evaluator._get_worker_results(1)
     
     assert 'Unrecognised flag' in str(excinfo)
+
+
+def test_PositionEvaluator_get_worker_results_not_number(caplog,
+                                                         mocker,
+                                                         evaluator):
+    
+    mock_stg_dict = {"status": "Success",
+                     "results": {"mock": "mock"}}
+    
+    mocker.patch('dtocean_core.strategies.position_optimiser.open',
+                 mocker.mock_open(read_data=dump(mock_stg_dict,
+                                                 Dumper=Dumper)))
+    
+    with caplog_for_logger(caplog, 'dtocean_core'):
+        evaluator._get_worker_results(1)
+    
+    assert "cost is not a number" in caplog.text
 
 
 def test_PositionEvaluator_set_counter_params_no_results(evaluator):
@@ -559,3 +590,233 @@ def test_get_param_control_more():
                       'fixed_params': None,
                       'x_ops': [None, None, None, np.floor, None, None, np.floor],
                       'integer_variables': [3, 6]}
+
+
+def test_get_param_control_bad_parameter():
+    
+    parameters = {"mock": None}
+    config = {"parameters": parameters}
+    
+    with pytest.raises(KeyError) as excinfo:
+        _get_param_control(None, None, config)
+    
+    assert "must be included in the 'parameters' section" in str(excinfo)
+
+
+@pytest.mark.parametrize("mock_var,    minevals", [
+                         ("mock",      1),
+                         ("mock_mode", 4),
+                         ("mock_mean", 1)])
+def test_PositionOptimiser_start(mocker,
+                                 tmpdir,
+                                 lease_polygon,
+                                 layer_depths,
+                                 mock_var,
+                                 minevals):
+    
+    mocker.patch("dtocean_core.strategies.position_optimiser.ModuleMenu."
+                 "get_active",
+                 return_value=["Operations and Maintenance"],
+                 autospec=True)
+    
+    mocker.patch("dtocean_core.utils.optimiser.init_dir",
+                 autospec=True)
+    
+    positioner = ParaPositioner(lease_polygon,
+                                layer_depths)
+    
+    mocker.patch("dtocean_core.strategies.position_optimiser.get_positioner",
+                 return_value=positioner,
+                 autospec=True)
+    
+    mock_simulation = mocker.MagicMock()
+    mock_simulation.get_output_ids.return_value = [mock_var]
+    
+    mock_project = mocker.MagicMock()
+    mock_project.get_simulation.return_value = mock_simulation
+    
+    mock_core = Core()
+    
+    mocker.patch.object(mock_core,
+                        'get_data_value',
+                        return_value=2,
+                        autospec=True)
+    
+    mocker.patch.object(mock_core,
+                        'load_project',
+                        return_value=mock_project,
+                        autospec=True)
+    
+    mocker.patch.object(mock_core,
+                        'dump_project',
+                        autospec=True)
+    
+    worker_dir = str(tmpdir)
+    base_penalty = 1
+    num_threads = 2
+    maximise = False
+    
+    config = {"worker_dir": worker_dir,
+              "base_penalty": base_penalty,
+              "n_threads": num_threads,
+              "results_params": mock_var,
+              "objective": mock_var,
+              "clean_existing_dir": False,
+              "maximise": maximise,
+              "max_simulations": 1,
+              "popsize": 8,
+              "timeout": 1,
+              "tolfun": 1,
+              "max_evals": 0,
+              "max_resample_factor": "auto2",
+              "root_project_path": "mock"}
+    
+    param_fixed = {"fixed": 0}
+    param_range_fixed = {"range": {"type": "fixed",
+                                   "min": 1,
+                                   "max": 2}}
+    param_range_fixed_x0 = {"range": {"type": "fixed",
+                                       "min": 1,
+                                       "max": 2},
+                             "x0": 1.5}
+    param_range_multiplier = {"range": {"type": "multiplier",
+                                        "variable": "mock",
+                                        "min_multiplier": 1,
+                                        "max_multiplier": 2}}
+    parameters = {"grid_orientation": param_fixed,
+                  "delta_row": param_range_fixed,
+                  "delta_col": param_range_fixed_x0,
+                  "n_nodes": param_range_fixed,
+                  "t1": param_range_multiplier,
+                  "t2": param_range_multiplier}
+    
+    config["parameters"] = parameters
+    
+    test = PositionOptimiser(core=mock_core)
+    test.start(config)
+    
+    assert not test.stop
+    assert test._worker_directory == worker_dir
+    assert test._dump_config
+    
+    assert isinstance(test._cma_main, opt.Main)
+    assert isinstance(test._cma_main.evaluator, PositionEvaluator)
+    assert [scaler.x0 for scaler in test._cma_main._scaled_vars] == [9] * 5
+    assert test._cma_main._base_penalty == base_penalty
+    assert test._cma_main._num_threads == num_threads
+    assert test._cma_main._maximise == maximise
+    assert test._cma_main._n_record_resample == 2
+    
+    assert test._cma_main.nh is not None
+    assert test._cma_main.nh.minevals == minevals
+    assert test._cma_main.nh.maxevals == minevals
+    
+    assert len(tmpdir.listdir()) == 5
+    assert not mock_core.dump_project.called
+
+
+def test_PositionOptimiser_start_more(mocker,
+                                      tmpdir,
+                                      lease_polygon,
+                                      layer_depths):
+    
+    mocker.patch("dtocean_core.strategies.position_optimiser.ModuleMenu."
+                 "get_active",
+                 return_value=[],
+                 autospec=True)
+    
+    mocker.patch("dtocean_core.utils.optimiser.init_dir",
+                 autospec=True)
+    
+    positioner = ParaPositioner(lease_polygon,
+                                layer_depths)
+    
+    mocker.patch("dtocean_core.strategies.position_optimiser.get_positioner",
+                 return_value=positioner,
+                 autospec=True)
+    
+    mock_var = "mock"
+    
+    mock_simulation = mocker.MagicMock()
+    mock_simulation.get_output_ids.return_value = [mock_var]
+    
+    mock_project = mocker.MagicMock()
+    mock_project.get_simulation.return_value = mock_simulation
+    
+    mock_core = Core()
+    
+    mocker.patch.object(mock_core,
+                        'get_data_value',
+                        return_value=2,
+                        autospec=True)
+    
+    mocker.patch.object(mock_core,
+                        'dump_project',
+                        autospec=True)
+    
+    mocker.patch("dtocean_core.strategies.position_optimiser.Core",
+                 mock_core)
+    
+    worker_dir = str(tmpdir)
+    base_penalty = 1
+    num_threads = 2
+    maximise = False
+    max_resample_factor = 20
+    popsize = 8
+    
+    config = {"worker_dir": worker_dir,
+              "base_penalty": base_penalty,
+              "n_threads": num_threads,
+              "results_params": mock_var,
+              "objective": mock_var,
+              "clean_existing_dir": False,
+              "maximise": maximise,
+              "max_simulations": 1,
+              "popsize": popsize,
+              "timeout": 1,
+              "tolfun": 1,
+              "max_evals": 0,
+              "max_resample_factor": max_resample_factor}
+    
+    param_fixed = {"fixed": 0}
+    param_range_fixed = {"range": {"type": "fixed",
+                                   "min": 1,
+                                   "max": 2}}
+    param_range_fixed_x0 = {"range": {"type": "fixed",
+                                       "min": 1,
+                                       "max": 2},
+                             "x0": 1.5}
+    param_range_multiplier = {"range": {"type": "multiplier",
+                                        "variable": "mock",
+                                        "min_multiplier": 1,
+                                        "max_multiplier": 2}}
+    parameters = {"grid_orientation": param_fixed,
+                  "delta_row": param_range_fixed,
+                  "delta_col": param_range_fixed_x0,
+                  "n_nodes": param_range_fixed,
+                  "t1": param_range_multiplier,
+                  "t2": param_range_multiplier}
+    
+    config["parameters"] = parameters
+    
+    test = PositionOptimiser(core=mock_core)
+    test.start(config, mock_project)
+    
+    assert config["root_project_path"] == str(tmpdir.join("worker.prj"))
+    
+    assert not test.stop
+    assert test._worker_directory == worker_dir
+    assert not test._dump_config
+    
+    assert isinstance(test._cma_main, opt.Main)
+    assert isinstance(test._cma_main.evaluator, PositionEvaluator)
+    assert [scaler.x0 for scaler in test._cma_main._scaled_vars] == [9] * 5
+    assert test._cma_main._base_penalty == base_penalty
+    assert test._cma_main._num_threads == num_threads
+    assert test._cma_main._maximise == maximise
+    assert test._cma_main._max_resample_loops == \
+                                        2 * max_resample_factor * popsize
+    assert test._cma_main.nh is None
+    
+    assert len(tmpdir.listdir()) == 4
+    assert mock_core.dump_project.called
