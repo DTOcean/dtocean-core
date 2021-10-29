@@ -537,7 +537,7 @@ class PositionOptimiser(object):
         
         # Reload outputs
         es, counter_dict, nh = opt.load_outputs(self._worker_directory)
-    
+        
         root_project_path = config['root_project_path']
         base_penalty = config["base_penalty"]
         n_threads = config["n_threads"]
@@ -768,6 +768,19 @@ def _get_range_multiplier(core, project, variable, mmin, mmax):
     return (mmin * value, mmax * value)
 
 
+def _dump_results_control(params,
+                          worker_directory,
+                          fname='results_control.txt'):
+    
+    dump_str = '\n'.join(params)
+    fpath = os.path.join(worker_directory, fname)
+    
+    with open(fpath, 'w') as f:
+        f.write(dump_str)
+    
+    return
+
+
 def load_config(config_path):
     
     ruyaml = YAML()
@@ -813,24 +826,11 @@ def _load_config_template(config_name="config.yaml"):
     return config
 
 
-def _dump_results_control(params,
-                          worker_directory,
-                          fname='results_control.txt'):
-    
-    dump_str = '\n'.join(params)
-    fpath = os.path.join(worker_directory, fname)
-    
-    with open(fpath, 'w') as f:
-        f.write(dump_str)
-    
-    return
-
-
 def _clean_numbered_files_above(directory, search_pattern, highest_valid):
     
     search_str = os.path.join(directory, search_pattern)
     file_paths = natsorted(glob.glob(search_str))
-    file_numbers = map(_extract_number, file_paths)
+    file_numbers = map(_extract_number, map(os.path.basename, file_paths))
     
     paths_to_clean = [x for x, y in zip(file_paths, file_numbers)
                                                     if y > highest_valid]
