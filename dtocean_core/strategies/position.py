@@ -223,6 +223,13 @@ class AdvancedPosition(Strategy):
         safe_config['clean_existing_dir'] = None
         return safe_config
     
+    def get_variables(self):
+        
+        set_vars = ['options.user_array_layout',
+                    'project.rated_power']
+        
+        return set_vars
+    
     def configure(self, **config_dict):
         
         _, status = self.get_config_status(config_dict)
@@ -237,12 +244,31 @@ class AdvancedPosition(Strategy):
         
         return
     
-    def get_variables(self):
+    @classmethod
+    def get_config_status(cls, config):
         
-        set_vars = ['options.user_array_layout',
-                    'project.rated_power']
+        required_keys = ["root_project_path",
+                         "worker_dir",
+                         "base_penalty",
+                         "n_threads",
+                         "parameters",
+                         "objective",
+                         "results_params"]
         
-        return set_vars
+        required_filled = [bool(config[x]) if x in config else False
+                                                       for x in required_keys]
+        
+        if not all(required_filled):
+            
+            status_str = "Configuration incomplete"
+            status_code = 0
+        
+        else:
+            
+            status_str = "Configuration complete"
+            status_code = 1
+        
+        return status_str, status_code
     
     def execute(self, core, project):
         
@@ -290,6 +316,95 @@ class AdvancedPosition(Strategy):
         self._config['clean_existing_dir'] = None
         
         return optimiser
+    
+    @classmethod
+    def get_worker_directory_status(cls, config):
+        
+        worker_directory = config["worker_dir"]
+        
+        status_str = None
+        status_code = 1
+        
+        if os.path.isdir(worker_directory):
+            
+            if len(os.listdir(worker_directory)) == 0:
+                status_str = "Worker directory empty"
+            elif config['clean_existing_dir']:
+                status_str = "Worker directory contains files"
+                status_code = 2
+            else:
+                status_str = "Worker directory contains files"
+                status_code = 0
+        
+        else:
+            
+            status_str = "Worker directory does not yet exist"
+        
+        return status_str, status_code
+    
+    @classmethod
+    def get_optimiser_status(cls, core, config):
+        
+        worker_directory = config["worker_dir"]
+        
+        status_str = None
+        status_code = 0
+        
+        if not os.path.isdir(worker_directory):
+            return status_str, status_code
+        
+        root_project_path = config['root_project_path']
+        
+        _, root_project_name = os.path.split(root_project_path)
+        root_project_base_name, _ = os.path.splitext(root_project_name)
+        pickle_name = "{}_results.pkl".format(root_project_base_name)
+        
+        results_path = os.path.join(worker_directory, pickle_name)
+        
+        if os.path.isfile(results_path):
+            
+            status_str = "Optimisation complete"
+            status_code = 1
+            
+            return status_str, status_code
+        
+        optimiser = PositionOptimiser(core=core,
+                                      config_fname=cls.get_config_fname())
+        
+        if optimiser.is_restart(worker_directory):
+            
+            status_str = ("Optimisation incomplete (restart may be "
+                          "possible)")
+            status_code = 2
+        
+        return status_str, status_code
+    
+    def _prepare_project(self, core, project):
+        
+        # Check the project is active and record the simulation number
+        status_strs, status_code = self.get_project_status(core,
+                                                           project,
+                                                           self._config)
+        
+        if status_code == 0:
+            status_str = "\n".join(status_strs)
+            raise RuntimeError(status_str)
+        
+        if project.get_simulation_title() != "Default":
+            
+            log_str = 'Setting active simulation to "Default"'
+            module_logger.info(log_str)
+            
+            project.set_active_index(title="Default")
+        
+        log_str = 'Attempting to reset simulation level'
+        module_logger.info(log_str)
+        
+        tree = Tree()
+        hydro_branch = tree.get_branch(core, project, "Hydrodynamics")
+        hydro_branch.reset(core, project)
+        
+        return
     
     def _post_process(self, optimiser, log_interval=100):
         
@@ -558,90 +673,6 @@ class AdvancedPosition(Strategy):
         return [status_str], 1
     
     @classmethod
-    def get_config_status(cls, config):
-        
-        required_keys = ["root_project_path",
-                         "worker_dir",
-                         "base_penalty",
-                         "n_threads",
-                         "parameters",
-                         "objective",
-                         "results_params"]
-        
-        required_filled = [bool(config[x]) if x in config else False
-                                                       for x in required_keys]
-        
-        if not all(required_filled):
-            
-            status_str = "Configuration incomplete"
-            status_code = 0
-        
-        else:
-            
-            status_str = "Configuration complete"
-            status_code = 1
-        
-        return status_str, status_code
-    
-    @classmethod
-    def get_worker_directory_status(cls, config):
-        
-        worker_directory = config["worker_dir"]
-        
-        status_str = None
-        status_code = 1
-        
-        if os.path.isdir(worker_directory):
-            
-            if len(os.listdir(worker_directory)) == 0:
-                status_str = "Worker directory empty"
-            elif config['clean_existing_dir']:
-                status_str = "Worker directory contains files"
-                status_code = 2
-            else:
-                status_str = "Worker directory contains files"
-                status_code = 0
-        
-        else:
-            
-            status_str = "Worker directory does not yet exist"
-        
-        return status_str, status_code
-    
-    @classmethod
-    def get_optimiser_status(cls, core, config):
-        
-        optimiser = PositionOptimiser(core=core,
-                                      config_fname=cls.get_config_fname())
-        
-        root_project_path = config['root_project_path']
-        worker_directory = config["worker_dir"]
-        
-        status_str = None
-        status_code = 0
-        
-        if os.path.isdir(worker_directory):
-            
-            _, root_project_name = os.path.split(root_project_path)
-            root_project_base_name, _ = os.path.splitext(root_project_name)
-            pickle_name = "{}_results.pkl".format(root_project_base_name)
-            
-            results_path = os.path.join(worker_directory, pickle_name)
-            
-            if os.path.isfile(results_path):
-                
-                status_str = "Optimisation complete"
-                status_code = 1
-            
-            elif optimiser.is_restart(worker_directory):
-                
-                status_str = ("Optimisation incomplete (restart may be "
-                              "possible)")
-                status_code = 2
-        
-        return status_str, status_code
-    
-    @classmethod
     def allow_run(cls, core, project, config):
         
         _, project_status_code = AdvancedPosition.get_project_status(core,
@@ -668,33 +699,6 @@ class AdvancedPosition(Strategy):
         if optimiser_status_code <= 1: return False
         
         return True
-    
-    def _prepare_project(self, core, project):
-        
-        # Check the project is active and record the simulation number
-        status_strs, status_code = self.get_project_status(core,
-                                                           project,
-                                                           self._config)
-        
-        if status_code == 0:
-            status_str = "\n".join(status_strs)
-            raise RuntimeError(status_str)
-        
-        if project.get_simulation_title() != "Default":
-            
-            log_str = 'Setting active simulation to "Default"'
-            module_logger.info(log_str)
-            
-            project.set_active_index(title="Default")
-        
-        log_str = 'Attempting to reset simulation level'
-        module_logger.info(log_str)
-        
-        tree = Tree()
-        hydro_branch = tree.get_branch(core, project, "Hydrodynamics")
-        hydro_branch.reset(core, project)
-        
-        return
 
 
 def _method_decorator(func):
