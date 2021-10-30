@@ -38,7 +38,6 @@ class MultiSensitivity(Strategy):
     
     @classmethod
     def get_name(cls):
-        
         return "Multi Sensitivity"
     
     @classmethod

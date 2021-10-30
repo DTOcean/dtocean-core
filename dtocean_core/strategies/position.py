@@ -210,17 +210,13 @@ class OptimiserThread(threading.Thread):
 
 class AdvancedPosition(Strategy):
     
-    """
-    """
+    @classmethod
+    def get_name(cls):
+        return "Advanced Positioning"
     
     @classmethod
     def get_config_fname(cls):
         return "config.yaml"
-    
-    @classmethod
-    def get_name(cls):
-        
-        return "Advanced Positioning"
     
     def dump_config_hook(self, config):
         safe_config = deepcopy(config)
