@@ -900,6 +900,20 @@ def test_PositionOptimiser_is_restart(mocker, tmpdir):
     assert test.is_restart(str(tmpdir))
 
 
+def test_dump_config_extra_keys(tmpdir):
+    
+    config_path = str(tmpdir.join("config.yaml"))
+    dump_config(config_path)
+    config = load_config(config_path)
+    
+    config["mock"] = "mock"
+    
+    dump_config(config_path, config)
+    new_config = load_config(config_path)
+    
+    assert "mock" not in new_config
+
+
 def test_PositionOptimiser_is_restart_no_state(caplog, mocker, tmpdir):
     
     err_msg = "bang!"
@@ -1196,3 +1210,223 @@ def test_PositionOptimiser_restart_more(mocker,
     assert test._cma_main._max_resample_loops == \
                                         2 * max_resample_factor * popsize
     assert test._cma_main.nh is None
+
+
+def test_PositionOptimiser_restart_not_possible(caplog, mocker):
+    
+    err_msg = "bang!"
+    mocker.patch("dtocean_core.strategies.position_optimiser.opt.load_outputs",
+                 side_effect=IOError(err_msg),
+                 autospec=True)
+    
+    mock_core = mocker.MagicMock()
+    test = PositionOptimiser(core=mock_core)
+    
+    with caplog_for_logger(caplog, 'dtocean_core'):
+        test.restart("mock")
+    
+    assert test._cma_main is None
+    assert "Restarting position optimisation not possible" in caplog.text
+
+
+def test_PositionOptimiser_next_not_configured(mocker):
+    
+    mock_core = mocker.MagicMock()
+    test = PositionOptimiser(core=mock_core)
+    
+    with pytest.raises(RuntimeError) as excinfo:
+        test.next()
+    
+    assert "Optimiser is not configured" in str(excinfo)
+
+
+def test_PositionOptimiser_next_stop(caplog, mocker):
+    
+    mock_core = mocker.MagicMock()
+    test = PositionOptimiser(core=mock_core)
+    
+    mock_cma_main = mocker.MagicMock()
+    mock_cma_main.stop = True
+    test._cma_main = mock_cma_main
+    
+    with caplog_for_logger(caplog, 'dtocean_core'):
+        test.next()
+    
+    assert test.stop
+    assert "Position optimisation complete" in caplog.text
+
+
+def test_PositionOptimiser_next_dump(mocker,
+                                     tmpdir,
+                                     lease_polygon,
+                                     layer_depths):
+    
+    mocker.patch("dtocean_core.strategies.position_optimiser.ModuleMenu."
+                 "get_active",
+                 return_value=["Operations and Maintenance"],
+                 autospec=True)
+    
+    mocker.patch("dtocean_core.utils.optimiser.init_dir",
+                 autospec=True)
+    
+    positioner = ParaPositioner(lease_polygon,
+                                layer_depths)
+    
+    mocker.patch("dtocean_core.strategies.position_optimiser.get_positioner",
+                 return_value=positioner,
+                 autospec=True)
+    
+    mock_var = "mock"
+    
+    mock_simulation = mocker.MagicMock()
+    mock_simulation.get_output_ids.return_value = [mock_var]
+    
+    mock_project = mocker.MagicMock()
+    mock_project.get_simulation.return_value = mock_simulation
+    
+    mock_core = Core()
+    
+    mocker.patch.object(mock_core,
+                        'get_data_value',
+                        return_value=2,
+                        autospec=True)
+    
+    mocker.patch.object(mock_core,
+                        'load_project',
+                        return_value=mock_project,
+                        autospec=True)
+    
+    mocker.patch.object(mock_core,
+                        'dump_project',
+                        autospec=True)
+    
+    worker_dir = str(tmpdir)
+    base_penalty = 1
+    num_threads = 2
+    maximise = False
+    
+    config = {"worker_dir": worker_dir,
+              "base_penalty": base_penalty,
+              "n_threads": num_threads,
+              "results_params": mock_var,
+              "objective": mock_var,
+              "clean_existing_dir": False,
+              "maximise": maximise,
+              "max_simulations": 1,
+              "popsize": 8,
+              "timeout": 1,
+              "tolfun": 1,
+              "max_evals": 0,
+              "max_resample_factor": "auto2",
+              "root_project_path": "mock"}
+    
+    param_fixed = {"fixed": 0}
+    param_range_fixed = {"range": {"type": "fixed",
+                                   "min": 1,
+                                   "max": 2}}
+    param_range_fixed_x0 = {"range": {"type": "fixed",
+                                       "min": 1,
+                                       "max": 2},
+                             "x0": 1.5}
+    param_range_multiplier = {"range": {"type": "multiplier",
+                                        "variable": "mock",
+                                        "min_multiplier": 1,
+                                        "max_multiplier": 2}}
+    parameters = {"grid_orientation": param_fixed,
+                  "delta_row": param_range_fixed,
+                  "delta_col": param_range_fixed_x0,
+                  "n_nodes": param_range_fixed,
+                  "t1": param_range_multiplier,
+                  "t2": param_range_multiplier}
+    
+    config["parameters"] = parameters
+    
+    test = PositionOptimiser(core=mock_core)
+    test.start(config)
+    
+    p_cma = tmpdir.join("saved-cma-object.pkl")
+    cma_before_time = p_cma.mtime()
+    
+    p_config = tmpdir.join("config.yaml")
+    config_before_time = p_config.mtime()
+    
+    mock_next = mocker.patch.object(test._cma_main,
+                                    "next",
+                                     autospec=True)
+    
+    mocker.patch.object(test._cma_main,
+                        "get_max_resample_factor",
+                        return_value=1,
+                        autospec=True)
+    
+    test.next()
+
+    cma_after_time = p_cma.mtime()
+    config_after_time = p_config.mtime()
+    new_config = load_config(str(p_config))
+    
+    assert mock_next.called
+    assert cma_after_time > cma_before_time
+    assert config_after_time > config_before_time
+    assert not test._dump_config
+    assert "max_resample_factor" in new_config
+
+
+def test_PositionOptimiser_next_no_dump(mocker,
+                                        tmpdir,
+                                        lease_polygon,
+                                        layer_depths):
+    
+    mock_core = mocker.MagicMock()
+    test = PositionOptimiser(core=mock_core)
+    
+    mock_cma_main = mocker.MagicMock()
+    mock_cma_main.stop = False
+    test._cma_main = mock_cma_main
+    
+    mock_dump_outputs = mocker.patch("dtocean_core.strategies."
+                                     "position_optimiser.opt.dump_outputs",
+                                     autospec=True)
+    
+    test.next()
+    
+    assert mock_cma_main.next.called
+    assert mock_dump_outputs.called
+
+
+def test_PositionOptimiser_get_es_none(mocker):
+    
+    mock_core = mocker.MagicMock()
+    test = PositionOptimiser(core=mock_core)
+    
+    assert test.get_es() is None
+
+
+def test_PositionOptimiser_get_es(mocker):
+    
+    mock_core = mocker.MagicMock()
+    test = PositionOptimiser(core=mock_core)
+    
+    mock_cma_main = mocker.MagicMock()
+    test._cma_main = mock_cma_main
+    
+    assert isinstance(test.get_es(), mocker.MagicMock)
+
+
+def test_PositionOptimiser_get_nh_none(mocker):
+    
+    mock_core = mocker.MagicMock()
+    test = PositionOptimiser(core=mock_core)
+    
+    assert test.get_nh() is None
+
+
+def test_PositionOptimiser_get_nh(mocker):
+    
+    mock_core = mocker.MagicMock()
+    test = PositionOptimiser(core=mock_core)
+    
+    mock_cma_main = mocker.MagicMock()
+    test._cma_main = mock_cma_main
+    
+    assert isinstance(test.get_nh(), mocker.MagicMock)

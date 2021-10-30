@@ -631,6 +631,11 @@ class PositionOptimiser(object):
     
     def next(self):
         
+        if self._cma_main is None:
+            err_msg = ("Optimiser is not configured. Call 'start' or "
+                       "'restart' first")
+            raise RuntimeError(err_msg)
+        
         if self._cma_main.stop:
             module_logger.info("Position optimisation complete")
             self.stop = True
@@ -657,9 +662,11 @@ class PositionOptimiser(object):
         return
     
     def get_es(self):
+        if self._cma_main is None: return None
         return self._cma_main.es
     
     def get_nh(self):
+        if self._cma_main is None: return None
         return self._cma_main.nh
 
 
