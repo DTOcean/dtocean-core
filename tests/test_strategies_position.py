@@ -147,7 +147,19 @@ def test_advanced_get_optimiser_status_complete(tmpdir):
     
     assert status_code == 1
     assert "complete" in status_str
+
+
+def test_advanced_get_optimiser_status_incomplete(mocker, tmpdir):
     
-#    mocker.patch("dtocean_core.strategies.position."
-#                 "PositionOptimiser",
-#                 autospec=True)
+    mock_opt = mocker.patch("dtocean_core.strategies.position."
+                            "PositionOptimiser",
+                            autospec=True)
+    mock_opt.is_restart.return_value = True
+    
+    config = {"worker_dir": str(tmpdir),
+              "root_project_path": os.path.join(str(tmpdir), "mock.prj")}
+    (status_str,
+     status_code) = AdvancedPosition.get_optimiser_status(None, config)
+    
+    assert status_code == 2
+    assert "incomplete" in status_str

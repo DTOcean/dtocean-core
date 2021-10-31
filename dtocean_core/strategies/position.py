@@ -317,68 +317,6 @@ class AdvancedPosition(Strategy):
         
         return optimiser
     
-    @classmethod
-    def get_worker_directory_status(cls, config):
-        
-        worker_directory = config["worker_dir"]
-        
-        status_str = None
-        status_code = 1
-        
-        if os.path.isdir(worker_directory):
-            
-            if len(os.listdir(worker_directory)) == 0:
-                status_str = "Worker directory empty"
-            elif config['clean_existing_dir']:
-                status_str = "Worker directory contains files"
-                status_code = 2
-            else:
-                status_str = "Worker directory contains files"
-                status_code = 0
-        
-        else:
-            
-            status_str = "Worker directory does not yet exist"
-        
-        return status_str, status_code
-    
-    @classmethod
-    def get_optimiser_status(cls, core, config):
-        
-        worker_directory = config["worker_dir"]
-        
-        status_str = None
-        status_code = 0
-        
-        if not os.path.isdir(worker_directory):
-            return status_str, status_code
-        
-        root_project_path = config['root_project_path']
-        
-        _, root_project_name = os.path.split(root_project_path)
-        root_project_base_name, _ = os.path.splitext(root_project_name)
-        pickle_name = "{}_results.pkl".format(root_project_base_name)
-        
-        results_path = os.path.join(worker_directory, pickle_name)
-        
-        if os.path.isfile(results_path):
-            
-            status_str = "Optimisation complete"
-            status_code = 1
-            
-            return status_str, status_code
-        
-        optimiser = PositionOptimiser(core=core,
-                                      config_fname=cls.get_config_fname())
-        
-        if optimiser.is_restart(worker_directory):
-            
-            status_str = ("Optimisation incomplete (restart may be "
-                          "possible)")
-            status_code = 2
-        
-        return status_str, status_code
-    
     def _prepare_project(self, core, project):
         
         # Check the project is active and record the simulation number
@@ -626,6 +564,96 @@ class AdvancedPosition(Strategy):
         return
     
     @classmethod
+    def allow_run(cls, core, project, config):
+        
+        _, project_status_code = AdvancedPosition.get_project_status(core,
+                                                                     project,
+                                                                     config)
+        
+        if project_status_code == 0: return False
+        
+        _, config_status_code = AdvancedPosition.get_config_status(config)
+        
+        if config_status_code == 0: return False
+        
+        if config["worker_dir"] is None: return False
+        
+        _, worker_dir_status_code = \
+                     AdvancedPosition.get_worker_directory_status(config)
+        
+        if worker_dir_status_code >= 1: return True
+            
+        _, optimiser_status_code = AdvancedPosition.get_optimiser_status(
+                                                                        core,
+                                                                        config)
+        
+        if optimiser_status_code <= 1: return False
+        
+        return True
+    
+    @classmethod
+    def get_worker_directory_status(cls, config):
+        
+        worker_directory = config["worker_dir"]
+        
+        status_str = None
+        status_code = 1
+        
+        if os.path.isdir(worker_directory):
+            
+            if len(os.listdir(worker_directory)) == 0:
+                status_str = "Worker directory empty"
+            elif config['clean_existing_dir']:
+                status_str = "Worker directory contains files"
+                status_code = 2
+            else:
+                status_str = "Worker directory contains files"
+                status_code = 0
+        
+        else:
+            
+            status_str = "Worker directory does not yet exist"
+        
+        return status_str, status_code
+    
+    @classmethod
+    def get_optimiser_status(cls, core, config):
+        
+        worker_directory = config["worker_dir"]
+        
+        status_str = None
+        status_code = 0
+        
+        if not os.path.isdir(worker_directory):
+            return status_str, status_code
+        
+        root_project_path = config['root_project_path']
+        
+        _, root_project_name = os.path.split(root_project_path)
+        root_project_base_name, _ = os.path.splitext(root_project_name)
+        pickle_name = "{}_results.pkl".format(root_project_base_name)
+        
+        results_path = os.path.join(worker_directory, pickle_name)
+        
+        if os.path.isfile(results_path):
+            
+            status_str = "Optimisation complete"
+            status_code = 1
+            
+            return status_str, status_code
+        
+        optimiser = PositionOptimiser(core=core,
+                                      config_fname=cls.get_config_fname())
+        
+        if optimiser.is_restart(worker_directory):
+            
+            status_str = ("Optimisation incomplete (restart may be "
+                          "possible)")
+            status_code = 2
+        
+        return status_str, status_code
+    
+    @classmethod
     def get_project_status(cls, core, project, config):
         
         module_menu = ModuleMenu()
@@ -671,34 +699,6 @@ class AdvancedPosition(Strategy):
         status_str = "Project ready"
         
         return [status_str], 1
-    
-    @classmethod
-    def allow_run(cls, core, project, config):
-        
-        _, project_status_code = AdvancedPosition.get_project_status(core,
-                                                                     project,
-                                                                     config)
-        
-        if project_status_code == 0: return False
-        
-        _, config_status_code = AdvancedPosition.get_config_status(config)
-        
-        if config_status_code == 0: return False
-        
-        if config["worker_dir"] is None: return False
-        
-        _, worker_dir_status_code = \
-                     AdvancedPosition.get_worker_directory_status(config)
-        
-        if worker_dir_status_code >= 1: return True
-            
-        _, optimiser_status_code = AdvancedPosition.get_optimiser_status(
-                                                                        core,
-                                                                        config)
-        
-        if optimiser_status_code <= 1: return False
-        
-        return True
 
 
 def _method_decorator(func):
