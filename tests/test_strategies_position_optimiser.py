@@ -121,7 +121,7 @@ def test_PositionEvaluator_init_bad_objective(mocker,
     mocker.patch("dtocean_core.strategies.position_optimiser.get_positioner",
                  return_value=positioner,
                  autospec=True)
-
+    
     mock_core = mocker.MagicMock()
     
     mock_simulation = mocker.MagicMock()

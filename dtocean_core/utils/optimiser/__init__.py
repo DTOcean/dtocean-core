@@ -582,8 +582,7 @@ class Main(object):
             if xmean is None:
                 xmean = asktell.mean.copy()
             
-            descaled_solutions = self._get_descaled_solutions(
-                                                        scaled_solutions)
+            descaled_solutions = self.get_descaled_solutions(scaled_solutions)
             
             checked_solutions = []
             checked_descaled_solutions = []
@@ -645,8 +644,8 @@ class Main(object):
         
         if scaled_solutions_extra is not None:
             
-            descaled_solutions_extra = self._get_descaled_solutions(
-                                                scaled_solutions_extra)
+            descaled_solutions_extra = self.get_descaled_solutions(
+                                                    scaled_solutions_extra)
             
             for sol, des_sol in zip(scaled_solutions_extra,
                                     descaled_solutions_extra):
@@ -788,7 +787,7 @@ class Main(object):
         
         return result_default, result_extra
     
-    def _get_descaled_solutions(self, scaled_solutions):
+    def get_descaled_solutions(self, scaled_solutions):
         
         descaled_solutions = []
         

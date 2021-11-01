@@ -307,6 +307,8 @@ class OrderedSim(Simulation):
                        interface_name=None,
                        valid_statuses=None):
         
+        if sim_status is None: return []
+        
         if hub_id is None:
             hub_ids = sim_status.keys()
         else:

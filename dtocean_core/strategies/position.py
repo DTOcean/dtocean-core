@@ -74,11 +74,7 @@ class OptimiserThread(threading.Thread):
     def paused(self):
         return self._paused
     
-    def _set_stopped(self, state=True):
-        
-        if not state:
-            err_msg = "Stopped state may only be set to True"
-            raise ValueError(err_msg)
+    def _set_stopped(self):
         
         log_msg = "Thread stopped"
         module_logger.info(log_msg)
@@ -320,12 +316,11 @@ class AdvancedPosition(Strategy):
     def _prepare_project(self, core, project):
         
         # Check the project is active and record the simulation number
-        status_strs, status_code = self.get_project_status(core,
-                                                           project,
-                                                           self._config)
+        status_str, status_code = self.get_project_status(core,
+                                                          project,
+                                                          self._config)
         
         if status_code == 0:
-            status_str = "\n".join(status_strs)
             raise RuntimeError(status_str)
         
         if project.get_simulation_title() != "Default":
@@ -404,7 +399,8 @@ class AdvancedPosition(Strategy):
                                      sim_title=None):
         
         if sim_title is None:
-            sim_title = os.path.basename(yaml_file_path)
+            base = os.path.basename(yaml_file_path)
+            sim_title, _ = os.path.splitext(base)
         
         with open(yaml_file_path, "r") as stream:
             results = yaml.load(stream, Loader=yaml.FullLoader)
@@ -527,11 +523,10 @@ class AdvancedPosition(Strategy):
         
         return
     
-    @classmethod
-    def remove_simulations(cls, core,
-                                project,
-                                sim_titles=None,
-                                exclude_default=True):
+    def remove_simulations(self, core,
+                                 project,
+                                 sim_titles=None,
+                                 exclude_default=True):
         
         """Convenience method for removing either all simulations in a project,
         excluding the 'Default' simulation (by default - hah), or removing
@@ -545,6 +540,7 @@ class AdvancedPosition(Strategy):
         
         for sim_title in sim_titles:
             core.remove_simulation(project, sim_title=sim_title)
+            self.remove_simulation_title(sim_title)
         
         return
     
@@ -656,49 +652,60 @@ class AdvancedPosition(Strategy):
     @classmethod
     def get_project_status(cls, core, project, config):
         
-        module_menu = ModuleMenu()
-        
         sim_index = project.get_active_index()
-        active_modules = module_menu.get_active(core, project)
-        required_modules = ["Hydrodynamics"]
         
         if sim_index is None:
-            
             status_str = "Project has not been activated"
-            return [status_str], 0
+            return status_str, 0
+        
+        module_menu = ModuleMenu()
+        active_modules = module_menu.get_active(core, project)
+        required_modules = ["Hydrodynamics"]
         
         if not set(required_modules) <= set(active_modules):
             
             status_strs = []
             
             for missing in set(required_modules) - set(active_modules):
-                
                 status_str = ("Project does not contain the {} "
                               "module").format(missing)
                 status_strs.append(status_str)
                 
-            return status_strs, 0
+            return "\n".join(status_strs), 0
         
         if "Default" not in project.get_simulation_titles():
-            
-            status_str = ('The position optimiser requires a simulation'
-                           ' with title "Default"')
-            return [status_str], 0
+            status_str = ('The position optimiser requires a simulation '
+                           'with title "Default"')
+            return status_str, 0
         
+        if not "objective" in config or config['objective'] is None:
+            status_str = ("No 'objective' variable set in configuration")
+            return status_str, 0
+        
+        objective = config['objective']
         sim = project.get_simulation(title="Default")
-        objective = config["objective"]
-        
-        if objective is None:
-            return [], 0
         
         if objective not in sim.get_output_ids():
             status_str = ('Objective {} is not an output of the default '
                           'simulation').format(objective)
-            return [status_str], 0
+            return status_str, 0
         
         status_str = "Project ready"
         
-        return [status_str], 1
+        return status_str, 1
+
+
+def _release_logging_locks():
+    
+    for k,v in  logging.Logger.manager.loggerDict.items():
+        if not isinstance(v, logging.PlaceHolder):
+            for h in v.handlers:
+                try:
+                    h.release()
+                except:
+                    pass
+    
+    return
 
 
 def _method_decorator(func):
@@ -707,22 +714,6 @@ def _method_decorator(func):
         func()
     
     return wrapper
-
-
-def _get_root_project_base_name(root_project_path):
-    
-    _, root_project_name = os.path.split(root_project_path)
-    root_project_base_name, _ = os.path.splitext(root_project_name)
-    
-    return root_project_base_name
-
-
-def _get_sim_path_template(root_project_base_name, sim_dir):
-    
-    sim_name_template = root_project_base_name + "_{}.{}"
-    sim_path_template = os.path.join(sim_dir, sim_name_template)
-    
-    return sim_path_template
 
 
 def _run_favorite(optimiser,
@@ -736,11 +727,12 @@ def _run_favorite(optimiser,
     es = optimiser.get_es()
     nh = optimiser.get_nh()
     
-    # Get parameters of favourite solution
-    xfavorite_descaled = optimiser._cma_main._get_descaled_solutions(
+    # Get parameters of favourite solution (should be 7)
+    xfavorite_descaled = optimiser._cma_main.get_descaled_solutions(
                                                             [es.result.xbest])
     
     params = xfavorite_descaled[0]
+    assert len(params) == 7
     
     # Strip numpy types from values
     params = [x.item() if type(x).__module__ == np.__name__ else x 
@@ -750,9 +742,9 @@ def _run_favorite(optimiser,
     
     # Get the core, project and positioner
     core = optimiser._core
-    base_project = optimiser._cma_main.iterator._base_project
+    base_project = optimiser._cma_main.evaluator._base_project
     project = base_project._to_project()
-    positioner = optimiser._cma_main.iterator._positioner
+    positioner = optimiser._cma_main.evaluator._positioner
     
     # Try and run the simulation
     e = None
@@ -781,7 +773,7 @@ def _run_favorite(optimiser,
         logging.disable(logging.NOTSET)
     
     # Prepare and write the results file
-    results_base_name = optimiser._cma_main.iterator._root_project_base_name
+    results_base_name = optimiser._cma_main.evaluator._root_project_base_name
     results_name = "{}_xfavorite".format(results_base_name)
     prj_base_path = os.path.join(optimiser._worker_directory, results_name)
     
@@ -820,6 +812,11 @@ def _post_process(config, log_interval=100):
     search_str = os.path.join(sim_dir, yaml_pattern)
     yaml_file_paths = natsorted(glob.glob(search_str))
     n_sims = len(yaml_file_paths)
+    
+    if n_sims == 0:
+        msg_str = "No files to post-process. Aborting."
+        module_logger.info(msg_str)
+        return
     
     read_params = config["parameters"].keys()
     read_params.append("n_evals")
@@ -881,6 +878,14 @@ def _post_process(config, log_interval=100):
     return
 
 
+def _get_root_project_base_name(root_project_path):
+    
+    _, root_project_name = os.path.split(root_project_path)
+    root_project_base_name, _ = os.path.splitext(root_project_name)
+    
+    return root_project_base_name
+
+
 def _read_yaml(yaml_file_path, read_params, extract_vars):
     
     param_map = {"grid_orientation": "theta",
@@ -898,21 +903,23 @@ def _read_yaml(yaml_file_path, read_params, extract_vars):
     
     if flag == "Exception": return {}
     
+    valid_params = [x for x in read_params if x in param_map]
+    mapped_params = [param_map[x] for x in valid_params]
     param_values = results["params"]
     data_values = results["results"]
     
-    if set(data_values) != set(extract_vars): return {}
+    if (set(param_values).isdisjoint(set(mapped_params)) and
+        set(data_values).isdisjoint(set(extract_vars))): return {}
     
     result_dict = {}
     
-    for param in read_params:
-        if param not in param_map: continue
-        param_name = param_map[param]
+    for param, param_name in zip(valid_params, mapped_params):
         if param_name not in param_values: continue
         param_value = param_values[param_name]
         result_dict[param] = param_value
     
     for var_name in extract_vars:
+        if var_name not in data_values: continue
         data_value = data_values[var_name]
         result_dict[var_name] = data_value
     
@@ -951,12 +958,7 @@ def _get_results_table(config, results_dict):
             isinstance(value, basestring)):
             value = [value]
         
-        if not value:
-            
-            table_cols.append(key)
-            table_dict[key] = value
-        
-        elif isinstance(value[0], dict):
+        if isinstance(value[0], dict):
             
             ref_dict = value[0]
             template = "{} [{}]"
@@ -981,6 +983,14 @@ def _get_results_table(config, results_dict):
             table_dict[key] = value
     
     return pd.DataFrame(table_dict, columns=table_cols)
+
+
+def _get_sim_path_template(root_project_base_name, sim_dir):
+    
+    sim_name_template = root_project_base_name + "_{}.{}"
+    sim_path_template = os.path.join(sim_dir, sim_name_template)
+    
+    return sim_path_template
 
 
 def _post_process_legacy(core, config, log_interval=100):
@@ -1075,18 +1085,5 @@ def _post_process_legacy(core, config, log_interval=100):
     
     msg_str = "Post-processing complete"
     module_logger.info(msg_str)
-    
-    return
-
-
-def _release_logging_locks():
-    
-    for k,v in  logging.Logger.manager.loggerDict.items():
-        if not isinstance(v, logging.PlaceHolder):
-            for h in v.handlers:
-                try:
-                    h.release()
-                except:
-                    pass
     
     return

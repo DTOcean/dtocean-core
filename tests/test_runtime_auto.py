@@ -268,7 +268,7 @@ def test_auto_write_file(tmpdir, core, project, tree):
     
     module_menu.activate(core, project, mod_name)
     project_menu.initiate_dataflow(core, project)
-
+    
     hydro_branch = tree.get_branch(core,
                                    project,
                                    mod_name)
