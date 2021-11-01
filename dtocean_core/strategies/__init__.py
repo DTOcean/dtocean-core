@@ -115,6 +115,10 @@ class Strategy(object):
         
         return
     
+    def remove_simulation_title(self, sim_title):
+        self._sim_record.pop(self._sim_record.index(sim_title))
+        return
+    
     def get_simulation_record(self):
         
         return self._sim_record[:]
