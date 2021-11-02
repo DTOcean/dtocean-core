@@ -1,4 +1,6 @@
 
+# pylint: disable=protected-access
+
 import numpy as np
 
 from dtocean_core.core import Core

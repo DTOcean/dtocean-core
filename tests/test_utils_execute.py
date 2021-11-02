@@ -8,17 +8,18 @@ from dtocean_core.core import Core, Project
 from dtocean_core.extensions import StrategyManager
 from dtocean_core.menu import ModuleMenu
 from dtocean_core.strategies import Strategy
-from dtocean_core.utils.execute import main, main_interface
+from dtocean_core.utils.execute import main, main_interface # pylint: disable=no-name-in-module
 
 
 class MockCore(Core):
     
-    def load_project(self, fpath): # pylint: disable=unused-argument
+    def load_project(self, fpath): # pylint: disable=arguments-differ,unused-argument
         return Project("mock")
 
 
 class MockStrategy(Strategy):
     
+    @classmethod
     def get_name(cls):
         
         '''A class method for the common name of the strategy.
@@ -66,7 +67,7 @@ class MockMenu(ModuleMenu):
 
 class MockManager(StrategyManager):
     
-    def get_strategy(self, name):
+    def get_strategy(self, name): # pylint: disable=arguments-differ,unused-argument
         return MockStrategy()
 
 
@@ -130,7 +131,7 @@ def test_main_next(mocker, capsys, tmpdir):
     assert "next scheduled module" in test
 
 
-def test_main_save_path(mocker, capsys, tmpdir):
+def test_main_save_path(mocker, tmpdir):
     
     mocker.patch('dtocean_core.utils.execute.start_logging',
                  autospec=True)

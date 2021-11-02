@@ -15,6 +15,7 @@ from dtocean_core.strategies import Strategy
 
 class MockStrategy(Strategy):
     
+    @classmethod
     def get_name(cls):
         
         '''A class method for the common name of the strategy.

@@ -63,7 +63,7 @@ PositionParams = namedtuple('PositionParams', ['grid_orientation',
 
 class PositionCounter(opt.Counter):
     
-    def _set_params(self, worker_project_path,
+    def _set_params(self, worker_project_path, # pylint: disable=arguments-differ
                           worker_results_path,
                           cost,
                           flag,
@@ -92,7 +92,7 @@ class PositionCounter(opt.Counter):
         
         return params
     
-    def _get_cost(self, *args):
+    def _get_cost(self, *args): # pylint: disable=arguments-differ
         """Return cost if parameters in params object match input args, else
         return None."""
         
@@ -108,7 +108,7 @@ class PositionEvaluator(opt.Evaluator):
                        objective_var,
                        restart=False,
                        clean_existing_dir=False,
-                       violation_log_name = "violations.txt"):
+                       violation_log_name="violations.txt"):
         
         super(PositionEvaluator, self).__init__(core,
                                                 base_project,
@@ -193,7 +193,7 @@ class PositionEvaluator(opt.Evaluator):
                 warn_msg = ("Detected cost is not a number, returning "
                             "np.nan. Detected type is "
                             "'{}'").format(type(cost).__name__)
-                module_logger.warn(warn_msg)
+                module_logger.warning(warn_msg)
         
         else:
             
@@ -237,7 +237,7 @@ class PositionEvaluator(opt.Evaluator):
          n_nodes,
          t1,
          t2,
-         dev_per_string) = args
+         _) = args
         
         beta = 90 * np.pi / 180
         psi = 0 * np.pi / 180
@@ -285,7 +285,7 @@ class PositionEvaluator(opt.Evaluator):
         
         return False
     
-    def _cleanup_hook(self, worker_project_path, flag, lines):
+    def _cleanup_hook(self, worker_project_path, flag, lines): # pylint: disable=arguments-differ,unused-argument
         """Hook to clean up simulation files as required"""
         remove_retry(worker_project_path)
         return

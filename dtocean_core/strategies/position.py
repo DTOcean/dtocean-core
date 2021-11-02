@@ -80,7 +80,7 @@ class OptimiserThread(threading.Thread):
         
         try:
             self._exit_hook() # pylint: disable=not-callable
-        except Exception as e:
+        except Exception as e: # pylint: disable=broad-except
             log_msg = ("Exit hook threw {}: "
                        "{}").format(type(e).__name__, str(e))
             module_logger.warning(log_msg)
@@ -142,7 +142,7 @@ class OptimiserThread(threading.Thread):
         
         return
     
-    def _exit_hook(self): # pylint: disable=no-self-use
+    def _exit_hook(self): # pylint: disable=no-self-use,method-hidden
         return
     
     def set_exit_hook(self, func):
@@ -596,7 +596,7 @@ class AdvancedPosition(Strategy):
         
         if os.path.isdir(worker_directory):
             
-            if len(os.listdir(worker_directory)) == 0:
+            if not os.listdir(worker_directory):
                 status_str = "Worker directory empty"
             elif config['clean_existing_dir']:
                 status_str = "Worker directory contains files"
@@ -726,7 +726,7 @@ def _run_favorite(optimiser,
     nh = optimiser.get_nh()
     
     # Get parameters of favourite solution (should be 7)
-    xfavorite_descaled = optimiser._cma_main.get_descaled_solutions(
+    xfavorite_descaled = optimiser._cma_main.get_descaled_solutions( # pylint: disable=protected-access
                                                             [es.result.xbest])
     
     params = xfavorite_descaled[0]
@@ -771,7 +771,7 @@ def _run_favorite(optimiser,
         logging.disable(logging.NOTSET)
     
     # Prepare and write the results file
-    results_base_name = optimiser._cma_main.evaluator._root_project_base_name
+    results_base_name = optimiser._cma_main.evaluator._root_project_base_name # pylint: disable=protected-access
     results_name = "{}_xfavorite".format(results_base_name)
     prj_base_path = os.path.join(optimiser._worker_directory, results_name) # pylint: disable=protected-access
     

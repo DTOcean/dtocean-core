@@ -1,4 +1,6 @@
 
+# pylint: disable=redefined-outer-name
+
 import os
 from copy import deepcopy
 from pprint import pprint
@@ -7,7 +9,7 @@ import pytest
 import pandas as pd
 
 from dtocean_core.core import Core
-from dtocean_core.menu import DataMenu, ModuleMenu, ProjectMenu, ThemeMenu 
+from dtocean_core.menu import ProjectMenu
 from dtocean_core.pipeline import Tree, _get_connector
 
 dir_path = os.path.dirname(__file__)
@@ -182,7 +184,7 @@ def test_boundaries_interface(core, wave_project):
     
     if not can_execute:
         
-        inputs = projection.get_input_status(core, project)
+        inputs = boundaries_branch.get_input_status(core, project)
         pprint(inputs)
         assert can_execute
     

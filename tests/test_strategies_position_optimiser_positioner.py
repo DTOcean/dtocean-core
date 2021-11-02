@@ -368,7 +368,7 @@ def test_nearest_n_nodes(start_coords, number_of_nodes, expected_idxs):
     
     node_list = []
     
-    for i in xrange(10):
+    for i in xrange(10): # pylint: disable=undefined-variable
         node_list.append((i * 10, 0))
     
     nodes = np.array(node_list)

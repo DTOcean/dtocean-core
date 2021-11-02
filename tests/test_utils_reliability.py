@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+# pylint: disable=eval-used,redefined-outer-name
+
 import os
 
 import pytest
@@ -19,7 +21,7 @@ def compdict():
     compdict = eval(open(os.path.join(MOOR_DIR, 'dummycompdb.txt')).read())
 
     component_data_path = os.path.join(ELEC_DIR, 'mock_db.xlsx')
-    xls_file = pd.ExcelFile(component_data_path, encoding = 'utf-8')
+    xls_file = pd.ExcelFile(component_data_path, encoding='utf-8')
     elec_dict = compdict_from_mock(xls_file)
     
     compdict.update(elec_dict)

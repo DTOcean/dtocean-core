@@ -159,7 +159,7 @@ class Counter(object):
         return cost
     
     @abc.abstractmethod
-    def _get_cost(self, params, *args):
+    def _get_cost(self, params, *args): # pylint: disable=unused-argument
         """Return cost if parameters in params object match input args, else
         return None."""
         return
@@ -229,31 +229,17 @@ class Evaluator(object):
         """Update the counter object with new data."""
         return
     
-    def pre_constraints_hook(self, *args):
+    def pre_constraints_hook(self, *args): # pylint: disable=no-self-use,unused-argument
         """Allows checking of constraints prior to execution. Should return
         True if violated otherwise False"""
         return False
     
-    def _cleanup_hook(self, worker_project_path, flag, results):
+    def _cleanup_hook(self, worker_project_path, flag, results): # pylint: disable=no-self-use,unused-argument
         """Hook to clean up simulation files as required"""
         return
     
     def get_counter_search_dict(self):
         return self._counter.search_dict
-    
-    def _log_exception(self, e, flag):
-        
-        module_logger.debug(flag)
-        module_logger.debug(e)
-        
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        msg_strs = traceback.format_exception(exc_type,
-                                              exc_value,
-                                              exc_traceback)
-        msg_str = ''.join(msg_strs)
-        module_logger.debug(msg_str)
-        
-        return
     
     def _iterate(self, results_queue, n_evals, x, *extra):
         
@@ -279,10 +265,10 @@ class Evaluator(object):
             
             self._core.dump_project(self._base_project, worker_project_path)
             
-        except Exception as e:
+        except Exception as e: # pylint: disable=broad-except
             
             flag = "Fail Send"
-            self._log_exception(e, flag)
+            _log_exception(e, flag)
         
         try:
             
@@ -301,7 +287,7 @@ class Evaluator(object):
         except Exception as e:
             
             flag = "Fail Execute"
-            self._log_exception(e, flag)
+            _log_exception(e, flag)
         
         if "Fail" not in flag:
             
@@ -313,7 +299,7 @@ class Evaluator(object):
             except Exception as e:
                 
                 flag = "Fail Receive"
-                self._log_exception(e, flag)
+                _log_exception(e, flag)
         
         self._set_counter_params(evaluation,
                                  worker_project_path,
@@ -437,7 +423,7 @@ class Main(object):
             
         self._thread_queue = queue.Queue()
         
-        for i in range(self._num_threads):
+        for _ in range(self._num_threads):
             
             worker = threading.Thread(target=self.evaluator,
                                       args=(self._thread_queue,))
@@ -986,3 +972,18 @@ def _get_match_process(values, *args):
     process_set = set(range(len(values))) - set(all_matches)
     
     return list(process_set), match_dict
+
+
+def _log_exception(e, flag): 
+        
+    module_logger.debug(flag)
+    module_logger.debug(e)
+    
+    exc_type, exc_value, exc_traceback = sys.exc_info()
+    msg_strs = traceback.format_exception(exc_type,
+                                          exc_value,
+                                          exc_traceback)
+    msg_str = ''.join(msg_strs)
+    module_logger.debug(msg_str)
+    
+    return

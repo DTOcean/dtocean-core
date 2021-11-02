@@ -20,6 +20,8 @@
 #  Author: Petr Baudis, 2014
 #  Author: Youhei Akimoto, 2016-
 
+# pylint: disable=line-too-long
+
 from collections import deque
 
 import numpy as np
@@ -142,7 +144,7 @@ class NoiseHandler(object):
     # get convergence (with unit sphere samples): noiseS=0 leads to a certain 
     # kappa increasing rate?
     def __init__(self, N,
-                       maxevals=[1, 1, 1],
+                       maxevals=None,
                        reevals=None,
                        epsilon=1e-7):
         """Parameters are:
@@ -170,6 +172,9 @@ class NoiseHandler(object):
             multiplier for perturbation of the reevaluated solutions
         :See also: `fmin`, `CMAOptions`, `CMAEvolutionStrategy.ask_and_eval`
         """
+        
+        if maxevals is None: maxevals = [1, 1, 1]
+        
         self.lam_reeval = reevals  # 2 + popsize/20, see method indices(), originally 2 + popsize/10
         self.epsilon = epsilon
         ## meta_parameters.noise_theta == 0.5
@@ -248,7 +253,7 @@ class NoiseHandler(object):
         self.idx = self._indices(list(fit))
         self.popsize = len(self.idx)
         
-        if not len(self.idx): return
+        if not self.idx: return
         
         self.fit = list(fit)
         self.fitre = list(fit)

@@ -34,7 +34,7 @@ from ...pipeline import Tree
 from .positioner import ParaPositioner
 
 try:
-    import dtocean_hydro
+    import dtocean_hydro # pylint: disable=unused-import
 except ImportError:
     err_msg = ("The DTOcean hydrodynamics module must be installed in order "
                "to use this module")
@@ -72,7 +72,7 @@ def main(core,
     if dev_per_string is not None:
         
         dev_per_string = int(float(dev_per_string))
-        params_dict["dev_per_string"] =  dev_per_string
+        params_dict["dev_per_string"] = dev_per_string
     
     if n_evals is not None:
         
@@ -254,8 +254,8 @@ def get_positioner(core, project):
     boundary_padding = None
     turbine_interdistance = None
     
-    if core.has_data(project,'farm.nogo_areas'):
-        nogo_areas = core.get_data_value(project,'farm.nogo_areas')
+    if core.has_data(project, 'farm.nogo_areas'):
+        nogo_areas = core.get_data_value(project, 'farm.nogo_areas')
     
     if core.has_data(project, 'options.boundary_padding'):
         boundary_padding = core.get_data_value(project,

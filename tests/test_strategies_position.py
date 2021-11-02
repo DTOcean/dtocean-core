@@ -1491,7 +1491,6 @@ def test_advanced_export_config_template(mocker, advanced):
                          (1,      1,      "mock", 0,      1,      True),
                          (1,      1,      "mock", 1,      None,   True)])
 def test_advanced_allow_run(mocker,
-                            advanced,
                             p_code,
                             c_code,
                             w_dir, 

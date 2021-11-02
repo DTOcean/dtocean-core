@@ -273,7 +273,7 @@ def get_standard_error(values):
         b = gamma(n / 2.) / gamma((n - 1) / 2.)
         return a * b
     
-    n = len(values);
+    n = len(values)
     
     if n < 2: return None
     

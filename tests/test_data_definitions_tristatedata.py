@@ -1,4 +1,6 @@
 
+# pylint: disable=protected-access
+
 import pytest
 
 from dtocean_core.core import Core

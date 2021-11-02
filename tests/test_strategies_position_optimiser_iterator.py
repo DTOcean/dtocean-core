@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# pylint: disable=redefined-outer-name
+# pylint: disable=redefined-outer-name,protected-access
 
 import sys
 
@@ -17,7 +17,7 @@ from dtocean_core.pipeline import Branch
 from dtocean_core.strategies.basic import BasicStrategy
 from dtocean_core.strategies.position_optimiser.positioner import (
                                                 ParaPositioner)
-from dtocean_core.strategies.position_optimiser.iterator import (
+from dtocean_core.strategies.position_optimiser.iterator import ( # pylint: disable=no-name-in-module
                                                 _get_branch,
                                                 prepare,
                                                 _get_basic_strategy, 
@@ -44,7 +44,7 @@ def layer_depths():
     nx = len(x)
     ny = len(y)
     
-    X, _ = np.meshgrid(x,y)
+    X, _ = np.meshgrid(x, y)
     Z = -X * 0.1 - 1
     depths = Z.T[:, :, np.newaxis]
     
@@ -242,7 +242,7 @@ def test_write_result_file_success(mocker, tmpdir):
         
         return False
     
-    def get_data_value(dummy, var):
+    def get_data_value(dummy, var): # pylint: disable=unused-argument
         
         if var == "mock1":
             return 1

@@ -35,7 +35,7 @@ def warn_with_traceback(message,
                         logfile=None,
                         line=None):
     
-    log = logfile if hasattr(logfile,'write') else sys.stderr
+    log = logfile if hasattr(logfile, 'write') else sys.stderr
     traceback.print_stack(file=log)
     log.write(warnings.formatwarning(message,
                                      category,
@@ -163,12 +163,12 @@ def main_interface():
     
     args = parser.parse_args()
     
-    fpath   = args.fpath
-    rpath   = args.out
-    full    = args.full
-    warn    = args.warnings
+    fpath = args.fpath
+    rpath = args.out
+    full = args.full
+    warn = args.warnings
     no_save = args.no_save
-    log     = args.logging
+    log = args.logging
     
     if no_save is True:
         save = False

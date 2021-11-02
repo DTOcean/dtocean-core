@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# pylint: disable=redefined-outer-name
+# pylint: disable=redefined-outer-name,protected-access
 
 import queue
 import logging
@@ -157,7 +157,7 @@ def sphere_cost(x, c=0.0):
     # Sphere (squared norm) test objective function
     
     if (x < c).any():
-        cost =  np.nan
+        cost = np.nan
     else:
         cost = -c**2 + sum((x + 0)**2)
     
@@ -169,6 +169,7 @@ class MockEvaluator(Evaluator):
     def __init__(self, *args, **kwargs):
         super(MockEvaluator, self).__init__(*args, **kwargs)
         self.scaler = None
+        self._args = None
     
     def _init_counter(self):
         return MockCounter()
@@ -288,7 +289,7 @@ def test_evaluator_previous_cost(mocker):
     
     mocker.patch.object(test._counter,
                         "get_cost",
-                        side_effect = [False, "match"],
+                        side_effect=[False, "match"],
                         autospec=True)
     
     thread_queue = queue.Queue()
@@ -431,7 +432,7 @@ def test_init_evolution_strategy(tmpdir):
     assert isinstance(es, SafeCMAEvolutionStrategy)
 
 
-def test_main_max_resample_loop_factor_negative(mocker, tmpdir):
+def test_main_max_resample_loop_factor_negative(tmpdir):
     
     x0 = 5
     x_range = (-1, 10)
@@ -457,7 +458,7 @@ def test_main_max_resample_loop_factor_negative(mocker, tmpdir):
     assert "must be greater than or equal to zero" in str(excinfo)
 
 
-def test_main_max_auto_resample_iterations_zero(mocker, tmpdir):
+def test_main_max_auto_resample_iterations_zero(tmpdir):
     
     x0 = 5
     x_range = (-1, 10)
@@ -483,7 +484,7 @@ def test_main_max_auto_resample_iterations_zero(mocker, tmpdir):
     assert "must be greater than zero" in str(excinfo)
 
 
-def test_main_max_resample_loops(mocker, tmpdir):
+def test_main_max_resample_loops(tmpdir):
     
     x0 = 5
     x_range = (-1, 10)
@@ -756,7 +757,7 @@ def test_main_no_feasible_solutions(mocker, tmpdir):
     assert "no feasible solutions" in str(excinfo)
 
 
-def test_SafeCMAEvolutionStrategy_plot(caplog, mocker, tmpdir):
+def test_SafeCMAEvolutionStrategy_plot(mocker, tmpdir):
     
     mocker.patch("dtocean_core.utils.optimiser.init_dir",
                  autospec=True)

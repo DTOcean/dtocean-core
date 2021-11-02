@@ -2420,11 +2420,11 @@ class SimpleData(Structure):
         
         return deepcopy(data)
     
-    def _assign_type(self, raw, type_list):
+    def _assign_type(self, raw, type_list): # pylint: disable=no-self-use
         
         if type_list is not None:
         
-            typed  = _assign_type(raw, type_list)
+            typed = _assign_type(raw, type_list)
         
         else:
             

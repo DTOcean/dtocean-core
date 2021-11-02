@@ -17,10 +17,10 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from packaging.version import Version
+import packaging.version as version
 
 
-class Version(Version):
+class Version(version.Version):
     
     @property
     def major(self):

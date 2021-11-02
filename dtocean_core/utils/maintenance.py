@@ -1375,16 +1375,16 @@ def get_events_table(raw_df,
 
     data_df = data_df.rename(columns=name_map)
     
-    subsytem_map = { 'Elec sub-system': 'Inter-Array Cables',
-                     'Control': 'Control',
-                     'Umbilical': 'Umbilical Cable',
-                     'Export cable': 'Export Cable',
-                     'Foundation': 'Foundations',
-                     'Hydrodynamic': 'Prime Mover',
-                     'Moorings lines': 'Mooring Lines',
-                     'Pto': 'PTO',
-                     'Substation': 'Substations',
-                     'Support structure': 'Support Structure' }
+    subsytem_map = {'Elec sub-system': 'Inter-Array Cables',
+                    'Control': 'Control',
+                    'Umbilical': 'Umbilical Cable',
+                    'Export cable': 'Export Cable',
+                    'Foundation': 'Foundations',
+                    'Hydrodynamic': 'Prime Mover',
+                    'Moorings lines': 'Mooring Lines',
+                    'Pto': 'PTO',
+                    'Substation': 'Substations',
+                    'Support structure': 'Support Structure'}
     
     data_df["Sub-System"] = data_df["Sub-System"].replace(subsytem_map)
     

@@ -6,7 +6,7 @@ import pytest
 import pandas as pd
 
 from dtocean_core.core import OrderedSim, Project
-from dtocean_core.strategies.multi import MultiSensitivity
+from dtocean_core.strategies.multi import MultiSensitivity # pylint: disable=no-name-in-module
 
 
 @pytest.fixture()

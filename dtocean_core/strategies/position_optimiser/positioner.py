@@ -123,7 +123,7 @@ class DevicePositioner(object):
         """Method for adapting the zero centred grid"""
         return nodes
     
-    def _select_nodes_hook(self, nodes, *args, **kwargs):
+    def _select_nodes_hook(self, nodes, *args, **kwargs): # pylint: disable=no-self-use,unused-argument
         """Hook method for selecting the final nodes"""
         return nodes
     
@@ -195,11 +195,11 @@ def _check_grid_dims(delta_row, delta_col, beta, psi):
         err_str = "Argument 'delta_col' must be greater than zero"
         raise ValueError(err_str)
     
-    if not (0 < beta < np.pi):
+    if not 0 < beta < np.pi:
         err_str = "Argument 'beta' must lie in the range (0, pi)"
         raise ValueError(err_str)
         
-    if not (np.pi / -2 < psi < np.pi / 2):
+    if not np.pi / -2 < psi < np.pi / 2:
         err_str = "Argument 'psi' must lie in the range (-pi / 2, pi / 2)"
         raise ValueError(err_str)
         
@@ -229,10 +229,10 @@ def _make_grid_nodes(bounding_box,
     
     # Expand the grids to account for skew
     n_rows_beta = int(np.ceil((ddiff + ddiff * tan_inv_beta) / 
-                                                          delta_row )) + 1
+                                                          delta_row)) + 1
     n_cols_beta = int(np.ceil(ddiff / delta_col / sin_beta)) + 1
     
-    n_rows_psi = int(np.ceil((ddiff + ddiff * tan_psi) / delta_row )) + 1
+    n_rows_psi = int(np.ceil((ddiff + ddiff * tan_psi) / delta_row)) + 1
     n_cols_psi = int(np.ceil(ddiff / delta_col / cos_psi)) + 1
     
     # Ensure there is an odd number of rows and cols
@@ -281,6 +281,25 @@ class DummyPositioner(DevicePositioner):
 
 class ParaPositioner(DevicePositioner):
     
+    def __init__(self, lease_polygon,
+                       layer_depths,
+                       min_depth=None,
+                       max_depth=None,
+                       nogo_polygons=None,
+                       lease_padding=None,
+                       turbine_interdistance=None):
+        
+        super(ParaPositioner, self).__init__(
+                                lease_polygon,
+                                layer_depths,
+                                min_depth=min_depth,
+                                max_depth=max_depth,
+                                nogo_polygons=nogo_polygons,
+                                lease_padding=lease_padding,
+                                turbine_interdistance=turbine_interdistance)
+        
+        self._start_coords = None
+        
     def _adapt_nodes(self, nodes, *args, **kwargs):
         
         t1 = args[5]
@@ -356,14 +375,12 @@ def _get_para_points(coords, p0_idx):
     def next_idx():
         if p0_idx == len(coords) - 2:
             return 0
-        else:
-            return p0_idx + 1
+        return p0_idx + 1
     
     def prev_idx():
         if p0_idx == 0:
             return -2
-        else:
-            return p0_idx - 1
+        return p0_idx - 1
     
     if _clockwise(coords.xy[0][:-1], coords.xy[1][:-1]):
         p1_idx = prev_idx()
@@ -384,12 +401,31 @@ def _clockwise(x, y):
     defined in a clockwise direction"""
     # https://stackoverflow.com/a/1165943/3215152
     # https://stackoverflow.com/a/19875560/3215152
-    if sum(x[i] * (y[i + 1] - y[i - 1]) for i in xrange(-1, len(x) - 1)) < 0:
+    if sum(x[i] * (y[i + 1] - y[i - 1]) for i in xrange(-1, len(x) - 1)) < 0: # pylint: disable=undefined-variable
         return True
     return False
 
 
 class CompassPositioner(DevicePositioner):
+    
+    def __init__(self, lease_polygon,
+                       layer_depths,
+                       min_depth=None,
+                       max_depth=None,
+                       nogo_polygons=None,
+                       lease_padding=None,
+                       turbine_interdistance=None):
+        
+        super(CompassPositioner, self).__init__(
+                                lease_polygon,
+                                layer_depths,
+                                min_depth=min_depth,
+                                max_depth=max_depth,
+                                nogo_polygons=nogo_polygons,
+                                lease_padding=lease_padding,
+                                turbine_interdistance=turbine_interdistance)
+        
+        self._start_coords = None
     
     def _adapt_nodes(self, nodes, *args, **kwargs):
         

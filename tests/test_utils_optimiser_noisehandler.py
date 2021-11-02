@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+# pylint: disable=protected-access
+
 import logging
 import contextlib
 from collections import namedtuple
@@ -87,7 +89,7 @@ def sphere_cost(x, c=0.0):
     # Sphere (squared norm) test objective function
     
     if (x < c).any():
-        cost =  np.nan
+        cost = np.nan
     else:
         cost = -c**2 + sum((x + 0)**2)
     
@@ -99,6 +101,8 @@ class MockEvaluator(Evaluator):
     def __init__(self, *args, **kwargs):
         super(MockEvaluator, self).__init__(*args, **kwargs)
         self.scaler = None
+        self._args = None
+        self._n_evals = None
     
     def _init_counter(self):
         return MockCounter()
@@ -111,7 +115,7 @@ class MockEvaluator(Evaluator):
         self._n_evals = n_evals
         return ["python", "-V"]
     
-    def _get_worker_results(self, iteration):
+    def _get_worker_results(self, iteration): # pylint: disable=arguments-differ,unused-argument
         """Return the results for the given iteration as a dictionary that
         must include the key "cost". For constraint violation the cost key
         should be set to np.nan"""
@@ -120,7 +124,7 @@ class MockEvaluator(Evaluator):
         
         all_costs = []
         
-        for _ in xrange(self._n_evals):
+        for _ in xrange(self._n_evals): # pylint: disable=undefined-variable
             base = sphere_cost(x)
             noise = 0.5 * np.random.randn()
             cost = base + noise

@@ -339,7 +339,7 @@ def test_PositionEvaluator_pre_constraints_hook(mocker, tmpdir, evaluator):
             dev_per_string)
     
     assert not evaluator.pre_constraints_hook(*args)
-    assert len(tmpdir.listdir()) == 0
+    assert not tmpdir.listdir()
 
 
 @pytest.mark.parametrize("n_nodes, t1,  expected", [
@@ -414,7 +414,7 @@ def test_PositionEvaluator_pre_constraints_hook_position_error(mocker,
     with pytest.raises(RuntimeError) as excinfo:
         evaluator.pre_constraints_hook(*args)
     
-    assert len(tmpdir.listdir()) == 0
+    assert not tmpdir.listdir()
     assert expected in str(excinfo)
 
 
@@ -488,7 +488,7 @@ def test_PositionEvaluator_pre_constraints_hook_spacing_error(mocker,
     with pytest.raises(RuntimeError) as excinfo:
         evaluator.pre_constraints_hook(*args)
     
-    assert len(tmpdir.listdir()) == 0
+    assert not tmpdir.listdir()
     assert expected in str(excinfo)
 
 
@@ -501,7 +501,7 @@ def test_PositionEvaluator_cleanup_hook(tmpdir, evaluator):
     
     evaluator._cleanup_hook(str(p), None, None)
     
-    assert len(tmpdir.listdir()) == 0
+    assert not tmpdir.listdir()
 
 
 def test_get_range_fixed():
@@ -621,7 +621,7 @@ def test_dump_results_control(tmpdir):
     assert expected_fname in tmpdir.listdir()
     
     with open(expected_fname, 'r') as f:
-       lines = f.readlines()
+        lines = f.readlines()
     
     assert len(lines) == 2
     assert all(["mock" for line in lines])
@@ -1196,7 +1196,7 @@ def test_PositionOptimiser_restart_more(mocker,
     
     assert load_config.call_args.args[0] == str(
                                             tmpdir.join(test._config_fname))
-    assert len(tmpdir.listdir()) == 0
+    assert not tmpdir.listdir()
     
     assert not test.stop
     assert test._worker_directory == worker_dir
@@ -1374,9 +1374,7 @@ def test_PositionOptimiser_next_dump(mocker,
     assert "max_resample_factor" in new_config
 
 
-def test_PositionOptimiser_next_no_dump(mocker,
-                                        lease_polygon,
-                                        layer_depths):
+def test_PositionOptimiser_next_no_dump(mocker):
     
     mock_core = mocker.MagicMock()
     test = PositionOptimiser(core=mock_core)

@@ -56,7 +56,7 @@ def test_onerror(tmpdir):
 
 def test_os_retry_max_attempts():
     
-    def always_fail(src_path):
+    def always_fail(src_path): # pylint: disable=unused-argument
         raise OSError
     
     test = os_retry(always_fail)
@@ -126,4 +126,4 @@ def test_init_dir_clean(tmpdir):
     init_dir(str(sub_dir), clean_existing=True)
     
     assert len(os.listdir(str(tmpdir))) == 1
-    assert len(os.listdir(str(sub_dir))) == 0
+    assert not os.listdir(str(sub_dir))

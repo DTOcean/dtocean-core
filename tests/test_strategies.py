@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+# pylint: disable=protected-access
+
 from dtocean_core.strategies import Strategy
 
 
@@ -10,7 +12,7 @@ class MockStrategy(Strategy):
     def get_name(cls):
         return "Mock"
     
-    def configure(self, kwargs=None):
+    def configure(self, kwargs=None): # pylint: disable=arguments-differ
         mock = {"mock": "mock"}
         self.set_config(mock)
         return
