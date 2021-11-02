@@ -267,7 +267,7 @@ def test_BiVariateKDE_mean():
     for _ in range(n_tests):
         
         values = get_vals()
-        std_error = get_standard_error(values);
+        std_error = get_standard_error(values)
         
         # Check that the expected value is within interval
         actual = np.array(values).mean()
@@ -302,7 +302,7 @@ def test_BiVariateKDE_mode():
     for _ in range(n_tests):
         
         values = get_vals()
-        std_error = get_standard_error(values);
+        std_error = get_standard_error(values)
         
         # Check that the expected value is within interval
         actual = np.array(values).mean()
@@ -378,7 +378,7 @@ def test_get_standard_error():
     for _ in range(n_tests):
         
         values = get_vals()
-        std_error = get_standard_error(values);
+        std_error = get_standard_error(values)
         
         # Check that the expected value is within interval
         actual = np.array(values).mean()
@@ -401,4 +401,3 @@ def test_get_standard_error_large():
 def test_get_standard_error_one_value(length):
     values = [1] * length
     assert get_standard_error(values) is None
-

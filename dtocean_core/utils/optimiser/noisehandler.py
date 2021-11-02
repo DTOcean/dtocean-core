@@ -253,7 +253,7 @@ class NoiseHandler(object):
         self.idx = self._indices(list(fit))
         self.popsize = len(self.idx)
         
-        if not self.idx: return
+        if self.idx.size == 0: return
         
         self.fit = list(fit)
         self.fitre = list(fit)
