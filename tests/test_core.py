@@ -729,6 +729,22 @@ def test_Project_remove_simulation_by_index(project):
     assert len(project) == 1
 
 
+def test_Project_remove_simulation_error(project):
+    
+    project = deepcopy(project)
+
+    new_sim = OrderedSim("test")
+    project.add_simulation(new_sim, True)
+    
+    assert project.get_simulation_title() == "test"
+    assert len(project) == 2
+    
+    with pytest.raises(ValueError) as excinfo:
+        project.remove_simulation()
+    
+    assert "an index or simulation title is required" in str(excinfo)
+
+
 def test_Project_set_simulation_title(project):
     
     project = deepcopy(project)
@@ -759,6 +775,19 @@ def test_Project_set_simulation_title_used(project):
         project.set_simulation_title("Default")
 
 
+def test_Project_active_index_none():
+    
+    mock_sim = OrderedSim("mock")
+    mock_project = Project("mock")
+    mock_project.add_simulation(mock_sim)
+    
+    assert mock_project._active_index == 0
+    
+    mock_project.remove_simulation(0)
+    
+    assert mock_project._active_index is None
+
+
 def test_Connector_force_completed(core, project):
     
     project = deepcopy(project) 
@@ -781,7 +810,7 @@ def test_Core_import_simulation_from_clone(core, project):
     
     core.import_simulation(src_project,
                            dst_project,
-                           dst_sim_title="Test")
+                           "Test")
     
     dst_pool = dst_project.get_pool()
     
@@ -820,7 +849,7 @@ def test_Core_import_simulation_from_new(core, project, var_tree):
     
     core.import_simulation(src_project,
                            dst_project,
-                           dst_sim_title="Test")
+                           "Test")
     
     dst_pool = dst_project.get_pool()
     
@@ -859,7 +888,7 @@ def test_Core_remove_simulation(core, project, var_tree):
     
     core.import_simulation(src_project,
                            dst_project,
-                           dst_sim_title="Test")
+                           "Test")
     
     dst_pool = dst_project.get_pool()
     test_value = core.get_data_value(dst_project, "device.system_type")

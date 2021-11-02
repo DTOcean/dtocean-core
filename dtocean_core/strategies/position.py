@@ -296,7 +296,7 @@ class AdvancedPosition(Strategy):
         _, work_dir_status = self.get_worker_directory_status(config_copy)
         _, optim_status = self.get_optimiser_status(core, config_copy)
         
-        if work_dir_status == 0 and optim_status == 2:
+        if work_dir_status == 0 and optim_status == 1:
             
             log_str = 'Attempting restart of incomplete strategy'
             module_logger.info(log_str)
@@ -434,7 +434,7 @@ class AdvancedPosition(Strategy):
         
         core.import_simulation(src_project,
                                project,
-                               dst_sim_title=sim_title)
+                               sim_title)
         self.add_simulation_title(sim_title)
         
         return
@@ -517,7 +517,7 @@ class AdvancedPosition(Strategy):
             
             core.import_simulation(src_project,
                                    project,
-                                   dst_sim_title=sim_title)
+                                   sim_title)
             
             self.add_simulation_title(sim_title)
         
@@ -534,13 +534,13 @@ class AdvancedPosition(Strategy):
         """
         
         if sim_titles is None:
-            
             sim_titles = project.get_simulation_titles()
             if exclude_default: sim_titles.remove("Default")
         
         for sim_title in sim_titles:
             core.remove_simulation(project, sim_title=sim_title)
-            self.remove_simulation_title(sim_title)
+            if sim_title in self._sim_record:
+                self.remove_simulation_title(sim_title)
         
         return
     
@@ -577,13 +577,13 @@ class AdvancedPosition(Strategy):
         _, worker_dir_status_code = \
                      AdvancedPosition.get_worker_directory_status(config)
         
-        if worker_dir_status_code >= 1: return True
+        if worker_dir_status_code == 1: return True
             
         _, optimiser_status_code = AdvancedPosition.get_optimiser_status(
                                                                         core,
                                                                         config)
         
-        if optimiser_status_code <= 1: return False
+        if optimiser_status_code == 0: return False
         
         return True
     
@@ -601,7 +601,6 @@ class AdvancedPosition(Strategy):
                 status_str = "Worker directory empty"
             elif config['clean_existing_dir']:
                 status_str = "Worker directory contains files"
-                status_code = 2
             else:
                 status_str = "Worker directory contains files"
                 status_code = 0
@@ -634,7 +633,7 @@ class AdvancedPosition(Strategy):
         if os.path.isfile(results_path):
             
             status_str = "Optimisation complete"
-            status_code = 1
+            status_code = 0
             
             return status_str, status_code
         
@@ -645,7 +644,7 @@ class AdvancedPosition(Strategy):
             
             status_str = ("Optimisation incomplete (restart may be "
                           "possible)")
-            status_code = 2
+            status_code = 1
         
         return status_str, status_code
     
@@ -943,7 +942,7 @@ def _get_results_table(config, results_dict):
     key_order.extend(list(params_set))
     
     conversion_map = {"grid_orientation": radians_to_bearing}
-            
+    
     table_dict = {}
     table_cols = []
     
@@ -973,7 +972,7 @@ def _get_results_table(config, results_dict):
                 
                 table_cols.append(col_name)
                 table_dict[col_name] = val_list
-            
+        
         else:
             
             if key in conversion_map:
@@ -991,99 +990,3 @@ def _get_sim_path_template(root_project_base_name, sim_dir):
     sim_path_template = os.path.join(sim_dir, sim_name_template)
     
     return sim_path_template
-
-
-def _post_process_legacy(core, config, log_interval=100):
-    
-    msg_str = "Beginning post-processing of simulations"
-    module_logger.info(msg_str)
-    
-    pickle_dict = {}
-    
-    param_map = {"grid_orientation": "theta",
-                 "delta_row": "dr",
-                 "delta_col": "dc",
-                 "n_nodes": "n_nodes",
-                 "t1": "t1",
-                 "t2": "t2"}
-    
-    extract_vars = ["project.number_of_devices",
-                    "project.annual_energy",
-                    "project.q_factor",
-                    "project.lcoe_mode",
-                    "project.capex_total",
-                    "project.capex_breakdown",
-                    "project.lifetime_opex_mode",
-                    "project.lifetime_energy_mode"]
-    
-    for var in extract_vars:
-        pickle_dict[var] = []
-    
-    root_project_path = config['root_project_path']
-    sim_dir = config["worker_dir"]
-    
-    root_project_base_name = _get_root_project_base_name(root_project_path)
-    path_template = _get_sim_path_template(root_project_base_name, sim_dir)
-    
-    read_params = config["parameters"].keys()
-    
-    for param in read_params:
-        pickle_dict[param] = []
-    
-    search_str = os.path.join(sim_dir, '*.dat')
-    dat_file_paths = natsorted(glob.glob(search_str))
-    n_sims = len(dat_file_paths)
-    
-    pickle_dict["sim_number"] = []
-    
-    for i, dat_file_path in enumerate(dat_file_paths):
-        
-        if (i + 1) % log_interval == 0:
-            
-            msg_str = "Processed {} of {} simulations".format(i + 1,
-                                                              n_sims)
-            module_logger.info(msg_str)
-        
-        with open(dat_file_path, "r") as f:
-            lines = f.read().splitlines()
-        
-        flag = lines[2]
-        
-        if flag == "Exception": continue
-        
-        params_line = lines[0]
-        
-        param_values = {b.split(":")[0].strip():
-                            ast.literal_eval(b.split(":")[1].strip())
-                                for b in params_line.split(";")}
-        
-        sim_num_dat = dat_file_path.split("_")[-1]
-        sim_num = int(os.path.splitext(sim_num_dat)[0])
-        
-        prj_file_path = path_template.format(sim_num, 'prj')
-        project = core.load_project(prj_file_path)
-        
-        if core.has_data(project, "project.lcoe_mode"):
-            
-            pickle_dict["sim_number"].append(sim_num)
-            
-            for param in read_params:
-                param_value = param_values[param_map[param]]
-                pickle_dict[param].append(param_value)
-            
-            for var_name in extract_vars:
-                data_value = core.get_data_value(project, var_name)
-                pickle_dict[var_name].append(data_value)
-        
-        else:
-            
-            continue
-    
-    pickle_name = "{}_results.pkl".format(root_project_base_name)
-    pickle_path = os.path.join(sim_dir, pickle_name)
-    pickle.dump(pickle_dict, open(pickle_path, 'wb'))
-    
-    msg_str = "Post-processing complete"
-    module_logger.info(msg_str)
-    
-    return

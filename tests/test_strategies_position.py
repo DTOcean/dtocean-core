@@ -134,7 +134,7 @@ def test_advanced_get_worker_directory_status_empty(tmpdir):
 
 @pytest.mark.parametrize("clean_existing_dir, expected", [
                          (False,              0),
-                         (True,               2)])
+                         (True,               1)])
 def test_advanced_get_worker_directory_status_contains_files(
                                                             tmpdir,
                                                             clean_existing_dir,
@@ -173,7 +173,7 @@ def test_advanced_get_optimiser_status_complete(tmpdir):
     (status_str,
      status_code) = AdvancedPosition.get_optimiser_status(None, config)
     
-    assert status_code == 1
+    assert status_code == 0
     assert "complete" in status_str
 
 
@@ -189,7 +189,7 @@ def test_advanced_get_optimiser_status_incomplete(mocker, tmpdir):
     (status_str,
      status_code) = AdvancedPosition.get_optimiser_status(None, config)
     
-    assert status_code == 2
+    assert status_code == 1
     assert "incomplete" in status_str
 
 
@@ -435,7 +435,7 @@ def test_advanced_pre_execute_restart(caplog, mocker, advanced):
     
     mocker.patch.object(advanced,
                         "get_optimiser_status",
-                        return_value=["mock", 2],
+                        return_value=["mock", 1],
                         autospec=True)
     
     advanced._config = {'clean_existing_dir': "mock",
@@ -865,10 +865,12 @@ def test_advanced_execute_theaded_stop(mocker, advanced):
     assert thread.get_es()
 
 
-def test_advanced_execute_theaded_pause_resume(caplog, mocker, advanced):
+def test_advanced_execute_theaded_pause_resume_pause_stop(caplog,
+                                                          mocker,
+                                                          advanced):
     
     mock_core = mocker.MagicMock()
-    mock_opt = MockOpt(mock_core)
+    mock_opt = MockOpt(mock_core, countdown=50)
     
     mocker.patch.object(advanced,
                         "_pre_execute",
@@ -891,16 +893,35 @@ def test_advanced_execute_theaded_pause_resume(caplog, mocker, advanced):
     
     assert not thread.stopped
     assert "Pausing thread..." in caplog.text
+    assert thread.get_es() is None
     
     with caplog_for_logger(caplog, 'dtocean_core'):
-    
+        
         thread.resume()
+        
+        while thread.paused:
+            time.sleep(0.5)
+    
+    assert "Resuming thread..." in caplog.text
+    
+    with caplog_for_logger(caplog, 'dtocean_core'):
+        
+        thread.pause()
+        
+        while not thread.paused:
+            time.sleep(0.5)
+    
+    assert "Pausing thread..." in caplog.text
+    
+    with caplog_for_logger(caplog, 'dtocean_core'):
+        
+        thread.stop()
         
         while not thread.stopped:
             time.sleep(0.5)
     
     assert thread.get_es()
-    assert "Resuming thread..." in caplog.text
+    assert "Stopping thread..." in caplog.text
 
 
 def test_advanced_execute_theaded_exit_hook(caplog, mocker, advanced):
@@ -1382,19 +1403,120 @@ def test_advanced_load_simulation_ids_titles(mocker,
     assert advanced.get_simulation_record() == sim_titles
 
 
-def test_advanced_remove_simulations(mocker, advanced):
+@pytest.mark.parametrize("exclude_default, expected", [
+                         (True,            False),
+                         (False,           True)])
+def test_advanced_remove_simulations(mocker,
+                                     advanced,
+                                     exclude_default,
+                                     expected):
     
     mock_project = Project("mock")
+    
+    mock_sim = OrderedSim("Default")
+    mock_project.add_simulation(mock_sim)
+    
     sim_names = ["Mock {}".format(i) for i in range(5)]
     
     for sim_name in sim_names:
         mock_sim = OrderedSim(sim_name)
         mock_project.add_simulation(mock_sim)
+        advanced.add_simulation_title(sim_name)
+    
+    for name in sim_names:
+        assert name in advanced.get_simulation_record()
     
     mock_core = Core()
-    mocker.patch.object(mock_core,
-                        'remove_simulation',
-                        autospec=True)
+    remove_simulation = mocker.patch.object(mock_core,
+                                            'remove_simulation',
+                                            autospec=True)
+    
+    advanced.remove_simulations(mock_core,
+                                mock_project,
+                                exclude_default=exclude_default)
     
     for name in sim_names:
         assert name not in advanced.get_simulation_record()
+    
+    titles_removed = [call.kwargs['sim_title'] for call in 
+                                          remove_simulation.call_args_list]
+    
+    assert ("Default" in titles_removed) is expected
+
+
+def test_advanced_load_config(mocker):
+    
+    mocker.patch('dtocean_core.strategies.position.load_config',
+                 return_value=True,
+                 autospec=True)
+    
+    assert AdvancedPosition.load_config(None)
+
+
+def test_advanced_dump_config(mocker, advanced):
+    
+    config = {'clean_existing_dir': True}
+    advanced._config = config
+    
+    dump_config = mocker.patch('dtocean_core.strategies.position.dump_config',
+                               autospec=True)
+    
+    mock_path = "mock"
+    advanced.dump_config(mock_path)
+    
+    assert dump_config.called
+    assert dump_config.call_args.args[0] == mock_path
+    assert dump_config.call_args.args[1]['clean_existing_dir'] is None
+
+
+def test_advanced_export_config_template(mocker, advanced):
+    
+    dump_config = mocker.patch('dtocean_core.strategies.position.dump_config',
+                               autospec=True)
+    
+    mock_path = "mock"
+    advanced.export_config_template(mock_path)
+    
+    assert dump_config.called
+    assert dump_config.call_args.args[0] == mock_path
+
+
+@pytest.mark.parametrize("p_code, c_code, w_dir,  w_code, o_code, expected", [
+                         (0,      None,   None,   None,   None,   False),
+                         (1,      0,      None,   None,   None,   False),
+                         (1,      1,      None,   None,   None,   False),
+                         (1,      1,      "mock", 0,      0,      False),
+                         (1,      1,      "mock", 0,      1,      True),
+                         (1,      1,      "mock", 1,      None,   True)])
+def test_advanced_allow_run(mocker,
+                            advanced,
+                            p_code,
+                            c_code,
+                            w_dir, 
+                            w_code,
+                            o_code,
+                            expected):
+    
+    mocker.patch.object(AdvancedPosition,
+                        'get_project_status',
+                        return_value=("mock", p_code),
+                        autospec=True)
+    
+    mocker.patch.object(AdvancedPosition,
+                        'get_config_status',
+                        return_value=("mock", c_code),
+                        autospec=True)
+    
+    mocker.patch.object(AdvancedPosition,
+                        'get_worker_directory_status',
+                        return_value=("mock", w_code),
+                        autospec=True)
+    
+    mocker.patch.object(AdvancedPosition,
+                        'get_optimiser_status',
+                        return_value=("mock", o_code),
+                        autospec=True)
+    
+    config = {"worker_dir": w_dir}
+    
+    assert AdvancedPosition.allow_run(None, None, config) == expected

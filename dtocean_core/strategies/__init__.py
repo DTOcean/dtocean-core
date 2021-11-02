@@ -97,36 +97,23 @@ class Strategy(object):
         return
     
     def get_config(self):
-        
         return deepcopy(self._config)
     
     def dump_config_hook(self, config):
         return config
     
     def set_config(self, config_dict):
-        
         self._config = config_dict
-        
-        return
     
     def add_simulation_title(self, sim_title):
-        
         self._sim_record.append(sim_title)
-        
-        return
     
     def remove_simulation_title(self, sim_title):
         self._sim_record.pop(self._sim_record.index(sim_title))
-        return
     
     def get_simulation_record(self):
-        
         return self._sim_record[:]
     
     def restart(self):
-        
         self._sim_record = []
         self.sim_details = None
-        
-        return
-
