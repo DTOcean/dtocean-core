@@ -417,7 +417,9 @@ class SpacingConstraintsTool(Tool):
         
         else:
             
-            main_angle = get_main_angle(main_direction_vec)
+            main_angle = anglewrap(np.arctan2(main_direction_vec[1],
+                                              main_direction_vec[0]),
+                                   conversion='r2r')
         
         (la_buffer_exterior,
          la_exterior) = compress_lease_area(numpy_lease,
