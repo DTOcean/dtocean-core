@@ -1,4 +1,6 @@
 
+# pylint: disable=redefined-outer-name,protected-access
+
 import os
 import json
 import shutil

@@ -514,7 +514,7 @@ class ReliabilityInterface(ThemeInterface):
         
         if (data.moor_found_network is None and 
             data.electrical_network is None and
-            data.subsystem_failure_rates): return
+            data.subsystem_failure_rates): return None
             
         if data.moor_found_network is None:
             moor_found_network_hier = None
@@ -561,7 +561,7 @@ class ReliabilityInterface(ThemeInterface):
                        "undertake analysis for electrical network")
                 module_logger.info(msg)
                 
-                return
+                return None
             
             # k-factor electrical data
             if data.apply_kfactors:
@@ -606,7 +606,7 @@ class ReliabilityInterface(ThemeInterface):
                        "network")
                 module_logger.info(msg)
                 
-                return
+                return None
         
         ## COMPONENTS
         compdict = {}

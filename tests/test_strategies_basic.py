@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+# pylint: disable=redefined-outer-name,protected-access
+
 import pytest
 
 from dtocean_core.core import OrderedSim, Project

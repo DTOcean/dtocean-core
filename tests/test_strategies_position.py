@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+# pylint: disable=redefined-outer-name,protected-access,bad-whitespace,no-member
+
 import os
 import time
 import pickle

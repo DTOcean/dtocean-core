@@ -136,9 +136,11 @@ class NoiseHandler(object):
     to smaller values.
     :See also: `fmin`, `CMAEvolutionStrategy.ask_and_eval`
     """
-    # TODO: for const additive noise a better version might be with alphasigma also used for sigma-increment,
-    # while all other variance changing sources are removed (because they are intrinsically biased). Then
-    # using kappa to get convergence (with unit sphere samples): noiseS=0 leads to a certain kappa increasing rate?
+    # TODO: for const additive noise a better version might be with alphasigma 
+    # also used for sigma-increment, while all other variance changing sources 
+    # are removed (because they are intrinsically biased). Then using kappa to 
+    # get convergence (with unit sphere samples): noiseS=0 leads to a certain 
+    # kappa increasing rate?
     def __init__(self, N,
                        maxevals=[1, 1, 1],
                        reevals=None,

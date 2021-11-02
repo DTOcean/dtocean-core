@@ -13,7 +13,7 @@ from dtocean_core.utils.execute import main, main_interface
 
 class MockCore(Core):
     
-    def load_project(self, fpath):
+    def load_project(self, fpath): # pylint: disable=unused-argument
         return Project("mock")
 
 
@@ -56,7 +56,11 @@ class MockStrategy(Strategy):
 
 class MockMenu(ModuleMenu):
     
-    def execute_current(self, core, project):
+    def execute_current(self, core,
+                              project,
+                              execute_themes=True,
+                              allow_unavailable=False,
+                              log_execution_time=True):
         return
 
 

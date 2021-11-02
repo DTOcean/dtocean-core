@@ -53,11 +53,11 @@ version = pkg_resources.get_distribution(pkg_title).version
 
 if not Version(version).major == major_version:
     
-    err_msg = ("Incompatible version of {} detected! Major version {} is "
+    ERR_MSG = ("Incompatible version of {} detected! Major version {} is "
                "required, but version {} is installed").format(pkg_title,
                                                                major_version,
                                                                version)
-    raise ImportError(err_msg)
+    raise ImportError(ERR_MSG)
 
 
 class SpacingConstraintsTool(Tool):
@@ -100,54 +100,54 @@ class SpacingConstraintsTool(Tool):
                        ]
         '''
         
-        input_list  =  ['site.lease_boundary',
-                        'bathymetry.layers',
-                        
-                        MaskVariable("farm.spectrum_name",
-                                     "device.system_type",
-                                     ["Wave Fixed", "Wave Floating"]),
-                        
-                        MaskVariable("farm.spec_gamma",
-                                     "device.system_type",
-                                     ["Wave Fixed", "Wave Floating"]),
-                        
-                        MaskVariable("farm.spec_spread",
-                                     "device.system_type",
-                                     ["Wave Fixed", "Wave Floating"]),
-                        
-                        MaskVariable('farm.tidal_occurrence',
-                                     "device.system_type",
-                                     ["Tidal Fixed", "Tidal Floating"]),
-                        
-                        MaskVariable("farm.tidal_series",
-                                     "device.system_type",
-                                     ["Tidal Fixed", "Tidal Floating"]),
-                        
-                        MaskVariable("farm.tidal_occurrence_point",
-                                     "device.system_type",
-                                     ["Tidal Fixed", "Tidal Floating"]),
-                        
-                        MaskVariable("project.tidal_occurrence_nbins",
-                                     "device.system_type",
-                                     ["Tidal Fixed", "Tidal Floating"]),
-                        
-                        MaskVariable("farm.wave_series",
-                                     "device.system_type",
-                                     ["Wave Fixed", "Wave Floating"]),
-                        
-                        'device.system_type',
-                        'device.installation_depth_max',
-                        'device.installation_depth_min',
-                        'device.minimum_distance_x',
-                        'device.minimum_distance_y',
-                        
-                        MaskVariable("device.turbine_interdistance",
-                                     "device.system_type",
-                                     ["Tidal Fixed", "Tidal Floating"]),
-                        
-                        'project.main_direction',
-                        'options.boundary_padding'
-                        ]
+        input_list = ['site.lease_boundary',
+                      'bathymetry.layers',
+                      
+                      MaskVariable("farm.spectrum_name",
+                                   "device.system_type",
+                                   ["Wave Fixed", "Wave Floating"]),
+                      
+                      MaskVariable("farm.spec_gamma",
+                                   "device.system_type",
+                                   ["Wave Fixed", "Wave Floating"]),
+                      
+                      MaskVariable("farm.spec_spread",
+                                   "device.system_type",
+                                   ["Wave Fixed", "Wave Floating"]),
+                      
+                      MaskVariable('farm.tidal_occurrence',
+                                   "device.system_type",
+                                   ["Tidal Fixed", "Tidal Floating"]),
+                      
+                      MaskVariable("farm.tidal_series",
+                                   "device.system_type",
+                                   ["Tidal Fixed", "Tidal Floating"]),
+                      
+                      MaskVariable("farm.tidal_occurrence_point",
+                                   "device.system_type",
+                                   ["Tidal Fixed", "Tidal Floating"]),
+                      
+                      MaskVariable("project.tidal_occurrence_nbins",
+                                   "device.system_type",
+                                   ["Tidal Fixed", "Tidal Floating"]),
+                      
+                      MaskVariable("farm.wave_series",
+                                   "device.system_type",
+                                   ["Wave Fixed", "Wave Floating"]),
+                      
+                      'device.system_type',
+                      'device.installation_depth_max',
+                      'device.installation_depth_min',
+                      'device.minimum_distance_x',
+                      'device.minimum_distance_y',
+                      
+                      MaskVariable("device.turbine_interdistance",
+                                   "device.system_type",
+                                   ["Tidal Fixed", "Tidal Floating"]),
+                      
+                      'project.main_direction',
+                      'options.boundary_padding'
+                      ]
         
         return input_list
     
@@ -250,14 +250,14 @@ class SpacingConstraintsTool(Tool):
         
         return id_map
     
-    def configure(self, layout):
+    def configure(self, layout): # pylint: disable=arguments-differ
         
         config_dict = {"layout": layout}
         self.set_config(config_dict)
         
         return
     
-    def connect(self, **kwargs):
+    def connect(self, **kwargs): # pylint: disable=unused-argument
         
         if 'layout' not in self._config:
             err_msg = "Key 'layout' missing from config. Was configure called?"
@@ -442,7 +442,7 @@ class SpacingConstraintsTool(Tool):
             
             msg_str = ('Violation of the minimum distance constraint between '
                        'at least one device. Maximum ellipse transect '
-                       'percentage: {}').format(array._mindist_percent_max)
+                       'percentage: {}').format(array._mindist_percent_max) # pylint: disable=protected-access
             raise RuntimeError(msg_str)
         
         return
@@ -500,7 +500,7 @@ def get_main_angle_tidal(meteocean_conditions):
     ind_max_direction = np.argmax(meteocean_conditions["p"])
     U = np.nanmean(meteocean_conditions["U"] [:, :, ind_max_direction])
     V = np.nanmean(meteocean_conditions["V"][:, :, ind_max_direction])
-    main_direction = -np.array([U,V])
+    main_direction = -np.array([U, V])
     
     return main_direction
 
@@ -510,7 +510,7 @@ def get_main_angle_wave(meteocean_conditions):
     
     # The main direction is given by the direcion of the scatter diagram with 
     # highest probability of occurrence
-    ind_max_direction = np.argmax(np.sum(meteocean_conditions["p"],(0,1)))
+    ind_max_direction = np.argmax(np.sum(meteocean_conditions["p"], (0, 1)))
     angle = meteocean_conditions["B"][ind_max_direction]
     main_direction = np.array([np.cos(angle), np.sin(angle)], dtype=float)
     

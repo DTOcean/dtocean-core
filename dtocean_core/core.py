@@ -603,7 +603,7 @@ class Project(object):
         new_project._pool = deepcopy(self._pool)
         new_project._simulations = deepcopy(self._simulations)
         new_project._active_index = self._active_index
-        new_project._db_cred = deepcopy(self._db_cred)
+        new_project._db_cred = deepcopy(self._db_cred) # pylint: disable=protected-access
         
         return new_project
     

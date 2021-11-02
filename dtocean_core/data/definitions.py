@@ -3074,12 +3074,12 @@ class PointData(Structure):
         
         self.check_path()
         
-        point = self.data.result
+        points = [self.data.result]
         
         if ".xls" in self._path or ".csv" in self._path:
-            PointData._write_table(self._path, point)
+            PointData._write_table(self._path, points)
         elif ".shp" in self._path:
-            PointData._write_shapefile(self._path, point)
+            PointData._write_shapefile(self._path, points)
         else:
              raise TypeError("The specified file format is not supported. ",
                              "Supported format are {},{},{}".format('.csv',
@@ -3113,8 +3113,10 @@ class PointData(Structure):
         return result
     
     @staticmethod
-    def _write_table(path, point):
-
+    def _write_table(path, points):
+        
+        point = points[0]
+        
         if isinstance(point, Point):
             data_ = np.array(point).reshape((1,-1))
         else:
@@ -3168,7 +3170,9 @@ class PointData(Structure):
         return data
     
     @staticmethod
-    def _write_shapefile(path, point):
+    def _write_shapefile(path, points):
+        
+        point = points[0]
         
         if isinstance(point, Point):
             data = np.array(point)

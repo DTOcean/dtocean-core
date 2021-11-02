@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+# pylint: disable=redefined-outer-name
+
 import sys
 
 import yaml
@@ -37,16 +39,16 @@ def lease_polygon():
 @pytest.fixture
 def layer_depths():
 
-    x = np.linspace(0.,1000.,101)
-    y = np.linspace(0.,300.,31) 
+    x = np.linspace(0., 1000., 101)
+    y = np.linspace(0., 300., 31)
     nx = len(x)
     ny = len(y)
     
-    X, Y = np.meshgrid(x,y)
+    X, _ = np.meshgrid(x,y)
     Z = -X * 0.1 - 1
     depths = Z.T[:, :, np.newaxis]
     
-    sediments = np.chararray((nx,ny,1), itemsize=20)
+    sediments = np.chararray((nx, ny, 1), itemsize=20)
     sediments[:] = "rock"
        
     raw = {"values": {'depth': depths,
@@ -189,7 +191,7 @@ def test_get_positioner(mocker,
                         lease_polygon,
                         layer_depths):
     
-    def get_data_value(dummy, var):
+    def get_data_value(dummy, var): # pylint: disable=unused-argument
         
         if var == "site.lease_boundary":
             return lease_polygon
@@ -218,6 +220,8 @@ def test_get_positioner(mocker,
         
         if var == 'device.turbine_interdistance':
             return 20
+        
+        return None
     
     core = mocker.MagicMock()
     core.has_data.return_value = True
@@ -231,7 +235,7 @@ def test_get_positioner(mocker,
 
 def test_write_result_file_success(mocker, tmpdir):
     
-    def has_data(dummy, var):
+    def has_data(dummy, var): # pylint: disable=unused-argument
         
         if var == "mock1":
             return True

@@ -16,7 +16,6 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import ast
 import sys
 import glob
 import types
@@ -709,7 +708,7 @@ def _release_logging_locks():
 
 def _method_decorator(func):
     
-    def wrapper(self):
+    def wrapper(self): # pylint: disable=unused-argument
         func()
     
     return wrapper

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+# pylint: disable=redefined-outer-name,protected-access,bad-whitespace
+
 import numpy as np
 import pytest
 from shapely.affinity import translate
@@ -38,16 +40,16 @@ def lease_polygon_tri():
 @pytest.fixture
 def layer_depths():
 
-    x = np.linspace(0.,1000.,101)
-    y = np.linspace(0.,300.,31) 
+    x = np.linspace(0., 1000., 101)
+    y = np.linspace(0., 300., 31) 
     nx = len(x)
     ny = len(y)
     
-    X, Y = np.meshgrid(x,y)
+    X, _ = np.meshgrid(x,y)
     Z = -X * 0.1 - 1
     depths = Z.T[:, :, np.newaxis]
     
-    sediments = np.chararray((nx,ny,1), itemsize=20)
+    sediments = np.chararray((nx, ny, 1), itemsize=20)
     sediments[:] = "rock"
        
     raw = {"values": {'depth': depths,

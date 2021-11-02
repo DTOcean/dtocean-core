@@ -241,9 +241,9 @@ def test_PolygonData_auto_file_too_many_parts(tmpdir):
     with shapefile.Writer(test_path_str) as shp:
         shp.field('name', 'C')
         shp.poly([
-                  [[113,24], [112,32], [117,36], [122,37], [118,20]], # poly 1
-                  [[116,29],[116,26],[119,29],[119,32]], # hole 1
-                  [[15,2], [17,6], [22,7]]  # poly 2
+                  [[113, 24], [112, 32], [117, 36], [122, 37], [118, 20]], # poly 1
+                  [[116, 29], [116, 26], [119, 29], [119, 32]], # hole 1
+                  [[15, 2], [17, 6], [22, 7]]  # poly 2
                   ])
         shp.record('polygon1')
     

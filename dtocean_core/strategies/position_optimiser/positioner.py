@@ -265,8 +265,8 @@ def _make_grid_nodes(bounding_box,
                    [sin_array, cos_array]])
     
     coord_raw = np.zeros((2, n_rows * n_cols))
-    coord_raw[0,:] = x.ravel()
-    coord_raw[1,:] = y.ravel()
+    coord_raw[0, :] = x.ravel()
+    coord_raw[1, :] = y.ravel()
     coords = np.dot(Rz, coord_raw).T
     
     return coords

@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-import pandas as pd
 
 from dtocean_core.core import OrderedSim, Project
-from dtocean_core.strategies.sensitivity import UnitSensitivity
+from dtocean_core.strategies.sensitivity import UnitSensitivity # pylint: disable=no-name-in-module
 
 
 @pytest.fixture()

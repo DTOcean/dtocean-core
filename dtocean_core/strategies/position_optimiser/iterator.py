@@ -77,7 +77,7 @@ def main(core,
     if n_evals is not None:
         
         n_evals = int(float(n_evals))
-        params_dict["n_evals"] =  n_evals
+        params_dict["n_evals"] = n_evals
     
     e = None
     project = None
@@ -102,7 +102,7 @@ def main(core,
         
         flag = "Success"
     
-    except Exception as e:
+    except Exception as e: # pylint: disable=broad-except
         
         flag = "Exception"
         

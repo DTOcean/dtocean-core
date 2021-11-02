@@ -1,4 +1,6 @@
 
+# pylint: disable=redefined-outer-name
+
 import pytest
 
 from dtocean_core.utils.version import Version

@@ -131,7 +131,7 @@ class MockEvaluator(Evaluator):
         
         return {"cost": cost}
     
-    def _set_counter_params(self, iteration,
+    def _set_counter_params(self, evaluation,
                                   worker_project_path,
                                   results,
                                   flag,
@@ -142,7 +142,7 @@ class MockEvaluator(Evaluator):
         cost = np.nan
         if results is not None: cost = results["cost"]
         
-        self._counter.set_params(iteration, cost, *args)
+        self._counter.set_params(evaluation, cost, *args)
         
         return
     

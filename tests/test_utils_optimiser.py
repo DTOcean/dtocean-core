@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+# pylint: disable=redefined-outer-name
+
 import queue
 import logging
 import threading
@@ -509,7 +511,7 @@ def test_main_max_resample_loops(mocker, tmpdir):
     assert test.get_max_resample_factor() == expected
 
 
-def test_main_get_max_resample_factor_auto(mocker, tmpdir):
+def test_main_get_max_resample_factor_auto(tmpdir):
     
     x0 = 5
     x_range = (-1, 10)

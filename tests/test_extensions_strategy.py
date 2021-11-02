@@ -1,4 +1,6 @@
 
+# pylint: disable=redefined-outer-name,protected-access
+
 import pickle
 from collections import OrderedDict
 

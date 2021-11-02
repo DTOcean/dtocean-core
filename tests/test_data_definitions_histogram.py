@@ -88,7 +88,7 @@ def test_Histogram_not_equals_numpy():
     test_data_two = np.random.random(10)
     
     values_one, bins_one = np.histogram(test_data_one)
-    values_two, bins_two = np.histogram(test_data_two)
+    _, bins_two = np.histogram(test_data_two)
     
     a = {"values": values_one,
          "bins": bins_one}

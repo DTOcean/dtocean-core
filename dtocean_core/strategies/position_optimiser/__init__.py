@@ -497,7 +497,7 @@ class PositionOptimiser(object):
         try:
             config = load_config(config_path)
             opt.load_outputs(worker_directory)
-        except:
+        except: # pylint: disable=bare-except
             log_msg = "Can not find state of previous optimisation"
             module_logger.debug(log_msg, exc_info=True)
             return False

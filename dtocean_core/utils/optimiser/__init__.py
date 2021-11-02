@@ -807,7 +807,7 @@ class Main(object):
                                        key=lambda t: t[0]))
             
             for solution in descaled_solutions:
-                for idx, val in ordered_index_map.iteritems():
+                for idx, val in ordered_index_map.iteritems(): # pylint: disable=no-member
                     solution.insert(idx, val)
         
         return descaled_solutions
@@ -914,7 +914,7 @@ def set_TimedRotatingFileHandler_rollover(timeout=None):
     
     # If theres no timeout choose a big number
     if timeout is None:
-        timeout = sys.maxint
+        timeout = sys.maxint # pylint: disable=no-member
     
     logger = logging.Logger.manager.loggerDict["dtocean_core"]
     
