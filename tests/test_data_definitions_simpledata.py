@@ -1,4 +1,6 @@
 
+# pylint: disable=protected-access
+
 import pytest
 
 from aneris.control.factory import InterfaceFactory

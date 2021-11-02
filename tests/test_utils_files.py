@@ -69,7 +69,7 @@ def test_os_retry_max_attempts():
 
 def test_os_retry_max_attempts_silent():
     
-    def always_fail(src_path):
+    def always_fail(src_path): # pylint: disable=unused-argument
         raise OSError
     
     test = os_retry(always_fail)

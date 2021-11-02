@@ -284,7 +284,7 @@ class Evaluator(object):
                 
                 raise RuntimeError(err_str)
         
-        except Exception as e:
+        except Exception as e: # pylint: disable=broad-except
             
             flag = "Fail Execute"
             _log_exception(e, flag)
@@ -296,7 +296,7 @@ class Evaluator(object):
                 results = self._get_worker_results(evaluation)
                 cost = results["cost"]
             
-            except Exception as e:
+            except Exception as e: # pylint: disable=broad-except
                 
                 flag = "Fail Receive"
                 _log_exception(e, flag)

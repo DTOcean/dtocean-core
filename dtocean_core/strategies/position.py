@@ -759,7 +759,7 @@ def _run_favorite(optimiser,
         
         flag = "Success"
     
-    except Exception as e:
+    except Exception as e: # pylint: disable=broad-except
         
         flag = "Exception"
         

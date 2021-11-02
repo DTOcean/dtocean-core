@@ -156,10 +156,10 @@ def test_UniVariateKDE_median():
     n_tests = 20
     tests = []
     
-    for i in range(n_tests):
+    for _ in range(n_tests):
         
         values = get_vals()
-        std_error = get_standard_error(values);
+        std_error = get_standard_error(values)
         
         # Check that the expected value is within interval
         actual = np.median(values)
