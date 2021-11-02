@@ -62,11 +62,11 @@ version = pkg_resources.get_distribution(pkg_title).version
 
 if not Version(version).major == major_version:
     
-    err_msg = ("Incompatible version of {} detected! Major version {} is "
+    ERR_MSG = ("Incompatible version of {} detected! Major version {} is "
                "required, but version {} is installed").format(pkg_title,
                                                                major_version,
                                                                version)
-    raise ImportError(err_msg)
+    raise ImportError(ERR_MSG)
 
 
 class HydroInterface(ModuleInterface):

@@ -106,48 +106,48 @@ class ReliabilityInterface(ThemeInterface):
                        ]
         '''
         
-        input_list  =  ['device.subsystem_failure_rates',
-                        'device.control_subsystem_failure_rates',
-                        "project.layout",
-                        "project.electrical_network",
-                        "project.electrical_component_data",
-                        "project.moorings_foundations_network",
-                        "project.reliability_time",
-                        "project.reliability_confidence",
-                        "project.apply_kfactors",
-                        
-                        "component.static_cable_NCFR",
-                        "component.static_cable_perkm_NCFR",
-                        "component.dynamic_cable_NCFR",
-                        "component.dry_mate_connectors_NCFR",
-                        "component.wet_mate_connectors_NCFR",
-                        "component.collection_points_NCFR",
-                        "component.transformers_NCFR",
-                        
-                        "component.static_cable_CFR",
-                        "component.static_cable_perkm_CFR",
-                        "component.dynamic_cable_CFR",
-                        "component.dry_mate_connectors_CFR",
-                        "component.wet_mate_connectors_CFR",
-                        "component.collection_points_CFR",
-                        "component.transformers_CFR",
-                        
-                        "component.foundations_anchor_NCFR",
-                        "component.foundations_pile_NCFR",
-                        "component.moorings_chain_NCFR",
-                        "component.moorings_forerunner_NCFR",
-                        "component.moorings_rope_NCFR",
-                        "component.moorings_shackle_NCFR",
-                        "component.moorings_swivel_NCFR",
-                        
-                        "component.foundations_anchor_CFR",
-                        "component.foundations_pile_CFR",
-                        "component.moorings_chain_CFR",
-                        "component.moorings_forerunner_CFR",
-                        "component.moorings_rope_CFR",
-                        "component.moorings_shackle_CFR",
-                        "component.moorings_swivel_CFR"
-                        ]
+        input_list = ['device.subsystem_failure_rates',
+                      'device.control_subsystem_failure_rates',
+                      "project.layout",
+                      "project.electrical_network",
+                      "project.electrical_component_data",
+                      "project.moorings_foundations_network",
+                      "project.reliability_time",
+                      "project.reliability_confidence",
+                      "project.apply_kfactors",
+                      
+                      "component.static_cable_NCFR",
+                      "component.static_cable_perkm_NCFR",
+                      "component.dynamic_cable_NCFR",
+                      "component.dry_mate_connectors_NCFR",
+                      "component.wet_mate_connectors_NCFR",
+                      "component.collection_points_NCFR",
+                      "component.transformers_NCFR",
+                      
+                      "component.static_cable_CFR",
+                      "component.static_cable_perkm_CFR",
+                      "component.dynamic_cable_CFR",
+                      "component.dry_mate_connectors_CFR",
+                      "component.wet_mate_connectors_CFR",
+                      "component.collection_points_CFR",
+                      "component.transformers_CFR",
+                      
+                      "component.foundations_anchor_NCFR",
+                      "component.foundations_pile_NCFR",
+                      "component.moorings_chain_NCFR",
+                      "component.moorings_forerunner_NCFR",
+                      "component.moorings_rope_NCFR",
+                      "component.moorings_shackle_NCFR",
+                      "component.moorings_swivel_NCFR",
+                      
+                      "component.foundations_anchor_CFR",
+                      "component.foundations_pile_CFR",
+                      "component.moorings_chain_CFR",
+                      "component.moorings_forerunner_CFR",
+                      "component.moorings_rope_CFR",
+                      "component.moorings_shackle_CFR",
+                      "component.moorings_swivel_CFR"
+                      ]
         
         return input_list
     

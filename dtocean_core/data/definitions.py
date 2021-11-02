@@ -361,9 +361,10 @@ class TableData(Structure):
             
             for c, t in zip(req_cols, types):
                 
+                ## TODO: Deal with this better
                 try:
                     dataframe[c] = dataframe[c].astype(t)
-                except:
+                except: # pylint: disable=bare-except
                     pass
         
         return dataframe
@@ -3118,7 +3119,7 @@ class PointData(Structure):
         point = points[0]
         
         if isinstance(point, Point):
-            data_ = np.array(point).reshape((1,-1))
+            data_ = np.array(point).reshape((1, -1))
         else:
             raise TypeError("Data type not understood: type for a "
                             "PointData subclass is shapely Point")

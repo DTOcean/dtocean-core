@@ -542,8 +542,8 @@ class StrategyManager(ExtensionManager):
         stg_name_str = strategy.get_name()
         
         stg_dict = {"name": stg_name_str,
-                    "sim_record": strategy._sim_record,
-                    "config": strategy.dump_config_hook(strategy._config),
+                    "sim_record": strategy._sim_record, # pylint: disable=protected-access
+                    "config": strategy.dump_config_hook(strategy._config), # pylint: disable=protected-access
                     "sim_details": strategy.sim_details,
                     "version": 2.1}
         
@@ -570,8 +570,8 @@ class StrategyManager(ExtensionManager):
             
             sim_titles = stg_dict["sim_record"]
         
-        new_strategy._sim_record = sim_titles
-        new_strategy._config = stg_dict["config"] # Maybe use this to clear the bad flag
+        new_strategy._sim_record = sim_titles # pylint: disable=protected-access
+        new_strategy._config = stg_dict["config"] # pylint: disable=protected-access
         new_strategy.sim_details = stg_dict["sim_details"]
         
         return new_strategy

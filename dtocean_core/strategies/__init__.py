@@ -99,7 +99,7 @@ class Strategy(object):
     def get_config(self):
         return deepcopy(self._config)
     
-    def dump_config_hook(self, config):
+    def dump_config_hook(self, config): # pylint: disable=no-self-use
         return config
     
     def set_config(self, config_dict):

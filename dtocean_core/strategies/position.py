@@ -79,7 +79,7 @@ class OptimiserThread(threading.Thread):
         module_logger.info(log_msg)
         
         try:
-            self._exit_hook()
+            self._exit_hook() # pylint: disable=not-callable
         except Exception as e:
             log_msg = ("Exit hook threw {}: "
                        "{}").format(type(e).__name__, str(e))
@@ -142,7 +142,7 @@ class OptimiserThread(threading.Thread):
         
         return
     
-    def _exit_hook(self):
+    def _exit_hook(self): # pylint: disable=no-self-use
         return
     
     def set_exit_hook(self, func):
@@ -225,7 +225,7 @@ class AdvancedPosition(Strategy):
         
         return set_vars
     
-    def configure(self, **config_dict):
+    def configure(self, **config_dict): # pylint: disable=arguments-differ
         
         _, status = self.get_config_status(config_dict)
         
@@ -417,7 +417,7 @@ class AdvancedPosition(Strategy):
         if "n_evals" in params:
             n_evals = params["n_evals"]
         
-        src_project = project._to_project()
+        src_project = project.to_project()
         positioner = get_positioner(core, project)
         
         prepare(core,
@@ -465,7 +465,7 @@ class AdvancedPosition(Strategy):
                 if positioner is None:
                     positioner = get_positioner(core, project)
                 
-                src_project = project._to_project()
+                src_project = project.to_project()
                 
                 prj_base_path, _ = os.path.splitext(prj_file_path)
                 yaml_file_path = "{}.yaml".format(prj_base_path)
@@ -695,12 +695,12 @@ class AdvancedPosition(Strategy):
 
 def _release_logging_locks():
     
-    for k,v in  logging.Logger.manager.loggerDict.items():
+    for v in logging.Logger.manager.loggerDict.values():
         if not isinstance(v, logging.PlaceHolder):
             for h in v.handlers:
                 try:
                     h.release()
-                except:
+                except: # pylint: disable=bare-except
                     pass
     
     return
@@ -739,10 +739,10 @@ def _run_favorite(optimiser,
     if nh is not None: params += [nh.last_n_evals]
     
     # Get the core, project and positioner
-    core = optimiser._core
-    base_project = optimiser._cma_main.evaluator._base_project
-    project = base_project._to_project()
-    positioner = optimiser._cma_main.evaluator._positioner
+    core = optimiser._core # pylint: disable=protected-access
+    base_project = optimiser._cma_main.evaluator._base_project # pylint: disable=protected-access
+    project = base_project.to_project()
+    positioner = optimiser._cma_main.evaluator._positioner # pylint: disable=protected-access
     
     # Try and run the simulation
     e = None
@@ -773,7 +773,7 @@ def _run_favorite(optimiser,
     # Prepare and write the results file
     results_base_name = optimiser._cma_main.evaluator._root_project_base_name
     results_name = "{}_xfavorite".format(results_base_name)
-    prj_base_path = os.path.join(optimiser._worker_directory, results_name)
+    prj_base_path = os.path.join(optimiser._worker_directory, results_name) # pylint: disable=protected-access
     
     keys = ["theta", "dr", "dc", "n_nodes", "t1", "t2", "dev_per_string"]
     if nh is not None: keys.append("n_evals")

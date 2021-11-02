@@ -498,6 +498,17 @@ class Project(object):
         
         return result
     
+    def to_project(self):
+        
+        new_project = Project(self.title)
+        
+        new_project._pool = deepcopy(self._pool) # pylint: disable=protected-access
+        new_project._simulations = deepcopy(self._simulations) # pylint: disable=protected-access
+        new_project._active_index = self._active_index # pylint: disable=protected-access
+        new_project._db_cred = deepcopy(self._db_cred) # pylint: disable=protected-access
+        
+        return new_project
+    
     def _get_index(self, title, raise_if_missing=True):
         
         sim_index = None
@@ -595,17 +606,6 @@ class Project(object):
             self._simulations[index] = simulation
         
         return index
-    
-    def _to_project(self):
-        
-        new_project = Project(self.title)
-        
-        new_project._pool = deepcopy(self._pool)
-        new_project._simulations = deepcopy(self._simulations)
-        new_project._active_index = self._active_index
-        new_project._db_cred = deepcopy(self._db_cred) # pylint: disable=protected-access
-        
-        return new_project
     
     def __len__(self):
         
@@ -718,7 +718,7 @@ class Core(object):
         prj_dir_path = tempfile.mkdtemp()
         
         # Copy the project before editing and ensure type Project
-        project_copy = project._to_project()
+        project_copy = project.to_project()
         
         # Serialise the pool
         pool_dir = os.path.join(prj_dir_path, "pool")
