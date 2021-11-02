@@ -189,10 +189,10 @@ def test_UniVariateKDE_mode():
     n_tests = 20
     tests = []
     
-    for i in range(n_tests):
+    for _ in range(n_tests):
         
         values = get_vals()
-        std_error = get_standard_error(values);
+        std_error = get_standard_error(values)
         
         # Check that the expected value is within interval
         actual = np.array(values).mean()
@@ -264,7 +264,7 @@ def test_BiVariateKDE_mean():
     n_tests = 20
     tests = []
     
-    for i in range(n_tests):
+    for _ in range(n_tests):
         
         values = get_vals()
         std_error = get_standard_error(values);
@@ -299,7 +299,7 @@ def test_BiVariateKDE_mode():
     n_tests = 20
     tests = []
     
-    for i in range(n_tests):
+    for _ in range(n_tests):
         
         values = get_vals()
         std_error = get_standard_error(values);
@@ -375,7 +375,7 @@ def test_get_standard_error():
     n_tests = 100
     tests = []
     
-    for i in range(n_tests):
+    for _ in range(n_tests):
         
         values = get_vals()
         std_error = get_standard_error(values);
