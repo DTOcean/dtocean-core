@@ -343,7 +343,7 @@ sysprof = "Rectangular"   #device profile options: "cylindrical" "rectangular"
 sysmass = 4.5e5 #device mass
 syscog = [0.0, 0.0, 0] #device centre of gravity
 sysvol = 440.0 #device displaced volume
-sysheight = 6 #device height
+sysheight = 6. #device height
 syswidth = 15.0 #device width
 syslength = 22.0 #device length
 sysrough = 0.9e-2 #device surface roughness
@@ -405,6 +405,8 @@ preline = [] #predefined mooring line component list e.g. ['shackle001','rope','
 fabcost = 1.0 #optional fabrication cost factor
 
 umbilical_connection = [0,0,-0.5]
+
+use_max_thrust = True
 
 test_data = {'constants.line_bearing_capacity_factor': linebcf,
              'constants.pile_Am_moment_coefficient': pilemomcoefam,
@@ -504,7 +506,8 @@ test_data = {'constants.line_bearing_capacity_factor': linebcf,
              'component.foundations_anchor_sand':
                                              comp_tables["drag anchor sand"],
              'component.foundations_anchor_soft':
-                                             comp_tables["drag anchor soft"]
+                                             comp_tables["drag anchor soft"],
+             'options.use_max_thrust': use_max_thrust
              }
 
 

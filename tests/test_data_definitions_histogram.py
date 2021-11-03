@@ -1,5 +1,6 @@
 import pytest
 
+import numpy as np
 import matplotlib.pyplot as plt
 
 from aneris.control.factory import InterfaceFactory
@@ -38,14 +39,63 @@ def test_Histogram():
     
     assert max(b["values"]) == 5
     assert max(b["bins"]) == 10
-    
-    
+
 def test_get_None():
     
     test = Histogram()
     result = test.get_value(None)
     
-    assert result is None    
+    assert result is None
+
+
+def test_Histogram_equals():
+    
+    a = {"values": [1, 2, 3, 4, 5],
+         "bins": [0, 2, 4, 6, 8, 10]}
+    b = {"values": [1, 2, 3, 4, 5],
+         "bins": [0, 2, 4, 6, 8, 10]}
+    
+    assert Histogram.equals(a, b)
+
+
+def test_Histogram_equals_numpy():
+    
+    test_data_one = np.random.random(10)
+    values_one, bins_one = np.histogram(test_data_one)
+    values_two, bins_two = np.histogram(test_data_one)
+    
+    a = {"values": values_one,
+         "bins": bins_one}
+    b = {"values": values_two,
+         "bins": bins_two}
+    
+    assert Histogram.equals(a, b)
+
+
+def test_Histogram_not_equals():
+    
+    a = {"values": [1, 2, 3, 4, 5],
+         "bins": [0, 2, 4, 6, 8, 10]}
+    b = {"values": [1, 2, 3, 4],
+         "bins": [0, 2, 4, 6, 8]}
+    
+    assert not Histogram.equals(a, b)
+
+
+def test_Histogram_not_equals_numpy():
+    
+    test_data_one = np.random.random(10)
+    test_data_two = np.random.random(10)
+    
+    values_one, bins_one = np.histogram(test_data_one)
+    _, bins_two = np.histogram(test_data_two)
+    
+    a = {"values": values_one,
+         "bins": bins_one}
+    b = {"values": values_one,
+         "bins": bins_two}
+    
+    assert not Histogram.equals(a, b)
 
 
 @pytest.mark.parametrize("fext", [".csv", ".xls", ".xlsx"])

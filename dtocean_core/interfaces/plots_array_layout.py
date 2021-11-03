@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2016-2018 Mathew Topper
+#    Copyright (C) 2016-2021 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -115,16 +115,18 @@ class ArrayLeasePlot(PlotInterface):
         
         short_layout = {key.replace("device", ""): value
                                     for key, value in self.data.layout.items()}
-
+        
         plot_point_dict(ax1, short_layout, "k+")
         plot_lease_boundary(ax1, self.data.lease_poly, self.data.padding)
-
+        
         ax1.margins(0.1, 0.1)
         ax1.autoscale_view()
-
+        
+        annotate_poly(ax1, self.data.lease_poly)
+        
         xlabel = 'UTM x [$m$]'
         ylabel = 'UTM y [$m$]'
-
+        
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         plt.ticklabel_format(useOffset=False)
@@ -209,9 +211,9 @@ class ArrayLeasePlotNumbers(PlotInterface):
                   "layout": "project.layout",
                   "padding": "options.boundary_padding"
                   }
-
+        
         return id_map
-
+    
     def connect(self):
         
         fig = plt.figure()
@@ -219,16 +221,18 @@ class ArrayLeasePlotNumbers(PlotInterface):
         
         short_layout = {key.replace("device", ""): value
                                     for key, value in self.data.layout.items()}
-
+        
         plot_point_dict(ax1, short_layout, "k+", annotate=True)
         plot_lease_boundary(ax1, self.data.lease_poly, self.data.padding)
-
+        
         ax1.margins(0.1, 0.1)
         ax1.autoscale_view()
-
+        
+        annotate_poly(ax1, self.data.lease_poly)
+        
         xlabel = 'UTM x [$m$]'
         ylabel = 'UTM y [$m$]'
-
+        
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         plt.ticklabel_format(useOffset=False)
@@ -240,8 +244,8 @@ class ArrayLeasePlotNumbers(PlotInterface):
         self.fig_handle = plt.gcf()
         
         return
-    
-    
+
+
 class ArrayCablesPlot(PlotInterface):
     
     @classmethod
@@ -254,7 +258,7 @@ class ArrayCablesPlot(PlotInterface):
         '''
         
         return "Array Cable Layout"
-        
+    
     @classmethod
     def declare_inputs(cls):
         
@@ -272,23 +276,23 @@ class ArrayCablesPlot(PlotInterface):
                         "My:second:variable",
                        ]
         '''
-
+        
         input_list = ["site.lease_boundary",
                       "corridor.landing_point",
                       "project.layout",
                       "project.cable_routes",
                       "project.substation_layout"
                       ]
-                                                
+        
         return input_list
     
     @classmethod
     def declare_optional(cls):
         
         option_list = ["site.lease_boundary"]
-
-        return option_list
         
+        return option_list
+    
     @classmethod
     def declare_id_map(self):
         
@@ -317,9 +321,9 @@ class ArrayCablesPlot(PlotInterface):
                   "cable_routes": "project.cable_routes",
                   'substation_layout': 'project.substation_layout',
                   }
-
+        
         return id_map
-
+    
     def connect(self):
         
         fig = plt.figure()
@@ -342,13 +346,16 @@ class ArrayCablesPlot(PlotInterface):
         
         if self.data.lease_poly is not None:
             plot_lease_boundary(ax1, self.data.lease_poly)
-
+        
         ax1.margins(0.1, 0.1)
         ax1.autoscale_view()
-
+        
+        if self.data.lease_poly is not None:
+            annotate_poly(ax1, self.data.lease_poly)
+        
         xlabel = 'UTM x [$m$]'
         ylabel = 'UTM y [$m$]'
-
+        
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         plt.ticklabel_format(useOffset=False)
@@ -365,8 +372,8 @@ class ArrayCablesPlot(PlotInterface):
         self.fig_handle = plt.gcf()
         
         return
-    
-    
+
+
 class ArrayFoundationsPlot(PlotInterface):
     
     @classmethod
@@ -379,7 +386,7 @@ class ArrayFoundationsPlot(PlotInterface):
         '''
         
         return "Array Foundations Layout"
-        
+    
     @classmethod
     def declare_inputs(cls):
         
@@ -397,22 +404,22 @@ class ArrayFoundationsPlot(PlotInterface):
                         "My:second:variable",
                        ]
         '''
-
+        
         input_list = ["site.lease_boundary",
                       "project.layout",
                       "project.substation_layout",
                       "project.foundations_component_data"
                       ]
-                                                
+        
         return input_list
     
     @classmethod
     def declare_optional(cls):
         
         option_list = ["site.lease_boundary"]
-
-        return option_list
         
+        return option_list
+    
     @classmethod
     def declare_id_map(self):
         
@@ -434,16 +441,16 @@ class ArrayFoundationsPlot(PlotInterface):
                        }
         
         '''
-                  
+        
         id_map = {"lease_poly": "site.lease_boundary",
                   "layout": "project.layout",
                   'substation_layout': 'project.substation_layout',
                   "foundations_components":
                       "project.foundations_component_data",
                   }
-
+        
         return id_map
-
+    
     def connect(self):
         
         fig = plt.figure()
@@ -498,15 +505,18 @@ class ArrayFoundationsPlot(PlotInterface):
         
         if self.data.lease_poly is not None:
             plot_lease_boundary(ax1, self.data.lease_poly)
-
+        
         ax1.margins(0.1, 0.1)
         ax1.autoscale_view()
-
+        
+        if self.data.lease_poly is not None:
+            annotate_poly(ax1, self.data.lease_poly)
+        
         xlabel = 'UTM x [$m$]'
         ylabel = 'UTM y [$m$]'
         
         all_handles = [dplot, splot] + foundations_handles
-
+        
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         plt.ticklabel_format(useOffset=False)
@@ -539,7 +549,7 @@ def plot_point_dict(ax,
     
     x = []
     y = []
-
+    
     for coords in layout.itervalues():
         x.append(coords.x)
         y.append(coords.y)
@@ -549,7 +559,7 @@ def plot_point_dict(ax,
     
     if label is not None: kwargs["label"] = label
     if markersize is not None: kwargs["markersize"] = markersize
-
+    
     pplot = ax.plot(x, y, marker, **kwargs)
     
     if not annotate: return pplot[0]
@@ -565,41 +575,51 @@ def plot_point_dict(ax,
                     horizontalalignment='center',
                     weight=text_weight,
                     size=text_size)
-
+    
     return pplot[0]
 
 
 def plot_lease_boundary(ax, lease_boundary, padding=None):
-            
-    if padding is not None:
+    
+    outer_coords = list(lease_boundary.exterior.coords)
+    
+    if padding is None:
         
-        outer_coords = list(lease_boundary.exterior.coords)
+        lease_boundary = Polygon(outer_coords)
+        patch = PolygonPatch(lease_boundary,
+                             ec=GREY,
+                             fill=False)
+    
+    else:
+        
         inner_boundary = lease_boundary.buffer(-padding)
         inner_coords = list(inner_boundary.exterior.coords)
-
+        
         # Check if the orientation of the polygons are the same
         if clockwise(*zip(*inner_coords)) == clockwise(*zip(*outer_coords)):
             inner_coords = inner_coords[::-1]
         
         lease_boundary = Polygon(outer_coords, [inner_coords])
-
         patch = PolygonPatch(lease_boundary,
                              fc=RED,
                              fill=True,
                              alpha=0.3,
                              ls=None)
-            
-        ax.add_patch(patch)
-        
-    patch = PolygonPatch(lease_boundary,
-                         ec=BLUE,
-                         fill=False,
-                         linewidth=2)
     
     ax.add_patch(patch)
     
-    maxy = lease_boundary.bounds[3] + 50.
-    centroid = np.array(lease_boundary.centroid)
+    return
+
+
+def annotate_poly(ax, lease_poly):
+    
+    maxy = lease_poly.bounds[3] + 50.
+    centroid = np.array(lease_poly.centroid)
+    
+    ymin, ymax = ax.get_ylim()
+    
+    if maxy > ymax:
+        maxy = ymin  + 0.95 * (ymax - ymin)
     
     ax.annotate("Lease Area",
                 xy=(centroid[0], maxy),
@@ -607,7 +627,7 @@ def plot_lease_boundary(ax, lease_boundary, padding=None):
                 verticalalignment='bottom',
                 weight="bold",
                 size='large')
-
+    
     return
 
 
@@ -632,8 +652,10 @@ def plot_cables(ax, cable_routes):
         
         line = plt.Line2D(x, y)
         ax.add_line(line)
-        
     
+    return
+
+
 def clockwise(x, y):
     """ Use the shoelace formula to determine whether the polygon points are
     defined in a clockwise direction"""

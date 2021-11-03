@@ -452,12 +452,12 @@ operations_inspections = {'Prime Mover': True,
                           
 ### OPERATION WEIGHTINGS
 
-full_weightings = {'On-Site Maintenance': 4,
-                   'Replacement': 4,
-                   'Inspections': 2}
+full_weightings = {'On-Site Maintenance': 4.,
+                   'Replacement': 4.,
+                   'Inspections': 2.}
                   
-site_weightings = {'On-Site Maintenance': 4,
-                   'Inspections': 2}
+site_weightings = {'On-Site Maintenance': 4.,
+                   'Inspections': 2.}
                    
                    
 ### OPERATION COSTS
@@ -470,7 +470,7 @@ loading_cost_multiplier = 0.01
 commissioning_date = dt.datetime(1992, 1, 5)
 annual_maintenance_start = "April"
 annual_maintenance_end = "October"
-lifetime = 7. # 'project.lifetime',
+lifetime = 7 # 'project.lifetime',
 
 
 ### CREW SPECIFICATION

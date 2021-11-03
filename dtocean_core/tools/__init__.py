@@ -22,24 +22,23 @@ from aneris.boundary.interface import MapInterface
 
 
 class Tool(MapInterface):
-
+    
     '''The base abstract class for all tool classes'''
-        
+    
+    def __init__(self):
+        super(Tool, self).__init__()
+        self._config = {}
+    
     @abc.abstractmethod
     def configure(self):
-
         '''The configure method is collect information required for executing
         the tool.
         '''
-
         return
-        
+    
     def get_config(self):
-        
         return deepcopy(self._config)
-        
+    
     def set_config(self, config_dict):
-        
         self._config = config_dict
-        
         return

@@ -1,5 +1,8 @@
 
+# pylint: disable=protected-access
+
 import numpy as np
+import pandas as pd
 
 from aneris.control.factory import InterfaceFactory
 from dtocean_core.core import AutoFileInput, AutoFileOutput, Core
@@ -40,6 +43,22 @@ def test_get_None():
     assert result is None
 
 
+def test_SeriesData_equals():
+    
+    a = pd.Series([1, 2, 3])
+    b = pd.Series([1, 2, 3])
+    
+    assert SeriesData.equals(a, b)
+
+
+def test_SeriesData_not_equals():
+    
+    a = pd.Series([1, 2, 3])
+    b = pd.Series()
+    
+    assert not SeriesData.equals(a, b)
+
+
 def test_SeriesData_auto_file(tmpdir):
         
     raw = np.random.rand(100)
@@ -60,14 +79,14 @@ def test_SeriesData_auto_file(tmpdir):
     fout = FOutCls()
     fout._path = test_path_str
     fout.data.result = test.get_data(raw, meta)
-
+    
     fout.connect()
     
     assert len(tmpdir.listdir()) == 1
-              
+    
     fin_factory = InterfaceFactory(AutoFileInput)
     FInCls = fin_factory(meta, test)
-              
+    
     fin = FInCls()
     fin._path = test_path_str
     
@@ -75,5 +94,3 @@ def test_SeriesData_auto_file(tmpdir):
     result = test.get_data(fin.data.result, meta)
     
     assert len(result) == len(raw)
-
-

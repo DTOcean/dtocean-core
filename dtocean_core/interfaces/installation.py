@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #    Copyright (C) 2016 Mathew Topper, Vincenzo Nava, Adam Collin
-#    Copyright (C) 2017-2018 Mathew Topper
+#    Copyright (C) 2017-2021 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -35,7 +35,6 @@ import os
 import pickle
 import logging
 import pkg_resources
-from packaging.version import Version
 
 import utm
 import numpy as np
@@ -60,18 +59,19 @@ from ..utils.install_electrical import (set_collection_points,
                                         set_connectors,
                                         get_umbilical_terminations,
                                         set_cable_cp_references)
+from ..utils.version import Version
 
 # Check module version
 pkg_title = "dtocean-installation"
-min_version = "1.0"
+major_version = 2
 version = pkg_resources.get_distribution(pkg_title).version
 
-if not Version(version) >= Version(min_version):
+if not Version(version).major == major_version:
     
-    err_msg = ("Installed {} is too old! At least version {} is required, but "
-               "version {} is installed").format(pkg_title,
-                                                 version,
-                                                 min_version)
+    err_msg = ("Incompatible version of {} detected! Major version {} is "
+               "required, but version {} is installed").format(pkg_title,
+                                                               major_version,
+                                                               version)
     raise ImportError(err_msg)
 
 # Set up logging
@@ -567,7 +567,7 @@ class InstallationInterface(ModuleInterface):
         return id_map
 
     def connect(self, debug_entry=False,
-                      export_data=True):
+                      export_data=False):
         
         '''The connect method is used to execute the external program and 
         populate the interface data store with values.
@@ -661,7 +661,7 @@ class InstallationInterface(ModuleInterface):
                         "Grout Volume": "grout volume [m3]",
                         "Device": "devices [-]",
                         "Foundation": "foundations [-]"}
-
+            
             foundations_df = foundations_df.rename(columns=name_map)
             
             # TEMP FIX: Change substation foundation to 'pile foundation'
@@ -669,7 +669,9 @@ class InstallationInterface(ModuleInterface):
             array_idxs = foundations_df.index[
                             foundations_df["devices [-]"] == "array"].tolist()
             
-            foundations_df.at[array_idxs[0], "type [-]"] = 'pile foundation'
+            if array_idxs:
+                foundations_df.at[array_idxs[0],
+                                  "type [-]"] = 'pile foundation'
             
             # Add fixed or floating indicators to certain foundation types
             if "floating" in self.data.system_type.lower():
@@ -2122,6 +2124,10 @@ class InstallationInterface(ModuleInterface):
         wave_series_df = data.wave_series
         tidal_series = data.tidal_series
         wind_series = data.wind_series
+        
+        wave_series_df = wave_series_df.sort_index()
+        tidal_series = tidal_series.sort_index()
+        wind_series = wind_series.sort_index()
         
         tidal_series_df = tidal_series.to_frame(name="Cs")
         wind_series_df = wind_series.to_frame(name="Ws")

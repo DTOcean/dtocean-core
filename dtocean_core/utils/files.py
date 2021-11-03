@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2016-2018 Mathew Topper
+#    Copyright (C) 2016-2021 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -22,11 +22,16 @@ Created on Tue Feb 23 15:38:18 2016
 """
 
 import os
+import time
 import shutil
 import pickle
+import logging
 import tarfile
 import zipfile
 import tempfile
+
+# Set up logging
+module_logger = logging.getLogger(__name__)
 
 
 def pickle_test_data(file_path, test_data_dict):
@@ -83,11 +88,11 @@ def package_dir(src_dir_path, dst_path, archive=False):
                 file_path = os.path.join(root, name)
                 short_path = file_path.replace(src_dir_path, "")
                 tar.add(file_path, arcname=short_path)
-
-    shutil.move(tgz_file_path, dst_path)
     
-    shutil.rmtree(tgz_dir_path)
-    shutil.rmtree(src_dir_path)
+    shutil.copyfile(tgz_file_path, dst_path)
+    
+    rmtree_retry(src_dir_path, fail_silent=True) # pylint: disable=unexpected-keyword-arg
+    rmtree_retry(tgz_dir_path, fail_silent=True) # pylint: disable=unexpected-keyword-arg
     
     return
 
@@ -129,3 +134,80 @@ def onerror(func, path, exc_info):
         func(path)
     else:
         raise
+
+
+def os_retry(func):
+    
+    def wrapper(src_path,
+                max_attempts=60,
+                sleep_seconds=1,
+                fail_silent=False):
+        
+        file_locked = True
+        n_attempts = 0
+        
+        while file_locked:
+        
+            n_attempts += 1
+            
+            if n_attempts > max_attempts:
+                
+                if fail_silent: return
+                
+                total_seconds = max_attempts * sleep_seconds
+                
+                err_str = ("shutil.rmtree failed for over {} seconds: "
+                           "{}").format(total_seconds, src_path)
+                raise OSError(err_str)
+            
+            try:
+                func(src_path)
+                file_locked = False
+            except OSError:
+                time.sleep(sleep_seconds)
+        
+        return
+    
+    return wrapper
+
+
+@os_retry
+def rmtree_retry(src_path):
+    shutil.rmtree(src_path)
+    return
+
+
+@os_retry
+def remove_retry(src_path):
+    os.remove(src_path)
+    return
+
+
+def init_dir(dir_name,
+             clean_existing=False):
+    
+    if not os.path.exists(dir_name):
+        os.makedirs(dir_name)
+        return
+        
+    if not clean_existing:
+        
+        err_msg = ("Directory {} already exists. Set clean_existing "
+                   "argument to True to delete the contents of the "
+                   "directory").format(dir_name)
+        raise IOError(err_msg)
+    
+    for entry_name in os.listdir(dir_name):
+        
+        entry_path = os.path.join(dir_name, entry_name)
+        
+        if os.path.isfile(entry_path):
+            remove_retry(entry_path)
+        elif os.path.isdir(entry_path):
+            rmtree_retry(entry_path)
+        else:
+            err_str = ("Path {} has unhandled filesystem "
+                       "type").format(entry_path)
+            raise RuntimeError(err_str)
+    
+    return

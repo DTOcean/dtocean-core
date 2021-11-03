@@ -12,7 +12,7 @@ import pandas as pd
 from scipy.stats import multivariate_normal, norm
 
 # Setup
-x = np.linspace(0.,1000.,100)
+x = np.linspace(0.,1100.,100)
 y = np.linspace(0.,300.,30) 
 nx = len(x)
 ny = len(y)
@@ -28,13 +28,6 @@ sediments[:] = "rock"
 strata = {"values": {'depth': depths,
                      'sediment': sediments},
           "coords": [x, y, ["layer 1"]]}
-
-
-# Mannings
-#geoxyz = np.vstack((X.ravel(),Y.ravel(),G.ravel())).T
-G = np.zeros((nx, ny)) + 0.3
-geo_raw = {"values": G,
-           "coords": [x, y]}
 
 # Machine data
 X = np.array([   0.        ,   0.1010101 ,   0.2020202 ,   0.3030303 ,
@@ -167,7 +160,7 @@ lease_area = np.array([[50., 50.],
                       dtype=float)
 power_law_exponent = np.array([7.])
 nogo_areas = {"a": np.array([[50., 50.],[60., 50.],[60., 60.],[50., 60.]])}
-rated_array_power = 10
+rated_array_power = 10.
 main_direction = None
 blockage_ratio = 1.
 turbine_hub_height = 20.
@@ -180,7 +173,7 @@ max_install = 0.
 min_dist_x = 40.
 min_dist_y = 40.
 bidirection = True
-rated_power_device = 1
+rated_power_device = 1.
 yaw_angle = 0.
 cut_in = 1.
 cut_out = 5.
@@ -205,7 +198,6 @@ test_data = {'bathymetry.layers': strata,
              'device.turbine_performance': tidal_performance,
              'device.yaw': yaw_angle,
              'farm.blockage_ratio': blockage_ratio,
-             'bathymetry.mannings': geo_raw,
              'site.lease_boundary': lease_area,
              'project.main_direction': main_direction,
              'farm.nogo_areas': nogo_areas,

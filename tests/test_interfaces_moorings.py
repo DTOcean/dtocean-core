@@ -3,7 +3,6 @@ import os
 import pkg_resources
 from copy import deepcopy
 from pprint import pprint
-from packaging.version import Version
 
 import pytest
 
@@ -11,16 +10,17 @@ from polite.paths import Directory
 from dtocean_core.core import Core
 from dtocean_core.menu import DataMenu, ModuleMenu, ProjectMenu 
 from dtocean_core.pipeline import Tree, _get_connector
+from dtocean_core.utils.version import Version
 
 # Check for module and version
 pkg_title = "dtocean-moorings"
 pkg_import = "dtocean_moorings"
-min_version = "1.0"
+major_version = 2
 
 pytest.importorskip(pkg_import)
 version = pkg_resources.get_distribution(pkg_title).version
-pytestmark = pytest.mark.skipif(Version(version) < Version(min_version),
-                                reason="module version too old")
+pytestmark = pytest.mark.skipif(Version(version).major != major_version,
+                                reason="module has incorrect major version")
 
 dir_path = os.path.dirname(__file__)
 
@@ -165,9 +165,10 @@ def test_moorings_interface_entry(module_menu,
     interface = connector.get_interface(core,
                                         project,
                                         mod_name)
-                                        
-    interface.connect(debug_entry=True)
-                                        
+    
+    interface.connect(debug_entry=True,
+                      export_data=True)
+    
     debugdir = config_tmpdir.join("..", "debug")
     
     assert len(debugdir.listdir()) == 1

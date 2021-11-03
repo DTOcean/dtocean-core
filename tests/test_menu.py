@@ -107,7 +107,7 @@ class MockTheme(ThemeInterface):
     def connect(self, debug_entry=False,
                       export_data=True):
         
-        self.data.dummy2 = 1
+        self.data.dummy2 = 1.
         
         return
     
@@ -156,7 +156,7 @@ class MockTheme2(ThemeInterface):
     def connect(self, debug_entry=False,
                       export_data=True):
         
-        self.data.dummy2 = 2
+        self.data.dummy2 = 2.
         
         return
 
@@ -331,7 +331,8 @@ def test_DataMenu_get_available_databases(mocker, tmpdir):
     mock_dir = Directory(str(config_tmpdir))
     
     mocker.patch("dtocean_core.utils.database.UserDataDirectory",
-                 return_value=mock_dir)
+                 return_value=mock_dir,
+                 autospec=True)
                  
     data_menu = DataMenu()
     
@@ -347,7 +348,8 @@ def test_DataMenu_get_database_dict(mocker, tmpdir):
     mock_dir = Directory(str(config_tmpdir))
     
     mocker.patch("dtocean_core.utils.database.UserDataDirectory",
-                 return_value=mock_dir)
+                 return_value=mock_dir,
+                 autospec=True)
                  
     data_menu = DataMenu()
     
@@ -366,7 +368,8 @@ def test_DataMenu_update_database(mocker, tmpdir):
     mock_dir = Directory(str(config_tmpdir))
     
     mocker.patch("dtocean_core.utils.database.UserDataDirectory",
-                 return_value=mock_dir)
+                 return_value=mock_dir,
+                 autospec=True)
                  
     data_menu = DataMenu()
     
@@ -386,7 +389,8 @@ def test_DataMenu_select_database(mocker, tmpdir, project):
     mock_dir = Directory(str(config_tmpdir))
     
     mocker.patch("dtocean_core.utils.database.UserDataDirectory",
-                 return_value=mock_dir)
+                 return_value=mock_dir,
+                 autospec=True)
     
     # Create mock connection
     mocker.patch("dtocean_core.menu.check_host_port",
@@ -411,7 +415,8 @@ def test_DataMenu_select_database_no_info(mocker, tmpdir, project):
     mock_dir = Directory(str(config_tmpdir))
     
     mocker.patch("dtocean_core.utils.database.UserDataDirectory",
-                 return_value=mock_dir)
+                 return_value=mock_dir,
+                 autospec=True)
                  
     data_menu = DataMenu()
     project = deepcopy(project)
@@ -427,7 +432,8 @@ def test_DataMenu_select_database_bad_id(mocker, tmpdir, project):
     mock_dir = Directory(str(config_tmpdir))
     
     mocker.patch("dtocean_core.utils.database.UserDataDirectory",
-                 return_value=mock_dir)
+                 return_value=mock_dir,
+                 autospec=True)
                  
     data_menu = DataMenu()
     project = deepcopy(project)
@@ -443,7 +449,8 @@ def test_DataMenu_select_database_no_port(mocker, tmpdir, project):
     mock_dir = Directory(str(config_tmpdir))
     
     mocker.patch("dtocean_core.utils.database.UserDataDirectory",
-                 return_value=mock_dir)
+                 return_value=mock_dir,
+                 autospec=True)
                  
     data_menu = DataMenu()
     project = deepcopy(project)
@@ -461,7 +468,8 @@ def test_DataMenu_select_database_no_port_dbname(mocker, tmpdir, project):
     mock_dir = Directory(str(config_tmpdir))
     
     mocker.patch("dtocean_core.utils.database.UserDataDirectory",
-                 return_value=mock_dir)
+                 return_value=mock_dir,
+                 autospec=True)
                  
     data_menu = DataMenu()
     project = deepcopy(project)
@@ -478,7 +486,8 @@ def test_DataMenu_deselect_database(mocker, tmpdir, project):
     mock_dir = Directory(str(config_tmpdir))
     
     mocker.patch("dtocean_core.utils.database.UserDataDirectory",
-                 return_value=mock_dir)
+                 return_value=mock_dir,
+                 autospec=True)
     
     # Create mock connection
     mocker.patch("dtocean_core.menu.check_host_port",
@@ -507,7 +516,8 @@ def test_DataMenu_export_data(mocker, tmpdir, core, project, module_menu):
     mock_dir = Directory(str(config_tmpdir))
     
     mocker.patch("dtocean_core.utils.database.UserDataDirectory",
-                 return_value=mock_dir)
+                 return_value=mock_dir,
+                 autospec=True)
                  
     data_menu = DataMenu()
     var_tree = Tree()
@@ -534,7 +544,8 @@ def test_DataMenu_import_data(mocker, tmpdir, core, project, module_menu):
     mock_dir = Directory(str(config_tmpdir))
     
     mocker.patch("dtocean_core.utils.database.UserDataDirectory",
-                 return_value=mock_dir)
+                 return_value=mock_dir,
+                 autospec=True)
                  
     data_menu = DataMenu()
     var_tree = Tree()

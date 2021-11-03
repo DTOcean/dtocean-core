@@ -86,7 +86,7 @@ measured_turbidity = 0.1
 initial_noise = 60. 
 measured_noise = 75.
 
-number_of_devices = 2.
+number_of_devices = 2
 
 device_draft = 20.
 

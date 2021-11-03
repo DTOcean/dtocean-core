@@ -60,6 +60,48 @@ def test_get_None():
     assert result is None
 
 
+def test_TimeSeries_equals():
+    
+    dates = []
+    dt = datetime(2010, 12, 01)
+    end = datetime(2010, 12, 02, 23, 59, 59)
+    step = timedelta(seconds=3600)
+    
+    while dt < end:
+        dates.append(dt)
+        dt += step
+        
+    values = np.random.rand(len(dates))
+    dt_index = pd.DatetimeIndex(dates)
+    
+    a = pd.Series(values, index=dt_index)
+    b = pd.Series(values, index=dt_index)
+    
+    assert TimeSeries.equals(a, b)
+
+
+def test_TimeSeries_not_equals():
+    
+    dates = []
+    dt = datetime(2010, 12, 01)
+    end = datetime(2010, 12, 02, 23, 59, 59)
+    step = timedelta(seconds=3600)
+    
+    while dt < end:
+        dates.append(dt)
+        dt += step
+        
+    dt_index = pd.DatetimeIndex(dates)
+    
+    values = np.random.rand(len(dates))
+    a = pd.Series(values, index=dt_index)
+    
+    values = np.random.rand(len(dates))
+    b = pd.Series(values, index=dt_index)
+    
+    assert not TimeSeries.equals(a, b)
+
+
 def test_TimeSeries_auto_file(tmpdir):
         
     dates = []

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2016-2018 Mathew Topper
+#    Copyright (C) 2016-2021 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -29,7 +29,6 @@ Note:
 """
 
 import pkg_resources
-from packaging.version import Version
 
 import numpy as np
 import pandas as pd
@@ -45,18 +44,19 @@ from ..utils.stats import (UniVariateKDE,
                            BiVariateKDE,
                            pdf_confidence_densities,
                            pdf_contour_coords)
+from ..utils.version import Version
 
 # Check module version
 pkg_title = "dtocean-economics"
-min_version = "1.1.dev0"
+major_version = 2
 version = pkg_resources.get_distribution(pkg_title).version
 
-if not Version(version) >= Version(min_version):
+if not Version(version).major == major_version:
     
-    err_msg = ("Installed {} is too old! At least version {} is required, but "
-               "version {} is installed").format(pkg_title,
-                                                 version,
-                                                 min_version)
+    err_msg = ("Incompatible version of {} detected! Major version {} is "
+               "required, but version {} is installed").format(pkg_title,
+                                                               major_version,
+                                                               version)
     raise ImportError(err_msg)
 
 
@@ -64,12 +64,12 @@ class EconomicInterface(ThemeInterface):
     
     '''Interface to the economics thematic functions.
     '''
-
+    
     def __init__(self):
         
         super(EconomicInterface, self).__init__()
         
-    @classmethod         
+    @classmethod
     def get_name(cls):
         
         '''A class method for the common name of the interface.
@@ -79,13 +79,13 @@ class EconomicInterface(ThemeInterface):
         '''
         
         return "Economics"
-        
-    @classmethod         
+    
+    @classmethod
     def declare_weight(cls):
         
         return 1
-
-    @classmethod         
+    
+    @classmethod
     def declare_inputs(cls):
         
         '''A class method to declare all the variables required as inputs by
@@ -102,7 +102,7 @@ class EconomicInterface(ThemeInterface):
                         "My:second:variable",
                        ]
         '''
-
+        
         input_list  =  ["device.system_cost",
                         'project.lifetime',
                         "project.discount_rate",
@@ -126,10 +126,10 @@ class EconomicInterface(ThemeInterface):
                         "project.annual_energy",
                         'project.estimate_energy_record'
                         ]
-                                                
+        
         return input_list
-
-    @classmethod        
+    
+    @classmethod
     def declare_outputs(cls):
         
         '''A class method to declare all the output variables provided by
@@ -154,17 +154,23 @@ class EconomicInterface(ThemeInterface):
                        "project.lcoe_interval_lower",
                        "project.lcoe_interval_upper",
                        "project.lcoe_mean",
-                       "project.discounted_opex_mode",
-                       "project.discounted_opex_interval_lower",
-                       "project.discounted_opex_interval_upper",
-                       "project.discounted_opex_mean",
-                       "project.discounted_energy_mode",
-                       "project.discounted_energy_interval_lower",
-                       "project.discounted_energy_interval_upper",
-                       "project.discounted_energy_mean",
                        "project.capex_total",
                        "project.capex_without_externalities",
                        "project.discounted_capex",
+                       "project.lifetime_opex_mean",
+                       "project.lifetime_opex_mode",
+                       "project.discounted_opex_mode",
+                       "project.discounted_opex_mean",
+                       "project.discounted_opex_interval_lower",
+                       "project.discounted_opex_interval_upper",
+                       "project.lifetime_cost_mean",
+                       "project.lifetime_cost_mode",
+                       "project.discounted_lifetime_cost_mean",
+                       "project.discounted_lifetime_cost_mode",
+                       "project.discounted_energy_mode",
+                       "project.discounted_energy_mean",
+                       "project.discounted_energy_interval_lower",
+                       "project.discounted_energy_interval_upper",
                        "project.lcoe_breakdown",
                        "project.capex_lcoe_breakdown",
                        "project.opex_lcoe_breakdown",
@@ -175,8 +181,8 @@ class EconomicInterface(ThemeInterface):
                        "project.lcoe_pdf"]
         
         return output_list
-        
-    @classmethod        
+    
+    @classmethod
     def declare_optional(cls):
         
         '''A class method to declare all the variables which should be flagged
@@ -220,10 +226,10 @@ class EconomicInterface(ThemeInterface):
                     "project.annual_energy",
                     'project.estimate_energy_record'
                     ]
-               
-        return optional
         
-    @classmethod 
+        return optional
+    
+    @classmethod
     def declare_id_map(self):
         
         '''Declare the mapping for variable identifiers in the data description
@@ -244,7 +250,7 @@ class EconomicInterface(ThemeInterface):
                        }
         
         '''
-                  
+        
         id_map = {'device_cost': 'device.system_cost',
                   'annual_energy': 'project.annual_energy',
                   'n_devices': 'project.number_of_devices',
@@ -256,6 +262,8 @@ class EconomicInterface(ThemeInterface):
                   "capex_oandm": "project.capex_oandm",
                   "opex_per_year": "project.opex_per_year",
                   "energy_per_year": "project.energy_per_year",
+                  "lifetime_opex_mean": "project.lifetime_opex_mean",
+                  "lifetime_opex_mode": "project.lifetime_opex_mode",
                   'network_efficiency':
                       'project.electrical_network_efficiency',
                   "externalities_capex": "project.externalities_capex",
@@ -295,6 +303,12 @@ class EconomicInterface(ThemeInterface):
                   "capex_no_externalities":
                       "project.capex_without_externalities",
                   "discounted_capex": "project.discounted_capex",
+                  "lifetime_cost_mean": "project.lifetime_cost_mean",
+                  "lifetime_cost_mode": "project.lifetime_cost_mode",
+                  "discounted_lifetime_cost_mean":
+                      "project.discounted_lifetime_cost_mean",
+                  "discounted_lifetime_cost_mode":
+                      "project.discounted_lifetime_cost_mode",
                   "cost_breakdown": "project.cost_breakdown",
                   'capex_breakdown': "project.capex_breakdown",
                   "capex_lcoe_breakdown": "project.capex_lcoe_breakdown",
@@ -304,9 +318,9 @@ class EconomicInterface(ThemeInterface):
                   "confidence_density": "project.confidence_density",
                   "lcoe_pdf": "project.lcoe_pdf",
                   }
-                  
+        
         return id_map
-                 
+    
     def connect(self, debug_entry=False):
         
         '''The connect method is used to execute the external program and 
@@ -332,7 +346,7 @@ class EconomicInterface(ThemeInterface):
         
         opex_bom = pd.DataFrame()
         energy_record = pd.DataFrame()
-                    
+        
         # Prepare costs
         if (self.data.n_devices is not None and
             self.data.device_cost is not None):
@@ -345,7 +359,7 @@ class EconomicInterface(ThemeInterface):
                                         costs,
                                         years,
                                         "Devices")
-            
+        
         # Patch double counting of umbilical
         if (self.data.electrical_bom is not None and
             self.data.moorings_bom is not None):
@@ -364,17 +378,17 @@ class EconomicInterface(ThemeInterface):
             name_map = {"Quantity": 'quantity',
                         "Cost": 'unitary_cost',
                         "Year": 'project_year'}
-                    
+            
             electrical_bom = electrical_bom.rename(columns=name_map)
             electrical_bom["phase"] = "Electrical Sub-Systems"
-            
+        
         elif self.data.electrical_estimate is not None:
-                        
+            
             electrical_bom = estimate_cost_per_power(
                                             1,
                                             self.data.electrical_estimate,
                                             "Electrical Sub-Systems")
-            
+        
         if self.data.moorings_bom is not None:
             
             moorings_bom = self.data.moorings_bom.drop("Key Identifier",
@@ -383,17 +397,17 @@ class EconomicInterface(ThemeInterface):
             name_map = {"Quantity": 'quantity',
                         "Cost": 'unitary_cost',
                         "Year": 'project_year'}
-                        
+            
             moorings_bom = moorings_bom.rename(columns=name_map)
             moorings_bom["phase"] = "Mooring and Foundations"
-            
+        
         elif self.data.moorings_estimate is not None:
-                        
+            
             moorings_bom = estimate_cost_per_power(
                                             1,
                                             self.data.moorings_estimate,
-                                            "Mooring and Foundations")         
-            
+                                            "Mooring and Foundations")
+        
         if self.data.installation_bom is not None:
                     
             installation_bom = self.data.installation_bom.drop(
@@ -403,10 +417,10 @@ class EconomicInterface(ThemeInterface):
             name_map = {"Quantity": 'quantity',
                         "Cost": 'unitary_cost',
                         "Year": 'project_year'}
-                        
+            
             installation_bom = installation_bom.rename(columns=name_map)
             installation_bom["phase"] = "Installation"
-            
+        
         elif self.data.install_estimate is not None:
                         
             installation_bom = estimate_cost_per_power(
@@ -424,18 +438,18 @@ class EconomicInterface(ThemeInterface):
                                              costs,
                                              years,
                                              "Condition Monitoring")
-            
+        
         if self.data.externalities_capex is not None:
             
             quantities = [1]
             costs = [self.data.externalities_capex]
             years = [0]
             
-            capex_oandm_bom = make_phase_bom(quantities,
-                                             costs,
-                                             years,
-                                             "Externalities")
-            
+            externalities_bom = make_phase_bom(quantities,
+                                               costs,
+                                               years,
+                                               "Externalities")
+        
         # Combine the capex dataframes
         capex_bom = pd.concat([device_bom,
                                electrical_bom,
@@ -445,13 +459,13 @@ class EconomicInterface(ThemeInterface):
                                externalities_bom],
                                ignore_index=True,
                                sort=False)
-            
+        
         if self.data.opex_per_year is not None:
             
             opex_bom = self.data.opex_per_year.copy()
             opex_bom.index.name = 'project_year'
             opex_bom = opex_bom.reset_index()
-            
+        
         elif (self.data.lifetime is not None and
               (self.data.opex_estimate is not None or
                (self.data.annual_repair_cost_estimate is not None and
@@ -462,14 +476,13 @@ class EconomicInterface(ThemeInterface):
                                      self.data.opex_estimate,
                                      self.data.annual_repair_cost_estimate,
                                      self.data.annual_array_mttf_estimate)
-            
+        
         # Add OPEX externalities
         if not opex_bom.empty and self.data.externalities_opex is not None:
-        
             opex_bom = opex_bom.set_index('project_year')
             opex_bom += self.data.externalities_opex
             opex_bom = opex_bom.reset_index()
-            
+        
         # Prepare energy
         if self.data.network_efficiency is not None:
             net_coeff = self.data.network_efficiency  * 1e3
@@ -477,27 +490,27 @@ class EconomicInterface(ThemeInterface):
             net_coeff = 1e3
         
         if self.data.energy_per_year is not None:
-
+            
             energy_record = self.data.energy_per_year.copy()
             energy_record = energy_record * net_coeff
             energy_record.index.name = 'project_year'
             energy_record = energy_record.reset_index()
-                        
-        elif (self.data.estimate_energy_record and 
+        
+        elif (self.data.estimate_energy_record and
               self.data.lifetime is not None and
               self.data.annual_energy is not None):
             
             energy_record = estimate_energy(self.data.lifetime,
                                             self.data.annual_energy,
                                             net_coeff)
-            
+        
         if debug_entry: return
         
         result = main(capex_bom,
                       opex_bom,
                       energy_record,
                       self.data.discount_rate)
-
+        
         self.data.capex_total = result["CAPEX"]
         self.data.discounted_capex = result["Discounted CAPEX"]
         self.data.capex_breakdown = result["CAPEX breakdown"]
@@ -515,7 +528,7 @@ class EconomicInterface(ThemeInterface):
             n_rows = len(energy_record.columns) - 1
         else:
             return
-                    
+        
         table_cols = ["LCOE",
                       "LCOE CAPEX",
                       "LCOE OPEX",
@@ -523,9 +536,9 @@ class EconomicInterface(ThemeInterface):
                       "Energy",
                       "Discounted OPEX",
                       "Discounted Energy"]
-            
+        
         metrics_dict = {}
-            
+        
         for col_name in table_cols:
                         
             if result[col_name] is not None:
@@ -535,19 +548,24 @@ class EconomicInterface(ThemeInterface):
                 values = [None] * n_rows
             
             metrics_dict[col_name] = values
-
+        
         metrics_table = pd.DataFrame(metrics_dict)
         
         self.data.economics_metrics = metrics_table
         
-        # Do univariate stats on discounted metrics
-        args_table = {"Discounted OPEX": "discounted_opex",
-                      "Discounted Energy": "discounted_energy"}
+        # Do univariate stats on discounted metrics and optionally LCOE
+        args_table = {"Discounted Energy": "discounted_energy"}
+        
+        if metrics_table["Discounted OPEX"].isnull().any():
+            args_table["LCOE"] = "lcoe"
+        else:
+            args_table["Discounted OPEX"] = "discounted_opex"
+            args_table["OPEX"] = "lifetime_opex"
         
         for key, arg_root in args_table.iteritems():
-                        
+            
             if metrics_table[key].isnull().any(): continue
-        
+            
             data = metrics_table[key].values
             
             mean = None
@@ -559,16 +577,15 @@ class EconomicInterface(ThemeInterface):
             if len(data) == 1:
                 
                 mean = data[0]
-                mode = data[0]
-                
+            
             elif len(data) == 2:
                 
                 mean = data.mean()
-                
+            
             else:
                 
                 try:
-            
+                    
                     distribution = UniVariateKDE(data)
                     mean = distribution.mean()
                     mode = distribution.mode()
@@ -576,7 +593,7 @@ class EconomicInterface(ThemeInterface):
                     intervals = distribution.confidence_interval(95)
                     lower = intervals[0]
                     upper = intervals[1]
-                    
+                
                 except np.linalg.LinAlgError:
                     
                     mean = data.mean()
@@ -590,61 +607,112 @@ class EconomicInterface(ThemeInterface):
             self.data[arg_mode] = mode
             self.data[arg_lower] = lower
             self.data[arg_upper] = upper
-            
-        # Bivariate stats on LCOE and related variables
+        
+        # Calculate total costs
+        lifetime_cost_mean = result["CAPEX"]
+        lifetime_cost_mode = result["CAPEX"]
+        lifetime_discounted_cost_mean = result["Discounted CAPEX"]
+        lifetime_discounted_cost_mode = result["Discounted CAPEX"]
+        
+        if self.data.lifetime_opex_mean is not None:
+            if lifetime_cost_mean is None: lifetime_cost_mean = 0
+            lifetime_cost_mean += self.data.lifetime_opex_mean
+        
+        if self.data.lifetime_opex_mode is not None:
+            if lifetime_cost_mode is None: lifetime_cost_mode = 0
+            lifetime_cost_mode += self.data.lifetime_opex_mode
+        
+        self.data.lifetime_cost_mean = lifetime_cost_mean
+        self.data.lifetime_cost_mode = lifetime_cost_mode
+        
+        # Calculate total discounted costs
+        if self.data.discounted_opex_mean is not None:
+            if lifetime_discounted_cost_mean is None:
+                lifetime_discounted_cost_mean = 0
+            lifetime_discounted_cost_mean += self.data.discounted_opex_mean
+        
+        if self.data.discounted_opex_mode is not None:
+            if lifetime_discounted_cost_mode is None:
+                lifetime_discounted_cost_mode = 0
+            lifetime_discounted_cost_mode += self.data.discounted_opex_mode
+        
+        self.data.discounted_lifetime_cost_mean = lifetime_discounted_cost_mean
+        self.data.discounted_lifetime_cost_mode = lifetime_discounted_cost_mode
+        
         if (metrics_table["Discounted Energy"].isnull().any() or
-            len(metrics_table["Discounted Energy"])) < 3: return
+            metrics_table["Discounted OPEX"].isnull().any()): return
         
-        opex = metrics_table["Discounted OPEX"] / 1000.
         energy = metrics_table["Discounted Energy"]
+        opex = metrics_table["Discounted OPEX"] / 1000.
         
-        try:
-            distribution = BiVariateKDE(opex, energy)
-        except np.linalg.LinAlgError:
-            return
-        
-        mean_coords = distribution.mean()
-        self.data.lcoe_mean = (result["Discounted CAPEX"] / 1000. +
-                                             mean_coords[0]) / mean_coords[1]
-        
-        mode_coords = distribution.mode()
-        lcoe_mode = (result["Discounted CAPEX"] / 1000. +
-                                             mode_coords[0]) / mode_coords[1]
-        
-        self.data.lcoe_mode_opex = mode_coords[0] * 1000
-        self.data.lcoe_mode_energy = mode_coords[1]
-        self.data.lcoe_mode = lcoe_mode
-        
-        xx, yy, pdf = distribution.pdf()
-        clevels = pdf_confidence_densities(pdf)
-        cx, cy = pdf_contour_coords(xx, yy, pdf, clevels[0])
-        
-        lcoes = []
-
-        for discounted_opex, discounted_energy in zip(cx, cy):
+        if len(metrics_table["Discounted Energy"]) < 3:
             
-            lcoe = (result["Discounted CAPEX"] / 1000. +
-                                        discounted_opex) / discounted_energy
-            lcoes.append(lcoe)
+            mean_lcoe = (result["Discounted CAPEX"] / 1000. +
+                                         np.mean(opex)) / np.mean(energy)
+            
+            self.data.lcoe_mean = mean_lcoe
+            discounted_opex_base = np.mean(opex) * 1000.
+            discounted_energy_base = np.mean(energy) * 10.
         
-        self.data.confidence_density = clevels[0]
-        self.data.lcoe_lower = min(lcoes)
-        self.data.lcoe_upper = max(lcoes)
+        else:
+            
+            try:
+                distribution = BiVariateKDE(opex, energy)
+            except np.linalg.LinAlgError:
+                return
+            
+            mean_coords = distribution.mean()
+            self.data.lcoe_mean = (result["Discounted CAPEX"] / 1000. +
+                                           mean_coords[0]) / mean_coords[1]
+            
+            mode_coords = distribution.mode()
+            lcoe_mode = (result["Discounted CAPEX"] / 1000. +
+                                         mode_coords[0]) / mode_coords[1]
+            
+            self.data.lcoe_mode_opex = mode_coords[0] * 1000
+            self.data.lcoe_mode_energy = mode_coords[1]
+            self.data.lcoe_mode = lcoe_mode
+            
+            xx, yy, pdf = distribution.pdf()
+            clevels = pdf_confidence_densities(pdf)
+            
+            if clevels:
+                
+                cx, cy = pdf_contour_coords(xx, yy, pdf, clevels[0])
+                
+                lcoes = []
+                
+                for discounted_opex, discounted_energy in zip(cx, cy):
+                    
+                    lcoe = (result["Discounted CAPEX"] / 1000. +
+                                            discounted_opex) / discounted_energy
+                    lcoes.append(lcoe)
+                
+                self.data.confidence_density = clevels[0]
+                self.data.lcoe_lower = min(lcoes)
+                self.data.lcoe_upper = max(lcoes)
+            
+            # LCOE distribution
+            raw = {"values": pdf,
+                   "coords": [xx, yy]}
+            
+            self.data.lcoe_pdf = raw
+            
+            discounted_opex_base = mode_coords[0] * 1000.
+            discounted_energy_base = mode_coords[1] * 10.
         
         # Calculate values using most likely OPEX / Energy combination
         
         # CAPEX vs OPEX Breakdown and OPEX Breakdown if externalities
-        discounted_opex_mode = mode_coords[0] * 1000
-                            
         breakdown = {"Discounted CAPEX": result["Discounted CAPEX"],
-                     "Discounted OPEX": discounted_opex_mode}
+                     "Discounted OPEX": discounted_opex_base}
         
         self.data.cost_breakdown = breakdown
-                    
+        
         if self.data.externalities_opex is None:
             
-            discounted_maintenance = discounted_opex_mode
-
+            discounted_maintenance = discounted_opex_base
+        
         else:
             
             years = range(1, len(opex_bom) + 1)
@@ -654,53 +722,46 @@ class EconomicInterface(ThemeInterface):
                                                            for i in years]
             
             discounted_external = np.array(discounted_externals).sum()
-            discounted_maintenance = discounted_opex_mode - \
+            discounted_maintenance = discounted_opex_base - \
                                                     discounted_external
             
             self.data.opex_breakdown = {
                                 "Maintenance": discounted_external,
                                 "Externalities": discounted_maintenance}
-                
+        
         # LCOE Breakdowns in cent/kWh
-        discounted_energy_mode = mode_coords[1] * 10.
-                    
+        
         if self.data.capex_breakdown is not None:
-    
+            
             capex_lcoe_breakdown = {}
             
             for k, v in self.data.capex_breakdown.iteritems():
                 
-                capex_lcoe_breakdown[k] = round(v / discounted_energy_mode,
+                capex_lcoe_breakdown[k] = round(v / discounted_energy_base,
                                                 2)
-                
-            self.data.capex_lcoe_breakdown = capex_lcoe_breakdown
             
+            self.data.capex_lcoe_breakdown = capex_lcoe_breakdown
+        
         lcoe_maintenance = round(
-                            discounted_maintenance / discounted_energy_mode,
+                            discounted_maintenance / discounted_energy_base,
                             2)
         
         if self.data.externalities_opex is None:
             
             lcoe_external = 0
-            
+        
         else:
-
-            lcoe_external = round(discounted_external / discounted_energy_mode,
+            
+            lcoe_external = round(discounted_external / discounted_energy_base,
                                   2)
                 
             self.data.opex_lcoe_breakdown = {"Maintenance": lcoe_maintenance,
                                              "Externalities": lcoe_external}
-            
+        
         total_capex = sum(capex_lcoe_breakdown.values())
         total_opex = lcoe_maintenance + lcoe_external
         
         self.data.lcoe_breakdown = {"CAPEX": total_capex,
                                     "OPEX": total_opex}
-
-        # LCOE distribution
-        raw = {"values": pdf,
-               "coords": [xx, yy]}
         
-        self.data.lcoe_pdf = raw
-
         return

@@ -1,5 +1,5 @@
 
-#    Copyright (C) 2016-2018 Mathew Topper
+#    Copyright (C) 2016-2021 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -122,7 +122,7 @@ class StrategyManager(ExtensionManager):
                                strategy=None,
                                sim_titles=None,
                                scope="global"):
-                                   
+        
         if scope not in ["global", "local"]:
             
             errStr = ("Argument 'scope' must have value 'global' or 'local', "
@@ -132,28 +132,33 @@ class StrategyManager(ExtensionManager):
         chosen_modules = self._module_menu.get_active(core, project)
         output_levels = ["{} {} output".format(x, scope).lower()
                                                     for x in chosen_modules]
-                                                        
+        
         # Mask all the global and local output levels before getting the
         # required output level
         force_masks = ["local", "global"]
         
         if strategy is not None:
-            sim_indexes = strategy.get_simulation_record()
-        elif sim_titles is not None:
-            sim_indexes = project.get_simulation_indexes(sim_titles)
-        else:
-            sim_indexes = range(len(project))
-                        
+            sim_titles = strategy.get_simulation_record()
+        
         if sim_titles is None:
+            
+            sim_indexes = range(len(project))
             sim_titles = [project.get_simulation_title(index=x)
                                                     for x in sim_indexes]
-                                                        
+            
+        else:
+            
+            sim_indexes = project.get_simulation_indexes(
+                                                        sim_titles,
+                                                        raise_if_missing=False)
+        
         sim_levels = OrderedDict()
-                                                        
+        
         for sim_title, sim_index in zip(sim_titles, sim_indexes):
             
+            if sim_index is None: continue
             if sim_title is None: sim_title = sim_index
-        
+            
             level_values = core.get_level_values(project,
                                                  var_id,
                                                  output_levels,
@@ -161,9 +166,9 @@ class StrategyManager(ExtensionManager):
                                                  sim_index=sim_index)
             
             sim_levels[sim_title] = level_values
-            
+        
         return sim_levels
-                
+    
     def get_level_values_df(self, core,
                                   project,
                                   var_id,
@@ -179,31 +184,31 @@ class StrategyManager(ExtensionManager):
                                            scope)
         done_levels = self._module_menu.get_completed(core, project)
         
-        # Check the number of levels in each simulation        
-        sim_lengths = []        
+        # Check the number of levels in each simulation
+        sim_lengths = []
         
         for level_values in sim_levels.itervalues():
             sim_lengths.append(len(level_values.values()))
-                        
+            
         level_set = set(sim_lengths)
         
         if len(level_set) != 1:
             
             errStr = "The number of levels in each simulation is not equal"
             raise ValueError(errStr)
-                    
+        
         sim_names = []
         level_lists = {k: [] for k in done_levels}
         
         for sim_key, level_values in sim_levels.iteritems():
             
             sim_names.append(sim_key)
-
+            
             for name in done_levels:
                 
                 find_levels = [level for level in level_values
                                                    if name.lower() in level]
-
+                
                 if len(find_levels) > 1:
                     
                     errStr = ("More than one level matches module name "
@@ -215,7 +220,7 @@ class StrategyManager(ExtensionManager):
                 else:
                     found_level = find_levels[0]
                     value = level_values[found_level]
-
+                
                 level_lists[name].append(value)
         
         raw_dict = {"Simulation Name": sim_names}
@@ -223,7 +228,7 @@ class StrategyManager(ExtensionManager):
         
         raw_cols = ["Simulation Name"]
         raw_cols.extend(done_levels)
-                 
+        
         df = pd.DataFrame(raw_dict)
         df = df[raw_cols]
         
@@ -326,40 +331,41 @@ class StrategyManager(ExtensionManager):
                                     strategy=None,
                                     scope="global",
                                     sort=True):
-                                        
+        
         if scope not in ["global", "local"]:
             
             errStr = ("Argument 'scope' must have value 'global' or 'local', "
                       "not {}").format(scope)
             raise ValueError(errStr)
-                                        
-        all_modules = self._module_menu.get_active(core, project)                                        
-                                        
+        
+        all_modules = self._module_menu.get_active(core, project)
+        
         # Determine at which module to carry out the comparison
         if module is None:
             
             module = all_modules[-1]
-            
+        
         elif module not in all_modules:
             
             errStr = ("Module '{}' is not in the list of active "
                       "modules").format(module)
             raise ValueError(errStr)
-            
+        
         output_level = "{} {} output".format(module, scope).lower()
         
         # If a strategy is given then just use its simulation indexes
         if strategy is None:
             sim_indexes = None
         else:
-            sim_indexes = strategy.get_simulation_record()
+            sim_titles = strategy.get_simulation_record()
+            sim_indexes = project.get_simulation_indexes(sim_titles)
         
         var_one_values = core.get_project_values(project,
                                                  var_one_id,
                                                  output_level,
                                                  force_indexes=sim_indexes,
                                                  allow_none=True)
-
+        
         var_two_values = core.get_project_values(project,
                                                  var_two_id,
                                                  output_level,
@@ -372,9 +378,9 @@ class StrategyManager(ExtensionManager):
         else:
             x = [v for (n,v) in var_one_values]
             y = [v for (n,v) in var_two_values]
-            
+        
         if not sort: return x, y
-            
+        
         # Sort by the x value
         points = zip(x, y)
         sorted_points = sorted(points)
@@ -382,7 +388,7 @@ class StrategyManager(ExtensionManager):
         new_y = [point[1] for point in sorted_points]
         
         return new_x, new_y
-        
+    
     def get_comparison_values_df(self, core,
                                        project,
                                        var_one_id,
@@ -512,45 +518,62 @@ class StrategyManager(ExtensionManager):
             pickle.dump(stg_dict, fstream, -1)
         
         return
-        
-    def load_strategy(self, load_path):
+    
+    def load_strategy(self, load_path, project=None):
         
         # OK need to consider if we have a pkl file
         if not os.path.isfile(load_path) and not ".pkl" in load_path:
             
             errStr = ("Argument load_path must be a file with .pkl extension")
             raise ValueError(errStr)
-            
+        
         # Load the strategy file
         with open(load_path, 'rb') as fstream:
             stg_dict = pickle.load(fstream)
-                    
-        new_strategy = self._set_load_dict(stg_dict)
+        
+        # Now deserialise the data
+        new_strategy = self._set_load_dict(stg_dict, project=project)
         
         return new_strategy
-        
+    
     def _get_dump_dict(self, strategy):
         
         # Now store the strategy information
         stg_name_str = strategy.get_name()
         
         stg_dict = {"name": stg_name_str,
-                    "sim_record": strategy._sim_record,
-                    "config": strategy._config,
-                    "sim_details": strategy.sim_details}    
-                    
-        return stg_dict
+                    "sim_record": strategy._sim_record, # pylint: disable=protected-access
+                    "config": strategy.dump_config_hook(strategy._config), # pylint: disable=protected-access
+                    "sim_details": strategy.sim_details,
+                    "version": 2.1}
         
-    def _set_load_dict(self, stg_dict):
+        return stg_dict
+    
+    def _set_load_dict(self, stg_dict, project=None):
         
         # Now build the strategy
         new_strategy = self.get_strategy(stg_dict["name"])
         
         # Now deserialise the data
-        new_strategy._sim_record = stg_dict["sim_record"]
-        new_strategy._config = stg_dict["config"]
+        if "version" not in stg_dict:
+            
+            if project is None:
+                
+                err_msg = ("A project object is required for deserialising "
+                           "strategies with the old sim_record type")
+                raise ValueError(err_msg)
+            
+            sim_indexes = stg_dict["sim_record"]
+            sim_titles = project.get_simulation_titles(sim_indexes)
+        
+        else:
+            
+            sim_titles = stg_dict["sim_record"]
+        
+        new_strategy._sim_record = sim_titles # pylint: disable=protected-access
+        new_strategy._config = stg_dict["config"] # pylint: disable=protected-access
         new_strategy.sim_details = stg_dict["sim_details"]
-
+        
         return new_strategy
 
 
@@ -583,7 +606,7 @@ class ToolManager(ExtensionManager):
         result = False
         
         if core.can_load_interface(project, tool):
-            result = True        
+            result = True
         
         return result
     
@@ -597,5 +620,5 @@ class ToolManager(ExtensionManager):
         
         interface = core.load_interface(project, tool)
         core.connect_interface(project, interface)
-
+        
         return

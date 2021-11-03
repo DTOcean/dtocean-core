@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2016-2018 Mathew Topper
+#    Copyright (C) 2016-2021 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -67,10 +67,11 @@ def get_component_dict(component_type,
     else:
         
         system_type = "mooring system"
-        
+    
     compdict = {}
+    
     if check_keys is None: check_keys = []
-        
+    
     key_ids = data_table_cfr["Key Identifier"]
     
     for key_id in key_ids:
@@ -106,8 +107,16 @@ def get_component_dict(component_type,
         check_keys.append(key_id)
 
     return compdict
-    
+
+
 def get_reliability_tables(compdict):
+    
+    def key_to_int(df):
+        key = 'Key Identifier'
+        try:
+            df[key] = df[key].astype(int)
+        except:
+            pass
     
     base_df = pd.DataFrame(columns=['Key Identifier',
                                     'Lower Bound',
@@ -183,7 +192,7 @@ def get_reliability_tables(compdict):
         
         # Build component specific items
         if component_type == 'chain':
-
+            
             chain_CFR_df = chain_CFR_df.append(record_CFR,
                                                ignore_index=True)
             chain_NCFR_df = chain_NCFR_df.append(record_NCFR,
@@ -277,7 +286,46 @@ def get_reliability_tables(compdict):
             collection_point_NCFR_df = collection_point_NCFR_df.append(
                                                             record_NCFR,
                                                             ignore_index=True)
-            
+    
+    key_to_int(chain_CFR_df)
+    key_to_int(chain_NCFR_df)
+    
+    key_to_int(forerunner_CFR_df)
+    key_to_int(forerunner_NCFR_df)
+    
+    key_to_int(shackle_CFR_df)
+    key_to_int(shackle_NCFR_df)
+    
+    key_to_int(swivel_CFR_df)
+    key_to_int(swivel_NCFR_df)
+    
+    key_to_int(anchor_CFR_df)
+    key_to_int(anchor_NCFR_df)
+    
+    key_to_int(pile_CFR_df)
+    key_to_int(pile_NCFR_df)
+    
+    key_to_int(rope_CFR_df)
+    key_to_int(rope_NCFR_df)
+    
+    key_to_int(static_cable_CFR_df)
+    key_to_int(static_cable_NCFR_df)
+    
+    key_to_int(dynamic_cable_CFR_df)
+    key_to_int(dynamic_cable_NCFR_df)
+    
+    key_to_int(wet_mate_CFR_df)
+    key_to_int(wet_mate_NCFR_df)
+    
+    key_to_int(dry_mate_CFR_df)
+    key_to_int(dry_mate_NCFR_df)
+    
+    key_to_int(transformer_CFR_df)
+    key_to_int(transformer_NCFR_df)
+    
+    key_to_int(collection_point_CFR_df)
+    key_to_int(collection_point_NCFR_df)
+    
     tables = {
                 'chain CFR': chain_CFR_df,
                 'chain NCFR': chain_NCFR_df,
@@ -320,34 +368,41 @@ def get_reliability_tables(compdict):
               }
 
     return tables
-    
+
+
 def compdict_from_mock(xls_file,
                        default_lower=1.,
                        default_mean=1.,
                        default_upper=1.):
     
+    def key_to_int(df):
+        key = 'Key Identifier'
+        try:
+            df[key] = df[key].astype(int)
+        except:
+            pass
+    
     sheet_names = xls_file.sheet_names
-
+    
     base_df = pd.DataFrame(columns=['Key Identifier',
                                     'Lower Bound',
                                     'Mean',
                                     'Upper Bound'])
-
     
     compdict = {}
     
     for comp_type in sheet_names:
-
+        
         comp_df = xls_file.parse(comp_type)
         CFR_df = base_df.copy()
         NCFR_df = base_df.copy()
         
         for record in comp_df.itertuples():
-
+            
             values_CFR = []
             values_NCFR = []
             columns = []
-        
+            
             columns.append("Key Identifier")
             values_CFR.append(record[1])
             values_NCFR.append(record[1])
@@ -369,56 +424,17 @@ def compdict_from_mock(xls_file,
             
             CFR_df = CFR_df.append(record_CFR, ignore_index=True)
             NCFR_df = NCFR_df.append(record_NCFR, ignore_index=True)
-            
-        try:
-            
-            CFR_df['Key Identifier'] = CFR_df['Key Identifier'].apply(int)
-            NCFR_df['Key Identifier'] = NCFR_df['Key Identifier'].apply(int)
-            
-        except:
-            
-            pass
-                                                                 
+        
+        key_to_int(CFR_df)
+        key_to_int(NCFR_df)
+        
         comp_type_dict = get_component_dict(comp_type.replace("_", " "),
                                             CFR_df,
                                             NCFR_df,
                                             check_keys=compdict.keys())
         compdict.update(comp_type_dict)
-        
+    
     return compdict
-
-
-def read_RAM(mttf_network,
-             failure_rate_network,
-             electrical_layout=None):
-
-    '''read_RAM function: Read the reliability from RAM and return a pandas
-    dataframe.
-    '''
-    
-    # Get MTTF results
-    mttf_dict = get_reliability_dict(mttf_network,
-                                     electrical_layout)
-    mttf_dict["MTTF [hours]"] = mttf_dict.pop("reliability metric")
-    
-    mttf_df = pd.DataFrame(mttf_dict)
-    
-    # Get failure rate results
-    fr_dict = get_reliability_dict(failure_rate_network,
-                                   electrical_layout)
-    
-    fr_hours = fr_dict.pop("reliability metric")
-    fr_dict["failure rate [1/10^6 hours]"] = [rate * 1e6 for rate in fr_hours]
-
-    fr_df = pd.DataFrame(fr_dict)
-
-    # Merge the two frames
-    ram_df = pd.merge(mttf_df,
-                      fr_df,
-                      how='left',
-                      on=["system id [-]", "subsystem id [-]"])
-
-    return ram_df
 
 
 def get_reliability_dict(reliability_network,

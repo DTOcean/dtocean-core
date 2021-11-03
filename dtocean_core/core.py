@@ -1,5 +1,5 @@
 
-#    Copyright (C) 2016-2018 Mathew Topper
+#    Copyright (C) 2016-2021 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -307,6 +307,8 @@ class OrderedSim(Simulation):
                        interface_name=None,
                        valid_statuses=None):
         
+        if sim_status is None: return []
+        
         if hub_id is None:
             hub_ids = sim_status.keys()
         else:
@@ -347,13 +349,10 @@ class Project(object):
     def __init__(self, title):
         
         self.title = title
-        self._pool = None
+        self._pool = DataPool()
         self._simulations = []
         self._active_index = None
         self._db_cred = None
-        
-        # Functional initialisation
-        self._pool = DataPool()
         
         return
         
@@ -378,7 +377,7 @@ class Project(object):
         if index is None:
             index = self._get_index(title)
             
-        n_sims = len(self._simulations)         
+        n_sims = len(self._simulations)
     
         if index is None or index > n_sims or index < 0:
             
@@ -403,24 +402,46 @@ class Project(object):
         
         return
     
-    def get_simulation_indexes(self, titles):
+    def remove_simulation(self, index=None, title=None, active_index=None):
         
-        sim_indexes = [self._get_index(x) for x in titles]
+        if index is None and title is None:
+            
+            errStr = "Either an index or simulation title is required"
+            raise ValueError(errStr)
+            
+        if index is None:
+            index = self._get_index(title)
+        
+        if active_index is None: active_index = 0
+        
+        simulation = self._simulations.pop(index)
+        self._set_active_index(active_index)
+        
+        return simulation
+    
+    def get_simulation_indexes(self, titles, raise_if_missing=True):
+        
+        sim_indexes = [self._get_index(x, raise_if_missing) for x in titles]
         
         return sim_indexes
-
-    def get_simulation_titles(self):
+    
+    def get_simulation_titles(self, indexes=None):
         
         if not self.is_active(): return None
         
-        sim_titles = [x.get_title() for x in self._simulations
+        if indexes is None:
+            sim_titles = [x.get_title() for x in self._simulations
                                                 if x.get_title() is not None]
-                                                    
+        else:
+            sim_titles = [self.get_simulation_title(index=x) for x in indexes]
+        
         if not sim_titles: sim_titles = None
         
         return sim_titles
-        
+    
     def get_simulation_title(self, index=None, title=None):
+        
+        if not self.is_active(): return None
         
         simulation = self._get_simulation(index, title)
         sim_title = simulation.get_title()
@@ -476,32 +497,47 @@ class Project(object):
         result = check_integrity(self._pool, self._simulations)
         
         return result
+    
+    def to_project(self):
         
-    def _get_index(self, title):
+        new_project = Project(self.title)
+        
+        new_project._pool = deepcopy(self._pool) # pylint: disable=protected-access
+        new_project._simulations = deepcopy(self._simulations) # pylint: disable=protected-access
+        new_project._active_index = self._active_index # pylint: disable=protected-access
+        new_project._db_cred = deepcopy(self._db_cred) # pylint: disable=protected-access
+        
+        return new_project
+    
+    def _get_index(self, title, raise_if_missing=True):
         
         sim_index = None
-            
+        
         for i, simulation in enumerate(self._simulations):
             
             sim_title = simulation.get_title()
             
             if title == sim_title:
                 sim_index = i
-                break           
-            
-        if sim_index is None:
+                break
+        
+        if sim_index is None and raise_if_missing:
             
             errStr = "Simualtion {} not found".format(title)
             raise ValueError(errStr)
-            
-        return sim_index
         
+        return sim_index
+    
     def _set_active_index(self, index):
         
         n_sims = len(self._simulations)
         
-        if index is None or index > n_sims or index < 0:
-                            
+        if n_sims == 0:
+            self._active_index = None
+            return
+        
+        if index > n_sims or index < 0:
+            
             errStr = "Index {} is out of range".format(index)
             raise ValueError(errStr)
         
@@ -570,7 +606,7 @@ class Project(object):
             self._simulations[index] = simulation
         
         return index
-        
+    
     def __len__(self):
         
         return len(self._simulations)
@@ -681,20 +717,20 @@ class Core(object):
         
         prj_dir_path = tempfile.mkdtemp()
         
-        # Copy the project before editing
-        project_copy = deepcopy(project)
+        # Copy the project before editing and ensure type Project
+        project_copy = project.to_project()
         
         # Serialise the pool
         pool_dir = os.path.join(prj_dir_path, "pool")
         
         if os.path.exists(pool_dir): shutil.rmtree(pool_dir)
-        os.makedirs(pool_dir)        
+        os.makedirs(pool_dir)
         
         pool = project_copy.get_pool()
         data_store.serialise_pool(pool, pool_dir, root_dir=prj_dir_path)
         
         # Now iterate through the simulations
-        sim_boxes = []        
+        sim_boxes = []
         
         for i, simulation in enumerate(project_copy._simulations):
             
@@ -829,9 +865,9 @@ class Core(object):
             self.set_interface_status(load_project, simulation)
                 
         return load_project
-
+    
     def new_simulation(self, project, title=None):
-                
+        
         # If given, check if the title is unique
         if title is not None:
             
@@ -851,9 +887,9 @@ class Core(object):
         self.register_level(project,
                             self._markers["initial"],
                             None)
-                                                    
-        return
         
+        return
+    
     def clone_simulation(self, project,
                                title=None,
                                sim_index=None,
@@ -880,38 +916,76 @@ class Core(object):
                                set_active)
         
         return
+    
+    def import_simulation(self, src_project,
+                                dst_project,
+                                dst_sim_title,
+                                src_sim_index=None,
+                                src_sim_title=None,
+                                set_active=True):
         
+        src_pool = src_project.get_pool()
+        dst_pool = dst_project.get_pool()
+        
+        src_simulation = src_project.get_simulation(src_sim_index,
+                                                    src_sim_title)
+        
+        dst_simulation = self.control.import_simulation(src_pool,
+                                                        dst_pool,
+                                                        src_simulation,
+                                                        dst_sim_title)
+        
+        dst_project.add_simulation(dst_simulation,
+                                   set_active)
+        
+        return
+    
+    def remove_simulation(self, project,
+                                sim_index=None,
+                                sim_title=None,
+                                active_index=None):
+        
+        pool = project.get_pool()
+        simulation = project.remove_simulation(sim_index,
+                                               sim_title,
+                                               active_index)
+        
+        self.control.remove_simulation(pool,
+                                       simulation)
+        
+        return
+    
     def new_hub(self, project):
-
+        
         # For DTOcean the hubs are assumed to come one after another, but this
         # is not a requirement of aneris. To facilitate this we consume the
         # _hub_queue attribute of the Project object
         simulation = project.get_simulation()
         
         hub_definition = simulation.next_hub_definition()
-                                                                    
+        
         if hub_definition["type"] == "Hub":
-
+            
             self.control.create_new_hub(simulation,
                                         hub_definition["interface"],
                                         hub_definition["name"],
                                         hub_definition["no complete"])
-                                                
+        
         elif hub_definition["type"] == "Pipeline":
             
             self.control.create_new_pipeline(simulation,
                                              hub_definition["interface"],
                                              hub_definition["name"],
                                              hub_definition["no complete"])
-                                                    
+            
         else:
             
             raise ValueError
         
         return
-        
+    
     def get_metadata(self, identifier):
-
+        
         self.check_valid_variable(identifier)
         metadata = self.data_catalog.get_metadata(identifier)
 

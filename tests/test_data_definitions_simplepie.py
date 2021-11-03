@@ -24,7 +24,7 @@ def test_SimplePie():
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
                          "title": "test",
-                         "types": ["float"]})
+                         "types": ["int"]})
     
     test = SimplePie()
     
@@ -55,7 +55,7 @@ def test_SimplePie_auto_file(tmpdir, fext):
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
                          "title": "test",
-                         "types": ["float"]})
+                         "types": ["int"]})
 
     test = SimplePie()
     
@@ -75,6 +75,7 @@ def test_SimplePie_auto_file(tmpdir, fext):
               
     fin = FInCls()
     fin._path = test_path_str
+    fin.meta.result = meta
     
     fin.connect()
     result = test.get_data(fin.data.result, meta)
@@ -90,7 +91,7 @@ def test_SimplePie_auto_plot():
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
                          "title": "test",
-                         "types": ["float"]})
+                         "types": ["int"]})
 
     test = SimplePie()
     

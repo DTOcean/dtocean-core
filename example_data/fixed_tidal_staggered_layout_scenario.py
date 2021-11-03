@@ -169,17 +169,12 @@ depths = Z.T[:, :, np.newaxis]
 
 sediments = np.chararray((nx,ny,1), itemsize=20)
 sediments[:] = "loose sand"
-   
+
 strata = {"values": {'depth': depths,
                      'sediment': sediments},
           "coords": [x, y, ["layer 1"]]}
-          
-# Mannings
-G = np.zeros((nx, ny)) + 0.3
-geo_raw = {"values": G,
-           "coords": [x, y]}
 
-# Soil characteristics           
+# Soil characteristics
 max_temp = 10.
 max_soil_res = 10.
 target_burial_depth = 10
@@ -837,7 +832,6 @@ test_data = {
         "project.devices_per_string": devices_per_string,
         "farm.direction_of_max_surface_current":  max_10year_current_dir,
         "project.main_direction": main_direction,
-        "bathymetry.mannings": geo_raw,
         "farm.max_surface_current_10_year": max_10year_current,
         "project.network_configuration": network_configuration,
         "farm.nogo_areas": nogo_areas,

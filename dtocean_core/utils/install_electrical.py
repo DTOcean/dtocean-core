@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #    Copyright (C) 2016 Adam Collin
-#    Copyright (C) 2017-2018 Mathew Topper
+#    Copyright (C) 2017-2021 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -75,7 +75,7 @@ def set_cables(component_data_df, network_design, hierarchy, db, cable_type):
     for _, electrical_component in cables.iterrows():
     
         index = electrical_component['Key Identifier']
-            
+        
         mass.append(
             db[db['Key Identifier'] == index][
                                         'Dry Mass per Unit Length'].item())

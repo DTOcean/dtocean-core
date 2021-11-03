@@ -17,48 +17,78 @@ def test_SimpleDict_available():
     
     new_core = Core()
     all_objs = new_core.control._store._structures
-
+    
     assert "SimpleDict" in all_objs.keys()
 
 
-def test_SimpleDict():
+@pytest.mark.parametrize("tinput, ttype", [([1, 2], "int"),
+                                           (["hello", "world"], "str"),
+                                           ([True, False], "bool"),
+                                           ([0.5, 0.6], "float")])
+def test_SimpleDict(tinput, ttype):
 
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
                          "title": "test",
-                         "types": ["float"]})
+                         "types": [ttype]})
     
     test = SimpleDict()
     
-    raw = {"a": 0, "b": 1}
+    raw = {"a": tinput[0], "b": tinput[1]}
     a = test.get_data(raw, meta)
     b = test.get_value(a)
     
-    assert b["a"] == 0
-    assert b["b"] == 1
-    
-    
-def test_get_None():
+    assert b["a"] == tinput[0]
+    assert b["b"] == tinput[1]
+
+
+def test_SimpleDict_get_value_None():
     
     test = SimpleDict()
     result = test.get_value(None)
     
     assert result is None
+
+
+@pytest.mark.parametrize("left, right", [([1, 2], [1, 2]),
+                                         (["hello", "world"],
+                                          ["hello", "world"]),
+                                         ([True, False], [True, False]),
+                                         ([0.5, 0.6], [0.5, 0.6])])
+def test_SimpleDict_equals(left, right):
     
+    left_dict = {"a": left[0], "b": left[1]}
+    right_dict = {"a": right[0], "b": right[1]}
+    
+    assert SimpleDict.equals(left_dict, right_dict)
+
+
+@pytest.mark.parametrize("left, right", [([1, 2], [1, 3]),
+                                         (["hello", "world"],
+                                          ["world", "hello"]),
+                                         ([True, False], [True, True]),
+                                         ([0.5, 0.6], [0.5, -0.6])])
+def test_SimpleDict_not_equals(left, right):
+    
+    left_dict = {"a": left[0], "b": left[1]}
+    right_dict = {"a": right[0], "b": right[1]}
+    
+    assert not SimpleDict.equals(left_dict, right_dict)
+
 
 @pytest.mark.parametrize("fext", [".csv", ".xls", ".xlsx"])
 def test_SimpleDict_auto_file(tmpdir, fext):
-
+    
     test_path = tmpdir.mkdir("sub").join("test{}".format(fext))
     test_path_str = str(test_path)
-           
-    raw = {"a": 0, "b": 1}
-        
+    
+    raw = {"a": 0., "b": 1.}
+    
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
                          "title": "test",
                          "types": ["float"]})
-
+    
     test = SimpleDict()
     
     fout_factory = InterfaceFactory(AutoFileOutput)
@@ -67,26 +97,27 @@ def test_SimpleDict_auto_file(tmpdir, fext):
     fout = FOutCls()
     fout._path = test_path_str
     fout.data.result = test.get_data(raw, meta)
-
+    
     fout.connect()
     
     assert len(tmpdir.listdir()) == 1
-              
+    
     fin_factory = InterfaceFactory(AutoFileInput)
     FInCls = fin_factory(meta, test)
-              
+    
     fin = FInCls()
     fin._path = test_path_str
+    fin.meta.result = meta
     
     fin.connect()
     result = test.get_data(fin.data.result, meta)
     
-    assert result["a"] == 0
-    assert result["b"] == 1
-    
-    
-def test_SimpleDict_auto_file_input_bad_header(mocker):
+    assert result["a"] == 0.
+    assert result["b"] == 1.
 
+
+def test_SimpleDict_auto_file_input_bad_header(mocker):
+    
     df_dict = {"Wrong": [1],
                "Headers": [1]}
     df = pd.DataFrame(df_dict)
@@ -97,15 +128,17 @@ def test_SimpleDict_auto_file_input_bad_header(mocker):
     
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
-                         "title": "test"})
-
+                         "title": "test",
+                         "types": ["int"]})
+    
     test = SimpleDict()
-              
+    
     fin_factory = InterfaceFactory(AutoFileInput)
     FInCls = fin_factory(meta, test)
-              
+    
     fin = FInCls()
     fin._path = "file.xlsx"
+    fin.meta.result = meta
     
     with pytest.raises(ValueError):
         fin.connect()
@@ -118,7 +151,7 @@ def test_SimpleDict_auto_plot():
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
                          "title": "test",
-                         "types": ["float"]})
+                         "types": ["int"]})
 
     test = SimpleDict()
     
@@ -157,7 +190,7 @@ def test_SimpleDictColumn_auto_db(mocker):
                          "structure": "test",
                          "title": "test",
                          "tables": ["mock.mock", "name", "position"],
-                         "types": ["float"]})
+                         "types": ["int"]})
     
     test = SimpleDictColumn()
     

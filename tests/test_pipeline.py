@@ -68,9 +68,9 @@ class MockModule(ModuleInterface):
     def connect(self, debug_entry=False,
                       export_data=True):
         
-        self.data.dummy4 = 1
+        self.data.dummy4 = 1.
         self.data.dummy5 = {"device0": [0, 0]}
-        self.data.dummy6 = 1
+        self.data.dummy6 = 1.
         self.data.dummy7 = 1
         
         return
@@ -122,7 +122,7 @@ class AnotherMockModule(ModuleInterface):
     def connect(self, debug_entry=False,
                       export_data=True):
         
-        self.data.dummy4 = 1
+        self.data.dummy4 = 1.
         
         return
 
@@ -177,7 +177,7 @@ class MockTheme(ThemeInterface):
     def connect(self, debug_entry=False,
                       export_data=True):
         
-        total = 0
+        total = 0.
         
         if self.data.dummy2 is not None:
             total += self.data.dummy2

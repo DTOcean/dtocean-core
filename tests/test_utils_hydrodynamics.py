@@ -1,14 +1,12 @@
 
 import os
 import math
-from subprocess import call
 
 import pytest
 import numpy as np
 import pandas as pd
 
 from dtocean_core.utils.hydrodynamics import (make_wave_statistics,
-                                              make_tide_statistics,
                                               bearing_to_radians,
                                               bearing_to_vector,
                                               radians_to_bearing,
@@ -89,81 +87,6 @@ def test_make_wave_statistics_save(tmpdir):
                          filepath=save_path)
 
     assert len(os.listdir(str(tmpdir))) == 1
-
-
-@pytest.mark.parametrize("nx, ny, nt, ns", 
-                         [(50, 50, 24, 2),
-#                          (20, 50, 48, 2)
-                          ])
-def test_make_tide_statistics_propability(nx, ny, nt, ns):
-    
-    x = np.linspace(0, 1, nx)
-    y = np.linspace(0, 1, ny)
-    t = np.linspace(0, 1, nt)
-                
-    U = 2. * np.random.randn(nx, ny, nt)
-    V = 2. * np.random.randn(nx, ny, nt)
-    TI = 2. * np.random.randn(nx, ny, nt)
-    SSH = 2. * np.random.randn(nx, ny, nt)
-
-    xc = x[int(nx/2)]
-    yc = y[int(ny/2)]
-        
-    dictinput = {'U'    : U,
-                 'V'    : V,
-                 'TI'   : TI,
-                 'SSH'  : SSH,
-                 't'    : t,
-                 'xc'   : xc,
-                 'yc'   : yc,
-                 'x'    : x,
-                 'y'    : y,
-                 'ns'   : ns
-                 }
-                
-    test = make_tide_statistics(dictinput)
-    
-    assert len(test["p"]) == ns
-    assert test["U"].shape == (nx, ny, ns)
-    assert np.allclose(np.sum(test["p"]), 1)
-
-
-def test_make_tide_statistics_zero_V():
-    
-    nx = 50
-    ny = 25
-    nt = 24
-    ns = 4
-    
-    x = np.linspace(0, 1, nx)
-    y = np.linspace(0, 1, ny)
-    t = np.linspace(0, 1, nt)
-                
-    U = 2. * np.random.randn(nx, ny, nt)
-    V = np.zeros((nx, ny, nt))
-    TI = 2. * np.random.randn(nx, ny, nt)
-    SSH = 2. * np.random.randn(nx, ny, nt)
-
-    xc = x[int(nx/2)]
-    yc = y[int(ny/2)]
-        
-    dictinput = {'U'    : U,
-                 'V'    : V,
-                 'TI'   : TI,
-                 'SSH'  : SSH,
-                 't'    : t,
-                 'xc'   : xc,
-                 'yc'   : yc,
-                 'x'    : x,
-                 'y'    : y,
-                 'ns'   : ns
-                 }
-                
-    test = make_tide_statistics(dictinput)
-    
-    assert len(test["p"]) == ns
-    assert test["U"].shape == (nx, ny, ns)
-    assert np.allclose(np.sum(test["p"]), 1)
 
 
 #@pytest.mark.parametrize("ext, gamma", 

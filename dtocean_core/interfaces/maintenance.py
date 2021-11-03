@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #    Copyright (C) 2016 Mathew Topper, Vincenzo Nava
-#    Copyright (C) 2017-2018 Mathew Topper
+#    Copyright (C) 2017-2021 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -34,7 +34,6 @@ import os
 import pickle
 import logging
 import pkg_resources
-from packaging.version import Version
 
 # External 3rd party libraries
 import numpy as np
@@ -59,18 +58,19 @@ from ..utils.maintenance import (get_input_tables,
                                  get_point_depth,
                                  get_events_table)
 from ..utils.stats import UniVariateKDE
+from ..utils.version import Version
 
 # Check module version
 pkg_title = "dtocean-maintenance"
-min_version = "1.1.dev0"
+major_version = 3
 version = pkg_resources.get_distribution(pkg_title).version
 
-if not Version(version) >= Version(min_version):
+if not Version(version).major == major_version:
     
-    err_msg = ("Installed {} is too old! At least version {} is required, but "
-               "version {} is installed").format(pkg_title,
-                                                 version,
-                                                 min_version)
+    err_msg = ("Incompatible version of {} detected! Major version {} is "
+               "required, but version {} is installed").format(pkg_title,
+                                                               major_version,
+                                                               version)
     raise ImportError(err_msg)
 
 # Set up logging
@@ -203,18 +203,20 @@ class MaintenanceInterface(ModuleInterface):
                                      ['Tidal Floating', 'Wave Floating']),
 
                         "component.static_cable_NCFR",
+                        "component.static_cable_perkm_NCFR",
                         "component.dynamic_cable_NCFR",
                         "component.dry_mate_connectors_NCFR",
                         "component.wet_mate_connectors_NCFR",
                         "component.collection_points_NCFR",
                         "component.transformers_NCFR",
                         "component.static_cable_CFR",
+                        "component.static_cable_perkm_CFR",
                         "component.dynamic_cable_CFR",
                         "component.dry_mate_connectors_CFR",
                         "component.wet_mate_connectors_CFR",
                         "component.collection_points_CFR",
                         "component.transformers_CFR",
-                                    
+                        
                         "component.foundations_anchor_NCFR",
                         "component.foundations_pile_NCFR",
                         "component.foundations_anchor_CFR",
@@ -369,6 +371,8 @@ class MaintenanceInterface(ModuleInterface):
                         'options.transit_cost_multiplier',
                         'options.loading_cost_multiplier',
                         
+                        "project.reliability_confidence",
+                        "project.apply_kfactors",
                         "options.maintenance_data_points",
                         "options.parallel_operations",
                         "options.corrective_prep_time",
@@ -484,12 +488,14 @@ class MaintenanceInterface(ModuleInterface):
                         "component.dry_mate_connectors_NCFR",
                         "component.dynamic_cable_NCFR",
                         "component.static_cable_NCFR",
+                        "component.static_cable_perkm_NCFR",
                         "component.transformers_NCFR",
                         "component.wet_mate_connectors_NCFR",
                         "component.collection_points_CFR",
                         "component.dry_mate_connectors_CFR",
                         "component.dynamic_cable_CFR",
                         "component.static_cable_CFR",
+                        "component.static_cable_perkm_CFR",
                         "component.transformers_CFR",
                         "component.wet_mate_connectors_CFR",
                         "component.moorings_chain_NCFR",
@@ -519,7 +525,7 @@ class MaintenanceInterface(ModuleInterface):
                         "component.moorings_chain",
                         "component.moorings_forerunner",
                         "component.moorings_rope",
-                        "component.moorings_shackle",                  
+                        "component.moorings_shackle",
                         "component.moorings_swivel",
                         "component.moorings_rope_stiffness",
                         "component.operations_limit_hs",
@@ -537,6 +543,8 @@ class MaintenanceInterface(ModuleInterface):
                         'project.umbilical_seabed_connection',
                         "project.substation_layout",
                         "device.two_stage_assembly",
+                        "project.reliability_confidence",
+                        "project.apply_kfactors",
                         "options.curtail_devices",
                         "options.parallel_operations",
                         "options.corrective_prep_time",
@@ -650,7 +658,7 @@ class MaintenanceInterface(ModuleInterface):
             'electrical_inspections_requirements':
                 'project.electrical_inspections_requirements',
             'moorings_inspections_requirements':
-                'project.moorings_inspections_requirements',               
+                'project.moorings_inspections_requirements',
             
             'electrical_onsite_parts':
                 'project.electrical_onsite_maintenance_parts',
@@ -671,12 +679,14 @@ class MaintenanceInterface(ModuleInterface):
             "dry_mate_connectors_NCFR": "component.dry_mate_connectors_NCFR",
             "dynamic_cable_NCFR": "component.dynamic_cable_NCFR",
             "static_cable_NCFR": "component.static_cable_NCFR",
+            "static_cable_perkm_NCFR": "component.static_cable_perkm_NCFR",
             "transformers_NCFR": "component.transformers_NCFR",
             "wet_mate_connectors_NCFR": "component.wet_mate_connectors_NCFR",
             "collection_points_CFR": "component.collection_points_CFR",
             "dry_mate_connectors_CFR": "component.dry_mate_connectors_CFR",
             "dynamic_cable_CFR": "component.dynamic_cable_CFR",
             "static_cable_CFR": "component.static_cable_CFR",
+            "static_cable_perkm_CFR": "component.static_cable_perkm_CFR",
             "transformers_CFR": "component.transformers_CFR",
             "wet_mate_connectors_CFR": "component.wet_mate_connectors_CFR",
             "moorings_chain_NCFR": "component.moorings_chain_NCFR",
@@ -850,12 +860,15 @@ class MaintenanceInterface(ModuleInterface):
             "moorings_swivel": "component.moorings_swivel",
             "rope_stiffness": "component.moorings_rope_stiffness",
             
+            "reliability_confidence": "project.reliability_confidence",
+            "apply_kfactors": "project.apply_kfactors"
+            
             }
-                  
+        
         return id_map
                  
     def connect(self, debug_entry=False,
-                      export_data=True):
+                      export_data=False):
         
         '''The connect method is used to execute the external program and 
         populate the interface data store with values.
@@ -1016,7 +1029,9 @@ class MaintenanceInterface(ModuleInterface):
 #                current_speed_max_om (float) [m/s]  : Current speed max for operational limit conditions during the maintenance action
 #                requires_lifiting	 (bool) [-]       : Is lifting required?
 #                requires_divers (bool) [-]          : Are divers required?
-
+        
+        elec_database = None
+        
         if self.data.electrical_network is not None:
             
             none_check = [x is None for x in
@@ -1048,7 +1063,9 @@ class MaintenanceInterface(ModuleInterface):
                                         self.data.elec_db_cp,
                                         self.data.collection_point_cog,
                                         self.data.collection_point_foundations)
-            
+        
+        mandf_database = None
+        
         if self.data.moor_found_network is not None:
             
             none_check = [x is None for x in
@@ -1191,75 +1208,59 @@ class MaintenanceInterface(ModuleInterface):
                             self.data.transit_cost_multiplier,
                             self.data.loading_cost_multiplier)
         
-#        RAM_Param (dict): This parameter records the information for talking
-#                          to RAM module
-#            keys:         
-#        systype (str) [-]: system type: options:    'tidefloat', 
-#                                                    'tidefixed', 
-#                                                    'wavefloat', 
-#                                                    'wavefixed'
-#        eleclayout (str) [-]: electrical system architecture: options:   'radial'
-#                                                                         'singlesidedstring'
-#                                                                         'doublesidedstring'
-#                                                                         'multiplehubs'
-#        elechierdict (dict): array-level electrical system hierarchy: keys: array: export cable: export cable components (list) [-],
-#                                                                                   substation: substation components (list) [-],
-#                                                                                   layout: device layout
-#                                                                            deviceXXX: elec sub-system
-#        moorhiereg (dict): array-level mooring and foundation hierarchy: keys: array: substation foundation: substation foundation components (list) [-]
-#                                                                                      deviceXXX:  umbilical:   umbilical type (str) [-],
-#                                                                                                  foundation: foundation components (list) [-],
-#                                                                                                  mooring system: mooring components (list) [-]
-#
-#        RAM_Param['systype']
-#        RAM_Param['eleclayout']
-#        RAM_Param['elechierdict']
-#        RAM_Param['elecbomeg']
-#        RAM_Param['moorhiereg']
-#        RAM_Param['moorbomeg']
-#        RAM_Param['userhiereg']
-#        RAM_Param['userbomeg']
-#        RAM_Param['db']
-
-        system_type_map = {"Tidal Floating" : "tidefloat",
-                           "Tidal Fixed" : "tidefixed",
-                           "Wave Floating" : "wavefloat",
-                           "Wave Fixed" : "wavefixed"
-                           }
-        system_type = system_type_map[self.data.system_type]
+#        RAM_Param (dict): This parameter records the information for talking 
+#            to RAM module
+#            keys:
+#                db (dict) [-]: Component database
+#                elechier (dict) [-]: Electrical layout architecture
+#                elecbom (dict) [-]: Electrical BOM
+#                moorhier (dict) [-]: Moorings layout architecture
+#                moorbom (dict) [-]: Moorings BOM
+#                userhier (dict) [-]: User sub-systems architecture
+#                userbom (dict) [-]: User sub-systems BOM
+#                calcscenario (str) [-]: scenario for the calculation
+#                kfactors (dict) [-]: kfactors indexed by component marker
 
         reliability_input_dict = \
-            ReliabilityInterface.get_input_dict(self.data,
-                                                self.data.network_type)
+            ReliabilityInterface.get_input_dict(self.data)
         
         RAM_param = {}
-        RAM_param['systype'] = system_type
-
-        if reliability_input_dict is None:
-
-            RAM_param['eleclayout'] = None
-            RAM_param['elechierdict'] = None
-            RAM_param['elecbomeg'] = None
-            RAM_param['moorhiereg'] = None
-            RAM_param['moorbomeg'] = None
-
-            compdict = {} 
-
+        
+        confidence_map = {'Pessimistic': 'lower',
+                          'Normal': 'mean',
+                          'Optimistic': 'upper'}
+        
+        if self.data.reliability_confidence is None:
+            confidence_level = 'mean'
         else:
-
-            RAM_param['eleclayout'] = \
-                            reliability_input_dict["network_configuration"]
-            RAM_param['elechierdict'] = \
+            confidence_level = confidence_map[self.data.reliability_confidence]
+        
+        RAM_param["calcscenario"] = confidence_level
+        
+        if reliability_input_dict is None:
+            
+            RAM_param['elechier'] = None
+            RAM_param['elecbom'] = None
+            RAM_param['moorhier'] = None
+            RAM_param['moorbom'] = None
+            RAM_param['kfactors'] = None
+            
+            compdict = {} 
+        
+        else:
+            
+            RAM_param['elechier'] = \
                             reliability_input_dict["electrical_network_hier"]
-            RAM_param['elecbomeg'] = \
+            RAM_param['elecbom'] = \
                             reliability_input_dict["electrical_network_bom"]
-            RAM_param['moorhiereg'] = \
+            RAM_param['moorhier'] = \
                             reliability_input_dict["moor_found_network_hier"]
-            RAM_param['moorbomeg'] = \
+            RAM_param['moorbom'] = \
                             reliability_input_dict["moor_found_network_bom"]
-
+            RAM_param['kfactors'] = reliability_input_dict["k_factors"]
+           
             compdict = reliability_input_dict["compdict"]
-
+        
         # Manufacture the user network for the device subsytems:
         subsytem_comps = ['hydro001',
                           'pto001',
@@ -1286,8 +1287,8 @@ class MaintenanceInterface(ModuleInterface):
                                           subsystem_rates)
         compdict.update(user_compdict)
         
-        RAM_param['userhiereg'] = user_hierarchy
-        RAM_param['userbomeg'] = user_bom
+        RAM_param['userhier'] = user_hierarchy
+        RAM_param['userbom'] = user_bom
         RAM_param['db'] = compdict
 
 #        Logistic_Param (dict): This parameter records the information for
@@ -1436,7 +1437,7 @@ class MaintenanceInterface(ModuleInterface):
 
             point_bathy = get_point_depth(self.data.bathymetry, position)
             
-            if "floating" in system_type.lower():
+            if "floating" in self.data.system_type.lower():
                 depth = 0.
             else:
                 depth = -point_bathy
@@ -1503,7 +1504,7 @@ class MaintenanceInterface(ModuleInterface):
                                           axis=1,
                                           sort=False)
             
-            array_series["Component_ID"] = "Export Cable001"
+            array_series["Component_ID"] = "Export cable001"
             array_series['depth'] = -point_bathy
             
             num_cols = array_df.shape[1]
@@ -1633,7 +1634,7 @@ class MaintenanceInterface(ModuleInterface):
             pkl_path = debugdir.get_path("oandm_outputs.pkl")
             pickle.dump(outputWP6, open(pkl_path, "wb"))
         
-        self.data.capex_oandm = outputWP6["CapexOfArray [Euro]"]
+        self.data.capex_oandm = float(outputWP6["CapexOfArray [Euro]"])
         
         # Store the metrics table 
         name_map = {"lifetimeOpex [Euro]": 'Lifetime OPEX',
@@ -1737,9 +1738,13 @@ class MaintenanceInterface(ModuleInterface):
         downtime_table = outputWP6["downtimePerDevice [hour]"]
         best_downtime = downtime_table.ix[:, lcoe_best_idx]
         worst_downtime = downtime_table.ix[:, lcoe_worst_idx]
+        best_downtime = best_downtime.to_dict()
+        worst_downtime = worst_downtime.to_dict()
+        best_downtime = {k: float(v) for k, v in best_downtime.items()}
+        worst_downtime = {k: float(v) for k, v in worst_downtime.items()}
         
-        self.data.device_downtime_best = best_downtime.to_dict()
-        self.data.device_downtime_worst = worst_downtime.to_dict()
+        self.data.device_downtime_best = best_downtime
+        self.data.device_downtime_worst = worst_downtime
 
         # Build events tables
         best_strategies = outputWP6['eventTables [-]'][lcoe_best_idx]

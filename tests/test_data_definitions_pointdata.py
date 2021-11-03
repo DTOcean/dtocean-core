@@ -1,7 +1,9 @@
 import pytest
 
+import shapefile
 import matplotlib.pyplot as plt
 from geoalchemy2.elements import WKTElement
+from shapely.geometry import Point
 
 from aneris.control.factory import InterfaceFactory
 from dtocean_core.core import (AutoFileInput,
@@ -10,7 +12,7 @@ from dtocean_core.core import (AutoFileInput,
                                AutoQuery,
                                Core)
 from dtocean_core.data import CoreMetaData
-from dtocean_core.data.definitions import PointData, PointDataColumn
+from dtocean_core.data.definitions import PointData, PointDataColumn, PointList
 
 
 def test_PointData_available():
@@ -56,23 +58,43 @@ def test_get_None():
     result = test.get_value(None)
     
     assert result is None
+
+
+@pytest.mark.parametrize("left, right", [([0, 1], [0, 1]),
+                                         ([0, 1, 1], [0, 1, 1])])
+def test_PointData_equals(left, right):
     
+    left_point = Point(*left)
+    right_point = Point(*right)
+    
+    assert PointData.equals(left_point, right_point)
 
-@pytest.mark.parametrize("fext", [".csv", ".xls", ".xlsx"])
+
+@pytest.mark.parametrize("left, right", [([0, 1], [0, 2]),
+                                         ([0, 1, 1], [1, 1, 1])])
+def test_PointData_not_equals(left, right):
+    
+    left_point = Point(*left)
+    right_point = Point(*right)
+    
+    assert not PointData.equals(left_point, right_point)
+
+
+@pytest.mark.parametrize("fext", [".csv", ".shp", ".xls", ".xlsx"])
 def test_PointData_auto_file(tmpdir, fext):
-
+    
     test_path = tmpdir.mkdir("sub").join("test{}".format(fext))
     test_path_str = str(test_path)
-           
+    
     raws = [(0, 1), (0, 1, -1)]
     ztests = [False, True]
     
     for raw, ztest in zip(raws, ztests):
-    
+        
         meta = CoreMetaData({"identifier": "test",
                              "structure": "test",
                              "title": "test"})
-    
+        
         test = PointData()
         
         fout_factory = InterfaceFactory(AutoFileOutput)
@@ -81,14 +103,14 @@ def test_PointData_auto_file(tmpdir, fext):
         fout = FOutCls()
         fout._path = test_path_str
         fout.data.result = test.get_data(raw, meta)
-    
+        
         fout.connect()
         
         assert len(tmpdir.listdir()) == 1
-                  
+        
         fin_factory = InterfaceFactory(AutoFileInput)
         FInCls = fin_factory(meta, test)
-                  
+        
         fin = FInCls()
         fin._path = test_path_str
         
@@ -100,11 +122,85 @@ def test_PointData_auto_file(tmpdir, fext):
         assert result.has_z == ztest
 
 
+def test_PointData_auto_file_wrong_shape_type(tmpdir):
+    
+    test_path = tmpdir.mkdir("sub").join("test.shp")
+    test_path_str = str(test_path)
+    
+    raw = [(0., 0.),
+           (1., 1.),
+           (2., 2.)]
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test"})
+    
+    src_shape = PointList()
+    
+    fout_factory = InterfaceFactory(AutoFileOutput)
+    FOutCls = fout_factory(meta, src_shape)
+    
+    fout = FOutCls()
+    fout._path = test_path_str
+    fout.data.result = src_shape.get_data(raw, meta)
+    
+    fout.connect()
+    
+    assert len(tmpdir.listdir()) == 1
+    
+    test = PointData()
+    
+    fin_factory = InterfaceFactory(AutoFileInput)
+    FInCls = fin_factory(meta, test)
+    
+    fin = FInCls()
+    fin._path = test_path_str
+    
+    with pytest.raises(ValueError) as excinfo:
+        fin.connect()
+    
+    assert "imported shapefile must have" in str(excinfo)
+
+
+def test_PointData_auto_file_too_many_shapes(tmpdir):
+    
+    test_path = tmpdir.mkdir("sub").join("test.shp")
+    test_path_str = str(test_path)
+    
+    with shapefile.Writer(test_path_str) as shp:
+        shp.field('name', 'C')
+        shp.point(0, 0)
+        shp.record('point1')
+        shp.point(1, 1)
+        shp.record('point2')
+    
+    assert len(tmpdir.listdir()) == 1
+    
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test"})
+    
+    test = PointData()
+    
+    fin_factory = InterfaceFactory(AutoFileInput)
+    FInCls = fin_factory(meta, test)
+    
+    fin = FInCls()
+    fin._path = test_path_str
+    
+    with pytest.raises(ValueError) as excinfo:
+        fin.connect()
+    
+    assert "Only one shape may be defined" in str(excinfo)
+
+
 def test_PointData_auto_plot(tmpdir):
         
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
-                         "title": "test"})
+                         "title": "test",
+                         "labels": ["ex", "why"],
+                         "units": ["m", "s"]})
     
     raw = (0, 1)
     

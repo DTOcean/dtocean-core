@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #    Copyright (C) 2016 Mathew Topper, Francesco Ferri, Rui Duarte
-#    Copyright (C) 2017-2018 Mathew Topper
+#    Copyright (C) 2017-2021 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -28,6 +28,8 @@ import numpy as np
 import pandas as pd
 from scipy.integrate import simps
 from scipy.interpolate import interp1d
+
+from .tidestats import make_tide_statistics
 
 
 def make_wave_statistics(wave_df,
@@ -191,201 +193,6 @@ def make_wave_statistics(wave_df,
     assert np.allclose(np.sum(dictOut["p"]), 1)
         
     return dictOut
-
-    
-def make_tide_statistics(dictinput):
-    
-    '''
-     Function that selects the subset of current fields to be run, based on the
-     statistical analysis described in Deliverable 2.4
-     Written by JF Filipot and M Peray, October 1st, 2015
-     contact: jean.francois.filipot@france-energies-marines.org
-    
-     function input:
-     dictinput = { 'U':U, 'V':V, 'TI':TI, 'SSH':SSH, 't':t, 'xc':xc, 'yc':yc,
-                   'x':x, 'y':y, 'ns':ns}
-     U: east-west current fields (np.shape(U)=[nx,ny,nt])
-     V: north-south current fields (np.shape(V)=[nx,ny,nt])
-     x: east-west coordinate (len(x)=nx)
-     y: north-south coordinate (len(y)=ny)
-     t: time vector (len(t)=nt)
-     xc: east-west coordinate of the location of interest (where the time
-     series for the statistical analysis will be extracted, len(xc)=1).
-     yc: north-east coordinate of the location of interest (where the time
-     series for the statistical analysis will be extracted, len(xc)=1).
-     ns number of scenarii to be played (len(ns)=1).
-    
-     function output:
-    
-     dictoutput = {'V': V, 'U':U, 'p':p, 'TI':TI, 'x':x, 'y':y, 'SSH':SSH}
-     U: east-west current fields (np.shape(U)=[ny,nx,ns])
-     V: north-south current fields (np.shape(V)=[ny,nx,ns])
-     p: probability of occurence of each scenario (len(p)=ns)
-     x: east-west coordinate (len(x)=nx)
-     y: north-south coordinate (len(y)=ny)
-     t: time vector (len(t)=ns)
-    '''
-
-    # extract data from dictionary
-    uf = dictinput['U']
-    vf = dictinput['V']
-    TI = dictinput['TI']
-    SSH = dictinput['SSH']
-    t = dictinput['t']
-    x = dictinput['x']
-    y = dictinput['y']
-    xc = dictinput['xc']
-    yc = dictinput['yc']
-    ns = dictinput['ns']
-
-    # start by interpolation to get a time serie    
-    u = uf[np.argmin(abs(x-xc)), np.argmin(abs(y-yc)), :]
-    v = vf[np.argmin(abs(x-xc)), np.argmin(abs(y-yc)), :]
-    
-    if np.isnan(u).any() or np.isnan(v).any():
-        
-        errStr = ("Time series at extraction point is not valid. Does the "
-                  "given point lie within the lease area?")
-        raise ValueError(errStr)
-
-    # define increment and PDF axis
-    du = 0.01
-    dv = 0.01
-    umax = np.max(u) + du
-    umin = np.min(u) - du
-    vmax = np.max(v) + dv
-    vmin = np.min(v) - dv
-
-    ltabu = int(np.ceil(np.array([umax - umin]) / du))
-    ltabv = int(np.ceil(np.array([vmax - vmin]) / dv))
-    
-    # then define each axis and center the bins
-
-    tabu = np.linspace(umin, umax, ltabu)
-    tabv = np.linspace(vmin, vmax, ltabv)
-    sPDF = (ltabu - 1, ltabv - 1)
-    PDF = np.zeros(sPDF)
-    ub = np.zeros(ltabu - 1)
-    vb = np.zeros(ltabv - 1)
-
-    for iu in range(0, ltabu - 1):
-        for iv in range(0, ltabv - 1):
-            booluv=np.array([(u > tabu[iu]) &
-                             (u <= tabu[iu + 1]) & 
-                             (v > tabv[iv]) & 
-                             (v <= tabv[iv + 1])])
-            NPDF=booluv.astype(int)
-            PDF[iu, iv] = np.sum((NPDF == 1) * 1)
-            ub[iu] = (tabu[iu] + tabu[iu + 1]) / 2.
-            vb[iv] = (tabv[iv] + tabv[iv + 1]) / 2.
-
-    # PDF normalization
-
-    PDF = PDF / len(u) / du / dv
-
-    # Now find the direction with maximum variance
-
-    um = np.zeros(ns)
-    vm = np.zeros(ns)
-    Pb = np.zeros(ns)
-
-    if (np.max(ub) - np.min(ub)) > (np.max(vb) - np.min(vb)):
-
-       tabc = np.linspace(np.min(ub), np.max(ub), ns)
-
-    # Now get the bounds for the probability estimation (largest variance u)
-
-       tabc1 = np.zeros(ns)
-       tabc2 = np.zeros(ns)
-       dc = tabc[1] - tabc[0]
-       tabc1 = tabc - dc / 2
-       tabc2 = tabc + dc / 2
-
-       for ic in range(0, ns):
-           imu=np.argmin(abs(tabc[ic] - tabu - 1))
-           # avoid division by 0
-           if np.sum(PDF[imu, :]) == 0.:
-               vm[ic] = 0.
-           else:
-               vm[ic] = np.sum(PDF[imu, :] * vb * dv) / \
-                                                 np.sum(PDF[imu, :] * dv)
-                                                 
-           um[ic] = tabu[imu]
-           imu1 = np.argmin(abs(tabc1[ic] - tabu))
-           imu2 = np.argmin(abs(tabc2[ic] - tabu))
-           
-           pdf_slice = PDF[np.max((0, imu1)):np.min((ltabu, imu2)), :]
-           Pb[ic] = np.sum(np.sum(pdf_slice * du) * dv)
-   
-    # Now get the bounds for the probability estimation (largest variance v)
-
-    else:
-        
-       tabc = np.linspace(np.min(vb), np.max(vb), ns)
-
-       tabc1 = np.zeros(ns)
-       tabc2 = np.zeros(ns)
-       dc = tabc[1] - tabc[0]
-       tabc1 = tabc - dc / 2
-       tabc2 = tabc + dc / 2
-
-       for ic in range(0,ns):
-           imv = np.argmin(abs(tabc[ic] - tabv - 1))
-           # avoid division by 0
-           if np.sum(PDF[:, imv]) == 0.:
-               um[ic] = 0.
-           else:
-               um[ic] = np.sum(PDF[:, imv] * ub * du) / \
-                                                     np.sum(PDF[:, imv] * du)
-            
-           vm[ic] = tabv[imv]
-           imv1 = np.argmin(abs(tabc1[ic] - tabv))
-           imv2 = np.argmin(abs(tabc2[ic] - tabv))
-           
-           pdf_slice = PDF[:, np.max((0, imv1)):np.min((ltabv, imv2))]
-           Pb[ic]= np.sum(np.sum(pdf_slice * du) * dv)
-
-    # Now get the time step with the closest characteristic
-    # try to minimize the difference (um - u)+(vm-v)
-
-    itmin = np.zeros(ns)
-    for ic in range(0, ns):
-        itmin[ic] = np.argmin(abs(um[ic] - u) + abs(vm[ic] - v))
- 
-    # convert itmin to integer
-    
-    ind = itmin.astype(int)   
-    inds = ind.tolist()
-    V = vf[:, :, inds]
-    U = uf[:, :, inds]
-    t = t[inds]
-    p = Pb
-    TI = TI[:, :, inds]
-    SSH = SSH[:, :, inds]
-
-    # remove 0 probability bins
-    zero_pb = np.where(p == 0.)
-    U = np.delete(U, zero_pb, 2)
-    V = np.delete(V, zero_pb, 2)
-    SSH = np.delete(SSH, zero_pb, 2)
-    TI = np.delete(TI, zero_pb, 2)
-    p = np.delete(p, zero_pb)
-    t = np.delete(t, zero_pb)
-    ns = ns - np.array(zero_pb).size
-
-    # output
-    dictoutput = {'U': U,
-                  'V': V,
-                  'SSH': SSH,
-                  'TI': TI,
-                  'x': x,
-                  'y': y,
-                  'p': p,
-                  't': t,
-                  'ns': ns
-                  }
-    
-    return dictoutput
 
 
 def add_Te(wave_df, gamma=3.3, drop_nan=True):

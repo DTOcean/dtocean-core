@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2016-2018 Mathew Topper
+#    Copyright (C) 2016-2021 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -21,20 +21,19 @@ Created on Fri Jul 29 17:44:49 2016
 .. moduleauthor:: Mathew Topper <mathew.topper@dataonlygreater.com>
 """
 
+from aneris.boundary.interface import QueryInterface
+
 from ..utils.database import (init_bathy_records,
                               bathy_records_to_strata,
-                              bathy_records_to_mannings,
                               tidal_series_records_to_xset)
-                              
-from aneris.boundary.interface import QueryInterface
 
 
 class LeaseBathyInterface(QueryInterface):
     
     '''Interface to filter the database for a selected site and technology.
     '''
-        
-    @classmethod         
+    
+    @classmethod
     def get_name(cls):
         
         '''A class method for the common name of the interface.
@@ -44,8 +43,8 @@ class LeaseBathyInterface(QueryInterface):
         '''
         
         return "Lease Area Bathymetry Filtering Interface"
-
-    @classmethod         
+    
+    @classmethod
     def declare_inputs(cls):
         
         '''A class method to declare all the variables required as inputs by
@@ -62,12 +61,12 @@ class LeaseBathyInterface(QueryInterface):
                         "My:second:variable",
                        ]
         '''
-
+        
         input_list  =  ["site.lease_boundary"]
-                                                
+        
         return input_list
-
-    @classmethod        
+    
+    @classmethod
     def declare_outputs(cls):
         
         '''A class method to declare all the output variables provided by
@@ -85,12 +84,11 @@ class LeaseBathyInterface(QueryInterface):
                         ]
         '''
         
-        outputs = ["bathymetry.layers",
-                   "bathymetry.mannings"]
-                
-        return outputs
+        outputs = ["bathymetry.layers"]
         
-    @classmethod        
+        return outputs
+    
+    @classmethod
     def declare_optional(cls):
         
         '''A class method to declare all the variables which should be flagged
@@ -113,10 +111,10 @@ class LeaseBathyInterface(QueryInterface):
         '''
         
         option_list = None
-                        
-        return option_list
         
-    @classmethod 
+        return option_list
+    
+    @classmethod
     def declare_id_map(self):
         
         '''Declare the mapping for variable identifiers in the data description
@@ -137,14 +135,13 @@ class LeaseBathyInterface(QueryInterface):
                        }
         
         '''
-                  
+        
         id_map = {"bathymetry": "bathymetry.layers",
-                  "lease_poly": "site.lease_boundary",
-                  "mannings": "bathymetry.mannings"
+                  "lease_poly": "site.lease_boundary"
                   }
-                  
+        
         return id_map
-                 
+    
     def connect(self):
         
         '''The connect method is used to execute the external program and 
@@ -157,33 +154,35 @@ class LeaseBathyInterface(QueryInterface):
           self.data.my_output_variable = value
         
         '''
-                        
+        
         # Manipulate wkt string for function requirements
         poly_wkt = self.data.lease_poly.to_wkt()
         func_poly_str = poly_wkt.replace("POLYGON ((", "")[:-2]
         
-        query_str = ("SELECT * FROM "
+        query_str = ("SELECT "
+                     "utm_point, "
+                     "depth, "
+                     "layer_order, "
+                     "initial_depth, "
+                     "sediment_type "
+                     "FROM "
                      "filter.sp_select_bathymetry_by_polygon"
                      "('{}')").format(func_poly_str)
-                                     
+        
         result = self._db.server_execute_query(query_str)
-        pre_bathy = init_bathy_records(result, True)
+        pre_bathy = init_bathy_records(result)
         
         raw_strata = bathy_records_to_strata(pre_bathy=pre_bathy)
         self.data.bathymetry = raw_strata
         
-        raw_mannings = bathy_records_to_mannings(pre_bathy=pre_bathy)
-        self.data.mannings = raw_mannings
-            
         return
-        
 
 class CorridorBathyInterface(QueryInterface):
     
     '''Interface to filter the database for a selected site and technology.
     '''
-        
-    @classmethod         
+    
+    @classmethod
     def get_name(cls):
         
         '''A class method for the common name of the interface.
@@ -193,8 +192,8 @@ class CorridorBathyInterface(QueryInterface):
         '''
         
         return "Cable Corridor Bathymetry Filtering Interface"
-
-    @classmethod         
+    
+    @classmethod
     def declare_inputs(cls):
         
         '''A class method to declare all the variables required as inputs by
@@ -211,12 +210,12 @@ class CorridorBathyInterface(QueryInterface):
                         "My:second:variable",
                        ]
         '''
-
+        
         input_list  =  ["site.corridor_boundary"]
-                                                
+        
         return input_list
-
-    @classmethod        
+    
+    @classmethod
     def declare_outputs(cls):
         
         '''A class method to declare all the output variables provided by
@@ -235,10 +234,10 @@ class CorridorBathyInterface(QueryInterface):
         '''
         
         outputs = ["corridor.layers"]
-                
-        return outputs
         
-    @classmethod        
+        return outputs
+    
+    @classmethod
     def declare_optional(cls):
         
         '''A class method to declare all the variables which should be flagged
@@ -261,9 +260,9 @@ class CorridorBathyInterface(QueryInterface):
         '''
         
         option_list = None
-                        
-        return option_list
         
+        return option_list
+    
     @classmethod 
     def declare_id_map(self):
         
@@ -285,13 +284,13 @@ class CorridorBathyInterface(QueryInterface):
                        }
         
         '''
-                  
+        
         id_map = {"corridor": "corridor.layers",
                   "corridor_poly": "site.corridor_boundary"
                   }
-                  
+        
         return id_map
-                 
+    
     def connect(self):
         
         '''The connect method is used to execute the external program and 
@@ -304,30 +303,36 @@ class CorridorBathyInterface(QueryInterface):
           self.data.my_output_variable = value
         
         '''
-                        
+        
         # Manipulate wkt string for function requirements
         poly_wkt = self.data.corridor_poly.to_wkt()
         func_poly_str = poly_wkt.replace("POLYGON ((", "")[:-2]
         
         query_str = (
-             "SELECT * FROM "
+             "SELECT "
+             "utm_point, "
+             "depth, "
+             "layer_order, "
+             "initial_depth, "
+             "sediment_type "
+             "FROM "
              "filter.sp_select_cable_corridor_bathymetry_by_polygon"
              "('{}')").format(func_poly_str)
-                                     
+        
         result = self._db.server_execute_query(query_str)
         
         raw_strata = bathy_records_to_strata(result)
         self.data.corridor = raw_strata
-            
-        return
         
+        return
+
 
 class TidalEnergyInterface(QueryInterface):
     
     '''Interface to filter the database for a selected site and technology.
     '''
-        
-    @classmethod         
+    
+    @classmethod
     def get_name(cls):
         
         '''A class method for the common name of the interface.
@@ -337,8 +342,8 @@ class TidalEnergyInterface(QueryInterface):
         '''
         
         return "Tidal Energy Time Series Filtering Interface"
-
-    @classmethod         
+    
+    @classmethod
     def declare_inputs(cls):
         
         '''A class method to declare all the variables required as inputs by
@@ -355,12 +360,12 @@ class TidalEnergyInterface(QueryInterface):
                         "My:second:variable",
                        ]
         '''
-
+        
         input_list  =  ["site.lease_boundary"]
-                                                
+        
         return input_list
-
-    @classmethod        
+    
+    @classmethod
     def declare_outputs(cls):
         
         '''A class method to declare all the output variables provided by
@@ -379,10 +384,10 @@ class TidalEnergyInterface(QueryInterface):
         '''
         
         outputs = ["farm.tidal_series"]
-                
-        return outputs
         
-    @classmethod        
+        return outputs
+    
+    @classmethod
     def declare_optional(cls):
         
         '''A class method to declare all the variables which should be flagged
@@ -405,9 +410,9 @@ class TidalEnergyInterface(QueryInterface):
         '''
         
         option_list = None
-                        
-        return option_list
         
+        return option_list
+    
     @classmethod 
     def declare_id_map(self):
         
@@ -429,13 +434,13 @@ class TidalEnergyInterface(QueryInterface):
                        }
         
         '''
-                  
+        
         id_map = {"tidal_series": "farm.tidal_series",
                   "lease_poly": "site.lease_boundary"
                   }
-                  
+        
         return id_map
-                 
+    
     def connect(self):
         
         '''The connect method is used to execute the external program and 
@@ -449,20 +454,25 @@ class TidalEnergyInterface(QueryInterface):
         
         '''
         
-                
         # Manipulate wkt string for function requirements
         poly_wkt = self.data.lease_poly.to_wkt()
         func_poly_str = poly_wkt.replace("POLYGON ((", "")[:-2]
         
         query_str = (
-                "SELECT * FROM "
+                "SELECT "
+                "utm_point, "
+                "measure_date, "
+                "measure_time, "
+                "u, "
+                "v, "
+                "turbulence_intensity, "
+                "ssh "
+                "FROM "
                 "filter.sp_select_tidal_energy_time_series_by_polygon"
                 "('{}')").format(func_poly_str)
-                                     
+        
         result = self._db.server_execute_query(query_str)
         raw_strata = tidal_series_records_to_xset(result)
         self.data.tidal_series = raw_strata
-                        
+        
         return
-
-

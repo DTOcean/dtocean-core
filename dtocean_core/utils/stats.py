@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2017-2018 Mathew Topper
+#    Copyright (C) 2020 National Technology & Engineering Solutions of Sandia
+#    Copyright (C) 2017-2021 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -21,10 +22,16 @@ Created on Mon Sep 11 08:49:07 2017
 .. moduleauthor:: Mathew Topper <mathew.topper@dataonlygreater.com>
 """
 
+import logging
+
 import numpy as np
 
 from scipy import optimize, stats
+from scipy.special import gamma
 from contours.quad import QuadContourGenerator
+
+# Set up logging
+module_logger = logging.getLogger(__name__)
 
 
 class UniVariateKDE(object):
@@ -58,12 +65,14 @@ class UniVariateKDE(object):
         result = self._ppf(probabilities)
         
         if np.isnan(result).any(): result = None
-
-        return result
-
-    def mean(self):
         
+        return result
+    
+    def mean(self):
         return self._kde.dataset.mean()
+    
+    def median(self):
+        return np.median(self._kde.dataset)
     
     def mode(self, samples=1000):
         
@@ -151,17 +160,19 @@ class BiVariateKDE(object):
         return
     
     def mean(self):
-        
         return self.x.mean(), self.y.mean()
+    
+    def median(self):
+        return np.median(self.kernel.dataset, 1)
     
     def mode(self, xtol=0.0001, ftol=0.0001, disp=False):
         """Determine the ordinate of the most likely value of the given KDE"""
         
-        medians = np.median(self.kernel.dataset, 1)
+        median = self.median()
         
         neg_kde = lambda x: -1 * self.kernel(x)
         modal_coords = optimize.fmin(neg_kde,
-                                     medians,
+                                     median,
                                      xtol=xtol,
                                      ftol=ftol,
                                      disp=disp)
@@ -213,13 +224,16 @@ def pdf_confidence_densities(pdf, levels=None):
         
         local_pdf = np.copy(pdf)
         
-        density = optimize.brentq(diff_frac,
-                                  pdf.min(),
-                                  pdf.max(),
-                                  args=(local_pdf, frac, pdf_sum))
-        
-        densities.append(density)
-        
+        try:
+            density = optimize.brentq(diff_frac,
+                                      pdf.min(),
+                                      pdf.max(),
+                                      args=(local_pdf, frac, pdf_sum))
+            
+            densities.append(density)
+        except ValueError as e:
+            module_logger.debug(e, exc_info=True)
+    
     return densities
 
 
@@ -236,4 +250,38 @@ def pdf_contour_coords(xx, yy, pdf, level):
         cy.extend(v[:,1])
         
     return cx, cy
-        
+
+
+def get_standard_error(values):
+    """
+    Calculates the standard error of the mean of a given function.
+    
+    This function can either be used to reduce the standard error to
+    a certain level or calculate the standard error given a fixed number
+    of samples.
+    
+    Args:
+      values
+    
+    Returns: the standard error metric vector
+    """
+    
+    def get_c4(n):
+        # Correction for unbiased estimate of the standard deviation.
+        # https://en.wikipedia.org/wiki/Unbiased_estimation_of_standard_deviation
+        a = np.sqrt(2. / (n - 1))
+        b = gamma(n / 2.) / gamma((n - 1) / 2.)
+        return a * b
+    
+    n = len(values)
+    
+    if n < 2: return None
+    
+    c4 = get_c4(n)
+    
+    if not np.isfinite(c4):
+        c4 = 1
+    
+    result_error = c4 * np.std(values) / np.sqrt(n)
+    
+    return result_error

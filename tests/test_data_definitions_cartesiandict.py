@@ -1,5 +1,6 @@
 import pytest
 
+import numpy as np
 import matplotlib.pyplot as plt
 
 from aneris.control.factory import InterfaceFactory
@@ -24,16 +25,18 @@ def test_CartesianDict():
 
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
-                         "title": "test"})
+                         "title": "test",
+                         "types": ["str"]})
     
     test = CartesianDict()
     
-    raw = {"a": (0, 1), "b": (1, 2)}
+    raw = {"a": (0, 1), "b": (1, 2), 1: (2, 3)}
     a = test.get_data(raw, meta)
     b = test.get_value(a)
     
     assert b["a"][0] == 0
     assert b["a"][1] == 1
+    assert "1" in b
             
     raw = {"a": (0, 1, -1), "b": (1, 2, -2)}
     a = test.get_data(raw, meta)
@@ -47,15 +50,39 @@ def test_CartesianDict():
     
     with pytest.raises(ValueError):
         test.get_data(raw, meta)
-        
-        
+
+
 def test_get_None():
     
     test = CartesianDict()
     result = test.get_value(None)
     
     assert result is None
+
+
+def test_CartesianDict_equals():
     
+    left = {"a": np.array([0, 1, -1]), "b": np.array([1, 2, -2])}
+    right = {"a": np.array([0, 1, -1]), "b": np.array([1, 2, -2])}
+    
+    assert CartesianDict.equals(left, right)
+
+
+def test_CartesianDict_not_equal_values():
+    
+    left = {"a": np.array([0, 1, -1]), "b": np.array([1, 2, -2])}
+    right = {"a": np.array([0, 1, -1]), "b": np.array([1, 2, 2])}
+    
+    assert not CartesianDict.equals(left, right)
+
+
+def test_CartesianDict_not_equal_keys():
+    
+    left = {"a": np.array([0, 1, -1]), "b": np.array([1, 2, -2])}
+    right = {"a": np.array([0, 1, -1]), "c": np.array([1, 2, -2])}
+    
+    assert not CartesianDict.equals(left, right)
+
 
 @pytest.mark.parametrize("fext", [".csv", ".xls", ".xlsx"])
 def test_CartesianDict_auto_file(tmpdir, fext):

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2016-2018 Mathew Topper
+#    Copyright (C) 2016-2021 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -36,6 +36,10 @@ class CoreMetaData(MetaData):
         self._units = None
         self._labels = None
         self._valid_values = None
+        self._minimums = None
+        self._minimum_equals = None
+        self._maximums = None
+        self._maximum_equals = None
         self._experimental = None
         
         super(CoreMetaData, self).__init__(props_dict)
@@ -104,6 +108,26 @@ class CoreMetaData(MetaData):
         '''Short names for dimensions of data'''
         return self._labels
         
+    @property
+    def minimums(self):
+        '''Data must be greater than this value'''
+        return self._minimums
+    
+    @property
+    def minimum_equals(self):
+        '''Data must be greater than or equal to this value'''
+        return self._minimum_equals
+    
+    @property
+    def maximums(self):
+        '''Data must be less than this value'''
+        return self._maximums
+    
+    @property
+    def maximum_equals(self):
+        '''Data must be less than or equal to this value'''
+        return self._maximum_equals
+    
     @property
     def valid_values(self):
         '''List of valid values for discrete data'''

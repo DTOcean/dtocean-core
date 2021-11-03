@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2016-2018 Mathew Topper
+#    Copyright (C) 2016-2021 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -33,9 +33,9 @@ Note:
 import os
 import pickle
 import pkg_resources
-from packaging.version import Version
 
 import numpy as np
+from natsort import natsorted
 from shapely.geometry import box
 
 from polite.paths import Directory, ObjDirectory, UserDataDirectory
@@ -51,21 +51,22 @@ from ..utils.hydrodynamics import (make_wave_statistics,
                                    bearing_to_vector,
                                    vector_to_bearing,
                                    radians_to_bearing)
+from ..utils.version import Version
 
 from . import ModuleInterface
 
 # Check module version
 pkg_title = "dtocean-hydrodynamics"
-min_version = "1.0"
+major_version = 3
 version = pkg_resources.get_distribution(pkg_title).version
 
-if not Version(version) >= Version(min_version):
+if not Version(version).major == major_version:
     
-    err_msg = ("Installed {} is too old! At least version {} is required, but "
-               "version {} is installed").format(pkg_title,
-                                                 version,
-                                                 min_version)
-    raise ImportError(err_msg)
+    ERR_MSG = ("Incompatible version of {} detected! Major version {} is "
+               "required, but version {} is installed").format(pkg_title,
+                                                               major_version,
+                                                               version)
+    raise ImportError(ERR_MSG)
 
 
 class HydroInterface(ModuleInterface):
@@ -78,8 +79,8 @@ class HydroInterface(ModuleInterface):
           names.
           
     '''
-        
-    @classmethod         
+    
+    @classmethod
     def get_name(cls):
         
         '''A class method for the common name of the interface.
@@ -89,13 +90,13 @@ class HydroInterface(ModuleInterface):
         '''
         
         return "Hydrodynamics"
-        
-    @classmethod         
+    
+    @classmethod
     def declare_weight(cls):
         
         return 1
-
-    @classmethod         
+    
+    @classmethod
     def declare_inputs(cls):
         
         '''A class method to declare all the variables required as inputs by
@@ -112,41 +113,45 @@ class HydroInterface(ModuleInterface):
                         "My: second:variable",
                        ]
         '''
-
+        
         input_list  =  ['site.lease_boundary',
                         'bathymetry.layers',
                         
-                        MaskVariable('bathymetry.mannings',
-                                     "device.system_type",
-                                     ["Tidal Fixed", "Tidal Floating"]),
-                                     
                         "corridor.landing_point",
                         'farm.nogo_areas',
                         
                         MaskVariable("farm.blockage_ratio",
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
-
-                        MaskVariable("farm.spectrum_name",   
+                        
+                        MaskVariable("farm.spectrum_name",
                                      "device.system_type",
                                      ["Wave Fixed", "Wave Floating"]),
-
-                        MaskVariable("farm.spec_gamma",   
+                        
+                        MaskVariable("farm.spec_gamma",
                                      "device.system_type",
                                      ["Wave Fixed", "Wave Floating"]),
-
-                        MaskVariable("farm.spec_spread",   
+                        
+                        MaskVariable("farm.spec_spread",
                                      "device.system_type",
                                      ["Wave Fixed", "Wave Floating"]),
-                                     
-                        MaskVariable("farm.tidal_occurrence_point",
+                        
+                        MaskVariable('farm.tidal_occurrence',
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
-
+                        
                         MaskVariable("farm.tidal_series",
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
-
+                        
+                        MaskVariable("farm.tidal_occurrence_point",
+                                     "device.system_type",
+                                     ["Tidal Fixed", "Tidal Floating"]),
+                        
+                        MaskVariable("project.tidal_occurrence_nbins",
+                                     "device.system_type",
+                                     ["Tidal Fixed", "Tidal Floating"]),
+                        
                         MaskVariable("farm.wave_series",
                                      "device.system_type",
                                      ["Wave Fixed", "Wave Floating"]),
@@ -162,15 +167,15 @@ class HydroInterface(ModuleInterface):
                         MaskVariable("device.bidirection",
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
-
+                        
                         MaskVariable("device.cut_in_velocity",
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
-
+                        
                         MaskVariable("device.cut_out_velocity",
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
-
+                        
                         MaskVariable('device.turbine_hub_height',
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
@@ -178,40 +183,36 @@ class HydroInterface(ModuleInterface):
                         MaskVariable("device.turbine_diameter",
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
-
+                        
                         MaskVariable("device.turbine_interdistance",
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
-
+                        
                         MaskVariable("device.turbine_performance",
                                      "device.system_type",
                                      ["Tidal Fixed", "Tidal Floating"]),
-
-                        MaskVariable("device.wave_data_directory",   
+                        
+                        MaskVariable("device.wave_data_directory",
                                      "device.system_type",
                                      ["Wave Fixed", "Wave Floating"]),
-                                     
-                        'project.rated_power',
                         
-                        MaskVariable("project.tidal_occurrence_nbins",
-                                     "device.system_type",
-                                     ["Tidal Fixed", "Tidal Floating"]),  
-                                     
+                        'project.rated_power',
                         'project.main_direction',
                         'options.boundary_padding',
                         'options.optimisation_threshold',
                         'options.power_bin_width',
                         'options.user_array_option',
                         'options.user_array_layout',
-
-                        MaskVariable("options.tidal_data_directory",   
+                        
+                        MaskVariable("options.tidal_data_directory",
                                      "device.system_type",
-                                     ["Tidal Fixed", "Tidal Floating"])
+                                     ["Tidal Fixed", "Tidal Floating"]),
+                        
                         ]
-                                                
+        
         return input_list
-
-    @classmethod        
+    
+    @classmethod
     def declare_outputs(cls):
         
         '''A class method to declare all the output variables provided by
@@ -250,7 +251,7 @@ class HydroInterface(ModuleInterface):
         
         return output_list
     
-    @classmethod        
+    @classmethod
     def declare_optional(cls):
         
         '''A class method to declare all the variables which should be flagged
@@ -271,18 +272,22 @@ class HydroInterface(ModuleInterface):
               optional = ["My:first:variable",
                          ]
         '''
-        optional = ["device.turbine_interdistance",
+        optional = ['farm.tidal_occurrence',
+                    "farm.tidal_series",
+                    "farm.tidal_occurrence_point",
+                    "project.tidal_occurrence_nbins",
+                    "device.turbine_interdistance",
                     "project.main_direction",
                     'farm.nogo_areas',
                     'options.boundary_padding',
                     "options.power_bin_width",
                     "options.user_array_layout",
-                    "options.tidal_data_directory"
-                    ]        
-                
-        return optional
+                    "options.tidal_data_directory",
+                    ]
         
-    @classmethod 
+        return optional
+    
+    @classmethod
     def declare_id_map(cls):
         
         '''Declare the mapping for variable identifiers in the data description
@@ -303,7 +308,7 @@ class HydroInterface(ModuleInterface):
                        }
         
         '''
-                  
+        
         id_map = {
                     "AEP_array": "project.annual_energy",
                     "AEP_per_device": "project.annual_energy_per_device",
@@ -317,7 +322,6 @@ class HydroInterface(ModuleInterface):
                     "cut_out": "device.cut_out_velocity",
                     "device_position": "project.layout",
                     "ext_forces": "device.external_forces",
-                    "geophysics": "bathymetry.mannings",
                     "hub_height": "device.turbine_hub_height",
                     "lease_area": "site.lease_boundary",
                     "main_direction": "project.main_direction",
@@ -356,12 +360,12 @@ class HydroInterface(ModuleInterface):
                     "wave_data_directory": "device.wave_data_directory",
                     "wave_occurrence": "farm.wave_occurrence",
                     "wave_series": "farm.wave_series",
-                    "yaw_angle": "device.yaw",
+                    "yaw_angle": "device.yaw"
                   }
-
+        
         return id_map
-                 
-    def connect(self, debug_entry=False, export_data=True):
+    
+    def connect(self, debug_entry=False, export_data=False):
         
         '''The connect method is used to execute the external program and 
         populate the interface data store with values.
@@ -406,15 +410,12 @@ class HydroInterface(ModuleInterface):
     #										'x' (numpy.ndarray)[m]: Vector containing the easting coordinate of the grid nodes
     #										'y' (numpy.ndarray)[m]: Vector containing the northing coordinate of the grid nodes
     #										'SSH' (numpy.ndarray)[m]: Sea Surface Height wrt the bathymetry datum 
-    #									
-    #									
-    #		VelocityShear (numpy.ndarray) [-]: Tidal velocity shear formula (power law), used to evaluate the vertical velocity profile
+    #       Beta (float, optional if None): TIDAL ONLY bed roughness (default = 0.4)
+    #       Alpha (float, optional if None): TIDAL ONLY power law exponent (default = 7.)
     #		Main_Direction (numpy.ndarray, optional) [m]: xy vector defining the main orientation of the array. If not provided it will be 
     #														assessed from the Metocean conditions.
     #		Bathymetry (numpy.ndarray) [m]: Describes the vertical profile of the sea bottom at each (given) UTM coordinate. 
     #										Expressed as [X,Y,Z]
-    #		Geophysics (numpy.ndarray) [?]: Describes the sea bottom geophysic characteristic at each (given) UTM coordinate. 
-    #										Expressed as [X,Y,Geo]
     #		BR (float) [-]: describes the ratio between the lease area surface over the site area surface enclosed in a channel. 
     #						1. - closed channel
     #						0. - open sea
@@ -424,61 +425,97 @@ class HydroInterface(ModuleInterface):
         # Check whether the bin width divides the RP perfectly
         check_bin_widths(self.data.rated_power_device,
                          self.data.pow_bins)
-
+        
         if 'Tidal' in self.data.type:
             
-            x = self.data.tidal_series.coords["UTM x"]
-            y = self.data.tidal_series.coords["UTM y"]
-                        
-            tide_dict = {"U": self.data.tidal_series.U.values, 
-                         "V": self.data.tidal_series.V.values, 
-                         "SSH": self.data.tidal_series.SSH.values, 
-                         "TI": self.data.tidal_series.TI.values, 
-                         "x": x.values, 
-                         "y": y.values,
-                         "t": self.data.tidal_series.t.values,  
-                         "xc": self.data.tidal_occurrence_point.x, 
-                         "yc": self.data.tidal_occurrence_point.y,
-                         "ns": self.data.tidal_nbins
-                         }
-            
-            occurrence_matrix = make_tide_statistics(tide_dict)
-            
-            p_total = sum(occurrence_matrix['p'])
-            
-            if not np.isclose(p_total, 1.):
+            if self.data.tidal_occurrence is not None:
                 
-                errStr = ("Tidal statistics probabilities invalid. Total "
-                          "probability equals {}").format(p_total)
-                raise ValueError(errStr)
-                                                    
-            occurrence_matrix_coords = [occurrence_matrix['x'],
-                                        occurrence_matrix['y'],
-                                        occurrence_matrix['p']]
-                                        
-            matrix_xset = {"values": {"U": occurrence_matrix['U'],
-                                      "V": occurrence_matrix['V'],
-                                      "SSH": occurrence_matrix['SSH'],
-                                      "TI": occurrence_matrix['TI']},
-                           "coords": occurrence_matrix_coords}
-                           
-            self.data.tidal_occurrence = matrix_xset
-            
-            x = self.data.geophysics.coords["UTM x"]
-            y = self.data.geophysics.coords["UTM y"]
-            
-            # Flatten mannings number
-            xgrid, ygrid = np.meshgrid(x.values,
-                                       y.values)
-            geogrid = self.data.geophysics.values.T
-            geoflat = np.array(zip(xgrid.flatten(),
-                                   ygrid.flatten(),
-                                   geogrid.flatten()))
+                occurrence_matrix = {
+                        "x": self.data.tidal_occurrence["UTM x"].values,
+                        "y": self.data.tidal_occurrence["UTM y"].values,
+                        "p": self.data.tidal_occurrence["p"].values,
+                        "U": self.data.tidal_occurrence["U"].values,
+                        "V": self.data.tidal_occurrence["V"].values,
+                        "SSH": self.data.tidal_occurrence["SSH"].values,
+                        "TI": self.data.tidal_occurrence["TI"].values}
                 
+                # Don't let farm.tidal_occurrence be an output
+                self.data.tidal_occurrence = None
+            
+            elif self.data.tidal_series is None:
+                
+                err_msg = ("Tidal time series or representative velocity "
+                           "fields must be provided.")
+                raise ValueError(err_msg)
+            
+            elif self.data.tidal_occurrence_point is None:
+                
+                err_msg = ("The tidal occurance extraction point must be "
+                           "specified when creating velocity fields from "
+                           "the tidal time series.")
+                raise ValueError(err_msg)
+            
+            else:
+                
+                if self.data.tidal_nbins is None:
+                    tidal_nbins = len(self.data.tidal_series.t)
+                else:
+                    tidal_nbins = self.data.tidal_nbins
+                
+                x = self.data.tidal_series.coords["UTM x"]
+                y = self.data.tidal_series.coords["UTM y"]
+                
+                tide_dict = {"U": self.data.tidal_series.U.values,
+                             "V": self.data.tidal_series.V.values,
+                             "SSH": self.data.tidal_series.SSH.values,
+                             "TI": self.data.tidal_series.TI.values,
+                             "x": x.values,
+                             "y": y.values,
+                             "t": self.data.tidal_series.t.values,
+                             "xc": self.data.tidal_occurrence_point.x,
+                             "yc": self.data.tidal_occurrence_point.y,
+                             "ns": tidal_nbins
+                             }
+                
+                if self.data.tidal_nbins is None:
+                    
+                    n_steps = len(self.data.tidal_series.t.values)
+                    p = np.ones(n_steps) * (1. / n_steps)
+                    
+                    tide_dict.pop("xc")
+                    tide_dict.pop("yc")
+                    tide_dict["p"] = p
+                    
+                    occurrence_matrix = tide_dict
+                
+                else:
+                    
+                    occurrence_matrix = make_tide_statistics(tide_dict)
+                
+                p_total = sum(occurrence_matrix['p'])
+                
+                if not np.isclose(p_total, 1.):
+                    
+                    errStr = ("Tidal statistics probabilities invalid. Total "
+                              "probability equals {}").format(p_total)
+                    raise ValueError(errStr)
+                
+                occurrence_matrix_coords = [occurrence_matrix['x'],
+                                            occurrence_matrix['y'],
+                                            occurrence_matrix['p']]
+                                            
+                matrix_xset = {"values": {"U": occurrence_matrix['U'],
+                                          "V": occurrence_matrix['V'],
+                                          "SSH": occurrence_matrix['SSH'],
+                                          "TI": occurrence_matrix['TI']},
+                               "coords": occurrence_matrix_coords}
+                
+                self.data.tidal_occurrence = matrix_xset
+        
         else:
-                        
+            
             occurrence_matrix = make_wave_statistics(self.data.wave_series)
-                        
+            
             p_total = occurrence_matrix['p'].sum()
             
             if not np.isclose(p_total, 1.):
@@ -501,7 +538,7 @@ class HydroInterface(ModuleInterface):
                             "JONSWAP": "Jonswap",
                             "Bretschneider": "Bretschneider_Mitsuyasu",
                             "Modified Bretschneider":
-                                "Modified_Bretschneider_Mitsuyasu"                          
+                                "Modified_Bretschneider_Mitsuyasu"
                             }
             
             spectrum_type = spectrum_map[self.data.spectrum_type_farm]
@@ -512,29 +549,17 @@ class HydroInterface(ModuleInterface):
             
             occurrence_matrix["SSH"] = 0. # Datum is mean sea level
             occurrence_matrix["specType"] = spectrum_list
-                             
-            geoflat = None
-        
-        # Snap lease area to bathymetry
-        bathy_x = self.data.bathymetry["x"]
-        bathy_y = self.data.bathymetry["y"]
-        bathy_box = box(bathy_x.min(),
-                        bathy_y.min(),
-                        bathy_x.max(),
-                        bathy_y.max())
-
-        lease_area = self.data.lease_area
-        sane_lease_area = lease_area.intersection(bathy_box)
         
         # Convert lease and nogo polygons
-        numpy_lease = np.array(sane_lease_area.exterior.coords[:-1])
+        lease_area = self.data.lease_area
+        numpy_lease = np.array(lease_area.exterior.coords[:-1])
         
         if self.data.nogo_areas is None:
             numpy_nogo = None
         else:
             numpy_nogo = [np.array(x.exterior.coords[:-1])
                                     for x in self.data.nogo_areas.values()]
-                               
+        
         numpy_landing = np.array(self.data.export_landing_point.coords[0])
         
         # Bathymetry (**assume layer 1 in uppermost**)
@@ -543,21 +568,21 @@ class HydroInterface(ModuleInterface):
                              self.data.bathymetry["y"].values)
         xyz = np.dstack([xv.flatten(), yv.flatten(), zv.flatten()])[0]
         safe_xyz = xyz[~np.isnan(xyz).any(axis=1)]
-
+        
         # Convert main direction to vector
         if self.data.main_direction is None:
             main_direction_vec = None
         else:
             main_direction_tuple = bearing_to_vector(self.data.main_direction)
             main_direction_vec = np.array(main_direction_tuple)
-                                                                                                               
+        
         Site = WP2_SiteData(numpy_lease,
                             numpy_nogo,
                             occurrence_matrix,
-                            7.,
+                            None,
+                            None,
                             main_direction_vec,
                             safe_xyz,
-                            geoflat,
                             self.data.blockage_ratio,
                             numpy_landing,
                             self.data.boundary_padding)
@@ -751,7 +776,7 @@ class HydroInterface(ModuleInterface):
         pow_per_device = {}
         pmf_per_device = {}
         layout = {}
-        q_factor_per_device={}
+        q_factor_per_device = {}
         dev_ids = []
         
         # Layout
@@ -759,7 +784,9 @@ class HydroInterface(ModuleInterface):
             dev_id = dev_id.lower()
             layout[dev_id] = np.array(coords)
             dev_ids.append(dev_id)
-            
+        
+        dev_ids = natsorted(dev_ids)
+        
         self.data.device_position = layout
         self.data.n_bodies = int(result.Nbodies)
         
@@ -772,7 +799,7 @@ class HydroInterface(ModuleInterface):
                                                 self.data.rated_power_device)
         self.data.array_efficiency = self.data.AEP_array / ideal_energy
         
-        # Annual energy per device (convert to MWh)             
+        # Annual energy per device (convert to MWh)
         for dev_id, AEP in zip(dev_ids, result.Annual_Energy_Production_perD):
             AEP_per_device[dev_id] = float(AEP) / 1e6  #SimpleDIct
             
@@ -783,13 +810,13 @@ class HydroInterface(ModuleInterface):
             pow_per_device[dev_id] = float(power) / 1e6  #SimpleDIct
         
         self.data.pow_per_device = pow_per_device
-            
+        
         for dev_id, pow_per_state in zip(dev_ids, result.power_prod_perD_perS):
             
             # Power probability mass function (convert to MW)
             flat_prob = occurrence_matrix['p'].flatten("F")
             pow_list = pow_per_state / 1e6
-
+            
             assert np.isclose(flat_prob.sum(), 1.)
             assert len(flat_prob) == len(pow_list)
             
@@ -841,12 +868,12 @@ class HydroInterface(ModuleInterface):
         # Resource modification
         self.data.q_factor_per_device = q_factor_per_device
         self.data.q_factor_array = result.q_factor_Array
-    
+        
         self.data.resource_reduction = float(result.Resource_Reduction)
         
-        for dev_id, q_factor in zip(dev_ids, result.q_factor_Per_Device):            
+        for dev_id, q_factor in zip(dev_ids, result.q_factor_Per_Device):
             q_factor_per_device[dev_id] = q_factor
-            
+        
         # Main Direction
         self.data.main_direction = vector_to_bearing(*result.main_direction)
         
@@ -857,7 +884,7 @@ class HydroInterface(ModuleInterface):
             fex_dict = result.Hydrodynamic_Parameters
             modes = np.array(fex_dict["mode_def"])
             freqs = np.array(fex_dict["wave_fr"])
-
+            
             # Convert directions to bearings
             bearings = [radians_to_bearing(x) for x in fex_dict["wave_dir"]]
             dirs = np.array(bearings)
@@ -891,5 +918,5 @@ class HydroInterface(ModuleInterface):
                             "coords": occurrence_matrix_coords}
             
             self.data.power_matrix = matrix_xgrid
-
+        
         return

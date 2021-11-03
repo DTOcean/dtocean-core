@@ -1,24 +1,28 @@
 # REQUIREMENTS FOR CONDA INSTALLATION (EXCLUDING DTOCEAN PACKAGES)
 basemap
+cma
 cmocean-matplotlib
 contours
 cycler
-Cython
-descartes
+descartes-matplotlib
 geoalchemy2
 matplotlib <2
 monotonic
 natsort
-netcdf4
-numpy
+netcdf4 =1.4
+numpy =1.11.3=py27hab9e983_3
 openpyxl <3
 packaging
-pandas >=0.18
+pandas >=0.23
 pil
 psycopg2
 pyproj
+pyshp
 python-dateutil
-pyyaml
+python-polylabel
+pyyaml >=5.1
+ruamel.yaml
+ruamel.yaml.clib
 scipy
 setuptools
 shapely

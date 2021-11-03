@@ -1,4 +1,6 @@
 
+from copy import deepcopy
+
 import pytest
 import numpy as np
 import matplotlib.pyplot as plt
@@ -30,13 +32,15 @@ def test_NumpyLineDict():
     coarse_sin = zip(coarse_sample, np.sin(coarse_sample))
     fine_cos = zip(fine_sample, np.cos(fine_sample))
     
-    raw = {"Sin(x)" : coarse_sin,
-           "Cos(x)" : fine_cos}
+    raw = {"Sin(x)": coarse_sin,
+           "Cos(x)": fine_cos,
+           1: coarse_sin}
 
     meta = CoreMetaData({"identifier": "test",
                          "structure": "test",
                          "title": "test",
-                         "labels": ["x", "f(x)"]})
+                         "labels": ["x"],
+                         "types": ["str"]})
     
     test = NumpyLineDict()
     a = test.get_data(raw, meta)
@@ -45,15 +49,65 @@ def test_NumpyLineDict():
     assert "Sin(x)" in b
     assert max(b["Sin(x)"][:,1]) == 1
     assert b["Cos(x)"][0,1] == b["Cos(x)"][-1,1]
-    
-    
+    assert "1" in b
+
+
 def test_get_None():
     
     test = NumpyLineDict()
     result = test.get_value(None)
     
     assert result is None
+
+
+def test_NumpyLineDict_equals():
     
+    coarse_sample = np.linspace(0., 2*np.pi, num=5)
+    fine_sample = np.linspace(0., 2*np.pi, num=9)
+    
+    coarse_sin = zip(coarse_sample, np.sin(coarse_sample))
+    fine_cos = zip(fine_sample, np.cos(fine_sample))
+    
+    raw = {"Sin(x)" : np.array(coarse_sin),
+           "Cos(x)" : np.array(fine_cos)}
+    
+    left = deepcopy(raw)
+    right = deepcopy(raw)
+    
+    assert NumpyLineDict.equals(left, right)
+
+
+def test_NumpyLineDict_not_equal_values():
+    
+    coarse_sample = np.linspace(0., 2*np.pi, num=5)
+    fine_sample = np.linspace(0., 2*np.pi, num=9)
+    
+    coarse_sin = zip(coarse_sample, np.sin(coarse_sample))
+    fine_cos = zip(fine_sample, np.cos(fine_sample))
+    
+    left = {"Sin(x)" : np.array(coarse_sin),
+            "Cos(x)" : np.array(fine_cos)}
+    right = {"Sin(x)" : np.array(fine_cos),
+             "Cos(x)" : np.array(coarse_sin)}
+    
+    assert not NumpyLineDict.equals(left, right)
+
+
+def test_NumpyLineDict_not_equal_keys():
+    
+    coarse_sample = np.linspace(0., 2*np.pi, num=5)
+    fine_sample = np.linspace(0., 2*np.pi, num=9)
+    
+    coarse_sin = zip(coarse_sample, np.sin(coarse_sample))
+    fine_cos = zip(fine_sample, np.cos(fine_sample))
+    
+    left = {"Sin(x)" : np.array(coarse_sin),
+            "Cos(x)" : np.array(fine_cos)}
+    right = {"Sin(x)" : np.array(coarse_sin),
+             "Cosh(x)" : np.array(fine_cos)}
+    
+    assert not NumpyLineDict.equals(left, right)
+
 
 @pytest.mark.parametrize("fext", [".xls", ".xlsx"])
 def test_NumpyLine_auto_file(tmpdir, fext):

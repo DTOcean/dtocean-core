@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2016-2018 Mathew Topper
+#    Copyright (C) 2016-2021 Mathew Topper
+#
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
@@ -34,11 +35,6 @@ import pandas as pd
 from shapely import geos, wkb
 from win32com.client import Dispatch
 
-try:
-    from yaml import CLoader as Loader
-except ImportError:
-    from yaml import Loader
-
 # DTOcean modules
 from aneris.utilities.database import PostgreSQL
 from polite.paths import ObjDirectory, UserDataDirectory
@@ -53,8 +49,7 @@ module_logger = logging.getLogger(__name__)
 
 
 def bathy_records_to_strata(bathy_records=None,
-                            pre_bathy=None,
-                            has_mannings=False):
+                            pre_bathy=None):
     
     """Convert the bathymetry layers table returned by the database into 
     Strata structure raw input"""
@@ -70,8 +65,7 @@ def bathy_records_to_strata(bathy_records=None,
         
     elif bathy_records is not None:
     
-        bathy_table, xi, yj = init_bathy_records(bathy_records,
-                                                 has_mannings)
+        bathy_table, xi, yj = init_bathy_records(bathy_records)
         
     elif pre_bathy is not None:
         
@@ -119,55 +113,8 @@ def bathy_records_to_strata(bathy_records=None,
     
     return raw_strata
 
-    
-def bathy_records_to_mannings(bathy_records=None, pre_bathy=None):
-    
-    """Convert the bathymetry layers table returned by the database into 
-    mannings layer structure raw input"""
-    
-    loop_start_time = time.clock()
-    
-    # Allow a predefined bathymetry table and grid dimensions to be passed
-    # instead of the DB records.
-    if bathy_records is None and pre_bathy is None:
-        
-        errStr = "One of arguments bathy_records or pre_bathy must be given"
-        raise ValueError(errStr)
-        
-    elif bathy_records is not None:
-    
-        bathy_table, xi, yj = init_bathy_records(bathy_records,
-                                                 True)
 
-    elif pre_bathy is not None:
-        
-        bathy_table, xi, yj = pre_bathy
-        
-    else:
-        
-        return None
-        
-    msg = "Building mannings..."
-    module_logger.debug(msg)
-    
-    bathy_layer_groups = bathy_table.groupby("layer_order")
-    layer_one_table = bathy_layer_groups.get_group(1)
-    
-    mannings_array = build_mannings_layer(layer_one_table, xi, yj)
-    
-    mannings_raw = {"values": mannings_array,
-                    "coords": [xi, yj]}
 
-    loop_end_time = time.clock()
-    loop_time = loop_end_time - loop_start_time
-
-    msg = ("Time elapsed building mannings number array was "
-           "{} seconds").format(loop_time)
-    module_logger.debug(msg)
-    
-    return mannings_raw
-
-    
 def tidal_series_records_to_xset(tidal_records):
     
     """Convert the bathymetry layers table returned by the database into 
@@ -256,13 +203,12 @@ def tidal_series_records_to_xset(tidal_records):
     return raw
 
 
-def init_bathy_records(bathy_records, has_mannings=False):
+def init_bathy_records(bathy_records):
     
     msg = "Building DataFrame from {} records".format(len(bathy_records))
     module_logger.debug(msg)
     
     bathy_cols = ["utm_point", "depth"]
-    if has_mannings: bathy_cols.append("mannings_no")
     bathy_cols.extend(["layer_order",
                        "initial_depth",
                        "sediment_type"])
@@ -361,25 +307,6 @@ def build_bathy_layer(layer_table, xi, yj):
         sediment_array[xidx, yidx] = sediment
 
     return depth_array, sediment_array
-
-
-def build_mannings_layer(layer_table, xi, yj):
-    
-    mannings_array = np.zeros([len(xi), len(yj)]) * np.nan
-    
-    for record in layer_table.itertuples():
-        
-        xidxs = np.where(xi == record.x)[0]
-        assert len(xidxs) == 1
-        xidx = xidxs[0]
-
-        yidxs = np.where(yj == record.y)[0]
-        assert len(yidxs) == 1
-        yidx = yidxs[0]
-
-        mannings_array[xidx, yidx] = record.mannings_no
-
-    return mannings_array
 
 
 def build_tidal_series_step(step_table, xi, yj):
@@ -1046,7 +973,7 @@ def get_table_map(map_name="table_map.yaml"):
     table_yaml = objdir.get_path(map_name)
     
     with open(table_yaml, "r") as f:
-        table_list = yaml.load(f, Loader=Loader)
+        table_list = yaml.load(f, Loader=yaml.FullLoader)
         
     return table_list
 

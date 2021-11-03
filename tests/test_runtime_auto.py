@@ -1,4 +1,6 @@
 
+# pylint: disable=redefined-outer-name
+
 import os
 
 import pytest
@@ -255,8 +257,9 @@ def test_get_file_output_interfaces(core, project, tree):
     new_var.get_file_output_interfaces(core, project)
     
     assert new_var
-    
-def test_auto_write_file(core, project, tree):
+
+
+def test_auto_write_file(tmpdir, core, project, tree):
     
     mod_name = "Mock Module"
     var_id = "device.turbine_performance"
@@ -267,7 +270,7 @@ def test_auto_write_file(core, project, tree):
     
     module_menu.activate(core, project, mod_name)
     project_menu.initiate_dataflow(core, project)
-
+    
     hydro_branch = tree.get_branch(core,
                                    project,
                                    mod_name)
@@ -277,11 +280,7 @@ def test_auto_write_file(core, project, tree):
                                                   "tidal_performance.csv"))
     new_var.read(core, project)
     
-    output_path = os.path.join(data_dir,
-                               "tidal_performance_copy.csv")
-                               
-    if os.path.exists(output_path): os.remove(output_path)
-    
+    output_path = str(tmpdir.join("tidal_performance_copy.csv"))
     new_var.write_file(core,
                        project,
                        output_path)

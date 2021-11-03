@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2016 Mathew Topper
+#    Copyright (C) 2021 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ class ThemeInterface(WeightedInterface, MetaInterface):
     '''MapInterface subclass for the thematic assessement modules'''
 
 
-class FileInputInterface(FileInterface):
+class FileInputInterface(FileInterface, MetaInterface):
     
     '''FileInterface subclass for inputting data through files'''
     
@@ -56,7 +56,7 @@ class FileInputInterface(FileInterface):
         return None
 
 
-class FileOutputInterface(FileInterface):
+class FileOutputInterface(FileInterface, MetaInterface):
     
     '''FileInterface subclass for outputting data through files'''
     

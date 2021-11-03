@@ -1,4 +1,6 @@
 
+# pylint: disable=redefined-outer-name,protected-access
+
 import os
 import json
 import shutil
@@ -695,6 +697,56 @@ def test_Project_add_simulation(project):
     assert project.get_simulation_title() == "test"
 
 
+def test_Project_remove_simulation_by_title(project):
+    
+    project = deepcopy(project)
+
+    new_sim = OrderedSim("test")
+    project.add_simulation(new_sim, True)
+    
+    assert project.get_simulation_title() == "test"
+    assert len(project) == 2
+    
+    simulation = project.remove_simulation(title="test")
+    
+    assert simulation.get_title() == "test"
+    assert project.get_simulation_title() == "Default"
+    assert len(project) == 1
+
+
+def test_Project_remove_simulation_by_index(project):
+    
+    project = deepcopy(project)
+
+    new_sim = OrderedSim("test")
+    project.add_simulation(new_sim, True)
+    
+    assert project.get_simulation_title() == "test"
+    assert len(project) == 2
+    
+    simulation = project.remove_simulation(index=0)
+    
+    assert simulation.get_title() == "Default"
+    assert project.get_simulation_title() == "test"
+    assert len(project) == 1
+
+
+def test_Project_remove_simulation_error(project):
+    
+    project = deepcopy(project)
+
+    new_sim = OrderedSim("test")
+    project.add_simulation(new_sim, True)
+    
+    assert project.get_simulation_title() == "test"
+    assert len(project) == 2
+    
+    with pytest.raises(ValueError) as excinfo:
+        project.remove_simulation()
+    
+    assert "an index or simulation title is required" in str(excinfo)
+
+
 def test_Project_set_simulation_title(project):
     
     project = deepcopy(project)
@@ -725,6 +777,19 @@ def test_Project_set_simulation_title_used(project):
         project.set_simulation_title("Default")
 
 
+def test_Project_active_index_none():
+    
+    mock_sim = OrderedSim("mock")
+    mock_project = Project("mock")
+    mock_project.add_simulation(mock_sim)
+    
+    assert mock_project._active_index == 0
+    
+    mock_project.remove_simulation(0)
+    
+    assert mock_project._active_index is None
+
+
 def test_Connector_force_completed(core, project):
     
     project = deepcopy(project) 
@@ -733,3 +798,114 @@ def test_Connector_force_completed(core, project):
     connector.set_force_completed(core, project)
     
     assert connector.get_force_completed(project)
+
+
+def test_Core_import_simulation_from_clone(core, project):
+    
+    src_project = deepcopy(project)
+    dst_project = deepcopy(project)
+    dst_pool = dst_project.get_pool()
+    
+    assert len(dst_project) == 1
+    assert len(dst_pool) == 2
+    assert src_project != dst_project
+    
+    core.import_simulation(src_project,
+                           dst_project,
+                           "Test")
+    
+    dst_pool = dst_project.get_pool()
+    
+    assert len(dst_project) == 2
+    assert dst_project.title == "Test"
+    assert len(dst_pool) == 2
+
+
+def test_Core_import_simulation_from_new(core, project, var_tree):
+    
+    dst_project = deepcopy(project)
+    dst_pool = dst_project.get_pool()
+    
+    assert len(dst_project) == 1
+    assert len(dst_pool) == 2
+    
+    project_menu = ProjectMenu()
+    src_project = project_menu.new_project(core, "New")
+    
+    options_branch = var_tree.get_branch(core,
+                                         src_project,
+                                         "System Type Selection")
+    device_type = options_branch.get_input_variable(core,
+                                                    src_project,
+                                                    "device.system_type")
+    device_type.set_raw_interface(core, "Tidal Fixed")
+    device_type.read(core, src_project)
+    
+    project_menu.initiate_pipeline(core, src_project)
+    
+    src_pool = src_project.get_pool()
+    
+    assert len(src_project) == 1
+    assert len(src_pool) == 2
+    assert src_project != dst_project
+    
+    core.import_simulation(src_project,
+                           dst_project,
+                           "Test")
+    
+    dst_pool = dst_project.get_pool()
+    
+    assert len(dst_project) == 2
+    assert dst_project.title == "Test"
+    assert len(dst_pool) == 4
+
+
+def test_Core_remove_simulation(core, project, var_tree):
+    
+    dst_project = deepcopy(project)
+    dst_pool = dst_project.get_pool()
+    
+    assert len(dst_project) == 1
+    assert len(dst_pool) == 2
+    
+    project_menu = ProjectMenu()
+    src_project = project_menu.new_project(core, "New")
+    
+    options_branch = var_tree.get_branch(core,
+                                         src_project,
+                                         "System Type Selection")
+    device_type = options_branch.get_input_variable(core,
+                                                    src_project,
+                                                    "device.system_type")
+    device_type.set_raw_interface(core, "Wave Floating")
+    device_type.read(core, src_project)
+    
+    project_menu.initiate_pipeline(core, src_project)
+    
+    src_pool = src_project.get_pool()
+    
+    assert len(src_project) == 1
+    assert len(src_pool) == 2
+    assert src_project != dst_project
+    
+    core.import_simulation(src_project,
+                           dst_project,
+                           "Test")
+    
+    dst_pool = dst_project.get_pool()
+    test_value = core.get_data_value(dst_project, "device.system_type")
+    
+    assert len(dst_project) == 2
+    assert dst_project.title == "Test"
+    assert len(dst_pool) == 4
+    assert test_value == "Wave Floating"
+    
+    core.remove_simulation(dst_project,
+                           sim_title="Test")
+    
+    test_value = core.get_data_value(dst_project, "device.system_type")
+    
+    assert len(dst_project) == 1
+    assert len(dst_pool) == 2
+    assert project.get_simulation_title() == "Default"
+    assert test_value == "Tidal Fixed"

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2016-2018 Mathew Topper
+#    Copyright (C) 2016-2021 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -25,9 +25,9 @@ from ..pipeline import Tree
 
 
 class Strategy(object):
-
+    
     '''The base abstract class for all strategy classes'''
-
+    
     __metaclass__ = abc.ABCMeta
     
     def __init__(self):
@@ -44,8 +44,8 @@ class Strategy(object):
         self._module_menu = ModuleMenu()
         self._theme_menu = ThemeMenu()
         self._tree = Tree()
-
-        # Record the simulation indexes used in the strategy
+        
+        # Record the simulation titles used in the strategy
         self._sim_record = []
         
         # Record the configuration dictionary of the strategy (assume this
@@ -57,69 +57,63 @@ class Strategy(object):
         self.sim_details = None
         
         return
-
+    
     @abstractclassmethod
     def get_name(cls):
-
+        
         '''A class method for the common name of the strategy.
-
+        
         Returns:
           str: A unique string
         '''
-
-        return cls()
         
+        return cls()
+    
     @abc.abstractmethod
     def configure(self):
-
+    
         '''The configure method is collect information required for executing
         the strategy.
         '''
-
+        
         return
         
     @abc.abstractmethod
     def get_variables(self):
-
+        
         '''The get_variables method returns the list of any variables that
         will be set by the strategy
         '''
-
+        
         return
         
     @abc.abstractmethod
     def execute(self, core, project):
-
+        
         '''The execute method is used to execute the strategy. It should always
         take a Core and a Project class as the only inputs.
         '''
-
-        return
         
+        return
+    
     def get_config(self):
-        
         return deepcopy(self._config)
-        
+    
+    def dump_config_hook(self, config): # pylint: disable=no-self-use
+        return config
+    
     def set_config(self, config_dict):
-        
         self._config = config_dict
-        
-        return
-        
-    def add_simulation_index(self, sim_index):
-        
-        self._sim_record.append(sim_index)
-        
-        return
-        
+    
+    def add_simulation_title(self, sim_title):
+        self._sim_record.append(sim_title)
+    
+    def remove_simulation_title(self, sim_title):
+        self._sim_record.pop(self._sim_record.index(sim_title))
+    
     def get_simulation_record(self):
-        
         return self._sim_record[:]
-        
+    
     def restart(self):
-        
         self._sim_record = []
         self.sim_details = None
-        
-        return
-

@@ -96,6 +96,40 @@ def test_TableData_auto_file(tmpdir, fext):
     assert len(result) == len(idx)
 
 
+def test_TableDataData_equals():
+    
+    idx = range(1000)
+    values = np.random.rand(len(idx))
+    raw = {"index": idx,
+           "a": values,
+           "b": values}
+    
+    a = pd.DataFrame(raw)
+    b = pd.DataFrame(raw)
+    
+    assert TableData.equals(a, b)
+
+
+def test_TableDataData_not_equals():
+    
+    idx = range(1000)
+    values1 = np.random.rand(len(idx))
+    values2 = np.random.rand(len(idx))
+    
+    raw1 = {"index": idx,
+            "a": values1,
+            "b": values1}
+    
+    raw2 = {"index": idx,
+            "c": values2,
+            "d": values2}
+    
+    a = pd.DataFrame(raw1)
+    b = pd.DataFrame(raw2)
+    
+    assert not TableData.equals(a, b)
+
+
 def test_TableDataColumn_available():
     
     new_core = Core()
@@ -197,3 +231,4 @@ def test_TableDataColumn_auto_db_none(mocker):
     query.connect()
         
     assert query.data.result is None
+

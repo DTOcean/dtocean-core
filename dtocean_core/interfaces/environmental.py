@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #    Copyright (C) 2016 Mathew Topper, Vincenzo Nava
-#    Copyright (C) 2017-2018 Mathew Topper
+#    Copyright (C) 2017-2021 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -35,7 +35,6 @@ import os
 import math
 import pickle
 import pkg_resources
-from packaging.version import Version
 
 import pandas as pd
 import numpy as np
@@ -50,18 +49,19 @@ from dtocean_environment.main import (HydroStage,
                                       OperationMaintenanceStage)
                                      
 from . import ThemeInterface
+from ..utils.version import Version
 
 # Check module version
 pkg_title = "dtocean-environment"
-min_version = "1.0"
+major_version = 2
 version = pkg_resources.get_distribution(pkg_title).version
 
-if not Version(version) >= Version(min_version):
+if not Version(version).major == major_version:
     
-    err_msg = ("Installed {} is too old! At least version {} is required, but "
-               "version {} is installed").format(pkg_title,
-                                                 version,
-                                                 min_version)
+    err_msg = ("Incompatible version of {} detected! Major version {} is "
+               "required, but version {} is installed").format(pkg_title,
+                                                               major_version,
+                                                               version)
     raise ImportError(err_msg)
 
 
@@ -498,7 +498,7 @@ class EnvironmentalInterface(ThemeInterface):
                   
         return id_map
                  
-    def connect(self, debug_entry=False, export_data=True):
+    def connect(self, debug_entry=False, export_data=False):
         
         '''The connect method is used to execute the external program and 
         populate the interface data store with values.
@@ -1226,7 +1226,7 @@ class EnvironmentalInterface(ThemeInterface):
         if (self.data.number_vessels is not None and 
                 self.data.average_size_vessels_inst is not None):
             surface_covered = self.data.number_vessels * \
-                        np.pi * (0.5 * self.data.average_size_vessels_inst)^2 
+                    np.pi * (0.5 * self.data.average_size_vessels_inst) ** 2
         else:
             surface_covered = None
         

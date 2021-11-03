@@ -53,14 +53,44 @@ def test_TimeTable():
     assert "a" in b
     assert len(b) == len(dates)
     assert len(b.resample('D').mean()) == 2
-    
-    
+
+
 def test_get_None():
     
     test = TimeTable()
     result = test.get_value(None)
     
     assert result is None
+
+
+def test_TimeTable_not_dt():
+    
+    dates = []
+    dt = 0
+    end = 3600
+    step = 60
+    
+    while dt < end:
+        dates.append(dt)
+        dt += step
+        
+    values = np.random.rand(len(dates))
+    raw = {"DateTime": dates,
+           "a": values,
+           "b": values}
+
+    meta = CoreMetaData({"identifier": "test",
+                         "structure": "test",
+                         "title": "test",
+                         "labels": ["a", "b"],
+                         "units": ["kg", None]})
+    
+    test = TimeTable()
+    
+    with pytest.raises(ValueError) as excinfo:
+        test.get_data(raw, meta)
+    
+    assert "datetime.datetime objects" in str(excinfo.value)
 
 
 @pytest.mark.parametrize("fext", [".csv", ".xls", ".xlsx"])

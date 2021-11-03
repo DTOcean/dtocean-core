@@ -1,6 +1,6 @@
 
 #    Copyright (C) 2016 Mathew Topper, David Bould, Rui Duarte, Francesco Ferri
-#    Copyright (C) 2017-2018 Mathew Topper
+#    Copyright (C) 2017-2021 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -27,6 +27,8 @@ import yaml
 import numpy as np
 import pandas as pd
 import xarray as xr
+import shapefile
+from scipy import interpolate
 from natsort import natsorted
 import matplotlib.pyplot as plt
 import matplotlib.patheffects as PathEffects
@@ -59,15 +61,15 @@ class UnknownData(Structure):
 
 
 class SeriesData(Structure):
-
+    
     '''Structure represented in a series of some sort'''
-
+    
     def get_data(self, raw, meta_data):
-
+        
         series = pd.Series(raw)
-
+        
         return series
-
+    
     def get_value(self, data):
         
         result = None
@@ -76,7 +78,12 @@ class SeriesData(Structure):
             result = data.copy()
             
         return result
+    
+    @classmethod
+    def equals(cls, left, right): 
         
+        return left.equals(right)
+    
     @staticmethod
     def auto_file_input(self):
         
@@ -117,12 +124,12 @@ class SeriesData(Structure):
 
 
 class TimeSeries(SeriesData):
-
+    
     '''List of tuples expected with the first entries being datetime.datetime
     objects.'''
-
+    
     def get_data(self, raw, meta_data):
-
+        
         if isinstance(raw, pd.Series):
             
             if not isinstance(raw.index, pd.DatetimeIndex):
@@ -135,18 +142,19 @@ class TimeSeries(SeriesData):
             return raw
         
         dates, values = zip(*raw)
-
+        
         if not all(isinstance(x, datetime) for x in dates):
-
+            
             errStr = ("TimeSeries requires a datetime.datetime object as first"
                       "index of all given tuples.")
             raise ValueError(errStr)
-
+        
         dt_index = pd.DatetimeIndex(dates)
         time_series = pd.Series(values, index=dt_index)
-
-        return time_series
+        time_series = time_series.sort_index()
         
+        return time_series
+    
     @staticmethod
     def auto_plot(self):
 
@@ -200,14 +208,14 @@ class TimeSeries(SeriesData):
         self.data.result = s
         
         return
-        
-        
+
+
 class TimeSeriesColumn(TimeSeries):
     
     """The first two entries of the tables key of the DDS entry should refer
     to the date and time columns within the database. These do not need to be
     specified in the labels key, but all other columns should be labelled."""
-
+    
     @staticmethod
     def auto_db(self):
         
@@ -217,7 +225,7 @@ class TimeSeriesColumn(TimeSeries):
                           schema,
                           table,
                           self.meta.result.tables[1:])
-                                       
+        
         if df.empty:
             
             result = None
@@ -234,31 +242,31 @@ class TimeSeriesColumn(TimeSeries):
             
             # Don't allow Date to have any null
             if pd.isnull(df["Date"]).any(): return
-    
+            
             dtstrs = [datetime.combine(date, time) for
                         date, time in zip(df["Date"], df["Time"])]
-    
+            
             df["DateTime"] = dtstrs
             df = df.drop("Date", 1)
             df = df.drop("Time", 1)
             df = df.set_index("DateTime")
             
             result = df.to_records(convert_datetime64=True)
-            
+        
         self.data.result = result
-
+        
         return
 
 
 class TableData(Structure):
-
+    
     '''Structure represented in a pandas dataframe. Note the labels are 
     order sensitive, so care should be taken when defining them. When adding
     labels using the argument 'add_labels' to pass a list, by default they are
     added to the back of the meta data labels. They can be added to the front
     of the labels if the argument 'add_labels_pos' is set to "front".
     '''
-
+    
     def get_data(self, raw,
                        meta_data,
                        add_labels=None,
@@ -269,7 +277,7 @@ class TableData(Structure):
             
             errStr = "Labels must be set for TableData column names"
             raise ValueError(errStr)
-             
+            
         if (meta_data.units is not None and
             len(meta_data.units) != len(meta_data.labels)):
             
@@ -286,11 +294,11 @@ class TableData(Structure):
                 
                 add_labels.extend(req_cols)
                 req_cols = add_labels
-                
+            
             elif add_labels_pos == "back":
                 
                 req_cols.extend(add_labels)
-                
+            
             else:
                 
                 errStr = ("Argument add_labels_pos may only have value "
@@ -301,12 +309,12 @@ class TableData(Structure):
             
             raw_cols = raw.keys()
             columns = None
-                
+        
         elif isinstance(raw, pd.DataFrame):
             
             raw_cols = raw.columns.values
             columns = None
-                
+        
         else:
             
             raw_cols = req_cols
@@ -315,7 +323,7 @@ class TableData(Structure):
         # Covert req_cols and raw_cols into sets
         req_set = set(req_cols)
         raw_set = set(raw_cols)
-            
+        
         if not relax_cols and raw_set != req_set:
             
             missing = req_set - raw_set
@@ -327,14 +335,14 @@ class TableData(Structure):
                 safe_missing = [str(x) for x in missing]
                 missing_str = ", ".join(safe_missing)
                 errStr += " Missing are '{}'.".format(missing_str)
-                
+            
             if extra:
                 safe_extra = [str(x) for x in extra]
                 extra_str = ", ".join(safe_extra)
                 errStr += " Erroneous are '{}'.".format(extra_str)
             
             raise ValueError(errStr)
-
+        
         dataframe = pd.DataFrame(raw, columns=columns)
         
         # Order the columns
@@ -342,9 +350,25 @@ class TableData(Structure):
             dataframe = dataframe[natsorted(dataframe.columns)]
         else:
             dataframe = dataframe[req_cols]
-
+        
+        # Assign types
+        if meta_data.types is not None:
+            
+            if len(meta_data.types) == len(req_cols) + 1:
+                types = meta_data.types[1:]
+            else:
+                types = meta_data.types
+            
+            for c, t in zip(req_cols, types):
+                
+                ## TODO: Deal with this better
+                try:
+                    dataframe[c] = dataframe[c].astype(t)
+                except: # pylint: disable=bare-except
+                    pass
+        
         return dataframe
-
+    
     def get_value(self, data):
         
         result = None
@@ -353,7 +377,12 @@ class TableData(Structure):
             result = data.copy()
             
         return result
+    
+    @classmethod
+    def equals(cls, left, right): 
         
+        return left.equals(right)
+    
     @staticmethod
     def auto_file_input(self):
         
@@ -367,12 +396,12 @@ class TableData(Structure):
              raise TypeError("The specified file format is not supported.",
                              "Supported format are {},{},{}".format('.csv',
                                                                     '.xls',
-                                                                    '.xlsx'))  
+                                                                    '.xlsx'))
         
         self.data.result = df
         
         return
-        
+    
     @staticmethod
     def auto_file_output(self):
         
@@ -391,12 +420,12 @@ class TableData(Structure):
                                                                    '.xlsx'))
         
         return
-        
+    
     @staticmethod
     def get_valid_extensions(cls):
         
         return [".csv", ".xls", ".xlsx"]
-        
+
 
 class TableDataColumn(TableData):
 
@@ -545,13 +574,13 @@ class LineTable(TableData):
         dataframe = dataframe.set_index(index_key)
 
         return dataframe
-
+    
     @staticmethod
     def auto_plot(self):
         
         # Get number of columns for legend
         ncol = len(self.data.result.columns) / 20 + 1
-
+        
         fig = plt.figure()
         ax = fig.gca()
         
@@ -559,25 +588,15 @@ class LineTable(TableData):
         lgd = ax.legend(bbox_to_anchor=(1.04, 1),
                         loc="upper left",
                         ncol=ncol)
-
+        
         xlabel = self.meta.result.labels[0]
-        ylabel = None
         
-        if len(self.meta.result.labels) > 1:
-            ylabel = self.meta.result.labels[1]
-
-        if self.meta.result.units is not None:
+        if (self.meta.result.units is not None and
+            self.meta.result.units[0] is not None):
             
-            if self.meta.result.units[0] is not None:
-                xlabel = "{} [${}$]".format(xlabel, self.meta.result.units[0])
-                
-            if (len(self.meta.result.units) > 1 and 
-                self.meta.result.units[1] is not None):
-                ylabel = "{} [${}$]".format(ylabel, self.meta.result.units[1])
-
-        plt.xlabel(xlabel)
-        if ylabel is not None: plt.ylabel(ylabel)
+            xlabel = "{} [${}$]".format(xlabel, self.meta.result.units[0])
         
+        plt.xlabel(xlabel)
         plt.title(self.meta.result.title)
         
         # Auto adjust canvas for legend
@@ -595,11 +614,11 @@ class LineTable(TableData):
         
         shift = ax_xmax / lgd_xmax
         plt.gcf().tight_layout(rect=(0, 0, shift, 1))
-
-        self.fig_handle = plt.gcf()
-
-        return
         
+        self.fig_handle = plt.gcf()
+        
+        return
+    
     @staticmethod
     def auto_file_output(self):
         
@@ -658,12 +677,18 @@ class LineTableColumn(LineTable):
         
 
 class TimeTable(TableData):
-
+    
     '''Structure represented in a pandas dataframe with a datetime index. One
     key in the raw data should be named "DateTime". If non-indexed raw data
     is given then the datetimes should be in the first column.'''
-
+    
     def get_data(self, raw, meta_data):
+        
+        if not all(isinstance(x, datetime) for x in raw["DateTime"]):
+            
+            errStr = ("TimeTable requires 'DateTime' key to be all "
+                      "datetime.datetime objects")
+            raise ValueError(errStr)
                 
         dataframe = super(TimeTable, self).get_data(raw,
                                                     meta_data,
@@ -671,21 +696,16 @@ class TimeTable(TableData):
                                                     add_labels_pos="front")
         
         if "DateTime" not in dataframe.columns:
-
+            
             errStr = ("TimeTable structure requires one column "
                       "to have value 'DateTime'")
             raise ValueError(errStr)
-            
-        if not all(isinstance(x, datetime) for x in dataframe["DateTime"]):
-            
-            errStr = ("TimeTable requires a datetime.datetime object "
-                      "as first index of all given entries.")
-            raise ValueError(errStr)
         
         dataframe = dataframe.set_index(["DateTime"])
-
-        return dataframe
+        dataframe = dataframe.sort_index()
         
+        return dataframe
+    
     @staticmethod
     def auto_plot(self):
         
@@ -816,22 +836,27 @@ class TriStateIndexTable(IndexTable):
         
 
 class NumpyND(Structure):
-
+    
     '''Numpy array. This structure is too general for most applications and so
     the get_value method deliberately raises an error. Subclasses of this class
     should be used instead.'''
-
+    
     def get_data(self, raw, meta_data):
-
+        
         array = np.array(raw)
-
+        
         return array
-
+    
     def get_value(self, data):
-
+        
         errStr = "Only subclasses of NumpyND may be used."
-
+        
         raise NotImplementedError(errStr)
+    
+    @classmethod
+    def equals(cls, left, right):
+        
+        return np.array_equal(left, right)
 
 
 class Numpy2D(NumpyND):
@@ -1148,16 +1173,24 @@ class NumpyLineColumn(NumpyLine):
 
 
 class NumpyLineDict(NumpyLine):
-
+    
     """Collection of NumpyLine structures on matching axes."""
-
+    
     def get_data(self, raw, meta_data):
-
-        valid_dict = {k: super(NumpyLineDict, self).get_data(v, meta_data) for
-                                                        k, v in raw.items()}
-
+        
+        valid_dict = {}
+        
+        for key, value in raw.items():
+        
+            value = super(NumpyLineDict, self).get_data(value, meta_data)
+            
+            if meta_data.types:
+                key = _assign_type(key, meta_data.types)
+            
+            valid_dict[key] = value
+        
         return valid_dict
-
+    
     def get_value(self, data):
         
         copy_dict = None
@@ -1165,8 +1198,22 @@ class NumpyLineDict(NumpyLine):
         if data is not None:
             copy_dict = {k: super(NumpyLineDict, self).get_value(v) for
                                                         k, v in data.items()}
-
+        
         return copy_dict
+    
+    @classmethod
+    def equals(cls, left, right):
+        
+        if set(left.keys()) != set(right.keys()): return False
+        
+        value_check = []
+        
+        for lkey, lvalue in left.iteritems():
+            
+            rvalue = right[lkey]
+            value_check.append(np.array_equal(lvalue, rvalue))
+        
+        return all(value_check)
     
     @staticmethod
     def auto_file_input(self):
@@ -1221,7 +1268,7 @@ class NumpyLineDict(NumpyLine):
         
         # Sort the keys
         keys = data_dict.keys()
-        keys.sort()
+        keys = natsorted(keys)
         
         for key in keys:
             
@@ -1320,33 +1367,41 @@ class NumpyBar(NumpyLine):
     def _auto_plot(self):
         
         return
-    
+
 
 class Histogram(Structure):
-
+    
     """Structure to store histogram data. The input is a tuple of bin values
     and the bins separators. The final structure is a dictionary with keys
     "values" and "bins".
     """
-
+    
     def get_data(self, raw, meta_data):
-
+        
         if len(raw[1]) != len(raw[0]) + 1:
-
+            
             errStr = ("The bin separators must contain one more item than the "
                       "bin values. Given data contains {} values and {} "
                       "bin separators").format(len(raw[0]),
                                                len(raw[1]))
             raise ValueError(errStr)
-
+        
         histogram = {"values": raw[0],
                      "bins"  : raw[1]}
-
+        
         return histogram
-
+    
     def get_value(self, data):
-
+        
         return deepcopy(data)
+    
+    @classmethod
+    def equals(cls, left, right):
+        
+        vals_equal = np.array_equal(left["values"], right["values"])
+        bins_equal = np.array_equal(left["bins"], right["bins"])
+        
+        return vals_equal and bins_equal
     
     @staticmethod
     def auto_file_input(self):
@@ -1374,7 +1429,7 @@ class Histogram(Structure):
         data = data[np.argsort(data[:, 0])]  # is this needed?
         #check bin consistency
         n_bins = data.shape[0]
-
+        
         for ib in range(1, n_bins):
             if not data[ib-1,1] == data[ib,0]:
                 raise ValueError("The data format is incorrect. ",
@@ -1387,7 +1442,7 @@ class Histogram(Structure):
                            )
         
         return
-
+    
     @staticmethod
     def auto_file_output(self):
         
@@ -1398,7 +1453,6 @@ class Histogram(Structure):
         data = {"bin start": data_["bins"][:-1],
                 "bin end": data_["bins"][1:],
                 "bin value": data_["values"]}
-                
         
         df = pd.DataFrame(data)
         
@@ -1411,31 +1465,31 @@ class Histogram(Structure):
                             "Supported format are {},{},{}".format('.csv',
                                                                    '.xls',
                                                                    '.xlsx'))
-                
+        
         return
     
     @staticmethod
     def get_valid_extensions(cls):
         
         return [".csv", ".xls", ".xlsx"]
-
+    
     @staticmethod
     def auto_plot(self):
-
+        
         hist = self.data.result
         bins = hist['bins']
         values = hist['values']
         nvalues = len(values)
         width = np.ediff1d(bins)
         x = bins[:nvalues]
-
+        
         plt.figure()
         plt.bar(x, values, width, align = 'edge')
         
         plt.title(self.meta.result.title)
-
+        
         self.fig_handle = plt.gcf()
-
+        
         return
 
 
@@ -1489,11 +1543,29 @@ class HistogramDict(Histogram):
     """
 
     def get_data(self, raw, meta_data):
-
+        
         hist_dict = {k: super(HistogramDict, self).get_data(v, meta_data)
                                                     for k, v in raw.items()}
-
+        
         return hist_dict
+    
+    @classmethod
+    def equals(cls, left, right):
+        
+        if set(left.keys()) != set(right.keys()): return False
+        
+        for key in left.keys():
+            
+            left_val = left[key]
+            right_val = right[key]
+            
+            vals_equal = np.array_equal(left_val["values"],
+                                        right_val["values"])
+            bins_equal = np.array_equal(left_val["bins"], right_val["bins"])
+            
+            if not (vals_equal and bins_equal): return False
+        
+        return True
     
     @staticmethod
     def auto_file_input(self):
@@ -1546,7 +1618,7 @@ class HistogramDict(Histogram):
         self.data.result = result
         
         return
-
+    
     @staticmethod
     def auto_file_output(self):
         
@@ -1563,7 +1635,7 @@ class HistogramDict(Histogram):
         
         # Sort the keys
         keys = data_dict.keys()
-        keys.sort()
+        keys = natsorted(keys)
         
         for key in keys:
             
@@ -1889,20 +1961,24 @@ class CartesianListColumn(CartesianList):
 
 
 class CartesianDict(CartesianData):
-
+    
     '''Dictionary of arrays with single dimension of length 2 or 3.'''
-
+    
     def get_data(self, raw, meta_data):
         
         safe_data = {}
         
         for key, value in raw.iteritems():
-
+            
             safe_value = super(CartesianDict, self).get_data(value, meta_data)
+            
+            if meta_data.types:
+                key = _assign_type(key, meta_data.types)
+            
             safe_data[key] = safe_value
-
+        
         return safe_data
-
+    
     def get_value(self, data):
         
         new_dict = None
@@ -1910,8 +1986,22 @@ class CartesianDict(CartesianData):
         if data is not None:
             new_dict = {k: super(CartesianDict, self).get_value(v)
                                                     for k, v in data.items()}
-
+        
         return new_dict
+    
+    @classmethod
+    def equals(cls, left, right):
+        
+        if set(left.keys()) != set(right.keys()): return False
+        
+        value_check = []
+        
+        for lkey, lvalue in left.iteritems():
+            
+            rvalue = right[lkey]
+            value_check.append(np.array_equal(lvalue, rvalue))
+        
+        return all(value_check)
     
     @staticmethod
     def auto_file_input(self):
@@ -2057,25 +2147,29 @@ class CartesianDictColumn(CartesianDict):
         
         if result_dict: self.data.result = result_dict
         
-        return        
-    
+        return
+
 
 class CartesianListDict(CartesianList):
-
+    
     '''Dictionary of 2D arrays with second dimension of length 2 or 3.'''
-
+    
     def get_data(self, raw, meta_data):
         
         safe_data = {}
         
         for key, value in raw.iteritems():
-
+            
             safe_value = super(CartesianListDict, self).get_data(value,
                                                                  meta_data)
+            
+            if meta_data.types:
+                key = _assign_type(key, meta_data.types)
+            
             safe_data[key] = safe_value
             
         return safe_data
-
+    
     def get_value(self, data):
         
         new_dict = None
@@ -2083,8 +2177,22 @@ class CartesianListDict(CartesianList):
         if data is not None:
             new_dict = {k: super(CartesianListDict, self).get_value(v)
                                                     for k, v in data.items()}
-
+            
         return new_dict
+    
+    @classmethod
+    def equals(cls, left, right):
+        
+        if set(left.keys()) != set(right.keys()): return False
+        
+        value_check = []
+        
+        for lkey, lvalue in left.iteritems():
+            
+            rvalue = right[lkey]
+            value_check.append(np.array_equal(lvalue, rvalue))
+        
+        return all(value_check)
     
     @staticmethod
     def auto_file_input(self):
@@ -2245,97 +2353,126 @@ class CartesianListDictColumn(CartesianListDict):
 
 
 class SimpleData(Structure):
-
+    
     '''Simple single value data such as a bool, str, int or float'''
-
+    
     def get_data(self, raw, meta_data):
-
-        simple = self._check_types(raw, meta_data.types)
-                
+        
+        typed = self._assign_type(raw, meta_data.types)
+        
         if meta_data.valid_values is not None:
             
-            if simple not in meta_data.valid_values:
+            if typed not in meta_data.valid_values:
                 
                 valid_str = ", ".join(meta_data.valid_values)
-                errStr = ("Raw data '{}' does not match any valid value from: "
-                          "{}").format(simple, valid_str)
+                errStr = ("Given data '{}' does not match any valid value "
+                          "from: {}").format(typed, valid_str)
                 raise ValueError(errStr)
-
-        return simple
-
-    def get_value(self, data):
-
-        return deepcopy(data)
         
-    def _check_types(self, raw, type_list):
+        if (meta_data.types[0] in ["int", "float"] and
+            meta_data.minimum_equals is not None):
+            
+            test = self._assign_type(meta_data.minimum_equals[0],
+                                     meta_data.types)
+            
+            if typed < test:
+                errStr = ("Given data '{}' is less than minimum value: "
+                          "{}").format(typed, meta_data.minimum_equals[0])
+                raise ValueError(errStr)
+        
+        if (meta_data.types[0] in ["int", "float"] and
+            meta_data.minimums is not None):
+            
+            test = self._assign_type(meta_data.minimums[0],
+                                     meta_data.types)
+            
+            if typed <= test:
+                errStr = ("Given data '{}' is less than or equal to minimum "
+                          "value: {}").format(typed, meta_data.minimums[0])
+                raise ValueError(errStr)
+        
+        if (meta_data.types[0] in ["int", "float"] and
+            meta_data.maximum_equals is not None):
+            
+            test = self._assign_type(meta_data.maximum_equals[0],
+                                     meta_data.types)
+            
+            if typed > test:
+                errStr = ("Given data '{}' is greater than maximum value: "
+                          "{}").format(typed, meta_data.maximum_equals[0])
+                raise ValueError(errStr)
+        
+        if (meta_data.types[0] in ["int", "float"] and
+            meta_data.maximums is not None):
+            
+            test = self._assign_type(meta_data.maximums[0],
+                                     meta_data.types)
+            
+            if typed >= test:
+                errStr = ("Given data '{}' is greater than or equal to "
+                          "maximum value: {}").format(typed,
+                                                      meta_data.maximums[0])
+                raise ValueError(errStr)
+        
+        return typed
     
+    def get_value(self, data):
+        
+        return deepcopy(data)
+    
+    def _assign_type(self, raw, type_list): # pylint: disable=no-self-use
+        
         if type_list is not None:
-
-            try:
-                simple_type = getattr(__builtin__, type_list[0])
-                simple = simple_type(raw)
-            except TypeError:
-                errStr = ("Raw data is of incorrect type. Should be "
-                          "{}, but is {}.").format(type_list,
-                                                   type(raw))
-                raise TypeError(errStr)
-                
+        
+            typed = _assign_type(raw, type_list)
+        
         else:
             
             errStr = "SimpleData structures require types meta data to be set"
             raise ValueError(errStr)
-            
-        return simple
         
-        
+        return typed
+
+
 class PathData(SimpleData):
     
     """A SimpleData subclass for retrieving path strings. Should be used as
     a super class for file or directory paths"""
     
-    def _check_types(self, raw, type_list):
+    def _assign_type(self, raw, type_list):
         
-        simple = super(PathData, self)._check_types(raw, ["str"])
+        typed = super(PathData, self)._assign_type(raw, ["str"])
         
-        return simple
-        
-        
+        return typed
+
+
 class DirectoryData(PathData):
     
     """A PathData subclass for retrieving path strings to directories."""
 
 
 class SimpleList(Structure):
-
+    
     '''Simple list of value data such as a bool, str, int or float'''
-
+    
     def get_data(self, raw, meta_data):
-
+        
         raw_list = raw
-
+        
         if meta_data.types is not None:
-
+            
             simple_list = []
-
+            
             for item in raw_list:
-
-                try:
-                    simple_type = getattr(__builtin__,
-                                          meta_data._types[0])
-                    simple_item = simple_type(item)
-                except TypeError:
-                    errStr = ("Raw data is of incorrect type. Should be "
-                              "{}, but is {}.").format(meta_data._types[0],
-                                                       type(item))
-                    raise TypeError(errStr)
-
-                simple_list.append(simple_item)
-
+                
+                typed = _assign_type(item, meta_data.types)
+                simple_list.append(typed)
+        
         else:
-
+            
             errStr = "SimpleList structures require types meta data to be set"
             raise ValueError(errStr)
-            
+        
         if meta_data.valid_values is not None:
             
             for simple_item in simple_list:
@@ -2347,13 +2484,18 @@ class SimpleList(Structure):
                               "value from: {}").format(simple_item,
                                                        valid_str)
                     raise ValueError(errStr)
-
+        
         return simple_list
-
+    
     def get_value(self, data):
-
-        return data[:]
-
+        
+        result = None
+        
+        if data is not None:
+            result = data[:]
+        
+        return result
+    
     @staticmethod
     def auto_plot(self):
 
@@ -2375,8 +2517,14 @@ class SimpleList(Structure):
         
         self.check_path()
         
+        # Disable integer conversion for float types
+        convert_float = True
+        
+        if (self.meta.result.types is not None and
+            self.meta.result.types[0] == "float"): convert_float = False
+        
         if ".xls" in self._path:
-            df = pd.read_excel(self._path)
+            df = pd.read_excel(self._path, convert_float=convert_float)
         elif ".csv" in self._path:
             df = pd.read_csv(self._path)
         else:
@@ -2387,6 +2535,7 @@ class SimpleList(Structure):
         if not "data" in df.columns:
             raise TypeError("The file does not contain the correct header.",
                             "The data column needs to have the header: 'data'")
+        
         self.data.result = list(df.data)
         
         return
@@ -2418,41 +2567,33 @@ class SimpleList(Structure):
 
 
 class SimpleDict(Structure):
-
+    
     '''Dictionary containing a named variable as a key and a simple
     single valued str, float, int, bool as the value.'''
-
+    
     def get_data(self, raw, meta_data):
-
+        
         raw_dict = raw
-
+        
         if meta_data.types is not None:
-
-            simple_type = getattr(__builtin__, meta_data._types[0])
-            typed_dict = deepcopy(raw_dict)
-
+            
+            typed_dict = {}
+            
             try:
-
+                
                 for key, value in raw_dict.iteritems():
                     
-                    simple_item = simple_type(value)
-                    typed_dict[key] = simple_item
-
+                    typed_value = _assign_type(value, meta_data.types)
+                    typed_dict[key] = typed_value
+            
             except AttributeError:
-
+                
                 errStr = ("Raw data may not be a dictionary. Type is actually "
                           "{}.").format(type(raw_dict))
                 raise AttributeError(errStr)
-
-            except TypeError:
-
-                errStr = ("Raw data is of incorrect type. Should be "
-                          "{}, but is {}.").format(meta_data._types,
-                                                   type(value))
-                raise TypeError(errStr)
-
+        
         else:
-
+            
             errStr = "SimpleDict structures require types meta data to be set"
             raise ValueError(errStr)
         
@@ -2468,11 +2609,11 @@ class SimpleDict(Structure):
                               "value from: {}").format(key,
                                                        valid_str)
                     raise ValueError(errStr)
-
+        
         return typed_dict
-
+    
     def get_value(self, data):
-
+        
         return deepcopy(data)
     
     @staticmethod
@@ -2480,11 +2621,16 @@ class SimpleDict(Structure):
         
         self.check_path()
         
+        # Disable integer conversion for float types
+        convert_float = True
+        
+        if self.meta.result.types[0] == "float": convert_float = False
+        
         if ".xls" in self._path:
-            df = pd.read_excel(self._path)
+            df = pd.read_excel(self._path, convert_float=convert_float)
         elif ".csv" in self._path:
             df = pd.read_csv(self._path)
-
+        
         if not ("data" in df.columns 
                 and "ID" in df.columns):
             raise ValueError("The file does not contain the correct header.",
@@ -2494,7 +2640,7 @@ class SimpleDict(Structure):
         self.data.result = dict(zip(df.ID, df.data))
         
         return
-        
+    
     @staticmethod
     def auto_file_output(self):
         
@@ -2510,24 +2656,24 @@ class SimpleDict(Structure):
             df.to_csv(self._path, index=False)
         
         return
-        
+    
     @staticmethod
     def get_valid_extensions(cls):
         
         return [".csv", ".xls", ".xlsx"]
-
+    
     @staticmethod
     def auto_plot(self):
         
         if not self.meta.result.types[0] in ["int", "float"]: return
-
+        
         num_dict = self.data.result
         
         labels = num_dict.keys()
-        labels.sort()
+        labels = natsorted(labels)
         
         sizes = np.array([num_dict[x] for x in labels])
-
+        
         plt.figure()
         plt.bar(range(len(sizes)),
                 sizes,
@@ -2558,7 +2704,19 @@ class SimplePie(SimpleDict):
 
         num_dict = self.data.result
         labels = num_dict.keys()
-        sizes = np.array(num_dict.values())
+        sizes = num_dict.values()
+        
+        filter_sizes = []
+        filter_labels = []
+        
+        for label, size in zip(labels, sizes):
+            
+            if size > 0.:
+                filter_sizes.append(size)
+                filter_labels.append(label)
+        
+        labels = filter_labels
+        sizes = np.array(filter_sizes)
         
         # Don't allow negative values
         if (sizes < 0).any(): return
@@ -2685,7 +2843,7 @@ class SimpleListColumn(SimpleList):
         
         result = col_lists[0]
         
-        if result or set(result) != set([None]):
+        if result and set(result) != set([None]):
             self.data.result = result
 
         return
@@ -2836,28 +2994,28 @@ class DateTimeDict(DateTimeData):
     def get_valid_extensions(cls):
         
         return [".csv", ".xls", ".xlsx"]
-        
-        
-class TriStateData(Structure):
 
+
+class TriStateData(Structure):
+    
     '''Data that can be "true", "false" or "unknown". Must be provided as
     a string'''
-
+    
     def get_data(self, raw, meta_data):
-
+        
         if isinstance(raw, basestring):
             
             if raw in ["true", "false", "unknown"]:
                 
                 return raw
-                
+        
         errStr = ('Given raw value is incorrectly formatted. It must be '
                   'a string with value "true", "false" or "unknown". '
                   'Given was: {}').format(raw)
         raise ValueError(errStr)
-
+    
     def get_value(self, data):
-
+        
         return deepcopy(data)
 
 
@@ -2889,7 +3047,7 @@ class PointData(Structure):
         
         if data is not None:
             result = Point(data)
-
+        
         return result
     
     @staticmethod
@@ -2897,35 +3055,18 @@ class PointData(Structure):
         
         self.check_path()
         
-        if ".xls" in self._path:
-            df = pd.read_excel(self._path)
-        elif ".csv" in self._path:
-            df = pd.read_csv(self._path)
+        if ".xls" in self._path or ".csv" in self._path:
+            data = PointData._read_table(self._path)
+        elif ".shp" in self._path:
+            data = PointData._read_shapefile(self._path)
         else:
              raise TypeError("The specified file format is not supported. ",
                              "Supported format are {},{},{}".format('.csv',
+                                                                    '.shp',
                                                                     '.xls',
-                                                                    '.xlsx'))  
+                                                                    '.xlsx'))
         
-        if "x" in df.columns and "y" in df.columns:
-            
-            data = np.c_[df.x,df.y]
-            if "z" in df.columns: data = np.c_[data, df.z]
-
-        else:
-            
-            raise ValueError("The specified file structure is not supported, "
-                             "the columns' headers shuld be defined as: "
-                             "x, y, z(optional))")
-                 
-        result = None
-        
-        if len(data) == 1:
-            result = Point(data[0])
-        else:
-            result = [Point(coord) for coord in data]
-            
-        self.data.result = result
+        self.data.result = data
         
         return
      
@@ -2934,41 +3075,128 @@ class PointData(Structure):
         
         self.check_path()
         
-        if isinstance(self.data.result, list):
-            data_ = np.array([np.array(el) for el in self.data.result])
-        elif isinstance(self.data.result, dict):
-            data_ = np.array([np.array(el) for k, el in
-                                                  self.data.result.items()])
-        elif isinstance(self.data.result, Point):
-            data_ = np.array(self.data.result).reshape((1,-1))
+        points = [self.data.result]
+        
+        if ".xls" in self._path or ".csv" in self._path:
+            PointData._write_table(self._path, points)
+        elif ".shp" in self._path:
+            PointData._write_shapefile(self._path, points)
         else:
-            raise TypeError("Data type not understood: possible type for a "
-                            "PointData subclass are: Point, list, dictionary")
-                                
+             raise TypeError("The specified file format is not supported. ",
+                             "Supported format are {},{},{}".format('.csv',
+                                                                    '.shp',
+                                                                    '.xls',
+                                                                    '.xlsx'))
+        
+        return
+    
+    @staticmethod
+    def _read_table(path):
+        
+        if ".xls" in path:
+            df = pd.read_excel(path)
+        elif ".csv" in path:
+            df = pd.read_csv(path) 
+        
+        if "x" in df.columns and "y" in df.columns:
+            
+            data = np.c_[df.x,df.y]
+            if "z" in df.columns: data = np.c_[data, df.z]
+        
+        else:
+            
+            raise ValueError("The specified file structure is not supported, "
+                             "the columns' headers shuld be defined as: "
+                             "x, y, z(optional))")
+        
+        result = Point(data[0])
+        
+        return result
+    
+    @staticmethod
+    def _write_table(path, points):
+        
+        point = points[0]
+        
+        if isinstance(point, Point):
+            data_ = np.array(point).reshape((1, -1))
+        else:
+            raise TypeError("Data type not understood: type for a "
+                            "PointData subclass is shapely Point")
+        
         data = {"x": data_[:,0],
                 "y": data_[:,1]}
-                
+        
         if data_.shape[1] == 3:
             data["z"] = data_[:,2]
         
         df = pd.DataFrame(data)
         
-        if ".xls" in self._path:
-            df.to_excel(self._path, index=False)
-        elif ".csv" in self._path:
-            df.to_csv(self._path, index=False)
-        else:
-            raise TypeError("The specified file format is not supported.",
-                            "Supported format are {},{},{}".format('.csv',
-                                                                   '.xls',
-                                                                   '.xlsx'))
-                
+        if ".xls" in path:
+            df.to_excel(path, index=False)
+        elif ".csv" in path:
+            df.to_csv(path, index=False)
+        
         return
     
-    @staticmethod        
+    @staticmethod
+    def _read_shapefile(path):
+        
+        with shapefile.Reader(path) as shp:
+        
+            if shp.shapeType not in [shapefile.POINT, shapefile.POINTZ]:
+                
+                err_str = ("The imported shapefile must have POINT or POINTZ "
+                           "type. Given file has {} "
+                           "type").format(shp.shapeTypeName)
+                raise ValueError(err_str)
+            
+            shapes = shp.shapes()
+            
+            if len(shapes) != 1:
+                
+                err_str = ("Only one shape may be defined in the imported "
+                           "shapefile. Given file has {} "
+                           "shapes").format(len(shapes))
+                raise ValueError(err_str)
+            
+            s = shapes[0]
+            point = s.points[0]
+            
+            if shp.shapeType == shapefile.POINTZ:
+                point.append(s.z[0])
+        
+        data = Point(point)
+        
+        return data
+    
+    @staticmethod
+    def _write_shapefile(path, points):
+        
+        point = points[0]
+        
+        if isinstance(point, Point):
+            data = np.array(point)
+        else:
+            raise TypeError("Data is not a valid Point object.")
+            
+        with shapefile.Writer(path) as shp:
+            
+            shp.field('name', 'C')
+            
+            if len(data) == 3: 
+                shp.pointz(*data)
+            else:
+                shp.point(*data)
+            
+            shp.record('point1')
+        
+        return
+    
+    @staticmethod
     def get_valid_extensions(cls):
         
-        return [".csv", ".xls", ".xlsx"]
+        return [".csv", ".shp", ".xls", ".xlsx"]
 
     @staticmethod
     def auto_plot(self):
@@ -3005,25 +3233,172 @@ class PointData(Structure):
 
 
 class PointList(PointData):
-
+    
     '''A list containing shapely Point variables as values'''
-
+    
     def get_data(self, raw, meta_data):
-
+        
         point_list = [super(PointList, self).get_data(xy, meta_data)
                                                             for xy in raw]
-
+        
         return point_list
-
+    
     def get_value(self, data):
         
         new_point_list = None
-
+        
         if data is not None:
             new_point_list = [
                             super(PointList, self).get_value(p) for p in data]
-
+        
         return new_point_list
+    
+    @staticmethod
+    def auto_file_input(self):
+        
+        self.check_path()
+        
+        if ".xls" in self._path or ".csv" in self._path:
+            data = PointList._read_table(self._path)
+        elif ".shp" in self._path:
+            data = PointList._read_shapefile(self._path)
+        else:
+             raise TypeError("The specified file format is not supported. ",
+                             "Supported format are {},{},{}".format('.csv',
+                                                                    '.shp',
+                                                                    '.xls',
+                                                                    '.xlsx'))
+        
+        self.data.result = data
+        
+        return
+     
+    @staticmethod
+    def auto_file_output(self):
+        
+        self.check_path()
+        
+        points = self.data.result
+        
+        if ".xls" in self._path or ".csv" in self._path:
+            PointList._write_table(self._path, points)
+        elif ".shp" in self._path:
+            PointList._write_shapefile(self._path, points)
+        else:
+             raise TypeError("The specified file format is not supported. ",
+                             "Supported format are {},{},{}".format('.csv',
+                                                                    '.shp',
+                                                                    '.xls',
+                                                                    '.xlsx'))
+        
+        return
+    
+    @staticmethod
+    def _read_table(path):
+        
+        if ".xls" in path:
+            df = pd.read_excel(path)
+        elif ".csv" in path:
+            df = pd.read_csv(path) 
+        
+        if "x" in df.columns and "y" in df.columns:
+            
+            data = np.c_[df.x,df.y]
+            if "z" in df.columns: data = np.c_[data, df.z]
+        
+        else:
+            
+            raise ValueError("The specified file structure is not supported, "
+                             "the columns' headers shuld be defined as: "
+                             "x, y, z(optional))")
+        
+        result = [Point(coord) for coord in data]
+        
+        return result
+    
+    @staticmethod
+    def _write_table(path, points):
+        
+        for point in points:
+            if not isinstance(point, Point):
+                raise TypeError("Data type not understood: type for a "
+                                "PointData subclass is shapely Point")
+        
+        data_ = np.array([np.array(point) for point in points])
+        
+        data = {"x": data_[:, 0],
+                "y": data_[:, 1]}
+        
+        if data_.shape[1] == 3:
+            data["z"] = data_[:, 2]
+        
+        df = pd.DataFrame(data)
+        
+        if ".xls" in path:
+            df.to_excel(path, index=False)
+        elif ".csv" in path:
+            df.to_csv(path, index=False)
+        
+        return
+    
+    @staticmethod
+    def _read_shapefile(path):
+        
+        with shapefile.Reader(path) as shp:
+        
+            if shp.shapeType not in [shapefile.MULTIPOINT,
+                                     shapefile.MULTIPOINTZ]:
+                
+                err_str = ("The imported shapefile must have MULTIPOINT or "
+                           "MULTIPOINTZ type. Given file has {} "
+                           "type").format(shp.shapeTypeName)
+                raise ValueError(err_str)
+            
+            shapes = shp.shapes()
+            
+            if len(shapes) != 1:
+                
+                err_str = ("Only one shape may be defined in the imported "
+                           "shapefile. Given file has {} "
+                           "shapes").format(len(shapes))
+                raise ValueError(err_str)
+            
+            s = shapes[0]
+        
+        if shp.shapeType == shapefile.MULTIPOINTZ:
+            result = [Point(point + (z,)) for point, z in zip(s.points, s.z)]
+        else:
+            result = [Point(point) for point in s.points]
+        
+        return result
+    
+    @staticmethod
+    def _write_shapefile(path, points):
+        
+        for point in points:
+            if not isinstance(point, Point):
+                raise TypeError("Data type not understood: type for a "
+                                "PointData subclass is shapely Point")
+        
+        data = np.array([np.array(point) for point in points])
+        
+        with shapefile.Writer(path) as shp:
+            
+            shp.field('name', 'C')
+            
+            if data.shape[1] == 3:
+                shp.multipointz(data)
+            else:
+                shp.multipoint(data)
+            
+            shp.record('multipoint1')
+        
+        return
+    
+    @staticmethod
+    def get_valid_extensions(cls):
+        
+        return [".csv", ".shp", ".xls", ".xlsx"]
     
     @staticmethod
     def auto_plot(self):
@@ -3086,6 +3461,7 @@ class PointDict(PointData):
     
     @staticmethod
     def auto_file_input(self):
+        
         self.check_path()
         
         if ".xls" in self._path:
@@ -3144,8 +3520,12 @@ class PointDict(PointData):
                                                                    '.xlsx'))
                 
         return
-
-
+    
+    @staticmethod
+    def get_valid_extensions(cls):
+        
+        return [".csv", ".xls", ".xlsx"]
+    
     @staticmethod
     def auto_plot(self):
 
@@ -3316,8 +3696,8 @@ class PolygonData(Structure):
         coords = list(self.data.result.exterior.coords)
         
         for i, xy in enumerate(coords[:-1]):
-
-            ax1.annotate(str(xy[:2]),
+            
+            ax1.annotate("({:.1f}, {:.1f})".format(*xy[:2]),
                          xy=xy[:2],
                          horizontalalignment='center',
                          weight="bold",
@@ -3346,15 +3726,48 @@ class PolygonData(Structure):
         
         self.check_path()
         
-        if ".xls" in self._path:
-            df = pd.read_excel(self._path)
-        elif ".csv" in self._path:
-            df = pd.read_csv(self._path)
+        if ".xls" in self._path or ".csv" in self._path:
+            data = PolygonData._read_table(self._path)
+        elif ".shp" in self._path:
+            data = PolygonData._read_shapefile(self._path)
         else:
              raise TypeError("The specified file format is not supported. ",
                              "Supported format are {},{},{}".format('.csv',
+                                                                    '.shp',
                                                                     '.xls',
-                                                                    '.xlsx'))  
+                                                                    '.xlsx'))
+        
+        self.data.result = data
+        
+        return
+     
+    @staticmethod
+    def auto_file_output(self):
+        
+        self.check_path()
+        
+        poly = self.data.result
+        
+        if ".xls" in self._path or ".csv" in self._path:
+            PolygonData._write_table(self._path, poly)
+        elif ".shp" in self._path:
+            PolygonData._write_shapefile(self._path, poly)
+        else:
+             raise TypeError("The specified file format is not supported. ",
+                             "Supported format are {},{},{}".format('.csv',
+                                                                    '.shp',
+                                                                    '.xls',
+                                                                    '.xlsx'))
+        
+        return
+    
+    @staticmethod
+    def _read_table(path):
+        
+        if ".xls" in path:
+            df = pd.read_excel(path)
+        elif ".csv" in path:
+            df = pd.read_csv(path) 
              
         if len(df) < 3:
             raise ValueError("PolygonError: A LinearRing must have ",
@@ -3374,20 +3787,14 @@ class PolygonData(Structure):
             raise ValueError("The specified file structure is not supported, "
                              "the columns' headers should be defined as: "
                              "x, y, z(optional)")
-                             
-        self.data.result = data
-        
-        return
-     
+            
+        return data
+    
     @staticmethod
-    def auto_file_output(self):
+    def _write_table(path, polygon):
         
-        self.check_path()
-        
-        poly = self.data.result
-        data = []
-        if isinstance(poly, Polygon):
-            data = np.array(poly.exterior.coords[:])[:-1]
+        if isinstance(polygon, Polygon):
+            data = np.array(polygon.exterior.coords[:])[:-1]
         else:
             raise TypeError("The result does not contain valid",
                             " Polygon object.")
@@ -3402,22 +3809,77 @@ class PolygonData(Structure):
         
         df = pd.DataFrame(data, columns=columns)
         
-        if ".xls" in self._path:
-            df.to_excel(self._path, index=False)
-        elif ".csv" in self._path:
-            df.to_csv(self._path, index=False)
-        else:
-            raise TypeError("The specified file format is not supported.",
-                            "Supported format are {},{},{}".format('.csv',
-                                                                   '.xls',
-                                                                   '.xlsx'))
-                
+        if ".xls" in path:
+            df.to_excel(path, index=False)
+        elif ".csv" in path:
+            df.to_csv(path, index=False)
+        
         return
     
-    @staticmethod        
+    @staticmethod
+    def _read_shapefile(path):
+        
+        with shapefile.Reader(path) as shp:
+        
+            if shp.shapeType not in [shapefile.POLYGON, shapefile.POLYGONZ]:
+                
+                err_str = ("The imported shapefile must have POLYGON or "
+                           "POLYGONZ type. Given file has {} "
+                           "type").format(shp.shapeTypeName)
+                raise ValueError(err_str)
+            
+            shapes = shp.shapes()
+            
+            if len(shapes) != 1:
+                
+                err_str = ("Only one shape may be defined in the imported "
+                           "shapefile. Given file has {} "
+                           "shapes").format(len(shapes))
+                raise ValueError(err_str)
+            
+            s = shapes[0]
+            
+            if len(s.parts) != 1:
+                
+                err_str = ("Only polygons with exterior coordinates may be "
+                           "defined in the imported shapefile. Given file has "
+                           "{} parts").format(len(s.parts))
+                raise ValueError(err_str)
+        
+        if shp.shapeType == shapefile.POLYGONZ:
+            points = [point + (z,) for point, z in zip(s.points, s.z)]
+        else:
+            points = s.points
+        
+        data = Polygon(points)
+        
+        return data
+    
+    @staticmethod
+    def _write_shapefile(path, polygon):
+        
+        if isinstance(polygon, Polygon):
+            data = np.array(polygon.exterior.coords)
+        else:
+            raise TypeError("Data is not a valid Polygon object.")
+            
+        with shapefile.Writer(path) as shp:
+            
+            shp.field('name', 'C')
+            
+            if data.shape[1] == 3:
+                shp.polyz([data.tolist()])
+            else:
+                shp.poly([data.tolist()])
+            
+            shp.record('polygon1')
+        
+        return
+    
+    @staticmethod
     def get_valid_extensions(cls):
         
-        return [".csv", ".xls", ".xlsx"]
+        return [".csv", ".shp", ".xls", ".xlsx"]
 
     
 class PolygonDataColumn(PolygonData):
@@ -3791,28 +4253,30 @@ class PolygonDictColumn(PolygonDict):
 
 
 class XGridND(Structure):
-
+    
     '''xrarray DataArray object. See xarray.pydata.org
-
+    
     Note: This class should not be used directly, subclass and set get_n_dims
     to an integer value.'''
-
+    
     def get_n_dims(self):
-
-        return None
-
+        
+        errStr = "Only subclasses of XGridND may be used."
+        
+        raise NotImplementedError(errStr)
+    
     def get_data(self, raw, meta_data):
-
+        
         """
         Add raw data.
-
+        
         Args:
             data (dict): dictionary with following keys:
                 values (numpy.ndarray): The data to store.
                 coords (list): List of arrays or lists with the coordinates for
                     each dimension. They are ordered by the dimensions of the
                     array.
-
+        
         Note:
             The "labels" key in the DDS files is used to provide dimension
                 and data dimension names. The number of labels should match
@@ -3821,98 +4285,102 @@ class XGridND(Structure):
                 to the dimensions and the data. The first n entries matches
                 the dimesnions and the last matches the data.
         """
-
+        
         coords = raw["coords"]
         n_dims = self.get_n_dims()
-
+        
         if meta_data.labels is None:
-
+            
             errStr = ("Labels metadata must be set for {} data "
                       "structures").format(self.__class__.__name__)
             raise ValueError(errStr)
-
+        
         dims = meta_data.labels[:]
-
+        
         if len(dims) != n_dims:
-
+            
             errStr = ("Given number of labels is incorrect. The data has {} "
                       "dimensions but {} labels are given").format(len(dims),
                                                                    n_dims)
             raise ValueError(errStr)
-
+        
         if meta_data.units is not None:
             units = meta_data.units[:]
         else:
             units = None
-
+        
         coords, attrs = self._get_coords_attrs(dims,
                                                coords,
                                                units)
-
+        
         data_array = xr.DataArray(raw["values"],
                                   coords=coords,
                                   attrs=attrs)
-
+        
         return data_array
-
+    
     def _get_coords_attrs(self, dims, coords, units):
-
+        
         if len(dims) != len(coords):
-
+            
             errStr = ("The number of coordinate lists must match the number "
                       "of labels.")
             raise ValueError(errStr)
-
+        
         if units is not None and len(units) != len(dims) + 1:
-
+            
             errStr = ("The number of units must match the number "
                       "of labels plus one.")
             raise ValueError(errStr)
-
+        
         attrs = None
         coord_tuples = []
-
+        
         for dim, coord_list in zip(dims, coords):
-
-            coord_item = coord_tuples.append((dim, coord_list))
-
+            coord_tuples.append((dim, coord_list))
+        
         if units is not None:
             
             data_unit = units.pop()
             
             if data_unit is not None:
                 attrs = {'units': data_unit}
-                
+            
             new_tuples = []
-
+            
             for coord_item, unit in zip(coord_tuples, units):
-
+                
                 if unit is not None:
-
+                    
                     coord_attrs = {'units': unit}
                     new_coord_item = (coord_item[0],
                                       coord_item[1],
                                       coord_attrs)
-
+                
                 else:
-
+                    
                     new_coord_item = coord_item
-
+                
                 new_tuples.append(new_coord_item)
-
+            
             coord_tuples = new_tuples
-
+        
         return coord_tuples, attrs
-
+    
     def get_value(self, data):
         
         result = None
         
         if data is not None:
             result = data.copy(deep=True)
-            
+        
         return result
-
+    
+    @classmethod
+    def equals(cls, left, right):
+        
+        return left.identical(right)
+    
     @staticmethod
     def auto_file_input(self):
         
@@ -3971,23 +4439,21 @@ class XGrid2D(XGridND):
             x = range(len(xuniques))
         else:
             xuniques, x = np.unique(xcoord, return_inverse=True)
-            xuniques = ['{0:.8g}'.format(tick) for tick in xuniques]
             
         if ycoord.values.dtype.kind in {'U', 'S'}:
             yuniques = ycoord.values
             y = range(len(yuniques))
         else:
             yuniques, y = np.unique(ycoord, return_inverse=True)
-            yuniques = ['{0:.8g}'.format(tick) for tick in yuniques]
-
+        
         fig = plt.figure()
         ax1 = fig.add_subplot(1, 1, 1, aspect='equal')
         plt.contourf(x, y, self.data.result.T)
         clb = plt.colorbar()
-
+        
         xlabel = self.meta.result.labels[0]
         ylabel = self.meta.result.labels[1]
-
+        
         if self.meta.result.units is not None:
             
             if self.meta.result.units[0] is not None:
@@ -3998,15 +4464,28 @@ class XGrid2D(XGridND):
             
             if self.meta.result.units[2] is not None:
                 clb.set_label("${}$".format(self.meta.result.units[2]))
-
+        
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
-                
-        ax1.set_xticklabels(xuniques)
-        ax1.set_yticklabels(yuniques)
+        
+        if xcoord.values.dtype.kind in {'U', 'S'}:
+            plt.xticks(x, xuniques)
+        else:
+            locs, _ = plt.xticks()
+            f = interpolate.interp1d(x, xuniques, fill_value="extrapolate")
+            new_labels = ['{0:.8g}'.format(tick) for tick in f(locs)]
+            plt.xticks(locs, new_labels)
+        
+        if ycoord.values.dtype.kind in {'U', 'S'}:
+            plt.yticks(y, yuniques)
+        else:
+            locs, _ = plt.yticks()
+            f = interpolate.interp1d(y, yuniques, fill_value="extrapolate")
+            new_labels = ['{0:.8g}'.format(tick) for tick in f(locs)]
+            plt.yticks(locs, new_labels)
         
         plt.title(self.meta.result.title)
-
+        
         self.fig_handle = plt.gcf()
         
         return
@@ -4229,6 +4708,9 @@ class Strata(XSet3D):
                 
         sediment_path = self._path.replace("depth", "sediment")
         sediment_data = xr.open_dataset(sediment_path)
+        sediment_data = sediment_data.where(
+                                        sediment_data["sediment"] != 'None')
+        sediment_data = sediment_data.fillna(None)
         
         strata["sediment"] = sediment_data["sediment"]
         
@@ -4303,7 +4785,7 @@ class Network(Structure):
         self.check_path(True)
         
         with open(self._path, 'r') as stream:
-            data = yaml.load(stream)
+            data = yaml.load(stream, Loader=yaml.FullLoader)
 
         self.data.result = data
         
@@ -4377,6 +4859,10 @@ class RecommendationDict(Structure):
     def get_valid_extensions(cls):
         
         return SimpleDict.get_valid_extensions(cls)
-        
 
 
+def _assign_type(raw, type_list):
+    
+    TypeCls = getattr(__builtin__, type_list[0])
+    
+    return TypeCls(raw)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2016-2018 Mathew Topper
+#    Copyright (C) 2016-2021 Mathew Topper
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -134,6 +134,7 @@ def get_input_tables(system_type,
     
     # Electrical
     subhubs = None
+    elec_subsystems = []
     
     if elec_network is not None:
     
@@ -158,6 +159,8 @@ def get_input_tables(system_type,
                                                      elec_database)
         
     # Moorings and Foundations
+    mandf_subsystems = []
+    
     if mandf_network is not None:
     
         mandf_subsystems = ['Foundations']
@@ -182,12 +185,12 @@ def get_input_tables(system_type,
                       'PTO': 'Pto',
                       'Control': 'Control',
                       'Support Structure': 'Support structure',
-                      'Umbilical Cable': 'Dynamic cable',
-                      'Inter-Array Cables': 'Array elec sub-system',
+                      'Umbilical Cable': 'Umbilical',
+                      'Inter-Array Cables': 'Elec sub-system',
                       'Substations': 'Substation',
-                      'Export Cable': 'Export Cable',
+                      'Export Cable': 'Export cable',
                       'Foundations': 'Foundation',
-                      'Mooring Lines': 'Mooring line'}
+                      'Mooring Lines': 'Moorings lines'}
                       
     weightings_map = {
                 'Prime Mover': 
@@ -544,7 +547,7 @@ def get_input_tables(system_type,
                                                 all_modes,
                                                 all_repair,
                                                 subhubs)
-
+        
         # Add replacement operations
         if "replacement" in active_ops:
             
@@ -663,7 +666,7 @@ def get_input_tables(system_type,
                                                      temp_repair,
                                                      all_modes,
                                                      all_repair)
-
+        
         if "inspections" in active_ops:
             
             # Initiate temporary table data
@@ -840,10 +843,10 @@ def get_input_tables(system_type,
     
     assert all_comp.shape[0] == 11
     assert all_modes.shape[0] == 11
-        
+    
     assert all_repair.shape[0] == 18
     assert all_inspection.shape[0] == 16
-
+    
     assert all_modes.shape[1] == all_repair.shape[1] + \
                                                 all_inspection.shape[1]
                 
@@ -865,7 +868,7 @@ def update_comp_table(subsystem,
         
         subsystem_id = "{}001".format(subsystem_root)
         temp_comp["Component_ID"] = subsystem_id
-        temp_comp["Component_type"] = subsystem_id
+        temp_comp["Component_type"] = "array"
 
         num_cols = all_comp.shape[1]
         temp_comp = temp_comp.rename(num_cols)
@@ -1251,7 +1254,7 @@ def get_user_network(subsytem_comps, array_layout):
     if len(subsytem_comps) == 4:
         subsystem_names.insert(2, 'Control')
     
-    user_hierarchy = {'array': {}}
+    user_hierarchy = {}
     user_bom = {}
 
     device_subsytem_hierarchy = {k: [v] for k, v in zip(subsystem_names,
@@ -1372,16 +1375,16 @@ def get_events_table(raw_df,
 
     data_df = data_df.rename(columns=name_map)
     
-    subsytem_map = { 'Array elec sub-system': 'Inter-Array Cables',
-                     'Control': 'Control',
-                     'Dynamic cable': 'Umbilical Cable',
-                     'Export Cable': 'Export Cable',
-                     'Foundation': 'Foundations',
-                     'Hydrodynamic': 'Prime Mover',
-                     'Mooring line': 'Mooring Lines',
-                     'Pto': 'PTO',
-                     'Substation': 'Substations',
-                     'Support structure': 'Support Structure' }
+    subsytem_map = {'Elec sub-system': 'Inter-Array Cables',
+                    'Control': 'Control',
+                    'Umbilical': 'Umbilical Cable',
+                    'Export cable': 'Export Cable',
+                    'Foundation': 'Foundations',
+                    'Hydrodynamic': 'Prime Mover',
+                    'Moorings lines': 'Mooring Lines',
+                    'Pto': 'PTO',
+                    'Substation': 'Substations',
+                    'Support structure': 'Support Structure'}
     
     data_df["Sub-System"] = data_df["Sub-System"].replace(subsytem_map)
     
@@ -1433,33 +1436,34 @@ def get_electrical_system_cost(component_data, system_names, db):
             
             errStr = "Where's the bloody air force?"
             raise RuntimeError(errStr)
+        
+        component_id = component['Key Identifier']
+        
+        cost_dict[subsytem_type] += _get_elec_db_cost(component_id,
+                                                      component.Quantity,
+                                                      db,
+                                                      install_type)
     
-        cost_dict[subsytem_type] += _get_elec_db_cost(
-                                                component['Key Identifier'],
-                                                component.Quantity,
-                                                db,
-                                                install_type)
-
     return cost_dict
 
 
 def get_mandf_system_cost(mandf_bom, system_names, db):
     
     '''Get cost of each moorings or foundations subsystem in system_names.
-
+    
     Args:
         mandf_bom (pd.DataFrame) [-]: Table of costs used in the moorings
             and foundations networks.
         system_names (list) [-]: List of subsystems in the given network.
         db (Object) [-]: Component database object.
-
+    
     Attributes:
         cost_dict (dict) [E]: Cost of each subsystem;
             key = subsystem, val = total cost.
-
+    
     Returns:
         cost_dict
-
+    
     '''
     
     subsytem_map = {'drag anchor': 'Foundations',
@@ -1473,31 +1477,31 @@ def get_mandf_system_cost(mandf_bom, system_names, db):
                     "swivel": 'Mooring Lines'}
     
     cost_dict = {key: 0 for key in system_names}
-
+    
     for _, component in mandf_bom.iterrows():
         
-        component_id = component['Key Identifier']
+        component_key = component['Key Identifier']
         
         # Catch 'n/a'
-        if component_id == "n/a":
+        if component_key == "n/a":
             
             subsytem_type = "Foundations"
             cost = component['Cost']
-            
+        
         else:
             
             # Get the component dictionary
-            component_dict = db[component_id]
+            component_dict = db[component_key]
             
             # Pick up the component type
             component_type = component_dict['item2']
-    
+            
             if component_type not in subsytem_map.keys():
                 
                 errStr = ("Component type '{}' is not "
                           "recognised").format(component_type)
                 raise ValueError(errStr)
-        
+            
             subsytem_type = subsytem_map[component_type]
             cost = component_dict['item11'] * component['Quantity']
         
@@ -1505,9 +1509,9 @@ def get_mandf_system_cost(mandf_bom, system_names, db):
             
             errStr = "I would like to have seen Montana..."
             raise RuntimeError(errStr)
-            
-        cost_dict[subsytem_type] += cost
         
+        cost_dict[subsytem_type] += cost
+    
     return cost_dict
 
 
@@ -1541,11 +1545,9 @@ def _get_elec_db_cost(component_key, quantity, db, type_):
         raise ValueError(errMsg)
     
     converted_type = convert_map[type_]
-
     component_db = getattr(db, converted_type)
     
     cost = component_db[component_db.id == component_key].cost.values[0]
-
     val = quantity * cost
-
+    
     return val

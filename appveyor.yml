@@ -8,54 +8,63 @@
 #---------------------------------#
 
 # version format
-version: 2.0.1-build{build}
+version: 3.0.dev1.build{build}
 
 environment:
   matrix:
     - PYTHON_VERSION: 2.7
-      MINICONDA: C:\Miniconda
+      MINICONDA: C:\Miniconda3
       ARCH: "32"
-      CONDARC: .condarc-32
+      CONDARC_PATH: .condarc-32
+      REQUIREMENTS: requirements-conda-dev-32.txt
       
     - PYTHON_VERSION: 2.7
-      MINICONDA: C:\Miniconda-x64
+      MINICONDA: C:\Miniconda3-x64
       ARCH: "64"
-      CONDARC: .condarc
+      CONDARC_PATH: .condarc
+      REQUIREMENTS: requirements-conda-dev.txt
 
 init:
   - "ECHO %PYTHON_VERSION% %MINICONDA%"
+  - "ECHO %UserProfile%"
 
 install:
   - "set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%"
   - conda config --set always_yes yes --set changeps1 no
-  - conda install --quiet conda=4.6.14
-  - conda info --all
+  - conda update python
+  - conda update --all
+  - conda init cmd.exe
+  - conda info
   - conda create -n _dtocean_core python=%PYTHON_VERSION% pip
-  - activate _dtocean_core
-  - copy %CONDARC% %CONDA_PREFIX%\\.condarc
+  - conda activate _dtocean_core
+  - copy %CONDARC_PATH% %CONDA_PREFIX%\\.condarc
   - >
-    conda install polite=0.10.1
-    aneris=0.10.2
-    dtocean-economics=2.0.0
-    dtocean-electrical=2.0.0
-    dtocean-environment=2.0.0
-    dtocean-hydrodynamics=2.0.0
-    dtocean-installation=2.0.0
-    dtocean-logistics=2.0.0
-    dtocean-maintenance=2.0.0
-    dtocean-moorings=2.0.0
-    dtocean-reliability=2.0.0
+    conda install "polite>=0.10,<1"
+    "aneris>=0.11.1,<1"
+    "dtocean-economics>=2.0.0,<3"
+    "dtocean-electrical>=2.0.0,<3"
+    "dtocean-environment>=2.0.0,<3"
+    "dtocean-hydrodynamics>=3.0.0,<4"
+    "dtocean-installation>=2.0.0,<3"
+    "dtocean-logistics>=3.0.0,<4"
+    "dtocean-maintenance>=3.0.0,<4"
+    "dtocean-moorings>=2.0.0,<3"
+    "dtocean-reliability>=3.0.0,<4"
   - python setup.py bootstrap
-  - conda install --file requirements-conda-dev.txt
+  - conda install --file %REQUIREMENTS%
+  - chcp 65001
+  - set PYTHONIOENCODING=utf-8
   - pip install -e .
-  - conda install mock pytest pytest-cov=2.5.1 pytest-mock
-  
+  - conda install mock pytest pytest-catchlog pytest-cov=2.5.1 pytest-mock
+
 build: off
-  
+
 test_script:
   - python setup.py test -a "--cov dtocean_core"
-  
+
 after_test:
  - pip install codecov
  - codecov
-  
+
+# on_finish:
+ # - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
