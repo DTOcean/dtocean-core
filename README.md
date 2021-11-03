@@ -1,6 +1,6 @@
 [![appveyor](https://ci.appveyor.com/api/projects/status/github/DTOcean/dtocean-core?branch=master&svg=true)](https://ci.appveyor.com/project/DTOcean/dtocean-core)
 [![codecov](https://codecov.io/gh/DTOcean/dtocean-core/branch/master/graph/badge.svg)](https://codecov.io/gh/DTOcean/dtocean-core)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/7cfcd9f1332e46368c09fb7e0144017f)](https://www.codacy.com/project/H0R5E/dtocean-core/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=DTOcean/dtocean-core&amp;utm_campaign=Badge_Grade_Dashboard&amp;branchId=11755899)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/f32c3a05b5cc4b339baa1deacd4c258c)](https://www.codacy.com/gh/DTOcean/dtocean-core/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=DTOcean/dtocean-core&amp;utm_campaign=Badge_Grade)
 [![release](https://img.shields.io/github/release/DTOcean/dtocean-core.svg)](https://github.com/DTOcean/dtocean-core/releases/latest)
 
 # DTOcean Core Module
@@ -16,7 +16,7 @@ tools, without the need for a graphical user interface (GUI). For use and
 development with a GUI, see the [dtocean-app](
 https://github.com/DTOcean/dtocean-core) repository. 
 
-* For python 2.7 only.
+\* For python 2.7 only.
 
 ## Installation
 
@@ -268,6 +268,13 @@ conda environment first:
 $ conda activate _dtocean_core
 ```
 
+The main `dtocean-core` command can run DTOcean projects saved as `.prj` files,
+either for the next scheduled module or all modules. For help, type:
+
+```
+$ dtocean-core -h
+```
+
 A utility is provided to add an energy period (Te) time series to wave data 
 containing significant wave height (Hm0) and wave peak period (Tp). To get help:
 
@@ -307,12 +314,12 @@ Please make sure to update tests as appropriate.
 This package was initially created as part of the [EU DTOcean project](
 https://www.dtoceanplus.eu/About-DTOceanPlus/History) by:
 
- * Mathew Topper at [TECNALIA](https://www.tecnalia.com)
- * Vincenzo Nava at [TECNALIA](https://www.tecnalia.com)
- * Adam Colin at [the University of Edinburgh](https://www.ed.ac.uk/)
- * David Bould at [the University of Edinburgh](https://www.ed.ac.uk/)
- * Rui Duarte at [France Energies Marines](https://www.france-energies-marines.org/)
- * Francesco Ferri at [Aalborg University](https://www.en.aau.dk/)
+*   Mathew Topper at [TECNALIA](https://www.tecnalia.com)
+*   Vincenzo Nava at [TECNALIA](https://www.tecnalia.com)
+*   Adam Colin at [the University of Edinburgh](https://www.ed.ac.uk/)
+*   David Bould at [the University of Edinburgh](https://www.ed.ac.uk/)
+*   Rui Duarte at [France Energies Marines](https://www.france-energies-marines.org/)
+*   Francesco Ferri at [Aalborg University](https://www.en.aau.dk/)
 
 It is now maintained by Mathew Topper at [Data Only Greater](
 https://www.dataonlygreater.com/).
