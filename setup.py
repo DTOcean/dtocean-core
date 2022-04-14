@@ -165,7 +165,7 @@ setup(name='dtocean-core',
       packages=find_packages(),
       setup_requires=['pyyaml'],
       install_requires=[
-        'aneris>=0.10,<1',
+        'aneris>=0.11.1,<1',
         'basemap',
         'cma',
         'cmocean',
