@@ -295,7 +295,7 @@ class AdvancedPosition(Strategy):
         _, work_dir_status = self.get_worker_directory_status(config_copy)
         _, optim_status = self.get_optimiser_status(core, config_copy)
         
-        if work_dir_status == 0 and optim_status == 1:
+        if work_dir_status == 0 and optim_status == 2:
             
             log_str = 'Attempting restart of incomplete strategy'
             module_logger.info(log_str)
@@ -582,7 +582,7 @@ class AdvancedPosition(Strategy):
                                                                         core,
                                                                         config)
         
-        if optimiser_status_code == 0: return False
+        if optimiser_status_code == 1: return False
         
         return True
     
@@ -632,7 +632,7 @@ class AdvancedPosition(Strategy):
         if os.path.isfile(results_path):
             
             status_str = "Optimisation complete"
-            status_code = 0
+            status_code = 1
             
             return status_str, status_code
         
@@ -643,7 +643,7 @@ class AdvancedPosition(Strategy):
             
             status_str = ("Optimisation incomplete (restart may be "
                           "possible)")
-            status_code = 1
+            status_code = 2
         
         return status_str, status_code
     
