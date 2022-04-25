@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.0.2] - 2022-04-25
+
+### Changed
+
+-   The `AdvancedPosition.get_optimiser_status` method now returns a code in
+    the range `[0, 2]`, with `0` meaning the status can not be determined, `1` 
+    meaning the optimisation is complete and `2` meaning the optimisation is 
+    incomplete.
+
+## [3.0.1] - 2022-04-14
+
+### Changed
+
+-   The minimum version of the aneris dependency was set to 0.11.1 or greater.
+
 ## [3.0.0] - 2022-04-04
 
 ### Added
