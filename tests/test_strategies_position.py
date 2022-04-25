@@ -175,7 +175,7 @@ def test_advanced_get_optimiser_status_complete(tmpdir):
     (status_str,
      status_code) = AdvancedPosition.get_optimiser_status(None, config)
     
-    assert status_code == 0
+    assert status_code == 1
     assert "complete" in status_str
 
 
@@ -191,7 +191,7 @@ def test_advanced_get_optimiser_status_incomplete(mocker, tmpdir):
     (status_str,
      status_code) = AdvancedPosition.get_optimiser_status(None, config)
     
-    assert status_code == 1
+    assert status_code == 2
     assert "incomplete" in status_str
 
 
@@ -437,7 +437,7 @@ def test_advanced_pre_execute_restart(caplog, mocker, advanced):
     
     mocker.patch.object(advanced,
                         "get_optimiser_status",
-                        return_value=["mock", 1],
+                        return_value=["mock", 2],
                         autospec=True)
     
     advanced._config = {'clean_existing_dir': "mock",
@@ -467,7 +467,7 @@ def test_advanced_pre_execute_start(mocker, advanced):
     
     mocker.patch.object(advanced,
                         "get_optimiser_status",
-                        return_value=["mock", 0],
+                        return_value=["mock", 1],
                         autospec=True)
     
     mocker.patch.object(advanced,
@@ -1487,8 +1487,8 @@ def test_advanced_export_config_template(mocker, advanced):
                          (0,      None,   None,   None,   None,   False),
                          (1,      0,      None,   None,   None,   False),
                          (1,      1,      None,   None,   None,   False),
-                         (1,      1,      "mock", 0,      0,      False),
-                         (1,      1,      "mock", 0,      1,      True),
+                         (1,      1,      "mock", 0,      1,      False),
+                         (1,      1,      "mock", 0,      2,      True),
                          (1,      1,      "mock", 1,      None,   True)])
 def test_advanced_allow_run(mocker,
                             p_code,
