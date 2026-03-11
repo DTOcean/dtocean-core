@@ -1,7 +1,9 @@
-[![appveyor](https://ci.appveyor.com/api/projects/status/github/DTOcean/dtocean-core?branch=master&svg=true)](https://ci.appveyor.com/project/DTOcean/dtocean-core)
-[![codecov](https://codecov.io/gh/DTOcean/dtocean-core/branch/master/graph/badge.svg)](https://codecov.io/gh/DTOcean/dtocean-core)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/f32c3a05b5cc4b339baa1deacd4c258c)](https://www.codacy.com/gh/DTOcean/dtocean-core/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=DTOcean/dtocean-core&amp;utm_campaign=Badge_Grade)
-[![release](https://img.shields.io/github/release/DTOcean/dtocean-core.svg)](https://github.com/DTOcean/dtocean-core/releases/latest)
+***
+
+:loudspeaker: This repository was archived on 11 March 2026. It is now
+maintained in the [dtocean](https://github.com/DTOcean/dtocean) monorepo.
+
+***
 
 # DTOcean Core Module
 
